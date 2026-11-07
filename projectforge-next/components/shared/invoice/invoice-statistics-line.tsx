@@ -19,6 +19,7 @@ import {
   ComparisonToggleRegion,
 } from "./invoice-comparison-toggle";
 import { InvoiceStatisticsTable } from "./invoice-statistics-table";
+import { STATISTICS_LINE_CLASS } from "@/components/shared/statistics-line-class";
 
 /**
  * The invoice-date filter, the field the backend shifts by a year for the comparison
@@ -125,7 +126,7 @@ export function InvoiceStatisticsLine({
             corner={caret}
           />
         ) : (
-          <dl className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b bg-muted/40 px-4 py-1.5 text-[13px]">
+          <dl className={STATISTICS_LINE_CLASS}>
             {caret && <div className="flex items-center">{caret}</div>}
             {entries.map((entry) => (
               <div

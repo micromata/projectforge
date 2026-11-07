@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { FilterElement } from "@/lib/rs/types";
@@ -13,6 +13,7 @@ import {
   FilterValuesProvider,
 } from "./filter-values-context";
 import { FilterPill } from "./filter-pill";
+import { FilterPillsCollapsed } from "./filter-pills-collapsed";
 import { withFilterValue, type FilterValues } from "./filter-value";
 import {
   clearHistoryFilters,
@@ -61,6 +62,7 @@ export function FilterPills({
   className,
 }: FilterPillsProps) {
   const t = useTranslations("filter");
+  const collapsed = useContext(FilterPillsCollapsed);
   const [openId, setOpenId] = useState<string | null>(null);
   // A field picked from the chip: shown as an empty pill until it is saved or dropped.
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -77,13 +79,15 @@ export function FilterPills({
     history != null &&
     (historyFilterActive(values) || pendingId === HISTORY_FILTER_GROUP_ID);
 
-  // Derived, and in backend order, so pills don't jump around as values come and go.
-  const shown = withoutHistoryFilters(elements).filter(
-    (element) =>
-      element.defaultFilter ||
-      element.id in values ||
-      element.id === pendingId ||
-      keptBooleanIds.has(element.id)
+  // Derived, and in backend order, so pills don't jump around as values come and go. Folded, the ones with a
+  // value only (see FilterPillsCollapsed).
+  const shown = withoutHistoryFilters(elements).filter((element) =>
+    collapsed
+      ? element.id in values
+      : element.defaultFilter ||
+        element.id in values ||
+        element.id === pendingId ||
+        keptBooleanIds.has(element.id)
   );
 
   function close() {
@@ -112,7 +116,14 @@ export function FilterPills({
       {/* Pill edits apply live, so the applied values are the ones a checklist narrows by. */}
       <FilterValuesProvider value={values}>
         <FilterSearchStringProvider value={searchString}>
-          <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-1.5",
+              // Folded: one line, swiped sideways.
+              collapsed && "flex-nowrap overflow-x-auto [&>*]:shrink-0",
+              className
+            )}
+          >
             {showHistory && (
               <HistoryFilterPill
                 group={history}
@@ -151,42 +162,44 @@ export function FilterPills({
                 }}
               />
             ))}
-            <FilterFieldPicker
-              entries={[
-                ...(history
-                  ? [{ id: HISTORY_FILTER_GROUP_ID, label: t("history") }]
-                  : []),
-                // `deleted` right behind the change history instead of alphabetically among the entity's
-                // own properties, in both places a field can be picked (see hoistDeletedFilter).
-                ...hoistDeletedFilter(withoutHistoryFilters(elements)).map(
-                  (element) => ({
-                    id: element.id,
-                    label: element.label ?? element.id,
-                    tooltip: element.tooltip,
-                  })
-                ),
-              ]}
-              activeIds={[
-                ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),
-                ...shown.map((element) => element.id),
-              ]}
-              onSelect={(id) => {
-                // A boolean has one meaningful state; picking it is the same as ticking it, so it
-                // becomes an active pill straight away instead of opening a popover with one checkbox.
-                const element = elements.find((e) => e.id === id);
-                if (element?.filterType === "BOOLEAN") {
-                  onChange(withFilterValue(values, id, { value: "true" }));
-                  return;
-                }
-                // Keyed by id, so a pending pill mounts with its popover already open.
-                if (!(id in values)) setPendingId(id);
-                setOpenId(id);
-              }}
-              elements={elements}
-              values={values}
-              onApply={onChange}
-            />
-            {activeCount > 0 && (
+            {!collapsed && (
+              <FilterFieldPicker
+                entries={[
+                  ...(history
+                    ? [{ id: HISTORY_FILTER_GROUP_ID, label: t("history") }]
+                    : []),
+                  // `deleted` right behind the change history instead of alphabetically among the entity's
+                  // own properties, in both places a field can be picked (see hoistDeletedFilter).
+                  ...hoistDeletedFilter(withoutHistoryFilters(elements)).map(
+                    (element) => ({
+                      id: element.id,
+                      label: element.label ?? element.id,
+                      tooltip: element.tooltip,
+                    })
+                  ),
+                ]}
+                activeIds={[
+                  ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),
+                  ...shown.map((element) => element.id),
+                ]}
+                onSelect={(id) => {
+                  // A boolean has one meaningful state; picking it is the same as ticking it, so it
+                  // becomes an active pill straight away instead of opening a popover with one checkbox.
+                  const element = elements.find((e) => e.id === id);
+                  if (element?.filterType === "BOOLEAN") {
+                    onChange(withFilterValue(values, id, { value: "true" }));
+                    return;
+                  }
+                  // Keyed by id, so a pending pill mounts with its popover already open.
+                  if (!(id in values)) setPendingId(id);
+                  setOpenId(id);
+                }}
+                elements={elements}
+                values={values}
+                onApply={onChange}
+              />
+            )}
+            {!collapsed && activeCount > 0 && (
               <button
                 type="button"
                 onClick={() => {

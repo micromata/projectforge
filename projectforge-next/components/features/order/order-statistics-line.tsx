@@ -10,6 +10,7 @@ import {
   type OrderStatistics,
   type OrderStatisticsTone,
 } from "./order-statistics";
+import { STATISTICS_LINE_CLASS } from "@/components/shared/statistics-line-class";
 
 /** The brand token each tone reads in — blue and red as the Wicket list colours them. */
 const TONE_CLASS: Record<OrderStatisticsTone, string> = {
@@ -44,7 +45,7 @@ export function OrderStatisticsLine({
   return (
     <dl
       className={cn(
-        "flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b bg-muted/40 px-4 py-1.5 text-[13px]",
+        STATISTICS_LINE_CLASS,
         isFetching && "opacity-60",
         className
       )}

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { leafKeyOf } from "@/lib/leaf-key";
 import type { TimesheetStatistics } from "./timesheet-statistics";
+import { STATISTICS_LINE_CLASS } from "@/components/shared/statistics-line-class";
 
 /**
  * The footer of the time sheet list above its table: the summed duration and, where the installation
@@ -30,7 +31,7 @@ export function TimesheetStatisticsLine({
   return (
     <dl
       className={cn(
-        "flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b bg-muted/40 px-4 py-1.5 text-[13px]",
+        STATISTICS_LINE_CLASS,
         isFetching && "opacity-60",
         className
       )}
