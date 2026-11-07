@@ -29,6 +29,19 @@ describe("durationMinutesOf", () => {
 });
 
 describe("stopTimeForNewStart", () => {
+  it("keeps the stop with keepStop while the start stays before it", () => {
+    const previous = {
+      startTime: "2026-08-09T08:00:00.000Z",
+      stopTime: "2026-08-09T09:30:00.000Z",
+    };
+    expect(
+      stopTimeForNewStart("2026-08-09T08:30:00.000Z", previous, true)
+    ).toBe("2026-08-09T09:30:00.000Z");
+    expect(
+      stopTimeForNewStart("2026-08-09T10:00:00.000Z", previous, true)
+    ).toBe("2026-08-09T11:30:00.000Z");
+  });
+
   it("keeps the length the sheet had when the start moves", () => {
     expect(
       stopTimeForNewStart("2026-08-09T10:00:00.000Z", {
