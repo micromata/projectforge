@@ -119,7 +119,7 @@ def cmd_bom(inventory_file, out_dir):
     print(f"{len(manifest)} BOMs, {sum(m['components'] for m in manifest)} components written to {out_dir}")
 
 
-def request(method, path, body=None):
+def request(method, path, body=None, with_total=False):
     api_key = os.environ.get("DT_API_KEY")
     if not api_key:
         sys.exit("DT_API_KEY is not set")
@@ -131,7 +131,20 @@ def request(method, path, body=None):
         req.add_header("Content-Type", "application/json")
     with urllib.request.urlopen(req, timeout=120) as response:
         text = response.read().decode()
-        return json.loads(text) if text else None
+        result = json.loads(text) if text else None
+        return (result, int(response.headers.get("X-Total-Count") or 0)) if with_total else result
+
+
+def request_all(path):
+    """GET of a paged list (DT answers at most 100 entries per page)."""
+    result, page = [], 1
+    while True:
+        separator = "&" if "?" in path else "?"
+        entries, total = request("GET", f"{path}{separator}pageSize=100&pageNumber={page}", with_total=True)
+        result.extend(entries)
+        if not entries or len(result) >= total:
+            return result
+        page += 1
 
 
 def load_manifest(out_dir):
@@ -186,7 +199,7 @@ def cmd_compare(out_dir, findings_file):
     raw = {}
     for entry in manifest:
         project = find_project(entry["projectName"])
-        findings = request("GET", f"/api/v1/finding/project/{project['uuid']}?suppressed=true")
+        findings = request_all(f"/api/v1/finding/project/{project['uuid']}?suppressed=true")
         raw[entry["projectName"]] = findings
         for finding in findings:
             vulnerability = finding["vulnerability"]
