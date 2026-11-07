@@ -99,6 +99,10 @@
         {
           "call": "GET /rs/address/imagePreview/{id}",
           "controller": "org.projectforge.rest.AddressImageServicesRest"
+        },
+        {
+          "call": "GET /rs/address/exportVCard/{id}",
+          "controller": "org.projectforge.rest.AddressServicesRest"
         }
       ]
     },

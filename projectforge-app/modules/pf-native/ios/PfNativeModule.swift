@@ -21,13 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import Contacts
+import ContactsUI
 import ExpoModulesCore
 import PassKit
 import WebKit
 
 /// The cookie jar and the website data of the WebViews (WKWebsiteDataStore.default(), the store react-native-webview
 /// uses without incognito; @react-native-cookies/cookies would do it, but doesn't support the New Architecture), the
-/// Apple Wallet, the key chain items of the Flutter app and the APNs environment of the signing.
+/// Apple Wallet, the form of a new contact, the key chain items of the Flutter app and the APNs environment of the signing.
 public class PfNativeModule: Module {
   /// A WebView without a page, alive as long as the app: iOS hands the cookies to the network process of the
   /// WebViews, which is torn down with the last WebView; setting cookies then waited for a new one (seen in the
@@ -61,6 +63,17 @@ public class PfNativeModule: Module {
         throw WalletException("The pass can't be read.")
       }
       try await self.addPass(data)
+    }
+
+    /// Shows the form of the system for a new contact, filled with the vCard at [fileUrl]: the user saves it to the
+    /// own contacts or cancels. Needs no access to the contacts (the form saves it itself).
+    AsyncFunction("addContact") { (fileUrl: String) async throws in
+      guard let url = URL(string: fileUrl), let data = try? Data(contentsOf: url),
+        let contact = (try? CNContactVCardSerialization.contacts(with: data))?.first
+      else {
+        throw ContactException("The vCard can't be read.")
+      }
+      try await self.addContact(contact)
     }
 
     /// A key chain item of the Flutter app (flutter_secure_storage: generic password, service [service], account
@@ -169,6 +182,22 @@ public class PfNativeModule: Module {
   }
 
   @MainActor
+  private func addContact(_ contact: CNContact) throws {
+    guard var top = UIApplication.shared.connectedScenes
+      .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController }).first
+    else {
+      throw ContactException("The form can't be shown.")
+    }
+    while let presented = top.presentedViewController { top = presented }
+    let form = CNContactViewController(forNewContact: contact)
+    let delegate = ContactFormDelegate()
+    form.delegate = delegate
+    // The form keeps its delegate weak: it lives as long as the form.
+    objc_setAssociatedObject(form, &ContactFormDelegate.key, delegate, .OBJC_ASSOCIATION_RETAIN)
+    top.present(UINavigationController(rootViewController: form), animated: true)
+  }
+
+  @MainActor
   private func setCookies(_ url: URL, _ setCookieHeaders: [String]) async -> [String] {
     let cookies = setCookieHeaders.flatMap {
       HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie": $0], for: url)
@@ -223,4 +252,17 @@ internal final class InvalidUrlException: GenericException<String>, @unchecked S
 /// A pass the Wallet refused or couldn't show, with the reason of iOS.
 internal final class WalletException: GenericException<String>, @unchecked Sendable {
   override var reason: String { param }
+}
+
+internal final class ContactException: GenericException<String>, @unchecked Sendable {
+  override var reason: String { param }
+}
+
+/// Closes the form of a new contact when the user saved or cancelled it (the form doesn't close itself when presented).
+private final class ContactFormDelegate: NSObject, CNContactViewControllerDelegate {
+  static var key = 0
+
+  func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
+    viewController.dismiss(animated: true)
+  }
 }

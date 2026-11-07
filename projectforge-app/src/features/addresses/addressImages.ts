@@ -41,6 +41,10 @@ export const addressImageFiles: ImageFiles = {
     file.write(bytes);
     return file.uri;
   },
+  async bytes(name) {
+    const file = new File(dir(), name);
+    return file.exists ? await file.bytes() : null;
+  },
   names() {
     return dir()
       .list()

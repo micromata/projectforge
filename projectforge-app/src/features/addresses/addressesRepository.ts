@@ -21,11 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import { utf8 } from '@projectforge/shared/base64url';
 import type { AppAddressList } from '@projectforge/shared/rs/address';
 
 import type { ApiClient } from '../../core/api/apiClient';
 import { ApiException } from '../../core/api/apiException';
-import { AddressBook, addressBook, mergeAddressBook } from './address';
+import { AddressBook, addressBook, AppAddress, mergeAddressBook } from './address';
+import { vCardWithPhoto } from './vCard';
 
 /** The part of JsonCache the repository uses. */
 export interface BookCache {
@@ -38,6 +40,8 @@ export interface ImageFiles {
   /** The `file://` url of the stored image, null if there is none. */
   uri(name: string): string | null;
   write(name: string, bytes: Uint8Array): string;
+  /** The bytes of the stored image, null if there is none. */
+  bytes(name: string): Promise<Uint8Array | null>;
   names(): string[];
   delete(name: string): void;
 }
@@ -56,6 +60,8 @@ const isOffline = (error: unknown) => !(error instanceof ApiException) || error.
 export class AddressesRepository {
   private static readonly PATH = '/rs/address';
   private static readonly CACHE_NAME = 'addresses';
+  /** 2: with the vCards. A book stored before is loaded anew, the delta sync wouldn't deliver them. */
+  private static readonly FORMAT = 2;
 
   constructor(
     private readonly api: Pick<ApiClient, 'get' | 'download'>,
@@ -72,7 +78,11 @@ export class AddressesRepository {
   /** Brings [stored] up to date. Without a connection it stays as it is (marked as such); another failure is thrown. */
   async sync(stored: AddressBook | null): Promise<AddressBook> {
     try {
-      const book = (stored == null ? null : await this.syncChanges(stored)) ?? (await this.loadAll());
+      const current = stored?.format === AddressesRepository.FORMAT ? stored : null;
+      const book = {
+        ...((current == null ? null : await this.syncChanges(current)) ?? (await this.loadAll())),
+        format: AddressesRepository.FORMAT,
+      };
       this.cache.write(AddressesRepository.CACHE_NAME, { ...book, fromCache: undefined });
       this.deleteObsoleteImages(book);
       return book;
@@ -110,6 +120,19 @@ export class AddressesRepository {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * The vCard of [address] with its stored photo (the image itself if it is stored, else the thumbnail), also without
+   * network. A server before 9.2.6 doesn't send it: then its export (with the photo) is loaded.
+   */
+  async vCard(address: AppAddress): Promise<Uint8Array> {
+    if (address.vCard == null) return this.api.download(`${AddressesRepository.PATH}/exportVCard/${address.id}`);
+    const photo = address.hasImage
+      ? ((await this.images.bytes(imageName(address.id, address.lastUpdate, true))) ??
+        (await this.images.bytes(imageName(address.id, address.lastUpdate))))
+      : null;
+    return utf8(vCardWithPhoto(address.vCard, photo));
   }
 
   /** Deletes the images of removed addresses and older versions. */

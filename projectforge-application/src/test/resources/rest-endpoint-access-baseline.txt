@@ -8,7 +8,6 @@ org.projectforge.rest.AddressImageServicesRest#uploadFile
 org.projectforge.rest.AddressServicesRest#downloadAppleScript
 org.projectforge.rest.AddressServicesRest#exportFavoritesExcel
 org.projectforge.rest.AddressServicesRest#exportFavoritesVCards
-org.projectforge.rest.AddressServicesRest#exportVCard
 org.projectforge.rest.AddressServicesRest#getLanguages
 org.projectforge.rest.AddressServicesRest#getUsedLanguages
 org.projectforge.rest.AddressServicesRest#getVcfImagePreview

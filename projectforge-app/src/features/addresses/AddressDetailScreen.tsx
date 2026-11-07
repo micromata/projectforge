@@ -24,16 +24,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { ComponentProps, ReactNode, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { addToDeviceContacts } from '../../core/contacts/deviceContacts';
+import { SharedFiles } from '../../core/files/sharedFiles';
 import { formatIsoDay } from '../../core/i18n/dates';
 import { errorText, t } from '../../core/i18n/translations';
 import { appLog } from '../../core/log/appLog';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
-import { AppPostalAddress, displayName, emails, gradientOf, PhoneNumber, phones, postalLines } from './address';
+import { AppAddress, AppPostalAddress, displayName, emails, gradientOf, PhoneNumber, phones, postalLines } from './address';
 import { AddressAvatar } from './AddressAvatar';
 import { addresses, useAddresses } from './addressesStore';
+import { vCardFileName } from './vCard';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -67,6 +70,16 @@ function launchMap(postal: AppPostalAddress) {
   open(Platform.OS === 'ios' ? `https://maps.apple.com/?q=${query}` : `geo:0,0?q=${query}`);
 }
 
+/** Hands the vCard of [address] to [action] (the share sheet, the contacts); a failure is reported in an alert. */
+async function withVCard(address: AppAddress, action: (name: string, vCard: Uint8Array) => Promise<void>) {
+  try {
+    await action(vCardFileName(address), await addresses.vCard(address));
+  } catch (e) {
+    appLog.warn('addresses', `vCard not handed over: ${String(e)}`);
+    Alert.alert(errorText(e));
+  }
+}
+
 function open(url: string) {
   Linking.openURL(url).catch((e) => appLog.warn('addresses', `Not opened: ${String(e)}`));
 }
@@ -87,6 +100,7 @@ export function AddressDetailScreen({
 }) {
   const state = useAddresses();
   const [sheet, setSheet] = useState<PhoneNumber | null>(null);
+  const [shareSheet, setShareSheet] = useState(false);
   const address = state.status === 'data' ? state.book.addresses.find((it) => it.id === id) : undefined;
   const offline = state.status === 'data' && state.book.fromCache === true;
   if (address == null) {
@@ -135,11 +149,32 @@ export function AddressDetailScreen({
       ? [{ key: 'sms', label: t('app.address.message'), icon: 'chatbubble-outline' as IconName, onPress: () => launch('sms', number.number) }]
       : []),
   ];
+  const shareItems: MenuItem[] = [
+    {
+      key: 'contacts',
+      label: t('app.address.addToContacts'),
+      icon: 'person-add-outline',
+      onPress: () => void withVCard(address, addToDeviceContacts),
+    },
+    {
+      key: 'share',
+      label: t('app.vCard.share'),
+      icon: 'share-outline',
+      onPress: () => void withVCard(address, (name, vCard) => SharedFiles.share(name, vCard, 'text/vcard')),
+    },
+  ];
+  // The vCard comes with the address book; a server before 9.2.6 sends none, then it is loaded from it.
+  const shareable = address.vCard != null || !offline;
   return (
     <View style={[styles.screen, { backgroundImage: `linear-gradient(to bottom, ${color}, #1f1f24 70%)` }]}>
       <StatusBar style="light" />
       <SafeAreaView style={styles.screen}>
         <Bar onClose={onClose}>
+          {shareable && (
+            <Pressable accessibilityLabel={t('app.vCard.share')} hitSlop={8} onPress={() => setShareSheet(true)}>
+              <Ionicons name="share-outline" size={24} color="#fff" style={styles.share} />
+            </Pressable>
+          )}
           {!offline && address.writeAccess && (
             <Pressable hitSlop={8} onPress={() => onEdit(address.id)}>
               <Text style={styles.edit}>{t('edit')}</Text>
@@ -207,6 +242,7 @@ export function AddressDetailScreen({
         </ScrollView>
       </SafeAreaView>
       <MenuSheet visible={sheet != null} items={sheet ? sheetItems(sheet) : []} onClose={() => setSheet(null)} />
+      <MenuSheet visible={shareSheet} items={shareItems} onClose={() => setShareSheet(false)} />
     </View>
   );
 }
@@ -261,6 +297,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   bar: { height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 },
   edit: { color: '#fff', fontSize: 17, paddingHorizontal: 8 },
+  share: { paddingHorizontal: 8 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   missingText: { color: '#fff', fontSize: 16, textAlign: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 32 },

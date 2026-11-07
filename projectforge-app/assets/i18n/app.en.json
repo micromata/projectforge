@@ -45,6 +45,7 @@
   "app.log.copied": "Log copied.",
   "app.log.clear": "Clear",
   "app.address.message": "Message",
+  "app.address.addToContacts": "Add to contacts",
   "app.address.new": "New address",
   "app.address.none": "No addresses.",
   "app.address.noMatch": "No matches.",

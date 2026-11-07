@@ -163,6 +163,8 @@ export interface AddressBook {
   timestamp: number;
   addresses: AppAddress[];
   favoriteIds: number[];
+  /** The version of the stored form (see AddressesRepository.FORMAT): an older one is loaded anew. */
+  format?: number;
   /** The server wasn't reachable: the addresses are the stored ones. */
   fromCache?: boolean;
 }

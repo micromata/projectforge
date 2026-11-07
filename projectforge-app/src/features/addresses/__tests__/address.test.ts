@@ -123,6 +123,7 @@ describe('AddressesRepository', () => {
         stored.set(name, bytes);
         return `file:///${name}`;
       },
+      bytes: async (name) => stored.get(name) ?? null,
       names: () => [...stored.keys()],
       delete: (name) => void stored.delete(name),
     };
@@ -151,6 +152,27 @@ describe('AddressesRepository', () => {
     expect(await offline.sync(stored)).toEqual({ ...stored, fromCache: true });
     const refused = new AddressesRepository({ get: jest.fn().mockRejectedValue(new ApiException('HTTP 500', 500)), download: jest.fn() }, cache(), files());
     await expect(refused.sync(stored)).rejects.toThrow('HTTP 500');
+  });
+
+  it('loads everything once if the stored book is of an older form (without the vCards)', async () => {
+    const get = jest.fn().mockResolvedValue({ timestamp: 2, ids: [1], addresses: [address({ id: 1, vCard: 'BEGIN:VCARD' })] });
+    const repository = new AddressesRepository({ get, download: jest.fn() }, cache(), files());
+    const book = await repository.sync(addressBook(1, [address({ id: 1 })]));
+    await repository.sync(book);
+    expect(get.mock.calls.map((it) => it[0])).toEqual(['/rs/address/appList', '/rs/address/appList?modifiedSince=2']);
+  });
+
+  it('builds the vCard with the stored photo, or loads it from a server that sends none', async () => {
+    const images = files();
+    images.write(imageName(1, 10), new Uint8Array([0xff, 0xd8, 1]));
+    const download = jest.fn().mockResolvedValue(new Uint8Array([9]));
+    const repository = new AddressesRepository({ get: jest.fn(), download }, cache(), images);
+    const vCard = 'BEGIN:VCARD\r\nFN:Jane\r\nEND:VCARD\r\n';
+    const text = new TextDecoder().decode(await repository.vCard(address({ id: 1, lastUpdate: 10, hasImage: true, vCard })));
+    expect(text).toBe('BEGIN:VCARD\r\nFN:Jane\r\nPHOTO;ENCODING=b;TYPE=JPEG:/9gB\r\nEND:VCARD\r\n');
+    expect(download).not.toHaveBeenCalled();
+    expect(await repository.vCard(address({ id: 2 }))).toEqual(new Uint8Array([9]));
+    expect(download.mock.calls[0][0]).toBe('/rs/address/exportVCard/2');
   });
 
   it('loads an image once and deletes the ones of older versions', async () => {
