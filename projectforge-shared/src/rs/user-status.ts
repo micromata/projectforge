@@ -55,7 +55,15 @@ export interface NotificationSummary {
   latestId?: number | null;
 }
 
-/** For a server whose user status has no theme yet. @server org.projectforge.rest.UIThemeSettings */
+/**
+ * For a server whose user status has no theme yet, and the answer of storing one.
+ * @server org.projectforge.rest.UIThemeSettings
+ */
 export interface UIThemeSettings {
   theme?: string | null;
+}
+
+/** The theme chosen in the app (`light`, `dark` or `system`). @request org.projectforge.rest.UIThemeSettings */
+export interface UIThemeRequest {
+  theme: string;
 }

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/features/web/web_navigation_test.dart.
+// Port of the earlier Flutter app's web_navigation_test.
 import { WebNavigation } from '../webNavigation';
 
 const navigation = new WebNavigation('https://pf.example.org');
@@ -166,8 +166,9 @@ test('the chat, the business cards, the addresses and the time sheets have a nat
     ['https://pf.example.org/next/address/5', null],
     ['https://pf.example.org/next/address/5/edit', null],
     ['https://pf.example.org/next/chatty', null],
-    ['https://pf.example.org/next/timesheet', 'timesheets'],
-    ['https://pf.example.org/next/timesheet/', 'timesheets'],
+    // The time sheet tab of the app is no counterpart of the web list.
+    ['https://pf.example.org/next/timesheet', null],
+    ['https://pf.example.org/next/timesheet/', null],
     ['https://pf.example.org/next/timesheet/5', null],
     ['https://pf.example.org/next/timesheet/new', null],
     ['https://pf.example.org/rs/myBusinessCards/pkpass?id=3', null],

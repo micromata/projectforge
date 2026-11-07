@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/core/app_login_test.dart and pkce_test.dart.
+// Port of the earlier Flutter app's app_login_test and pkce_test.
 import { fakeHttp, nodeCrypto } from '../../../testing/fakeHttp';
 import { ApiException } from '../../api/apiException';
 import { AppLogin, AppLoginCancelled, isInsecure, normalizeServerUrl } from '../appLogin';
@@ -158,4 +158,35 @@ test('plain http only for development builds', () => {
   expect(isInsecure('http://pf.example.com', false)).toBe(true);
   expect(isInsecure('https://pf.example.com', false)).toBe(false);
   expect(isInsecure('http://localhost:8086', true)).toBe(false);
+});
+
+test('the system status follows a redirect within the server', async () => {
+  const { http, requests } = fakeHttp((request) =>
+    request.url === `${SERVER}/rsPublic/systemStatus`
+      ? { status: 301, headers: { location: '/pf/rsPublic/systemStatus' } }
+      : { body: { appname: 'ProjectForge', version: '9.3' } },
+  );
+  const login = new AppLogin(http, nodeCrypto, async () => null);
+  expect((await login.systemStatus(SERVER)).appname).toBe('ProjectForge');
+  expect(requests.map((it) => it.url)).toEqual([
+    `${SERVER}/rsPublic/systemStatus`,
+    `${SERVER}/pf/rsPublic/systemStatus`,
+  ]);
+});
+
+test('a redirect to another host is not followed, nor one of the token request', async () => {
+  const foreign = fakeHttp(() => ({ status: 302, headers: { location: 'https://sso.example.com/login' } }));
+  await expect(new AppLogin(foreign.http, nodeCrypto, async () => null).systemStatus(SERVER)).rejects.toBeInstanceOf(
+    ApiException,
+  );
+  expect(foreign.requests).toHaveLength(1);
+
+  const token = fakeHttp(() => ({ status: 302, headers: { location: `${SERVER}/elsewhere` } }));
+  const login = new AppLogin(token.http, nodeCrypto, async (url) => {
+    return `projectforge://auth?code=c&state=${new URL(url).searchParams.get('state')}`;
+  });
+  await expect(login.login({ serverUrl: SERVER, deviceName: 'iPhone', platform: 'ios' })).rejects.toBeInstanceOf(
+    ApiException,
+  );
+  expect(token.requests).toHaveLength(1);
 });

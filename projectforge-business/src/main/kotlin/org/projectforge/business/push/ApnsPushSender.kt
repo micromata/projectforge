@@ -102,7 +102,7 @@ class ApnsPushSender : PushSender {
                 .header("apns-topic", topic)
                 .header("apns-push-type", "alert")
                 .header("apns-priority", "10")
-                .POST(HttpRequest.BodyPublishers.ofString(payload(message)))
+                .POST(HttpRequest.BodyPublishers.ofString(payload(message, device.id)))
                 .build()
             val response = client.send(request, HttpResponse.BodyHandlers.ofString())
             result(response.statusCode(), response.body(), device)
@@ -160,9 +160,15 @@ class ApnsPushSender : PushSender {
             return "$header.$claims.${base64.encodeToString(signature.sign())}"
         }
 
-        internal fun payload(message: PushMessage): String {
+        /**
+         * @param deviceId The app device the push goes to (`device`): the app, logged in at several servers, tells by it
+         * which of its logins the push belongs to.
+         */
+        internal fun payload(message: PushMessage, deviceId: Long? = null): String {
+            val alert = linkedMapOf("title" to message.title, "body" to message.body)
+            message.subtitle?.let { alert["subtitle"] = it }
             val aps = linkedMapOf<String, Any>(
-                "alert" to mapOf("title" to message.title, "body" to message.body),
+                "alert" to alert,
                 "badge" to message.badge,
             )
             if (message.sound) {
@@ -171,6 +177,9 @@ class ApnsPushSender : PushSender {
             val root = linkedMapOf<String, Any>("aps" to aps)
             message.link?.let { root["link"] = it }
             message.notificationId?.let { root["notificationId"] = it }
+            deviceId?.let { root["device"] = it }
+            // The ids of the devices are counted per server: the host tells two logins with the same id apart.
+            message.subtitle?.let { root["server"] = it }
             return mapper.writeValueAsString(root)
         }
     }

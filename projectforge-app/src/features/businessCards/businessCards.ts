@@ -40,6 +40,51 @@ export interface CardsCache {
   write(name: string, json: unknown): void;
 }
 
+/** The stored photos of the cards, by name (a file of the cache); [uri] and [write] give its uri for an Image. */
+export interface PhotoFiles {
+  uri(name: string): string | null;
+  write(name: string, bytes: Uint8Array): string;
+  delete(name: string): void;
+}
+
+/** The fields of a card in the order of the web version, with the key of their label. */
+export const CARD_FIELDS = [
+  { field: 'title', labelKey: 'businessCard.title' },
+  { field: 'firstName', labelKey: 'businessCard.firstName' },
+  { field: 'lastName', labelKey: 'businessCard.lastName' },
+  { field: 'organization', labelKey: 'businessCard.organization' },
+  { field: 'division', labelKey: 'businessCard.division' },
+  { field: 'positionText', labelKey: 'businessCard.positionText' },
+  { field: 'email', labelKey: 'businessCard.email' },
+  { field: 'businessPhone', labelKey: 'businessCard.businessPhone' },
+  { field: 'mobilePhone', labelKey: 'businessCard.mobilePhone' },
+  { field: 'fax', labelKey: 'businessCard.fax' },
+  { field: 'website', labelKey: 'businessCard.website' },
+  { field: 'street', labelKey: 'businessCard.street' },
+  { field: 'zipCode', labelKey: 'businessCard.zipCode' },
+  { field: 'city', labelKey: 'businessCard.city' },
+  { field: 'country', labelKey: 'businessCard.country' },
+  { field: 'comment', labelKey: 'businessCard.comment' },
+  { field: 'privateEmail', labelKey: 'businessCard.privateEmail' },
+  { field: 'privatePhone', labelKey: 'businessCard.privatePhone' },
+  { field: 'privateMobilePhone', labelKey: 'businessCard.privateMobilePhone' },
+  { field: 'privateStreet', labelKey: 'businessCard.privateStreet' },
+  { field: 'privateZipCode', labelKey: 'businessCard.privateZipCode' },
+  { field: 'privateCity', labelKey: 'businessCard.privateCity' },
+  { field: 'privateCountry', labelKey: 'businessCard.privateCountry' },
+  { field: 'birthday', labelKey: 'businessCard.birthday' },
+] as const;
+
+export type CardField = (typeof CARD_FIELDS)[number]['field'];
+
+/** The filled fields of [card] (what its QR code contains), in the order of [CARD_FIELDS]. */
+export function filledFields(card: BusinessCard): { field: CardField; labelKey: string; value: string }[] {
+  return CARD_FIELDS.flatMap(({ field, labelKey }) => {
+    const value = card[field]?.trim();
+    return value ? [{ field, labelKey, value }] : [];
+  });
+}
+
 /** "Dr. Jane Doe", for the list. */
 export function displayName(card: BusinessCard): string {
   return [card.title, card.firstName, card.lastName].filter((it): it is string => !!it).join(' ');
@@ -67,6 +112,7 @@ export class BusinessCardsRepository {
   constructor(
     private readonly api: Pick<ApiClient, 'get' | 'download'>,
     private readonly cache: CardsCache,
+    private readonly photos?: PhotoFiles,
   ) {}
 
   /** The cards of the last load, null if there are none (yet). Not marked as offline: the server isn't asked. */
@@ -97,5 +143,24 @@ export class BusinessCardsRepository {
   /** The card as Apple Wallet pass (`.pkpass`). */
   pass(id: string): Promise<Uint8Array> {
     return this.api.download(`${BusinessCardsRepository.BASE}/pkpass`, { id });
+  }
+
+  /**
+   * The uri of the photo of the address [addressId] as its public url delivers it, i.e. what a scanner of the QR code
+   * gets; stored for the use without network. With [online] false, or if the server isn't reachable, the stored one.
+   * Null if there is none: the server can't deliver it (an answer like 404), or nothing is stored.
+   */
+  async photo(addressId: number, online: boolean): Promise<string | null> {
+    const name = `${addressId}`;
+    const stored = this.photos?.uri(name) ?? null;
+    if (!online || this.photos == null) return stored;
+    try {
+      const bytes = await this.api.download(`${BusinessCardsRepository.BASE}/photo`, { addressId: name });
+      return this.photos.write(name, bytes);
+    } catch (e) {
+      if (isOffline(e)) return stored;
+      this.photos.delete(name);
+      return null;
+    }
   }
 }

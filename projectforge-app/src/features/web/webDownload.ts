@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import { decodeBase64url } from '@projectforge/shared/base64url';
+
 import { HTTP_DEFAULTS, HttpFetch, isRedirect } from '../../core/api/http';
 import { parseUrl } from '../../core/url';
 import { WebNavigation } from './webNavigation';
@@ -39,7 +41,7 @@ export interface DownloadedFile {
 }
 
 /**
- * A download started by the pages in the WebView (a chat file, …), port of the Flutter app's `web_download.dart`:
+ * A download started by the pages in the WebView (a chat file, …), port of the Flutter app's the earlier Flutter app's web_download:
  * the app loads the file and offers it in the share sheet. The request carries the WebView's session cookie, never
  * the app token; only urls of the own server, redirects aren't followed, so the cookie goes nowhere else.
  */
@@ -124,3 +126,63 @@ function sanitize(name?: string | null): string | null {
   if (!clean || clean === '.' || clean === '..') return null;
   return clean;
 }
+
+/** The largest file a page may hand over as a blob (base64 in a message of the bridge). */
+export const MAX_BLOB_BYTES = 30 * 1024 * 1024;
+
+/**
+ * A file the pages made themselves (a blob, e.g. an Excel export of next's `saveBlob`), as posted by BLOB_SCRIPT:
+ * `{pf: 'blob', name, mime, data}` with the bytes in base64. Null if the message is no such file or too large; the
+ * name loses any path, as that of a download.
+ */
+export function blobFile(message: { name?: unknown; mime?: unknown; data?: unknown }): DownloadedFile | null {
+  if (typeof message.data !== 'string' || message.data.length > (MAX_BLOB_BYTES * 4) / 3 + 4) return null;
+  let bytes: Uint8Array;
+  try {
+    bytes = new Uint8Array(decodeBase64url(message.data.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_')));
+  } catch {
+    return null;
+  }
+  return {
+    name: sanitize(typeof message.name === 'string' ? message.name : null) ?? 'download',
+    bytes,
+    mimeType: typeof message.mime === 'string' && message.mime ? message.mime : undefined,
+  };
+}
+
+/**
+ * Runs in the pages at document start: a link with `download` to a blob the page made (`URL.createObjectURL`, then a
+ * click, as next's `saveBlob`) isn't followed (the WebView can't save it), its blob is posted to the app instead,
+ * which offers it in the share sheet. Only blobs of `createObjectURL` are known: the page can't make the app fetch
+ * anything.
+ */
+export const BLOB_SCRIPT = `(function () {
+  if (window.__pfBlobs || !window.ReactNativeWebView) return;
+  var blobs = new Map();
+  window.__pfBlobs = blobs;
+  var create = URL.createObjectURL;
+  URL.createObjectURL = function (object) {
+    var url = create.call(URL, object);
+    if (object instanceof Blob) blobs.set(url, object);
+    return url;
+  };
+  var revoke = URL.revokeObjectURL;
+  URL.revokeObjectURL = function (url) {
+    blobs.delete(url);
+    return revoke.call(URL, url);
+  };
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest ? event.target.closest('a[download]') : null;
+    var blob = link && blobs.get(link.href);
+    if (!blob) return;
+    event.preventDefault();
+    var reader = new FileReader();
+    reader.onload = function () {
+      var result = String(reader.result);
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        pf: 'blob', name: link.download, mime: blob.type, data: result.substring(result.indexOf(',') + 1)
+      }));
+    };
+    reader.readAsDataURL(blob);
+  }, true);
+})(); true;`;

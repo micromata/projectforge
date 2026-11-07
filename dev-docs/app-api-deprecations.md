@@ -1,9 +1,9 @@
 # Deprecations for the published app
 
-Fields, values and endpoints of the server that the **published** Flutter app still reads, although the server has a
+Fields, values and endpoints of the server that the **published** app still reads, although the server has a
 better replacement. They stay until `AppCompatibility.MIN_APP_VERSION` is above the last app version that reads them.
 The rules (and how to find out what the app reads) are in
-[flutter-client.md](flutter-client.md#changing-an-api-the-app-uses); the release checklist is in `CLAUDE.md`.
+[mobile-app.md](mobile-app.md#changing-an-api-the-app-uses); the release checklist is in `CLAUDE.md`.
 
 | Field / endpoint | Replacement | Deprecated since (server) | Last app version that reads it | Remove when |
 | ---------------- | ----------- | ------------------------- | ------------------------------ | ----------- |

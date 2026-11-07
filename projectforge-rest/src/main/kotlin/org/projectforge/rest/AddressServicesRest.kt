@@ -189,6 +189,7 @@ class AddressServicesRest {
         return RestUtils.downloadFile(filename, resource)
     }
 
+    @AccessChecked("DAO: select access (AddressDao.find)")
     @GetMapping("exportVCard/{id}")
     fun exportVCard(@PathVariable("id") id: Long?): ResponseEntity<*> {
         val addressDO = addressDao.find(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)

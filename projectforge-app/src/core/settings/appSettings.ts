@@ -78,7 +78,7 @@ class AppSettingsStore {
     const file = this.file();
     file.parentDirectory.create({ intermediates: true, idempotent: true });
     file.create({ overwrite: true });
-    file.write(JSON.stringify(this.settings));
+    file.writeSync(JSON.stringify(this.settings));
     this.emit();
   }
 

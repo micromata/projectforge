@@ -1,10 +1,15 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import { FilterIcon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import { useCramped } from "@/hooks/use-cramped";
 import { Separator } from "@/components/ui/separator";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
 import { PageTitleRow } from "@/components/shared/page-title-row";
+import { CrampedToggleButton } from "./cramped-toggle-button";
+import { ListFilterRow } from "./list-filter-row";
 import { SearchInput } from "./search-input";
 
 export interface ListToolbarProps {
@@ -39,6 +44,8 @@ export interface ListToolbarProps {
    * Absent for a list with no mass update, which has nothing to select for.
    */
   selectionToggle?: ReactNode;
+  /** The selection mode is on: on a cramped screen the button unfolding the actions says so while they're folded. */
+  selectionActive?: boolean;
   /**
    * The menu of the area the list belongs to (see PageDef.listMenu), the right-most control: the other pages
    * of the area carry it at the same place, so it doesn't move when one switches between them.
@@ -48,6 +55,8 @@ export interface ListToolbarProps {
   columnPanel?: ReactNode;
   /** Active filters as editable pills plus the "all filters" trigger. */
   filterPills?: ReactNode;
+  /** How many filters have a value, shown on the button unfolding the filter row on a cramped screen. */
+  filterCount?: number;
   /**
    * A note about the result of the current filter, shown in the filter row above the pills — the red
    * "list is truncated" warning when the backend capped the result (see ListTruncationNotice). Absent
@@ -69,31 +78,67 @@ export function ListToolbar({
   experimental,
   actions,
   selectionToggle,
+  selectionActive = false,
   menu,
   columnPanel,
   filterPills,
+  filterCount = 0,
   notice,
   gearMenu,
 }: ListToolbarProps) {
-  const controls = (
+  const t = useTranslations();
+  const cramped = useCramped();
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  // On a phone the table is what matters: the head folds the actions and the filter row away, each unfolded
+  // by a tap (not on scrolling, which iOS doesn't do reliably). Folded away by CSS only, so an action's
+  // dialog that is open stays mounted.
+  const filtersCollapsed = cramped && !filtersOpen;
+  const secondary = (
     <>
       {selectionToggle}
       {actions}
-      {/* Divider only with a menu beside it *and* something to separate it from: it parts the
-          list's own actions from "add", which creates an entity. */}
-      {gearMenu && (
-        <>
-          {gearMenu}
-          {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
-              flex-start and hangs the line above the buttons. The `!` is needed because the
-              primitive's `data-vertical:self-stretch` carries an attribute selector and would
-              otherwise outweigh a plain `self-center`. */}
-          {addHref && (
-            <Separator orientation="vertical" className="!h-5 !self-center" />
+      {gearMenu}
+    </>
+  );
+  const controls = (foldable: boolean) => (
+    <>
+      {foldable ? (
+        // In the title row, which makes the actions its own items on a cramped screen: there this one
+        // takes a line of its own below the title, unfolded by the "more" button.
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-2 sm:gap-3 cramped:order-last cramped:basis-full cramped:justify-end",
+            !actionsOpen && "cramped:hidden"
           )}
-        </>
+        >
+          {secondary}
+        </div>
+      ) : (
+        secondary
+      )}
+      {/* Divider only with a menu beside it *and* something to separate it from: it parts the
+          list's own actions from "add", which creates an entity. `!self-center`: with an explicit height
+          the primitive's `self-stretch` degrades to flex-start and hangs the line above the buttons. The
+          `!` is needed because the primitive's `data-vertical:self-stretch` carries an attribute selector
+          and would otherwise outweigh a plain `self-center`. */}
+      {gearMenu && addHref && (
+        <Separator
+          orientation="vertical"
+          className={cn("!h-5 !self-center", foldable && "cramped:hidden")}
+        />
       )}
       {addHref && <AddEntryButton href={addHref} />}
+      {foldable && (
+        <CrampedToggleButton
+          icon={MoreHorizontalIcon}
+          label={t("more")}
+          iconOnly
+          open={actionsOpen}
+          onToggle={() => setActionsOpen((open) => !open)}
+          highlighted={selectionActive && !actionsOpen}
+        />
+      )}
       {menu && (
         <>
           <Separator orientation="vertical" className="!h-5 !self-center" />
@@ -109,8 +154,9 @@ export function ListToolbar({
           title={title}
           category={category}
           experimental={experimental}
+          compactWhenCramped
         >
-          {controls}
+          {controls(true)}
         </PageTitleRow>
       )}
 
@@ -127,24 +173,29 @@ export function ListToolbar({
             focusIfIdle
           />
         </div>
+        {filterPills && (
+          <CrampedToggleButton
+            icon={FilterIcon}
+            label={t("filter._")}
+            open={filtersOpen}
+            onToggle={() => setFiltersOpen((open) => !open)}
+            count={filterCount}
+          />
+        )}
         {compact && (
-          <div className="ml-auto flex items-center gap-3">{controls}</div>
+          <div className="ml-auto flex items-center gap-3">
+            {controls(false)}
+          </div>
         )}
       </div>
 
-      {/* Filters left, table settings right: both act on the list below, not on the page. The notice
-          sits above the pills — right where the user narrows the filter that overflowed. */}
-      {(filterPills || columnPanel || notice) && (
-        <div className="flex flex-col gap-2 px-4 pb-2.5">
-          {notice}
-          {(filterPills || columnPanel) && (
-            <div className="flex items-start gap-3">
-              <div className="flex-1">{filterPills}</div>
-              {columnPanel}
-            </div>
-          )}
-        </div>
-      )}
+      <ListFilterRow
+        notice={notice}
+        filterPills={filterPills}
+        columnPanel={columnPanel}
+        collapsed={filtersCollapsed}
+        filterCount={filterCount}
+      />
     </div>
   );
 }

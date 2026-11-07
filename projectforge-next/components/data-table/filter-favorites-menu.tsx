@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AsteriskIcon,
@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 import { FilterFavoriteEntry } from "./filter-favorite-entry";
+import { FilterPillsCollapsed } from "./filter-pills-collapsed";
 import type { UseFilterFavoritesResult } from "./use-filter-favorites";
 
 interface FilterFavoritesMenuProps {
@@ -41,7 +42,10 @@ export function FilterFavoritesMenu({
   const t = useTranslations();
   const tFilter = useTranslations("favorite.filter");
   const [open, setOpen] = useState(false);
+  const collapsed = useContext(FilterPillsCollapsed);
   const current = favorites.favorites.find((f) => f.id === favorites.currentId);
+  // In the folded filter row only an applied favorite, which says where the pills' values came from.
+  if (collapsed && !current) return null;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

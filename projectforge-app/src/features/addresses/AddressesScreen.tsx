@@ -27,8 +27,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -40,6 +38,7 @@ import {
 import { errorText, t } from '../../core/i18n/translations';
 import { useColors } from '../../core/ui/colors';
 import { ErrorView } from '../../core/ui/ErrorView';
+import { KeyboardAvoidingFill } from '../../core/ui/KeyboardAvoidingFill';
 import { HeaderAction, ScreenHeader } from '../../core/ui/ScreenHeader';
 import { AddressBook, AppAddress, itemOffsets, listItems, ListItem, matches, sectionIndex, sectionLetter, sortKey, subtitle } from './address';
 import { AddressAvatar } from './AddressAvatar';
@@ -112,7 +111,7 @@ function AddressList({
   };
 
   return (
-    <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingFill>
       {book.fromCache && <Text style={[styles.offline, { color: colors.danger }]}>{t('app.address.offline')}</Text>}
       <View style={[styles.segments, { borderColor: colors.border }]}>
         {[true, false].map((favorite) => (
@@ -182,7 +181,7 @@ function AddressList({
         </View>
         <HeaderAction icon="add" label={t('app.address.new')} onPress={onCreate} />
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAvoidingFill>
   );
 }
 

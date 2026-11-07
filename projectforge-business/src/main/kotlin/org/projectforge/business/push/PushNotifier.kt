@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.notification.NotificationDO
 import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.notification.NotificationSeverity
@@ -49,6 +50,9 @@ private val log = KotlinLogging.logger {}
 class PushNotifier {
     @Autowired
     private lateinit var appDeviceDao: AppDeviceDao
+
+    @Autowired
+    private lateinit var domainService: DomainService
 
     @Autowired
     private lateinit var notificationDao: NotificationDao
@@ -83,6 +87,7 @@ class PushNotifier {
             sound = notification.severity >= NotificationSeverity.IMPORTANT,
             link = notification.link,
             notificationId = notification.id,
+            subtitle = domainService.plainDomain?.takeIf { it.isNotBlank() },
         )
         devices.forEach { device ->
             if (pushSender.send(device, message) == PushResult.UNREGISTERED) {

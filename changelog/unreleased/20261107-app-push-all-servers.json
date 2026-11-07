@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "App: all servers the app is logged in at send pushes, not only the one shown. The push names its server, a tap on one of another server offers to switch there and opens it; their open notifications are shown at the menu, in the server list and in the notification center, the icon counts all of them. Older servers push only while shown, as before.",
+  "de": "App: Alle Server, bei denen die App angemeldet ist, schicken Push-Nachrichten, nicht nur der angezeigte. Die Push-Nachricht nennt ihren Server; ein Tipp auf eine eines anderen Servers bietet den Wechsel dorthin an und öffnet sie. Deren offene Benachrichtigungen erscheinen am Menü, in der Serverliste und in der Benachrichtigungszentrale, das App-Icon zählt alle. Ältere Server schicken wie bisher nur, solange sie angezeigt werden."
+}

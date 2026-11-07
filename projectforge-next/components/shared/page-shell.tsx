@@ -42,7 +42,9 @@ export function PageShell({ children }: PageShellProps) {
     // containing block chain, not the DOM parent chain) and make the *document* as tall as the whole
     // form. The document then scrolls, and at the end of a column that scroll chains into it, lifting
     // the app - the action bar included - out of the viewport and leaving white below it. With the
-    // containing block here, `overflow-hidden` clips them and the page itself never scrolls.
+    // containing block here the page itself never scrolls. As this box scrolls on a short viewport
+    // (below), a scroll column holding such elements is `relative` itself (see EditPageShell), or they
+    // would make this box as tall as the column's content.
     // `h-dvh`, not `h-screen`: on iOS Safari `100vh` is the *large* viewport (the area behind the
     // collapsible toolbars), so the box is taller than what's on screen and the pinned action bar of
     // an edit page falls below the fold — reachable only by scrolling the outer <main>, never the
@@ -52,6 +54,11 @@ export function PageShell({ children }: PageShellProps) {
     // content below them would be unreachable. <main> therefore has a floor (`min-h-96`) and this box
     // scrolls (`overflow-y-auto`) once rows + floor exceed the height: the rows scroll away, the content
     // and its pinned action bar stay reachable. On a normal screen nothing overflows and nothing changes.
+    // On a phone (`cramped`) the floor is lower, below the height left under the navigation: nested
+    // scrolling (this box, <main>, a table in it) doesn't hand a swipe on from one to the next on iOS, so
+    // the pages there have one scroller each (a list's header scrolls inside its table, see
+    // ListPageShell). <main> is the size container of the chart panels then: they are as tall as <main>
+    // (`100cqh`) and overflow, so <main> scrolls them as one column with their header.
     // Printed (`print:`), the page is only its content, as long as it is: no header, navigation or status
     // bar, and no box of the window's height clipping everything below the first page.
     <div className="relative flex h-dvh flex-col overflow-x-hidden overflow-y-auto print:block print:h-auto print:overflow-visible">
@@ -70,7 +77,7 @@ export function PageShell({ children }: PageShellProps) {
         )}
       </div>
       <main
-        className="flex min-h-96 flex-1 flex-col overflow-auto print:block print:overflow-visible"
+        className="flex min-h-96 flex-1 flex-col overflow-auto cramped:min-h-48 cramped:[container-type:size] print:block print:overflow-visible"
         onScroll={collapse.onScroll}
       >
         {children}

@@ -21,9 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/features/web/web_download_test.dart.
+// Port of the earlier Flutter app's web_download_test.
 import { fakeHttp } from '../../../testing/fakeHttp';
-import { fileName, isWalletPass, WebDownload, WebDownloadRefused } from '../webDownload';
+import { blobFile, fileName, isWalletPass, MAX_BLOB_BYTES, WebDownload, WebDownloadRefused } from '../webDownload';
 import { WebNavigation } from '../webNavigation';
 
 const fileUrl = new URL('https://pf.example.org/rs/chat/conversation/1/file/abc?download=true');
@@ -89,4 +89,14 @@ describe('load', () => {
       expect(requests).toHaveLength(0);
     },
   );
+});
+
+test('a blob of the pages becomes a file, its name without a path', () => {
+  const file = blobFile({ name: '../Aufträge.xlsx', mime: 'application/vnd.ms-excel', data: btoa('PK\x03\x04') });
+  expect(file?.name).toBe('Aufträge.xlsx');
+  expect(Array.from(file!.bytes)).toEqual([0x50, 0x4b, 3, 4]);
+  expect(file?.mimeType).toBe('application/vnd.ms-excel');
+  expect(blobFile({ data: btoa('x') })?.name).toBe('download');
+  expect(blobFile({ name: 'x' })).toBeNull();
+  expect(blobFile({ data: 'x'.repeat(MAX_BLOB_BYTES * 2) })).toBeNull();
 });

@@ -24,12 +24,15 @@
 
 package org.projectforge.rest.notification
 
+import org.apache.commons.text.StringEscapeUtils
 import org.projectforge.business.notification.NotificationDO
 import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.notification.NotificationDisplay
+import org.projectforge.business.notification.NotificationPreview
 import org.projectforge.business.notification.NotificationSeverity
 import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,7 +59,7 @@ class NotificationRest {
         /** May the recipient mark it as done (a banner, which is otherwise resolved by its rule only)? */
         val manualDone: Boolean,
         val title: String?,
-        /** Sanitized HTML. */
+        /** Sanitized HTML; a preview of what it is about where there is one ([NotificationPreview]). */
         val body: String?,
         /** A path of the app, e.g. `next/monthlyEmployeeReport`. */
         val link: String?,
@@ -69,12 +72,15 @@ class NotificationRest {
     @Autowired
     private lateinit var notificationDao: NotificationDao
 
+    @Autowired(required = false)
+    private var previews: List<NotificationPreview> = emptyList()
+
     /** The notifications of the logged-in user visible in the app, the newest first. */
     @AccessChecked("Own user only (notifications of the logged-in user)")
     @GetMapping("my")
     fun getMy(): List<Notification> {
         val user = ThreadLocalUserContext.requiredLoggedInUser
-        return notificationDao.findVisible(user.id!!).map { toDTO(it) }
+        return notificationDao.findVisible(user.id!!).map { toDTO(it, user) }
     }
 
     /**
@@ -86,24 +92,27 @@ class NotificationRest {
     fun getMyArchived(): List<Notification> {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val since = Date(System.currentTimeMillis() - ARCHIVED_DAYS * 24L * 60 * 60 * 1000)
-        return notificationDao.findArchived(user.id!!, since).map { toDTO(it) }
+        return notificationDao.findArchived(user.id!!, since).map { toDTO(it, user) }
     }
 
     /** Confirms the notification: no further escalation; a toast disappears, a banner stays until done. */
     @AccessChecked("Own user only (NotificationDao.acknowledge checks the recipient)")
     @PostMapping("{id}/acknowledge")
     fun acknowledge(@PathVariable("id") id: Long): Notification? {
-        return notificationDao.acknowledge(id, ThreadLocalUserContext.requiredLoggedInUser)?.let { toDTO(it) }
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        return notificationDao.acknowledge(id, user)?.let { toDTO(it, user) }
     }
 
     /** Marks the notification as done (if its rule allows it, see [NotificationDO.manualDone]). */
     @AccessChecked("Own user only (NotificationDao.done checks the recipient)")
     @PostMapping("{id}/done")
     fun done(@PathVariable("id") id: Long): Notification? {
-        return notificationDao.done(id, ThreadLocalUserContext.requiredLoggedInUser)?.let { toDTO(it) }
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        return notificationDao.done(id, user)?.let { toDTO(it, user) }
     }
 
-    private fun toDTO(notification: NotificationDO): Notification {
+    private fun toDTO(notification: NotificationDO, user: PFUserDO): Notification {
+        val preview = previews.firstNotNullOfOrNull { it.preview(notification, user) }
         return Notification(
             id = notification.id,
             severity = notification.severity,
@@ -111,7 +120,7 @@ class NotificationRest {
             status = notification.status,
             manualDone = notification.isManualDoneAllowed,
             title = notification.title,
-            body = notification.body,
+            body = preview?.let { "<p>${StringEscapeUtils.escapeHtml4(it)}</p>" } ?: notification.body,
             link = notification.link,
             created = notification.created,
             acknowledgedAt = notification.acknowledgedAt,

@@ -30,10 +30,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 
 /**
- * The checks of the api contracts of the apps against this server, shared by [AppApiContractTest] (the published
- * Flutter app) and [AppTsApiContractTest] (projectforge-app).
+ * The checks of the api contracts of the apps against this server, used by [AppTsApiContractTest] (projectforge-app).
  */
 internal class ApiContractChecks(private val mapper: ObjectMapper) {
+    /**
+     * The class of [name], not initialized: a DTO with a companion that needs the application context (e.g.
+     * `rest.dto.Kost2`) can't be initialized in a test without Spring, and introspecting it doesn't need that.
+     */
+    fun classOf(name: String): Class<*> = Class.forName(name, false, javaClass.classLoader)
+
     /** True if the controller maps the call (`GET /rs/x/{id}`). */
     fun hasEndpoint(controller: Class<*>, call: String): Boolean {
         val (verb, path) = call.split(' ', limit = 2)

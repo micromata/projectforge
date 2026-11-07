@@ -21,29 +21,30 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { t } from '../../core/i18n/translations';
 import { alertMessage, useUserStatus } from '../../core/status/userStatus';
 import { useColors } from '../../core/ui/colors';
 
-/** The message of the administrators (e.g. maintenance) above a tab that doesn't show it itself (not the pages). */
+/**
+ * The message of the administrators (e.g. maintenance) above a tab that doesn't show it itself (not the pages). It
+ * looks like the banner of next (`system-alert-banner.tsx`): its colours, the bell, the message only.
+ */
 export function AlertBanner() {
   const colors = useColors();
   const message = alertMessage(useUserStatus().status);
   if (!message) return null;
   return (
-    <View style={[styles.banner, { backgroundColor: colors.warning }]} accessibilityRole="alert">
-      <Text style={styles.text}>
-        <Text style={styles.title}>{t('app.systemMessage.title')}: </Text>
-        {message}
-      </Text>
+    <View style={[styles.banner, { backgroundColor: colors.alert }]} accessibilityRole="alert">
+      <Ionicons name="notifications-outline" size={18} color={colors.onAlert} style={styles.icon} />
+      <Text style={[styles.text, { color: colors.onAlert }]}>{message}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  banner: { paddingHorizontal: 12, paddingVertical: 8 },
-  text: { color: '#000', fontSize: 14 },
-  title: { fontWeight: '600' },
+  banner: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  icon: { marginTop: 1 },
+  text: { flex: 1, fontSize: 14, fontWeight: '500' },
 });

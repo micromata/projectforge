@@ -35,12 +35,16 @@ export function TableLegend({ entries, className }: TableLegendProps) {
   return (
     <div
       className={cn(
-        "flex flex-wrap gap-x-4 gap-y-1 border-t px-2 py-1.5 text-[11px] text-muted-foreground",
+        // On a cramped screen one line, swiped sideways: the table above keeps the height.
+        "flex flex-wrap gap-x-4 gap-y-1 border-t px-2 py-1.5 text-[11px] text-muted-foreground cramped:flex-nowrap cramped:overflow-x-auto cramped:whitespace-nowrap",
         className
       )}
     >
       {entries.map((entry) => (
-        <span key={entry.className} className="flex items-center gap-1.5">
+        <span
+          key={entry.className}
+          className="flex shrink-0 items-center gap-1.5"
+        >
           <span
             className={cn(
               "inline-block h-3 w-3 rounded-sm border",

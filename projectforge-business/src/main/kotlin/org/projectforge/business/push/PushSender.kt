@@ -35,6 +35,8 @@ class PushMessage(
     /** The app path to open when the push is tapped (see NotificationDO.link). */
     val link: String?,
     val notificationId: Long?,
+    /** The name of the server (its host), below the title and as `server`: the app may be logged in at several servers. */
+    val subtitle: String? = null,
 )
 
 enum class PushResult {

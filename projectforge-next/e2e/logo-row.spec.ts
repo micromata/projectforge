@@ -41,8 +41,10 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
     // A short window rather than a long list: the column needs room to scroll, and how many rows it
     // holds is the account's business - the page size *and* the page last visited are stored per user,
     // and the last page of a list holds only its remainder (13 of 1963). Shrinking the viewport makes
-    // the overflow follow from the window instead, which no earlier spec can have changed.
-    await page.setViewportSize({ width: 1280, height: 400 });
+    // the overflow follow from the window instead, which no earlier spec can have changed. Not lower
+    // than 32rem: below that the row isn't shown at all (`roomy`, app/globals.css), and on a phone-sized
+    // window the list's header would collapse along with it (see useListHeaderCollapse).
+    await page.setViewportSize({ width: 1280, height: 560 });
     await goto(page, "/book");
     // No waitForHydration here: it waits for a hydrated <form>, which a list page has none of. The
     // assertions below are web-first and wait for the rows on their own.

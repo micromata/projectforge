@@ -138,6 +138,13 @@ class AddressesStore {
     return image;
   }
 
+  /** The vCard of [address] for sharing or the contacts of the device (see AddressesRepository.vCard). */
+  vCard(address: AppAddress): Promise<Uint8Array> {
+    const api = this.api;
+    if (api == null) return Promise.reject(new Error('Not logged in.'));
+    return this.repository(api).vCard(address);
+  }
+
   private set(state: AddressesState) {
     this.state = state;
     this.listeners.forEach((it) => it());

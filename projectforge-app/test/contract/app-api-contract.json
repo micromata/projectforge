@@ -21,6 +21,10 @@
           "controller": "org.projectforge.rest.app.AppAuthRest"
         },
         {
+          "call": "POST /rs/appAuth/pushToken",
+          "controller": "org.projectforge.rest.app.AppAuthRest"
+        },
+        {
           "call": "POST /rs/appAuth/pushToken/remove",
           "controller": "org.projectforge.rest.app.AppAuthRest"
         }
@@ -35,6 +39,10 @@
         },
         {
           "call": "GET /rs/uiSettings/theme",
+          "controller": "org.projectforge.rest.UISettingsRest"
+        },
+        {
+          "call": "POST /rs/uiSettings/theme",
           "controller": "org.projectforge.rest.UISettingsRest"
         }
       ]
@@ -52,6 +60,10 @@
         },
         {
           "call": "GET /rs/myBusinessCards/pkpass",
+          "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
+        },
+        {
+          "call": "GET /rs/myBusinessCards/photo",
           "controller": "org.projectforge.rest.businesscard.BusinessCardRest"
         }
       ]
@@ -91,6 +103,84 @@
         {
           "call": "GET /rs/address/imagePreview/{id}",
           "controller": "org.projectforge.rest.AddressImageServicesRest"
+        },
+        {
+          "call": "GET /rs/address/exportVCard/{id}",
+          "controller": "org.projectforge.rest.AddressServicesRest"
+        }
+      ]
+    },
+    {
+      "name": "Time sheets",
+      "endpoints": [
+        {
+          "call": "GET /rs/timesheet/appList",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "GET /rs/timesheet/{id}",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/insert",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/update",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "DELETE /rs/timesheet/markAsDeleted",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "PUT /rs/timesheet/undelete",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "GET /rs/timesheet/recentList",
+          "controller": "org.projectforge.rest.TimesheetEntityRest"
+        },
+        {
+          "call": "GET /rs/timesheet/favorites/list",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest"
+        },
+        {
+          "call": "POST /rs/timesheet/favorites/create",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest"
+        },
+        {
+          "call": "POST /rs/timesheet/favorites/delete",
+          "controller": "org.projectforge.rest.TimesheetFavoritesRest"
+        },
+        {
+          "call": "GET /rs/task/tree/autosearch",
+          "controller": "org.projectforge.rest.task.TaskServicesRest"
+        },
+        {
+          "call": "GET /rs/task/recent/list",
+          "controller": "org.projectforge.rest.task.TaskServicesRest"
+        },
+        {
+          "call": "GET /rs/task/tree/children",
+          "controller": "org.projectforge.rest.task.TaskServicesRest"
+        },
+        {
+          "call": "GET /rs/task/info/{id}",
+          "controller": "org.projectforge.rest.task.TaskServicesRest"
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "endpoints": [
+        {
+          "call": "GET /rs/menu",
+          "controller": "org.projectforge.rest.MenuRest"
+        },
+        {
+          "call": "POST /rs/menu/recent",
+          "controller": "org.projectforge.rest.MenuRest"
         }
       ]
     }

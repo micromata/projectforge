@@ -60,3 +60,26 @@ export function splitSetCookie(joined: string | null | undefined): string[] {
 export function isRedirect(response: Response): boolean {
   return (response.status >= 300 && response.status < 400) || response.type === 'opaqueredirect';
 }
+
+/**
+ * [http] failing if the answer (its status and headers) doesn't arrive within [ms]: a server that accepts the
+ * connection but never answers would otherwise keep a spinner forever. Reading the body is not limited (a download).
+ * The error is no ApiException: for the app it is a server not reached (offline).
+ */
+export function withTimeout(http: HttpFetch, ms: number): HttpFetch {
+  return async (url, init) => {
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, ms);
+    try {
+      return await http(url, { ...init, signal: init.signal ?? controller.signal });
+    } catch (e) {
+      throw timedOut ? new Error(`No answer within ${ms / 1000} s`) : e;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+}

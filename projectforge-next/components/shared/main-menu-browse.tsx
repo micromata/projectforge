@@ -158,7 +158,7 @@ function MenuEntryLink({
         onNavigate();
       }}
       className={cn(
-        "flex items-center rounded-md px-2 py-1 text-sm",
+        "flex items-center gap-2 rounded-md px-2 py-1 text-sm",
         MENU_HOVER_CLASS
       )}
     >

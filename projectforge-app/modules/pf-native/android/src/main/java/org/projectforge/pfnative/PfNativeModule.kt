@@ -23,6 +23,8 @@
 
 package org.projectforge.pfnative
 
+import android.content.Intent
+import android.net.Uri
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import expo.modules.kotlin.Promise
@@ -32,7 +34,8 @@ import expo.modules.kotlin.modules.ModuleDefinition
 
 /**
  * The cookie jar and the web storage of the WebViews (android.webkit.CookieManager, shared by all WebViews of the
- * app). @react-native-cookies/cookies would do it, but doesn't support the New Architecture.
+ * app; @react-native-cookies/cookies would do it, but doesn't support the New Architecture) and the import of a
+ * contact.
  */
 class PfNativeModule : Module() {
   override fun definition() = ModuleDefinition {
@@ -81,13 +84,31 @@ class PfNativeModule : Module() {
     }.runOnQueue(Queues.MAIN)
 
     /** Apple Wallet passes exist on the iPhone only: the app doesn't offer them here. */
-    AsyncFunction("addPass") { _: String ->
-      throw UnsupportedOperationException("Wallet is not available.")
+    AsyncFunction("addPass") { _: String, promise: Promise ->
+      promise.reject("ERR_WALLET", "Wallet is not available.", null)
     }
+
+    /**
+     * Opens the vCard at [contentUri] (a content uri of the app's FileProvider) with the contacts app, which offers to
+     * import it.
+     */
+    AsyncFunction("addContact") { contentUri: String ->
+      val activity = appContext.currentActivity ?: throw IllegalStateException("No activity.")
+      val intent = Intent(Intent.ACTION_VIEW)
+        .setDataAndType(Uri.parse(contentUri), "text/x-vcard")
+        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+      activity.startActivity(intent)
+    }.runOnQueue(Queues.MAIN)
 
     /** The Flutter app was never released on Android: nothing to take over (see the iOS implementation). */
     Function("readLegacyKeychain") { _: String, _: String -> null as String? }
 
     Function("deleteLegacyKeychain") { _: String, _: String -> }
+
+    // No APNs on Android.
+    Function("apsEnvironment") { null as String? }
+
+    // The search in the page of Android is the script of the app (findInPage.ts).
+    AsyncFunction("presentFindNavigator") { false }
   }
 }

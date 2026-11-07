@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { DateTimeInput } from "@/components/shared/date-time-input";
 import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
-import { useEntityEditForm } from "@/components/shared/form/form-context";
+import {
+  useEntityData,
+  useEntityEditForm,
+} from "@/components/shared/form/form-context";
 import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import { TimeInput } from "@/components/shared/time-input";
 import { useFormatContext } from "@/hooks/use-format";
@@ -55,6 +59,9 @@ export function DayRangeSection({ className }: { className?: string }) {
     (state: any) => state.values as TimesheetEditValues
   );
   const minutes = durationMinutesOf(values.startTime, values.stopTime);
+  // A new sheet opened with its end preset (a calendar break) keeps that end when the start is changed.
+  const isNew = useEntityData<{ id?: number | null }>()?.id == null;
+  const [keepStop] = useState(() => isNew && !!values.stopTime);
 
   return (
     <div
@@ -98,10 +105,14 @@ export function DayRangeSection({ className }: { className?: string }) {
                 timeLabel={t("timesheet.startTime")}
                 onChange={(next) => {
                   // Read before writing: the held length is the one the *old* pair had.
-                  const stop = stopTimeForNewStart(next, {
-                    startTime: values.startTime,
-                    stopTime: values.stopTime,
-                  });
+                  const stop = stopTimeForNewStart(
+                    next,
+                    {
+                      startTime: values.startTime,
+                      stopTime: values.stopTime,
+                    },
+                    keepStop
+                  );
                   field.handleChange(next);
                   form.setFieldValue("stopTime", stop);
                 }}

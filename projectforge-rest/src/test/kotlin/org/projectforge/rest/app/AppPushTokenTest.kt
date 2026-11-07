@@ -56,6 +56,7 @@ class AppPushTokenTest : AbstractTestBase() {
 
         val response = appAuthRest.pushToken(appRequest(token), body(HEX))
         Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        Assertions.assertEquals(true, (response.body as AppAuthRest.PushTokenResponse).deviceTagged)
         val stored = appDeviceDao.getPushDevices(getUser(TEST_USER).id).single()
         Assertions.assertEquals(device.id, stored.id)
         Assertions.assertEquals(HEX, stored.pushToken)

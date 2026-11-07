@@ -24,13 +24,17 @@
 import { SplashScreen, Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { authController, useAuth } from '../core/auth/authController';
 import { t } from '../core/i18n/translations';
+import { logUncaughtErrors } from '../core/log/uncaughtErrors';
 import { appSettings } from '../core/settings/appSettings';
 import { useColors } from '../core/ui/colors';
+import { SnackbarHost } from '../core/ui/snackbar';
 
+logUncaughtErrors();
 void SplashScreen.preventAutoHideAsync();
 
 /** The root: restores the login, then the tabs (logged in) or the login, and the screens opened from the menu. */
@@ -56,25 +60,30 @@ export default function RootLayout() {
     headerTintColor: colors.text,
   };
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-        <Stack.Screen name="index" />
-        <Stack.Protected guard={loggedIn}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="card/[id]" />
-          <Stack.Screen name="address/[id]" />
-          <Stack.Screen name="notifications" options={{ ...modal, title: t('notification.center') }} />
-          <Stack.Screen name="settings" options={{ ...modal, title: t('settings') }} />
-          <Stack.Screen name="servers" options={{ ...modal, title: t('app.server.switch') }} />
-          <Stack.Screen name="add-server" options={{ ...modal, title: t('app.server.add') }} />
-        </Stack.Protected>
-        <Stack.Protected guard={!loggedIn}>
-          <Stack.Screen name="login" />
-        </Stack.Protected>
-        <Stack.Screen name="log" options={{ ...modal, title: t('app.log.title') }} />
-      </Stack>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+          <Stack.Screen name="index" />
+          <Stack.Protected guard={loggedIn}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="card/[id]" />
+            <Stack.Screen name="address/[id]" />
+            <Stack.Screen name="booking" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="task-picker" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="notifications" options={{ ...modal, title: t('notification.center') }} />
+            <Stack.Screen name="settings" options={{ ...modal, title: t('settings') }} />
+            <Stack.Screen name="servers" options={{ ...modal, title: t('app.server.switch') }} />
+            <Stack.Screen name="add-server" options={{ ...modal, title: t('app.server.add') }} />
+          </Stack.Protected>
+          <Stack.Protected guard={!loggedIn}>
+            <Stack.Screen name="login" />
+          </Stack.Protected>
+          <Stack.Screen name="log" options={{ ...modal, title: t('app.log.title') }} />
+        </Stack>
+        <SnackbarHost />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
