@@ -66,6 +66,8 @@ Commands:
   clean            Remove the native projects, caches and node_modules, then install again
   deps             npm install + the versions expo expects (expo install --check)
   doctor           expo-doctor
+  eas [args…]      eas-cli (npx eas-cli@latest) with EXPO_OWNER and EAS_PROJECT_ID of .env.local
+                   (gitignored), e.g. eas build --platform ios --profile preview
   logs             The log of the app in the booted iOS simulator
   help             Show this help
 
@@ -350,6 +352,17 @@ case "$cmd" in
     ;;
   doctor)
     exec npx expo-doctor
+    ;;
+  eas)
+    ensure_deps
+    # The Expo account and project aren't in the repository (app.config.ts).
+    if [[ -f "$APP/.env.local" ]]; then
+      set -a
+      # shellcheck disable=SC1091
+      source "$APP/.env.local"
+      set +a
+    fi
+    cd "$APP" && exec npx --yes eas-cli@latest "$@"
     ;;
   logs)
     exec xcrun simctl spawn booted log stream --level debug --predicate 'process == "ProjectForgeRN"'
