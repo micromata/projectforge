@@ -29,7 +29,7 @@ import { authController, useAuth } from '../../core/auth/authController';
 import { Session } from '../../core/auth/session';
 import { t } from '../../core/i18n/translations';
 import { otherServers, useOtherServers } from '../../core/status/otherServers';
-import { severityColor, useColors } from '../../core/ui/colors';
+import { useColors } from '../../core/ui/colors';
 import { timerMayBeDiscarded } from './switchServer';
 
 /**
@@ -84,7 +84,7 @@ export function ServerSwitchScreen({
             </View>
             {other != null && other.openCount > 0 && (
               <View
-                style={[styles.badge, { backgroundColor: severityColor(colors, other.maxSeverity) ?? colors.badge }]}
+                style={[styles.badge, { backgroundColor: colors.badge }]}
                 accessibilityLabel={t('app.server.notifications', other.openCount)}
               >
                 <Ionicons name="notifications" size={12} color="#fff" />

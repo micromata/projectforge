@@ -24,9 +24,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { Menus } from '@projectforge/shared/rs/menu';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   BackHandler,
   FlatList,
   Pressable,
@@ -34,6 +36,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 
@@ -56,6 +59,12 @@ const rememberTab = (tab: MenuTab) => {
   chosenTab = tab;
 };
 
+/** How far (pt) or how fast (pt/s) the sheet must be pulled down to close. */
+const CLOSE_DISTANCE = 120;
+const CLOSE_VELOCITY = 800;
+/** The page left visible above the sheet. */
+const PAGE_PEEK = 44;
+
 const TABS: { tab: MenuTab; label: () => string }[] = [
   { tab: 'favorites', label: () => t('favorites') },
   { tab: 'recent', label: () => t('app.web.menu.recent') },
@@ -64,17 +73,84 @@ const TABS: { tab: MenuTab; label: () => string }[] = [
 ];
 
 /**
- * The menu of the pages tab, over its page: tabs for the favorites, the entries opened last, the main menu and the user
- * menu (at the right on the web pages), and a search in all of them. On a phone this is easier to reach than the small
- * navigation of the web pages. [onOpen] gets the path (or url) of the chosen entry; [active]: the tab is shown (the
- * back button of Android closes the menu then).
+ * The menu of the pages tab, a sheet moved up over its page: tabs for the favorites, the entries opened last, the main
+ * menu and the user menu (at the right on the web pages), and a search in all of them. On a phone this is easier to
+ * reach than the small navigation of the web pages. The page stays visible above it, dimmed: a tap there, pulling the
+ * sheet down by its top or the globe again closes it ([onClose]) and shows the page as it was. [open]: shown (moved in
+ * and out); [onOpen] gets the path (or url) of the chosen entry; [active]: the tab is shown (the back button of Android
+ * closes the menu then).
  */
 export function WebMenu({
+  open,
   active,
   onOpen,
   onClose,
 }: {
+  open: boolean;
   active: boolean;
+  onOpen: (path: string) => void;
+  onClose: () => void;
+}) {
+  const { height } = useWindowDimensions();
+  const [offset] = useState(() => new Animated.Value(height));
+  const [shown, setShown] = useState(open);
+  if (open && !shown) setShown(true);
+
+  useEffect(() => {
+    if (open) {
+      Animated.spring(offset, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 18 }).start();
+    } else {
+      Animated.timing(offset, { toValue: height, duration: 200, useNativeDriver: true }).start(({ finished }) => {
+        if (finished) setShown(false);
+      });
+    }
+  }, [open, height, offset]);
+
+  // Pulled down by its top (handle and tabs; the list scrolls itself): far or fast enough closes it, else back up.
+  const pull = useMemo(
+    () =>
+      Gesture.Pan()
+        .runOnJS(true)
+        .activeOffsetY(8)
+        .failOffsetX([-24, 24])
+        .onUpdate((event) => offset.setValue(Math.max(0, event.translationY)))
+        .onEnd((event) => {
+          if (event.translationY > CLOSE_DISTANCE || event.velocityY > CLOSE_VELOCITY) {
+            onClose();
+          } else {
+            Animated.spring(offset, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+          }
+        }),
+    [offset, onClose],
+  );
+
+  if (!shown) return null;
+  const dim = offset.interpolate({ inputRange: [0, height], outputRange: [0.45, 0], extrapolate: 'clamp' });
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents={open ? 'auto' : 'none'}>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: dim }]}>
+        <Pressable
+          style={styles.fill}
+          accessibilityRole="button"
+          accessibilityLabel={t('app.web.menu.close')}
+          onPress={onClose}
+        />
+      </Animated.View>
+      <Animated.View style={[styles.sheet, { transform: [{ translateY: offset }] }]}>
+        <MenuContent active={active && open} pull={pull} onOpen={onOpen} onClose={onClose} />
+      </Animated.View>
+    </View>
+  );
+}
+
+function MenuContent({
+  active,
+  pull,
+  onOpen,
+  onClose,
+}: {
+  active: boolean;
+  pull: ReturnType<typeof Gesture.Pan>;
   onOpen: (path: string) => void;
   onClose: () => void;
 }) {
@@ -155,23 +231,30 @@ export function WebMenu({
   };
 
   return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
+    <View style={[styles.fill, styles.content, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingFill>
-        <View style={[styles.tabs, { borderColor: colors.border }]} accessibilityRole="tablist">
-          {TABS.map((it) => (
-            <TabButton
-              key={it.tab}
-              label={it.label()}
-              // While searching the hits come from all tabs: none is chosen.
-              selected={!term.trim() && it.tab === tab}
-              badgeCounter={menus ? tabBadge(menus, it.tab) : undefined}
-              onPress={() => {
-                setTerm('');
-                choose(it.tab);
-              }}
-            />
-          ))}
-        </View>
+        <GestureDetector gesture={pull}>
+          <View>
+            <View style={styles.handleArea}>
+              <View style={[styles.handle, { backgroundColor: colors.textMuted }]} />
+            </View>
+            <View style={[styles.tabs, { borderColor: colors.border }]} accessibilityRole="tablist">
+              {TABS.map((it) => (
+                <TabButton
+                  key={it.tab}
+                  label={it.label()}
+                  // While searching the hits come from all tabs: none is chosen.
+                  selected={!term.trim() && it.tab === tab}
+                  badgeCounter={menus ? tabBadge(menus, it.tab) : undefined}
+                  onPress={() => {
+                    setTerm('');
+                    choose(it.tab);
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+        </GestureDetector>
         <View style={styles.fill}>
           {menus == null ? (
             error != null ? (
@@ -370,6 +453,11 @@ function Badge({ counter, small = false }: { counter?: number; small?: boolean }
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   loading: { marginTop: 32 },
+  backdrop: { backgroundColor: '#000' },
+  sheet: { position: 'absolute', top: PAGE_PEEK, left: 0, right: 0, bottom: 0 },
+  content: { borderTopLeftRadius: 14, borderTopRightRadius: 14, overflow: 'hidden' },
+  handleArea: { alignItems: 'center', paddingTop: 6, paddingBottom: 2 },
+  handle: { width: 36, height: 5, borderRadius: 3, opacity: 0.5 },
   tabs: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
   tab: {
     flex: 1,

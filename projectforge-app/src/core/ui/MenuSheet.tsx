@@ -41,6 +41,8 @@ export interface MenuItem {
   detail?: string;
   /** The current choice of a picker: marked with a check. */
   selected?: boolean;
+  /** A count at the end, as the badges of the tab bar (none for 0). */
+  badge?: number;
   onPress?: () => void;
 }
 
@@ -128,6 +130,11 @@ export function MenuSheet({
                     </Text>
                   ) : null}
                 </View>
+                {item.badge != null && item.badge > 0 && (
+                  <View style={[styles.badge, { backgroundColor: colors.badge }]}>
+                    <Text style={styles.badgeText}>{item.badge > 99 ? '99+' : item.badge}</Text>
+                  </View>
+                )}
                 {item.selected && <Ionicons name="checkmark" size={20} color={colors.primary} />}
               </Pressable>
             ))}
@@ -147,4 +154,13 @@ const styles = StyleSheet.create({
   label: { fontSize: 16 },
   selected: { fontWeight: '600' },
   detail: { fontSize: 13, marginTop: 2 },
+  badge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
 });

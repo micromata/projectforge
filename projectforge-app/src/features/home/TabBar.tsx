@@ -131,7 +131,10 @@ export function TabBar({
     ...(issue ? [{ key: 'compatibility', label: compatibilityText(issue), icon: 'warning-outline' as IconName, info: true }] : []),
     {
       key: 'servers',
-      label: otherOpen > 0 ? t('app.server.switch.notifications', otherOpen) : t('app.server.switch'),
+      label: t('app.server.switch'),
+      // The badge of the "more" button: the open notifications of the other logins, said here what it counts.
+      detail: otherOpen > 0 ? t('app.server.switch.notifications', otherOpen) : undefined,
+      badge: otherOpen,
       icon: 'swap-horizontal',
       onPress: () => router.push('/servers'),
     },

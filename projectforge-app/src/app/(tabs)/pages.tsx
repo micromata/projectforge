@@ -94,7 +94,7 @@ export default function PagesTab() {
         onStateChange={(state) => webTabs.setState('pages', state)}
         onNativePage={showNative}
       />
-      {menuOpen && <WebMenu active={focused} onOpen={openEntry} onClose={closeMenu} />}
+      <WebMenu open={menuOpen} active={focused} onOpen={openEntry} onClose={closeMenu} />
     </View>
   );
 }
