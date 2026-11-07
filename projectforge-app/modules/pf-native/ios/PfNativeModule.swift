@@ -184,29 +184,46 @@ public class PfNativeModule: Module {
     top.present(controller, animated: true)
   }
 
-  /// The contact of the vCard [data]. Without the entitlement for notes iOS may refuse a vCard with a NOTE: then
-  /// it is read once more without its notes.
+  /// The contact of the vCard [data]. iOS refuses some vCards without saying why (an empty list, or an error for a
+  /// NOTE without the entitlement for notes, seen with a PGP KEY and a large PHOTO): then it is read once more with
+  /// only the properties it knows, and the photo is set on its own.
   private static func contact(of data: Data) throws -> CNContact {
+    var reason = "The vCard has no contact."
     do {
       if let contact = try CNContactVCardSerialization.contacts(with: data).first { return contact }
     } catch {
-      guard let text = String(data: data, encoding: .utf8) else { throw ContactException(error.localizedDescription) }
-      let withoutNotes = Self.withoutProperty("NOTE", of: text)
-      if let contact = try? CNContactVCardSerialization.contacts(with: Data(withoutNotes.utf8)).first { return contact }
-      throw ContactException("The vCard can't be read: \(error.localizedDescription)")
+      reason = "The vCard can't be read: \(error.localizedDescription)"
     }
-    throw ContactException("The vCard has no contact.")
+    guard let text = String(data: data, encoding: .utf8) else { throw ContactException(reason) }
+    let (lines, photo) = Self.unfolded(text)
+    let kept = lines.filter { line in
+      let name = line.prefix { $0 != ":" && $0 != ";" }.uppercased()
+      return !(name.hasPrefix("X-") || ["NOTE", "KEY", "PHOTO"].contains(name))
+    }
+    guard let contact = try? CNContactVCardSerialization.contacts(with: Data(kept.joined(separator: "\r\n").utf8)).first
+    else {
+      throw ContactException(reason)
+    }
+    guard let photo else { return contact }
+    let withPhoto = contact.mutableCopy() as! CNMutableContact
+    withPhoto.imageData = photo
+    return withPhoto
   }
 
-  /// [text] without the lines of the property [name] (with their folded continuation lines).
-  private static func withoutProperty(_ name: String, of text: String) -> String {
-    var skipping = false
-    return text.components(separatedBy: "\r\n").filter { line in
-      if line.hasPrefix(" ") || line.hasPrefix("\t") { return !skipping }
-      let upper = line.uppercased()
-      skipping = upper.hasPrefix(name + ":") || upper.hasPrefix(name + ";")
-      return !skipping
-    }.joined(separator: "\r\n")
+  /// The lines of the vCard [text] with their folded continuations joined, and the bytes of its embedded PHOTO.
+  private static func unfolded(_ text: String) -> ([String], Data?) {
+    var lines: [String] = []
+    for line in text.components(separatedBy: "\r\n") {
+      if (line.hasPrefix(" ") || line.hasPrefix("\t")), let last = lines.popLast() {
+        lines.append(last + line.dropFirst())
+      } else if !line.isEmpty {
+        lines.append(line)
+      }
+    }
+    let photo = lines.first { $0.uppercased().hasPrefix("PHOTO;") && $0.uppercased().contains("ENCODING=B") }
+      .flatMap { $0.split(separator: ":", maxSplits: 1).last }
+      .flatMap { Data(base64Encoded: String($0)) }
+    return (lines, photo)
   }
 
   @MainActor
