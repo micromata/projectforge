@@ -45,7 +45,7 @@ const isHttp = (url: URL) => url.protocol === 'http:' || url.protocol === 'https
 
 /**
  * The rules for the navigation of the WebView with the pages of [server], without any WebView, so they can be
- * tested. Port of the Flutter app's `lib/features/web/web_navigation.dart`; every url is parsed WHATWG conformant
+ * tested. Port of the the earlier Flutter app's web_navigation; every url is parsed WHATWG conformant
  * (src/core/url.ts), as the WebView does.
  */
 export class WebNavigation {

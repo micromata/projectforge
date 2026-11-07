@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/core/session_store_test.dart, plus the takeover of the Flutter app's logins.
+// Port of the earlier Flutter app's session_store_test, plus the takeover of the Flutter app's logins.
 import { Session } from '../session';
 import { LegacyKeychain, MAX_SERVERS, memoryStore, SessionStore } from '../sessionStore';
 

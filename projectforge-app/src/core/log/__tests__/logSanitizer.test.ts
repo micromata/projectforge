@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/core/log/log_sanitizer_test.dart.
+// Port of the earlier Flutter app's log_sanitizer_test.
 import { LogSanitizer } from '../logSanitizer';
 
 test('url: query values masked, names kept, fragment and user info dropped', () => {

@@ -47,7 +47,7 @@ export const CALLBACK_URL = 'projectforge://auth';
 export type OpenBrowser = (url: string) => Promise<string | null>;
 
 /**
- * The login of the app (see AppAuthService of the server), port of the Flutter app's `lib/core/auth/app_login.dart`:
+ * The login of the app (see AppAuthService of the server), port of the the earlier Flutter app's app_login:
  * the login page of the server opens in the system browser, so password, WebAuthn and OTP work as in the web. Its
  * callback (`projectforge://auth?code=…&state=…`) carries a one-time code, exchanged with the PKCE verifier for the
  * token of the app.

@@ -11,7 +11,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NEXT="$ROOT/projectforge-next"
 APP="$ROOT/projectforge-app"
-FLUTTER_APP="$ROOT/projectforge-flutter"
 GRADLEW="$ROOT/gradlew"
 
 usage() {
@@ -95,9 +94,6 @@ database.
                    The app in the Android emulator (booted if none runs) against
                    :8080+slot, reached there as 10.0.2.2: pfApp.sh run [slot] --android
   app-check        App quality gates (pfApp.sh check)
-  flutter-app [slot] […], flutter-app-check
-                   The same for the Flutter app (projectforge-flutter), until it is
-                   replaced
   ps               List the running servers of all slots (:8080–:8089 and
                    :3000–:3009) with PID and working dir (i.e. worktree)
   stop [slot]      Stop the Spring (:8080+slot) and the next dev server
@@ -633,13 +629,6 @@ case "$cmd" in
     ;;
   app-check)
     exec "$APP/bin/pfApp.sh" check
-    ;;
-  flutter-app)
-    ((SLOT == 0)) || set -- "$SLOT" "$@"
-    exec "$FLUTTER_APP/bin/pfApp.sh" run "$@"
-    ;;
-  flutter-app-check)
-    exec "$FLUTTER_APP/bin/pfApp.sh" check
     ;;
   e2e)
     export PROJECTFORGE_HOME="$PF_HOME"

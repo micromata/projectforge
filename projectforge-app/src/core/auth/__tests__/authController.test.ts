@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Port of projectforge-flutter/test/core/auth_controller_test.dart.
+// Port of the earlier Flutter app's auth_controller_test.
 import { fakeHttp, FakeAnswer, nodeCrypto, RecordedRequest } from '../../../testing/fakeHttp';
 import { appLog } from '../../log/appLog';
 import { AppLogin } from '../appLogin';

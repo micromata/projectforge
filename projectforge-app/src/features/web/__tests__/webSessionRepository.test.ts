@@ -22,8 +22,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Port of projectforge-flutter/test/features/web/web_session_repository_test.dart, and of the cookie test of
-// web_navigation_test.dart (the set-cookie headers are parsed natively here, by pf-native).
+// Port of the earlier Flutter app's web_session_repository_test, and of the cookie test of
+// the earlier Flutter app's web_navigation_test (the set-cookie headers are parsed natively here, by pf-native).
 import { fakeHttp } from '../../../testing/fakeHttp';
 import { ApiClient } from '../../../core/api/apiClient';
 import { ApiException } from '../../../core/api/apiException';

@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Port of projectforge-flutter/test/core/auth/app_version_test.dart.
+// Port of the earlier Flutter app's app_version_test.
 import { versionWithBuild } from '../platform';
 
 test('the version is shown as version+build', () => {

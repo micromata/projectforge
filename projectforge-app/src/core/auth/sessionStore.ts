@@ -45,7 +45,7 @@ const SESSIONS_KEY = 'sessions';
 const SERVERS_KEY = 'servers';
 /** Set once the key chain of the Flutter app was looked at. */
 const MIGRATED_KEY = 'flutterMigrated';
-/** The keys of the Flutter app's SessionStore (lib/core/auth/session.dart), with the same json. */
+/** The keys of the Flutter app's SessionStore (session), with the same json. */
 const LEGACY_KEYS = [SESSION_KEY, SESSIONS_KEY, SERVERS_KEY];
 
 export const MAX_SERVERS = 10;

@@ -1,8 +1,7 @@
 # ProjectForge app (React Native, Expo) — conventions
 
 See [README.md](README.md) for setup, [AGENTS.md](AGENTS.md) for Expo (versioned docs, never from memory) and
-[dev-docs/flutter-client.md](../dev-docs/flutter-client.md) for the architecture (login, web session, SSO proxy,
-push), which this app takes over from the Flutter app.
+[dev-docs/mobile-app.md](../dev-docs/mobile-app.md) for the architecture (login, web session, SSO proxy, push).
 
 - Structure: `src/app/` routes (expo-router) only, `src/core/` (api client, auth, i18n, cache, log) and
   `src/features/<noun>/` (screens, repository, hooks, models of one feature). No imports between features; shared code

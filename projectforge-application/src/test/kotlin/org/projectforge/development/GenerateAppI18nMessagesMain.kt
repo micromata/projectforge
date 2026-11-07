@@ -31,8 +31,8 @@ import java.nio.charset.StandardCharsets
 
 /**
  * Generates the message catalogs of the mobile apps (`<app>/assets/i18n/generated.<locale>.json`) from the
- * I18nResources bundles, as [GenerateNextI18nMessagesMain] does for projectforge-next. One [Target] per app:
- * projectforge-app (React Native) and, until it is removed, projectforge-flutter.
+ * I18nResources bundles, as [GenerateNextI18nMessagesMain] does for projectforge-next. One [Target] per app
+ * (currently projectforge-app, React Native).
  *
  * Exported are the keys the sources name literally (`t('businessCard.title')`, see [KEY_REGEX]) plus the keys
  * starting with one of the target's prefixes. The catalogs are flat (dotted key to text), the placeholders stay in
@@ -62,13 +62,6 @@ object GenerateAppI18nMessagesMain {
       sourceDir = "src",
       extensions = setOf("ts", "tsx"),
       // The field labels of the business cards.
-      prefixes = listOf("businessCard."),
-    ),
-    Target(
-      appDir = "projectforge-flutter",
-      sourceDir = "lib",
-      extensions = setOf("dart"),
-      // The field labels of the business card editor (lib/features/business_cards/business_card_fields.dart).
       prefixes = listOf("businessCard."),
     ),
   )

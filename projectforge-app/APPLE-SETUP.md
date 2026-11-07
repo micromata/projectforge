@@ -1,7 +1,7 @@
 # Apple setup for the App Store
 
 One-time steps in the Apple developer portal and App Store Connect, before the first upload. The build and upload
-itself is described in [README.md](README.md#release-ios-app-store--testflight).
+itself is described in [README.md](README.md#release).
 
 | | |
 |---|---|

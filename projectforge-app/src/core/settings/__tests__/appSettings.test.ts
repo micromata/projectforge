@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Port of projectforge-flutter/test/core/settings/app_settings_test.dart (the parsing; the file is expo-file-system's).
+// Port of the earlier Flutter app's app_settings_test (the parsing; the file is expo-file-system's).
 import { NATIVE_PAGES } from '../../web/nativePage';
 import { opensInApp, settingsFromJson } from '../appSettings';
 

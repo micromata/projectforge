@@ -30,8 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 
 /**
- * The checks of the api contracts of the apps against this server, shared by [AppApiContractTest] (the published
- * Flutter app) and [AppTsApiContractTest] (projectforge-app).
+ * The checks of the api contracts of the apps against this server, used by [AppTsApiContractTest] (projectforge-app).
  */
 internal class ApiContractChecks(private val mapper: ObjectMapper) {
     /**

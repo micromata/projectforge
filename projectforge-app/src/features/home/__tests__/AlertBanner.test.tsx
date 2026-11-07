@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Port of projectforge-flutter/test/features/home/system_alert_banner_test.dart.
+// Port of the earlier Flutter app's system_alert_banner_test.
 import { render, screen } from '@testing-library/react-native';
 
 import { AlertBanner } from '../AlertBanner';

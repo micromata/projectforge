@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Port of projectforge-flutter/test/features/timesheets/timesheets_screen_test.dart: the day list and the booking form
+// Port of the earlier Flutter app's timesheets_screen_test: the day list and the booking form
 // against a fake server (the screen of a phone shows the form as a route of its own).
 import { dayOf, mondayOf } from '@projectforge/shared/booking-time';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';

@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-// Port of projectforge-flutter/test/core/status/user_status_controller_test.dart and theme_controller_test.dart.
+// Port of the earlier Flutter app's user_status_controller_test and theme_controller_test.
 import type { UserStatusResult } from '@projectforge/shared/rs/user-status';
 
 import { fakeHttp, FakeAnswer, RecordedRequest } from '../../../testing/fakeHttp';

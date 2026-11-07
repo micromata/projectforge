@@ -253,19 +253,13 @@ tasks.named<Test>("test") {
         exclude("_site/**", "node_modules/**", ".jekyll-cache/**", "assets/css/main.css", "_data/binaries.json")
     }).withPropertyName("site").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir(rootProject.file("changelog")).withPropertyName("changelog").withPathSensitivity(PathSensitivity.RELATIVE)
-    // GenerateAppI18nMessagesTest scans the sources of the apps and compares their generated catalogs.
-    inputs.files(rootProject.fileTree("projectforge-flutter") {
-        include("lib/**/*.dart", "assets/i18n/**")
-    }).withPropertyName("flutterI18n").withPathSensitivity(PathSensitivity.RELATIVE)
+    // GenerateAppI18nMessagesTest scans the sources of the app and compares its generated catalogs.
     inputs.files(rootProject.fileTree("projectforge-app") {
         include("src/**/*.ts", "src/**/*.tsx", "assets/i18n/**")
         exclude("node_modules/**")
     }).withPropertyName("appI18n").withPathSensitivity(PathSensitivity.RELATIVE)
-    // AppApiContractTest (Flutter: contract file, Dart sources) and AppTsApiContractTest (projectforge-app: contract
-    // file, the TypeScript interfaces of the api in projectforge-shared) compare the api the apps read with the server.
-    inputs.files(rootProject.fileTree("projectforge-flutter") {
-        include("test/contract/**")
-    }).withPropertyName("appApiContract").withPathSensitivity(PathSensitivity.RELATIVE)
+    // AppTsApiContractTest (projectforge-app: contract file, the TypeScript interfaces of the api in
+    // projectforge-shared) compares the api the app reads with the server.
     inputs.files(rootProject.fileTree("projectforge-app") {
         include("test/contract/**")
     }).withPropertyName("tsAppApiContract").withPathSensitivity(PathSensitivity.RELATIVE)

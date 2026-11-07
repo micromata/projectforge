@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/core/compat/compatibility_test.dart.
+// Port of the earlier Flutter app's compatibility_test.
 import { compareVersions, compatibilityIssue, MIN_SERVER_VERSION, parseVersion } from '../compatibility';
 
 test('versions are compared by their numeric segments', () => {

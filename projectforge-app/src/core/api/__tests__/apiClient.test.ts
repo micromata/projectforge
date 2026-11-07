@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// The essentials of projectforge-flutter/test/core/api_client_test.dart.
+// The essentials of the earlier Flutter app's api_client_test.
 import { fakeHttp, FakeAnswer, RecordedRequest } from '../../../testing/fakeHttp';
 import { appLog } from '../../log/appLog';
 import { ApiClient } from '../apiClient';

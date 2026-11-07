@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# pfApp.sh — dev helper for the ProjectForge app (projectforge-app, React Native), the counterpart of projectforge-flutter/bin/pfApp.sh
+# pfApp.sh — dev helper for the ProjectForge app (projectforge-app, React Native)
 # and bin/pfDev.sh.
 #
 # Works from any working directory. Node and npm are taken from the PATH; the native projects (ios/, android/) are

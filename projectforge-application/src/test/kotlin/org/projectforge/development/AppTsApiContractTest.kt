@@ -42,8 +42,7 @@ import java.io.File
  * The endpoints the app calls are listed in `projectforge-app/test/contract/app-api-contract.json`.
  *
  * A failure is a break for the app: keep the field or endpoint `@Deprecated` and list it in
- * `dev-docs/app-api-deprecations.md`, or raise `AppCompatibility.MIN_APP_VERSION`. The published Flutter app has
- * [AppApiContractTest].
+ * `dev-docs/app-api-deprecations.md`, or raise `AppCompatibility.MIN_APP_VERSION`.
  */
 class AppTsApiContractTest {
     private val rootDir = GenerateChangelogMain.resolveRootDir()

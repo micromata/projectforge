@@ -1,5 +1,5 @@
 /**
- * The mobile app (projectforge-flutter) shows these pages in its WebView and marks its user agent with
+ * The mobile app (projectforge-app) shows these pages in its WebView and marks its user agent with
  * `ProjectForgeApp/<version>`. The web session there comes from the app's token (POST /rs/appAuth/webSession).
  *
  * Only for shaping the UI (e.g. no logout, the app has its own): anybody can send this user agent, so it is never a

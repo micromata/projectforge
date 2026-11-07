@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/features/web/web_navigation_test.dart.
+// Port of the earlier Flutter app's web_navigation_test.
 import { WebNavigation } from '../webNavigation';
 
 const navigation = new WebNavigation('https://pf.example.org');

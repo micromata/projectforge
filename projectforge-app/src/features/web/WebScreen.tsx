@@ -101,7 +101,7 @@ const ANDROID_CONNECTION_ERRORS = new Set([-2, -6, -7, -8]);
 const IOS_CANCELLED = -999;
 
 /**
- * The pages of the server in a WebView, the port of the Flutter app's `lib/features/web/web_screen.dart`:
+ * The pages of the server in a WebView, the port of the the earlier Flutter app's web_screen:
  * the web session comes from the app token, only pages of the own server stay in the WebView, the login of an SSO
  * proxy is renewed in the system browser, the web session is renewed when next shows its login page.
  *

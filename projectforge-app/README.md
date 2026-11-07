@@ -1,8 +1,7 @@
 # ProjectForge app
 
-The mobile app of ProjectForge for iOS and Android (React Native, Expo), the successor of the Flutter app
-([`projectforge-flutter`](../projectforge-flutter/README.md)). Architecture, login flow and plans:
-[dev-docs/flutter-client.md](../dev-docs/flutter-client.md); conventions: [CLAUDE.md](CLAUDE.md).
+The mobile app of ProjectForge for iOS and Android (React Native, Expo). Architecture, login flow and plans:
+[dev-docs/mobile-app.md](../dev-docs/mobile-app.md); conventions: [CLAUDE.md](CLAUDE.md).
 
 ## Setup (macOS)
 
@@ -40,13 +39,19 @@ go to a login on another host, the api gets a 401 without json, `/rsPublic/` pas
 by hand; app only texts go into `assets/i18n/app.<locale>.json`. Keys are always written out literally:
 `t('businessCard.new')`.
 
+## App icon
+
+`assets/icon.png` (1024 × 1024, opaque) is the ProjectForge wordmark with the flame, rendered from the parts of the
+website logo (`site/_includes/logo.html`: Archivo Narrow bold italic, `projectforge-flame.svg`); Expo scales the
+platform icons from it.
+
 ## Release
 
 EAS (`eas.json`): `development` (dev client, simulator), `development-device`, `preview` (TestFlight), `production`.
-The store app is `de.projectforge.mobileapp` (team `E4Q65AC7LP`), the update of the Flutter app: version 1.1.0, build
+The store app is `de.projectforge.mobileapp` (team `E4Q65AC7LP`), the update of the earlier Flutter app: version 1.1.0, build
 6 and up. OTA updates (EAS Update) reach only builds with the same native code (`runtimeVersion` policy
 `fingerprint`). One-time portal steps (App ID, APNs keys, store listing):
-[projectforge-flutter/APPLE-SETUP.md](../projectforge-flutter/APPLE-SETUP.md).
+[APPLE-SETUP.md](APPLE-SETUP.md).
 
 The Expo account and project aren't in the repository: `app.config.ts` reads `EXPO_OWNER` and `EAS_PROJECT_ID`
 (also the EAS Update url), locally from `.env.local` (gitignored), on the build servers from the environment variables

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/core/app_login_test.dart and pkce_test.dart.
+// Port of the earlier Flutter app's app_login_test and pkce_test.
 import { fakeHttp, nodeCrypto } from '../../../testing/fakeHttp';
 import { ApiException } from '../../api/apiException';
 import { AppLogin, AppLoginCancelled, isInsecure, normalizeServerUrl } from '../appLogin';

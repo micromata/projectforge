@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// Port of projectforge-flutter/test/features/web/web_download_test.dart.
+// Port of the earlier Flutter app's web_download_test.
 import { fakeHttp } from '../../../testing/fakeHttp';
 import { blobFile, fileName, isWalletPass, MAX_BLOB_BYTES, WebDownload, WebDownloadRefused } from '../webDownload';
 import { WebNavigation } from '../webNavigation';

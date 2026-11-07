@@ -1,4 +1,4 @@
-// The tests of projectforge-flutter/test/core/push/push_service_test.dart.
+// The tests of the earlier Flutter app's push_service_test.
 import { ApiClient } from '../../api/apiClient';
 import { fakeHttp } from '../../../testing/fakeHttp';
 import { PushPlatform, PushService, PushTap } from '../pushService';

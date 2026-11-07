@@ -34,7 +34,7 @@ export interface RequestOptions {
 
 /**
  * The calls of the app to its ProjectForge server (`/rs`, authenticated by the app token), port of the Flutter
- * app's `lib/core/api/api_client.dart`:
+ * earlier Flutter app's api client:
  *
  * - Every request carries `Authorization: PFApp <token>`: no session, no cookies (no cookie jar at all, see
  *   [HTTP_DEFAULTS]), hence no CSRF token. Redirects aren't followed: the header mustn't go elsewhere.

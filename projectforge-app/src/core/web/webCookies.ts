@@ -32,7 +32,7 @@ export interface WebCookieStore {
 
 /**
  * The cookies of the WebView, in which the app shows the ProjectForge pages (the Flutter app's
- * `lib/core/web/web_cookies.dart`): the web session opened by the app token (`POST /rs/appAuth/webSession`) is
+ * the earlier Flutter app's web_cookies): the web session opened by the app token (`POST /rs/appAuth/webSession`) is
  * handed over here, and the app's logout removes it. No JavaScript handlers of the app are reachable for the
  * pages: they never get hold of the app token.
  */

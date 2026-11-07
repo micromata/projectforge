@@ -41,7 +41,7 @@ export interface DownloadedFile {
 }
 
 /**
- * A download started by the pages in the WebView (a chat file, …), port of the Flutter app's `web_download.dart`:
+ * A download started by the pages in the WebView (a chat file, …), port of the Flutter app's the earlier Flutter app's web_download:
  * the app loads the file and offers it in the share sheet. The request carries the WebView's session cookie, never
  * the app token; only urls of the own server, redirects aren't followed, so the cookie goes nowhere else.
  */
