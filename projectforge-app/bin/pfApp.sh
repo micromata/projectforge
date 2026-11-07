@@ -60,7 +60,7 @@ Commands:
                    change of app.json, a config plugin or a native module
   build-ios [--release]
                    Simulator build of the dev client (debug), installed on the booted
-                   simulator; --release: a release build (store builds: EAS, not set up)
+                   simulator; --release: a release build (store builds: eas, see README)
   build-android [--release]
                    Build of the dev client (debug) on the Android device/emulator, or release
   xcode            Open the iOS project in Xcode (signing, capabilities)

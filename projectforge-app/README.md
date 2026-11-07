@@ -47,3 +47,26 @@ The store app is `de.projectforge.mobileapp` (team `E4Q65AC7LP`), the update of 
 6 and up. OTA updates (EAS Update) reach only builds with the same native code (`runtimeVersion` policy
 `fingerprint`). One-time portal steps (App ID, APNs keys, store listing):
 [projectforge-flutter/APPLE-SETUP.md](../projectforge-flutter/APPLE-SETUP.md).
+
+The Expo account and project aren't in the repository: `app.config.ts` reads `EXPO_OWNER` and `EAS_PROJECT_ID`
+(also the EAS Update url), locally from `.env.local` (gitignored), on the build servers from the environment variables
+of the EAS project (`eas env:list`, environments `development`, `preview`, `production`). `bin/pfApp.sh eas …` runs
+eas-cli with them, for the store app (`APP_VARIANT=production` unless given).
+
+### TestFlight (iOS)
+
+```bash
+npx eas-cli@latest login                                     # once: the organization of the project, role Release Manager
+printf 'EXPO_OWNER=…\nEAS_PROJECT_ID=…\n' > .env.local       # once, values from the expo.dev project page
+bin/pfApp.sh eas build --platform ios --profile preview      # cloud build, ~10 min
+bin/pfApp.sh eas submit --platform ios --profile preview --latest
+```
+
+- Before every build, raise `ios.buildNumber` (and `android.versionCode`) in `app.config.ts` (`appVersionSource`
+  `local`): App Store Connect refuses a build number twice per version.
+- The signing (distribution certificate, provisioning profile) and the App Store Connect API key of the submit
+  (role `APP_MANAGER`) are kept by EAS; the first build asks for the Apple ID (not the team id) once. A push key for
+  EAS isn't needed: the server sends with its own APNs keys.
+- The submit uploads to the App Store Connect app `ascAppId` of `eas.json`. App Store Connect → TestFlight: after the
+  processing (5–15 min), the build goes to the testers.
+- Export compliance is answered in the app (`ITSAppUsesNonExemptEncryption: false`).
