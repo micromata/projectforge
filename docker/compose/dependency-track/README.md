@@ -28,6 +28,19 @@ podman compose logs -f apiserver
    Leave the external analysers (OSS Index, Snyk, VulnDB) off: they would send the component list outside.
    Only the NVD is mirrored by default; without GitHub Advisories and OSV a component with a purl but no CPE gets no
    findings.
+   - GitHub token: a classic or fine-grained token without any scope. DT doesn't take it in the source's
+     configuration directly: create it first as a secret (*Administration → Secrets*), then select the secret in
+     the field *API Token* of *GitHub Advisories*. The token stays in DT, never in the repository.
+   - Enabling a source doesn't start its mirror; it runs on its schedule (GitHub 02:00, OSV 03:00 UTC). To start it
+     now, set the execution time of the task in DT's database:
+     ```bash
+     podman exec dependency-track_postgres_1 psql -U dtrack -d dtrack \
+       -c "update scheduled_tasks set execution_time = now() where task_name in ('GitHub Advisories Mirror','OSV Mirror')"
+     ```
+     The progress shows in the log (`podman compose logs -f apiserver`: `Processed … vulnerabilities so far`,
+     `Finished ecosystem …`).
+   - Projects uploaded before the mirror are analysed again by the next upload or the portfolio analysis; to be
+     sure, upload the BOMs again (`spike.py upload`) before `compare`.
 
 Stop with `podman compose down`; `down -v` also deletes the data, so the next start mirrors everything again.
 
