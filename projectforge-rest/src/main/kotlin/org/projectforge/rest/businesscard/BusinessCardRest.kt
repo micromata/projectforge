@@ -186,6 +186,20 @@ class BusinessCardRest {
         )
     }
 
+    /**
+     * The photo as the public url of the vCard delivers it, shown under the QR code. The server downloads it, the page
+     * may not load images from other hosts (Content Security Policy); 404 if the link doesn't deliver it. Reads only.
+     */
+    @AccessChecked("Own user only: the photo of the address is only answered if it is the own address of the logged-in user")
+    @GetMapping("photo")
+    fun getPhoto(@RequestParam("addressId") addressId: Long): ResponseEntity<*> {
+        val photo = businessCardService.downloadPublicPhoto(addressId) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(photo.contentType))
+            .header(HttpHeaders.CACHE_CONTROL, "private, max-age=60")
+            .body(photo.bytes)
+    }
+
     @AccessChecked("Own user only (business cards of the logged-in user)")
     @GetMapping("vcf")
     fun downloadVCard(@RequestParam("id") id: String): ResponseEntity<*> {

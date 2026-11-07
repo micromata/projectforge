@@ -204,6 +204,7 @@ export function FullCalendarPanel({
         stickyHeaderDates
         nowIndicator
         editable
+        eventResizableFromStart
         selectable
         datesSet={handleDatesSet}
         eventClick={handleEventClick}
