@@ -31,10 +31,10 @@
   },
   "submit": {
     "preview": {
-      "ios": { "appleTeamId": "E4Q65AC7LP" }
+      "ios": { "appleTeamId": "E4Q65AC7LP", "ascAppId": "1536572990" }
     },
     "production": {
-      "ios": { "appleTeamId": "E4Q65AC7LP" }
+      "ios": { "appleTeamId": "E4Q65AC7LP", "ascAppId": "1536572990" }
     }
   }
 }
