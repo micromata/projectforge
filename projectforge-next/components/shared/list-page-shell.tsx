@@ -1,6 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useListHeaderCollapse } from "@/hooks/use-list-header-collapse";
+import { cn } from "@/lib/utils";
 
 export interface ListPageShellProps {
   toolbar: ReactNode;
@@ -27,11 +29,17 @@ export function ListPageShell({
   selectionBar,
   children,
 }: ListPageShellProps) {
+  const { ref: headerRef, collapsed: headerCollapsed } =
+    useListHeaderCollapse();
   return (
     <>
       {/* The header stays full-height and pinned above the table; grouped as one shrink-0 block so it
-          never gives up its rows to the flex-1 table row below. */}
-      <div className="flex shrink-0 flex-col">
+          never gives up its rows to the flex-1 table row below. On a phone it is hidden while the table
+          is scrolled (see useListHeaderCollapse). */}
+      <div
+        ref={headerRef}
+        className={cn("flex shrink-0 flex-col", headerCollapsed && "hidden")}
+      >
         {toolbar}
         {banner}
         {selectionBar}
@@ -39,11 +47,9 @@ export function ListPageShell({
       {/* min-w-0 keeps the wide table from inflating the page (it scrolls inside its own box instead);
           min-h-64 both overrides the default content-based min-height (so the row can shrink for the
           inner vertical scroll) and floors it, so on a viewport too short for the header the table
-          stays reachable while <main> scrolls. On a narrow or low screen (a phone) the header alone may
-          fill <main>: there the row is exactly as tall as <main> (100cqh, see PageShell), so the header
-          scrolls away and the table then takes the whole screen, still scrolling on its own (sticky
-          header, wide columns sideways). */}
-      <div className="flex min-h-64 min-w-0 flex-1 overflow-hidden cramped:h-[100cqh] cramped:flex-none">
+          stays reachable while <main> scrolls. On a phone the floor is lower: the header may fill the
+          screen there, and some rows must stay to scroll, which collapses it. */}
+      <div className="flex min-h-64 min-w-0 flex-1 overflow-hidden cramped:min-h-48">
         {children}
       </div>
     </>

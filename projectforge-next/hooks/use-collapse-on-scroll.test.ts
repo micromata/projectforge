@@ -38,6 +38,16 @@ describe("nextCollapsed", () => {
     expect(nextCollapsed({ ...enough, scrollTop: 50 }, false)).toBe(true);
   });
 
+  it("needs room for all it frees, a list's header on a phone with the row", () => {
+    // A table overflowing by 300px under a header of 400px would fit once the header is gone.
+    const table = { scrollHeight: 420, clientHeight: 120, scrollTop: 50 };
+    expect(nextCollapsed(table, false)).toBe(true);
+    expect(nextCollapsed(table, false, 400)).toBe(false);
+    expect(
+      nextCollapsed({ ...table, scrollHeight: 120 + 400 + 25 }, false, 400)
+    ).toBe(true);
+  });
+
   it("expands a column that cannot scroll at all", () => {
     expect(
       nextCollapsed(

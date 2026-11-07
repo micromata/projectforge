@@ -55,9 +55,9 @@ export function PageShell({ children }: PageShellProps) {
     // the viewport) and this box scrolls (`overflow-y-auto`) once rows + floor exceed the height: the rows
     // scroll away, the content and its pinned action bar stay reachable. On a normal screen nothing
     // overflows and nothing changes.
-    // On a narrow or low screen (`cramped`) <main> is the size container of the content panels: a list's
-    // table or a chart panel is then exactly as tall as <main> (`100cqh`, see ListPageShell), so the
-    // header above it scrolls away with <main> and the panel gets the whole screen.
+    // On a narrow or low screen (`cramped`) <main> is the size container of the content panels: a
+    // chart panel is then exactly as tall as <main> (`100cqh`, see OrderStatisticsPage), so the header
+    // above it scrolls away with <main> and the panel gets the whole screen.
     // Printed (`print:`), the page is only its content, as long as it is: no header, navigation or status
     // bar, and no box of the window's height clipping everything below the first page.
     <div className="relative flex h-dvh flex-col overflow-x-hidden overflow-y-auto print:block print:h-auto print:overflow-visible">

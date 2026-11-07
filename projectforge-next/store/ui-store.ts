@@ -11,6 +11,12 @@ interface UIState {
    */
   logoCollapsed: boolean;
   setLogoCollapsed: (collapsed: boolean) => void;
+  /**
+   * The height of a list's header that collapses with the logo row on a phone (see
+   * hooks/use-list-header-collapse.ts), 0 if there is none: what a collapse frees on top of the logo row.
+   */
+  listHeaderHeight: number;
+  setListHeaderHeight: (height: number) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -23,5 +29,10 @@ export const useUIStore = create<UIState>((set) => ({
   setLogoCollapsed: (collapsed) =>
     set((s) =>
       s.logoCollapsed === collapsed ? s : { logoCollapsed: collapsed }
+    ),
+  listHeaderHeight: 0,
+  setListHeaderHeight: (height) =>
+    set((s) =>
+      s.listHeaderHeight === height ? s : { listHeaderHeight: height }
     ),
 }));

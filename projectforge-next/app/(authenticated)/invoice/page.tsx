@@ -36,7 +36,7 @@ export default function InvoiceListPage() {
             low screen it is as tall as <main> (see OrderStatistics). */}
         <TabsContent
           value="charts"
-          className="min-h-64 overflow-auto cramped:h-[100cqh] cramped:flex-none"
+          className="min-h-64 overflow-auto cramped:h-[100cqh] cramped:flex-none cramped:overflow-visible"
         >
           <InvoiceChartsView />
         </TabsContent>

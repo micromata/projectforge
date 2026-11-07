@@ -40,7 +40,7 @@ export default function LiquidityPage() {
             low screen it is as tall as <main> (see OrderStatistics). */}
         <TabsContent
           value="forecast"
-          className="min-h-64 overflow-auto cramped:h-[100cqh] cramped:flex-none"
+          className="min-h-64 overflow-auto cramped:h-[100cqh] cramped:flex-none cramped:overflow-visible"
         >
           <LiquidityForecastView />
         </TabsContent>
