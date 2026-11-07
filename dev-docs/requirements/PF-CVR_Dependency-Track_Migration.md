@@ -4,7 +4,7 @@
 |---|---|
 | COMP-ID | PF-CVR |
 | DOC-ID | PF-CVR-DT-MIG |
-| Status | Draft 0.1 (plan; phase 0 decides whether phases 1–6 follow) |
+| Status | Draft 0.2 (plan; phase 0 done: go, see section 8) |
 | Owner | Kai Reinhard |
 | Date | 2026-11-06 |
 | Related | [PF-CVR_Dependency-Track_Evaluation.md](PF-CVR_Dependency-Track_Evaluation.md) (target architecture, sections referenced as *Eval x.y*), [PF-CVR_CVE-Radar_Vulnerability_Management.md](PF-CVR_CVE-Radar_Vulnerability_Management.md) (requirement IDs) |
@@ -18,7 +18,7 @@
 | D1 | Go/no-go | The spike (phase 0) is a real gate: the build starts only if the criteria of section 3 are met. |
 | D2 | Switch | No parallel operation: the comparison with the own matching is done once in the spike, then the own matching is removed. |
 | D5 | Database | The CVE-Radar ships since 9.2.1, so its Flyway scripts stay unchanged. New scripts `V<release>.<n>` of the release that ships the switch add the DT columns, rename the vulnerability fields and drop the tables of the own matching (postgresql and hsqldb where the SQL differs). Inventory, catalogue, cases, ratings, team checks and findings are kept; DT's reconciliation updates them. |
-| D3 | Vulnerabilities without finding | Check requests (MAT-11) and vulnerabilities without SBOM components come from DT's vulnerability database. If its API can't deliver them per ecosystem and threshold (spike), a slim OSV import stays for MAT-11 only. |
+| D3 | Vulnerabilities without finding | Check requests (MAT-11) and vulnerabilities without SBOM components come from DT's vulnerability database. Its API can't deliver them per ecosystem and threshold (spike, section 8), so a slim OSV import stays for MAT-11 only. |
 | D4 | Names in DT | Projects are named in clear text (`<system> / <instance>`) with tags for area, stage, criticality and exposure; strictly confidential systems and instances are named `pf-<id>` and get no tags. |
 | D6 | DT frontend | Not reachable from outside and not proxied by PF; only the DT admins use it, via SSH tunnel. The ST and the SOs see what they need from DT in PF, read-only from the DT API (4.4). Fallback if that is not enough: forward authentication at the reverse proxy (Eval 7.5). |
 
@@ -62,7 +62,7 @@ acceptable), KEV and EPSS are available or cheap to add, the mapping back to the
 version), and operation fits the target host (memory, additional services). **No-go** otherwise; then the CVE-Radar is
 released with its own matching, and only EPSS in the priority (section 2, last row) is built.
 
-Result: a short report appended to this document; the open "(verify)" marks of the evaluation paper are resolved.
+Result: section 8; the "(verify)" marks of the evaluation paper are resolved.
 
 ## 4. Phases 1–5
 
@@ -75,7 +75,8 @@ Result: a short report appended to this document; the open "(verify)" marks of t
   `syncCron`, `reconcileCron`; unconfigured means inactive (as `graylog`).
 - `sync/DependencyTrackClient.kt` on `CveRadarHttp` / `PooledHttpClients`, client id `cveradar-deptrack` in
   `IntegrationConfig` (timeouts, size limit, proxy), header `X-Api-Key`. Only the calls PF needs: projects, BOM
-  upload and processing status, components, findings, vulnerability, analysis.
+  upload and processing status, components, findings, vulnerability, analysis. Lists are paged (at most 100
+  entries per page, total in the header `X-Total-Count`); the client always reads all pages.
 - Health: DT version and reachability in the system status (NFR-05); a failing DT doesn't affect the other pages.
 - Tests: client against a local stub server with recorded DT answers (from the spike).
 
@@ -101,13 +102,16 @@ Result: a short report appended to this document; the open "(verify)" marks of t
 
 - **Reconciliation** `CvrDependencyTrackSyncService.reconcile(instance)`: reads the findings of the project
   (`/api/v1/finding/project/{uuid}`) and maps each one back:
-  - component → technology via `bom-ref` / property (spike 11), fallback purl + version within the instance;
+  - component → technologies via purl + version (or CPE) within the instance: DT merges components with the same
+    identity, so one DT component can stand for technologies of several PF components (spike: 47 of 753 in one
+    instance); the property `projectforge:technologyId` keeps only the first one and serves as a shortcut only;
     technology → component and instance as today;
-  - vulnerability → `CvrVulnerabilityDO` by CVE id (an alias of a GHSA/OSV id with CVE id counts as the CVE), created
+  - vulnerability → `CvrVulnerabilityDO` by CVE id (an alias of a GHSA/OSV id with CVE id counts as the CVE; an id
+    without CVE alias is compared case-insensitively, DT keeps GHSA ids in lower case), created
     or updated from DT's data: description, CVSS 3.1/4.0, severity, CWE, EPSS (precedence over the EUVD), KEV flag,
-    published, source;
+    published, source, withdrawn (`rejected`);
   - finding upsert with the key (vulnerability, component, instance) and the technology; certainty *sure*, *possible*
-    for a technology without version (spike 14).
+    for a technology without version or with CPE version `*` (spike 14).
   A finding DT no longer reports is removed, except a discarded one (MAT-06), as `CvrMatchingService.remove` does
   today. Changed findings go through `CvrFindingNotifier`, so cases, notifications and the triage inbox are unchanged.
 - **Job** `cveradar.deptrack.reconcile` (hourly, all projects) is the source of truth (Eval 7.2).
@@ -141,10 +145,11 @@ Result: a short report appended to this document; the open "(verify)" marks of t
   reconciliation is a change made in DT: taken over for a finding not yet worked on in PF, otherwise reported to the
   security team (Eval 7.3).
 - **Check requests (MAT-11, D3):** vulnerabilities of the ecosystems in use above the threshold (CVSS ≥ 9, KEV or
-  EPSS ≥ 30 %) from DT; fallback the OSV import reduced to MAT-11. The exclusion via frameworks (INV-30/31) uses the
+  EPSS ≥ 30 %) from the OSV import, reduced to MAT-11 (DT's API filters findings, not vulnerabilities, see section
+  8); EPSS and KEV of these vulnerabilities from DT where it knows them. The exclusion via frameworks (INV-30/31) uses the
   catalogue as today.
-- **EPSS and KEV:** `CvrPriorityRule.suggest` takes EPSS (PRIO-01), the threshold of MAT-11 too. If DT has no KEV
-  flag (spike 1), a small job reads the CISA KEV JSON and sets `kev_added`.
+- **EPSS and KEV:** `CvrPriorityRule.suggest` takes EPSS (PRIO-01), the threshold of MAT-11 too. DT's KEV flag
+  (`isKev`, from the CISA and ENISA lists) sets `kev_added`; no own KEV job.
 - **Ad-hoc check:** `CvrAdHocCheckService` uploads the list into a temporary DT project `pf-adhoc-<uuid>`, waits for
   the processing token, reads the findings and deletes the project; the job keeps its UI.
 - **DT views in PF (D6):** read-only, for the ST and the SOs, same need-to-know as the instance: components of an
@@ -158,8 +163,8 @@ Result: a short report appended to this document; the open "(verify)" marks of t
 
 | Remove | Keep |
 |---|---|
-| `sync/Nvd*` (import, client, parsers), `sync/Osv*` (unless the MAT-11 fallback needs them), `CvrOsvAdvisoryService`, `CvrOsvAdvisoryDO`, `CvrCpeMatchDO`, `CvrPurlMatchDO`, `CvrImportStateDO` entries of NVD/OSV | `VersionComparator` (used by `CvrCaseStatusService` for fix versions) |
-| `CvrMatchingService` (unless CPE-only systems need it, spike 3) | Technology catalogue (CPE source of the BOM writer, framework exclusion of MAT-11) |
+| `sync/Nvd*` (import, client, parsers), the parts of `sync/Osv*` and `CvrOsvAdvisoryService` MAT-11 doesn't need, `CvrCpeMatchDO`, `CvrPurlMatchDO`, `CvrImportStateDO` entries of NVD | `VersionComparator` (used by `CvrCaseStatusService` for fix versions); OSV import and `CvrOsvAdvisoryDO` reduced to MAT-11 (D3) |
+| `CvrMatchingService` (DT matches CPE-only technologies too, spike 3) | Technology catalogue (CPE source of the BOM writer, framework exclusion of MAT-11) |
 | Tables of the removed entities, dropped by a new migration (D5); the rows of NVD/OSV in the import state deleted | `LibraryListParser`, `LibraryArchive`, EUVD import, Graylog, inventory, cases, team checks, chat, notifications |
 | Tests `CvrMatchingTest`, `CvrOsvMatchingTest`, `NvdC*ParserTest`, `OsvParserTest`; adapting `CveRadarTestBase` and the tests that create vulnerabilities via `NvdImportService` | |
 | Configuration `nvd.*`, `osv.*`; jobs; i18n keys of the removed texts | |
@@ -192,3 +197,31 @@ accepted with the token of the target).
 - **DT outage during operation:** findings stay as they are, the next reconciliation completes them; uploads are
   pending, not lost.
 - **Effort:** phases 1–5 about 2–3k LOC new and 5–7k LOC removed (Eval 8), phase 6 about 0.5–1k LOC.
+
+## 8. Spike result (phase 0)
+
+DT 5.2.1 locally (compose file of phase 1), sources NVD, GitHub Advisories and OSV, EPSS and KEV as by default.
+Inventories: a test installation and a copy of a production installation (6 instances, 1,890 technologies, 144
+findings of the own matching); the own findings came from a complete OSV import. Tools: `docker/compose/dependency-track/spike/`.
+
+**Decision: go.** Findings are as complete as the own matching, KEV and EPSS come with DT, the mapping back works via
+purl + version, and DT needs only PostgreSQL.
+
+| # | Question | Result |
+|---|---|---|
+| 10 | Findings compared with the own matching | Production copy: all 141 pairs of instance and vulnerability of the own 144 findings found by DT, none missing, none additional (the 3 extra own findings are the same pairs in a second component, see 11). Test installation with an incomplete OSV import: 3 additional findings in DT, all from GitHub Advisories. A technology with neither purl nor CPE gets no finding (forced test case). |
+| 1 | KEV, EPSS, EUVD | KEV from the CISA and ENISA lists (`isKev`, findings filterable by it), EPSS for about 400,000 CVEs, both mirrored daily. The EUVD is no source; PF keeps it as enrichment (4.4). |
+| 2 | SPDX | Refused (`Unable to determine schema version`); PF converts to CycloneDX anyway. |
+| 3 | CPE only | Matched (a CPE with version gave the CVEs of that version). |
+| 4 | Analysis via API | `GET`/`PUT /api/v1/analysis` with state, justification, response, details, comment, suppression; the audit trail comes with the analysis. Only API v1; API v2 covers the administration (service accounts, API keys, data sources, secrets). |
+| 5 | Across projects | `/api/v1/finding/grouped` (occurrences per vulnerability) and `/api/v1/vulnerability/source/{source}/vuln/{id}/projects`. |
+| 6 | Webhook | Not checked: the publishers are visible to DT admins only. Phase 3, with the fallback of a secret path segment (Eval 7.2). |
+| 7 | Internal components | Not checked; the external analysers stay off. To be checked in phase 2 for the lookup of repository metadata, which queries public repositories with the coordinates of the components. |
+| 8 | Resources, mirror, services | API server about 0.5 GB in operation (limit 4 GB), database about 2 GB. First mirror on a developer machine: NVD and OSV about 3 minutes each, GitHub Advisories about 25 minutes. Only PostgreSQL, no Kafka. A mirror runs on its schedule, not when a source is enabled (README). Telemetry is scheduled by default; to be switched off. |
+| 9 | API keys | Keys of service accounts expire (30 days by default, at most 366), are shown once, listed with public id and last use. The key of the team `projectforge` can't read the administration (403). Portfolio access control not checked (not needed: PF is the only writer, Eval 6.3). |
+| 11 | `bom-ref`, properties | `bom-ref` is not kept; properties are kept per component (`/api/v1/component/{uuid}/property`), not in the findings. DT merges components with the same identity within a project (753 → 706 in one instance) and keeps the property of the first: the mapping back goes via purl + version to all technologies of the instance (4.3). |
+| 12 | Vulnerabilities by ecosystem and threshold | No: `/api/v1/vulnerability` only pages; the filters (severity, EPSS, KEV) exist for findings only. Hence the OSV import reduced to MAT-11 (D3). |
+| 13 | Rejected vulnerability, alias | Withdrawn GitHub and OSV advisories carry `rejected`; for CVEs rejected by the NVD to be checked in phase 3 (IMP-15). GHSA findings come with their CVE alias (`aliases[].cveId`); a GHSA without CVE keeps its id, in lower case. |
+| 14 | Without version, version ranges | A purl without version gets no finding; a CPE with version `*` gets every vulnerability of the product. PF marks both as possible (4.3); the production inventory has no technology without version. |
+
+For the client (4.1): every list is paged (at most 100 entries, `X-Total-Count`), the findings of a project too.

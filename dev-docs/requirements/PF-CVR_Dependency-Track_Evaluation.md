@@ -4,7 +4,7 @@
 |---|---|
 | COMP-ID | PF-CVR |
 | DOC-ID | PF-CVR-DT |
-| Status | Draft 0.1 (decision paper, not decided) |
+| Status | Draft 0.2 (decision paper; spike done, result: go, see the migration plan, section 8) |
 | Owner | Kai Reinhard |
 | Date | 2026-11-06 |
 | Related | [PF-CVR_CVE-Radar_Vulnerability_Management.md](PF-CVR_CVE-Radar_Vulnerability_Management.md) (spec, requirement IDs below refer to it), [PF-CHAT_Chat_Discussion.md](PF-CHAT_Chat_Discussion.md), [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md) (migration plan) |
@@ -23,8 +23,8 @@ components, devices) with uploads, ratings, notifications, escalations and discu
 part, PF takes it over – in particular chat and notifications.
 
 This document answers: *what does DT already do well, what is better kept in PF, and what would the
-combination look like?* Statements about DT marked **(verify)** are taken from the documentation and must be
-confirmed in the spike (section 10).
+combination look like?* The statements about DT taken from the documentation were checked in the spike (section 10);
+its results are in the migration plan, section 8.
 
 ## 2. Starting point
 
@@ -50,7 +50,8 @@ Size: about 14.7k LOC backend, 5k LOC tests, 20k LOC Next.js (thereof about 4k m
 ### 2.2 Dependency-Track
 
 Open source (Apache 2.0), current major version 5 with PostgreSQL as the only external service, container images,
-REST API v1 and API v2 (verify scope), SSO via OIDC, LDAP or local users.
+REST API v1 (projects, BOMs, findings, analysis) and API v2 (so far administration: service accounts, API keys, data
+sources, secrets), SSO via OIDC, LDAP or local users.
 
 - Consumes and produces CycloneDX SBOMs and CycloneDX VEX.
 - Vulnerability sources: NVD, GitHub Advisories, OSV, Sonatype OSS Index, Snyk, Trivy, VulnDB, private sources;
@@ -78,8 +79,8 @@ Checkmarx One stands here for the commercial AppSec platforms; it answers a diff
   the integration into IDE and pull requests; DT adds CPE matching and runs internally.
 - **Not covered:** inventory with baseline and deviations, cases, team checks, risk acceptance by the SO,
   need-to-know, PF login; they would stay in PF anyway.
-- **Operation and costs:** mainly SaaS, so dependency lists or source code leave the house (EU region: verify);
-  licence per contributing developer (verify). DT is open source and internal (7.5).
+- **Operation and costs:** mainly SaaS, so dependency lists or source code leave the house (EU region: to be asked);
+  licence per contributing developer (both to be asked of the vendor). DT is open source and internal (7.5).
 - **Combination:** a scanner of the own code can upload its CycloneDX SBOM to PF (6.3), which forwards it to DT like
   any other BOM; SAST findings stay in the scanner.
 
@@ -90,20 +91,20 @@ Legend: **DT** – DT covers it as well or better; **PF** – PF covers it, DT d
 
 | Group | DT | PF | Verdict |
 |---|---|---|---|
-| IMP-01..13 vulnerability import (NVD, OSV, KEV, EPSS) | More sources, maintained by the community, mirroring with rate limits built in. KEV flag (verify). EPSS from FIRST for every CVE (verify). | Own importers with resume, history and severity filter; EPSS only via the EUVD, without effect on PRIO-01 or MAT-11 yet. | **DT** |
+| IMP-01..13 vulnerability import (NVD, OSV, KEV, EPSS) | More sources, maintained by the community, mirroring with rate limits built in. KEV flag from the CISA and ENISA lists, EPSS from FIRST for every CVE, both mirrored daily. | Own importers with resume, history and severity filter; EPSS only via the EUVD, without effect on PRIO-01 or MAT-11 yet. | **DT** |
 | IMP-14 manual vulnerability / incident without CVE | Internal vulnerabilities can be created; incidents without software reference don't fit. | Cases and `INC-yyyy-n` incidents. | **PF** (incidents), DT for internal advisories |
-| IMP-16 EUVD | No source (verify). | Implemented. | **PF** as optional enrichment |
+| IMP-16 EUVD | No vulnerability source; only ENISA's KEV list. | Implemented. | **PF** as optional enrichment |
 | INV-01..12 hierarchy, baseline/deviations, criticality, confidentiality, stage, site, exposure | Projects with parent and tags, no inheritance, no confidentiality. | Implemented. | **PF** |
 | INV-14/15 SBOM upload, CI upload with token | Core function; API keys per team or service account, workload identity federation. Keys not scopable to one project. | Upload into PF; CI token per system specified, not implemented. | **both**: see section 6 |
-| INV-26/27/33 lockfiles, build lists, jar listings | CycloneDX only (SPDX: verify). | `LibraryListParser`. | **PF** as converter to CycloneDX |
+| INV-26/27/33 lockfiles, build lists, jar listings | CycloneDX only; an SPDX upload is refused. | `LibraryListParser`. | **PF** as converter to CycloneDX |
 | INV-17, EXT-04..07 clients, devices, agent checks | No device or agent concept. | Graylog connector. | **PF** |
 | INV-28..32 technology catalogue | Not needed: precise purl matching, repository metadata ("outdated"). | Curated catalogue for estimates. | **both**: DT matches; the catalogue stays as CPE source of the BOM export and for MAT-11 |
-| INV-34 own artifacts never looked up externally | "Internal components" are excluded from external analysers (verify scope). | Name patterns. | **DT**, configured |
+| INV-34 own artifacts never looked up externally | "Internal components" are excluded from external analysers; the external analysers stay off anyway, the lookup of repository metadata (outdated versions) is to be checked in phase 2. | Name patterns. | **DT**, configured |
 | MAT-01..03, 06, 12 matching, possibly affected | Mature CPE/purl matching with version ranges. | Own matching. | **DT** |
 | MAT-04/05, 13 finding status workflow, reasons, reopen | Analysis states, justification, vendor response, audit trail. No approval step for "risk accepted". | Workflow with SO approval. | **both**: PF leads, DT mirrors (7.3) |
 | MAT-08 VEX export | Built in. | – | **DT** |
 | MAT-10/11 grouping per system, check requests | No portfolio-wide case; per project only. | Case and team checks. | **PF** |
-| PRIO, TRI case per CVE, P1–P4 with deadlines, assignment, multiple ratings, mass actions | Severity per finding, no internal priority, no SLA, no assignment (verify). | Implemented (deadlines partly). | **PF** |
+| PRIO, TRI case per CVE, P1–P4 with deadlines, assignment, multiple ratings, mass actions | Severity per finding, no internal priority, no SLA, no assignment (the analysis has state, justification, response, details and suppression only). | Implemented (deadlines partly). | **PF** |
 | ESC escalation with acknowledgement | Only notifications, no acknowledgement or escalation chain. | `NotificationService` with acknowledgement; ESC still to be built. | **PF** |
 | AI prompt export/import | – | Implemented. | **PF** |
 | ACT, FB, CLS, QA measures, client advisories, feedback, closure | – | Implemented. | **PF** |
@@ -191,7 +192,9 @@ that drifts from the first.
 - Permissions: `BOM_UPLOAD`, for the first upload of a new project also `PROJECT_CREATION_UPLOAD`.
 - Credentials: team API key, service account API key, or workload identity federation – the CI job exchanges its
   short-lived platform token (GitHub Actions, GitLab CI, Kubernetes, SPIRE) for a session of up to 24 h; bindings
-  restrict it by subject and claims (repository, branch) with CEL conditions. Expiry and hashing of API keys: verify.
+  restrict it by subject and claims (repository, branch) with CEL conditions. Keys of service accounts expire (30 days
+  by default, at most `dt.api-key.max-lifetime-days`, 366 by default), are shown only once at creation and are listed
+  with public id and last use.
 - **Limit:** API keys can't be restricted to one project; restriction is only via the team's portfolio access
   control. A key of a team without ACL, or with `PROJECT_CREATION_UPLOAD`, may overwrite every BOM the team can
   reach – a compromised pipeline could make a vulnerable system look clean by uploading an empty SBOM.
@@ -248,8 +251,8 @@ and the SOs included, stay in PF.
   CycloneDX BOM (`PUT /api/v1/bom`). Inheritance stays in PF; DT sees only the result.
 - Pipelines upload to PF, not to DT (section 6): PF is the only writer of the DT projects, so the baseline and the
   deviations stay consistent and DT needs a single service account.
-- Systems without SBOM (appliances, network devices, SaaS) remain in PF. Whether DT matches components that have
-  only a CPE well enough is a spike item; otherwise PF keeps a slim CPE matching for these only.
+- Systems without SBOM (appliances, network devices, SaaS) remain in PF; their technologies go into the BOM with the
+  CPE of the technology or the catalogue, which DT matches (spike). No own CPE matching is kept.
 
 ### 7.2 From DT to PF
 
@@ -257,7 +260,8 @@ and the SOs included, stay in PF.
   failed attempts throttled with `LoginProtection`, security logging – as `rest/pub/MessagingServiceRest.kt` and
   `gateway/sync/GatewaySyncController.kt` do. The payload is untrusted (SEC-05): size limit, schema validation.
   Groups: `NEW_VULNERABILITY`, `NEW_VULNERABLE_DEPENDENCY`, `BOM_PROCESSED`, `PROJECT_AUDIT_CHANGE`.
-  Whether DT can send a custom header for outbound webhooks is a spike item; otherwise a secret path segment.
+  Whether DT can send a custom header for outbound webhooks is checked in phase 3 (the configuration of the
+  publishers is visible to DT admins only); otherwise a secret path segment.
 - **Reconciliation job** (`SchedulerJobRunner`, as `CveRadarJobs`): pulls the findings per project
   (`/api/v1/finding/project/{uuid}`), since webhooks are not retried. The webhook only speeds things up; the pull is
   the source of truth for completeness.
@@ -305,11 +309,13 @@ API (sender "system", no mentions, same visibility rules as DISC-05).
   updates are deliberate and come after a backup.
 - **Database:** an own database and user in an existing PostgreSQL cluster (covered by its backup), or an own
   PostgreSQL container with its own backup.
-- **Host:** DT is a JVM of its own and needs several GB RAM for the mirrors (NVD, GitHub Advisories, OSV); the first
-  mirror takes hours. The PF host works only with enough headroom; a small VM of its own in the same internal network
+- **Host:** DT is a JVM of its own (spike: about 0.5 GB in operation, limit 4 GB for the mirrors; database about
+  2 GB); the first mirror took minutes on a developer machine (NVD and OSV about 3 minutes each, GitHub Advisories
+  about 25 minutes). The PF host works only with enough headroom; a small VM of its own in the same internal network
   is cleaner, so load and updates of one don't affect the other.
-- **Additional services:** whether the v5 version chosen still needs Kafka/Redpanda and separate analyser services
-  or only PostgreSQL changes the operating effort considerably (spike item).
+- **Additional services:** none; version 5.2.1 needs only PostgreSQL (no Kafka/Redpanda, no separate analysers).
+- **Telemetry:** DT has a task *Telemetry Submission* that is scheduled by default; to be switched off in the
+  administration.
 
 Who has to reach whom:
 
@@ -358,13 +364,14 @@ Estimate for the retirement: about 5–7k LOC backend plus tests and parts of th
   backup, monitoring. PF without DT must stay usable (plugin inactive or degraded, NFR-05).
 - **Two databases:** findings exist in DT and PF; drift is avoided only with the UUID mapping, the reconciliation
   pull and a single writer per field (7.3).
-- **API stability:** v5 offers API v1 and v2 side by side; which one to use for analysis and findings is a spike
-  item.
+- **API stability:** v5 offers API v1 and v2 side by side; findings and analysis exist only in v1, v2 covers the
+  administration so far. PF uses v1 and watches the header `X-API-Deprecated`.
 - **Data protection:** DT sends purls to external analysers (OSS Index, Snyk). Own artifacts must be configured as
   internal components (INV-34); analysers not wanted are disabled.
 - **Identity:** only the DT admins get DT accounts; everybody else, the ST and the SOs included, works via PF.
-- **Lost flexibility:** no own "possibly affected" logic for products without exact version (MAT-03); behaviour
-  in DT for such components must be checked.
+- **Lost flexibility:** no own "possibly affected" logic for products without exact version (MAT-03): DT finds
+  nothing for a purl without version and every vulnerability of the product for a CPE with version `*` (spike);
+  PF marks such findings as possible.
 - **Benefit beyond today:** policies (licences, outdated versions), VEX, broader sources, community maintenance of
   the matching – work that otherwise stays with PF.
 
@@ -384,6 +391,8 @@ uploaded. To check:
    (Kafka/Redpanda, analysers) besides PostgreSQL.
 9. API keys: expiry, hashing, rotation; behaviour of portfolio access control for service accounts.
 10. Comparison of the findings with the CVE-Radar matching for the same inventory (false positives / negatives).
+
+Results: migration plan, section 8.
 
 ## 11. Recommendation and next steps
 
