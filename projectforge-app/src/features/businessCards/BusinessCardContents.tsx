@@ -84,10 +84,12 @@ const styles = StyleSheet.create({
   value: { color: '#000', fontSize: 12 },
   unavailable: { color: '#ba1a1a', fontSize: 12 },
   loading: { alignSelf: 'flex-start' },
+  // Large enough to check the face; narrower in a small cell.
   photo: {
-    width: 48,
-    height: 48,
-    borderRadius: 6,
+    width: 192,
+    maxWidth: '100%',
+    aspectRatio: 1,
+    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#00000040',
   },
