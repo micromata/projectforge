@@ -39,8 +39,11 @@ export function ListPageShell({
       {/* min-w-0 keeps the wide table from inflating the page (it scrolls inside its own box instead);
           min-h-64 both overrides the default content-based min-height (so the row can shrink for the
           inner vertical scroll) and floors it, so on a viewport too short for the header the table
-          stays reachable while <main> scrolls. */}
-      <div className="flex min-h-64 min-w-0 flex-1 overflow-hidden">
+          stays reachable while <main> scrolls. On a narrow or low screen (a phone) the header alone may
+          fill <main>: there the row is exactly as tall as <main> (100cqh, see PageShell), so the header
+          scrolls away and the table then takes the whole screen, still scrolling on its own (sticky
+          header, wide columns sideways). */}
+      <div className="flex min-h-64 min-w-0 flex-1 overflow-hidden cramped:h-[100cqh] cramped:flex-none">
         {children}
       </div>
     </>

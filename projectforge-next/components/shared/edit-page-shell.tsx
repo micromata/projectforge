@@ -133,7 +133,11 @@ export function EditPageShell({
             scrollProps.onScroll();
             collapse.onScroll(event);
           }}
-          className="flex-1 overflow-y-auto bg-muted/30 px-3 pb-6 sm:px-6"
+          // `relative`: the column is the containing block of the absolutely positioned elements in it
+          // (the `sr-only` file inputs, the hidden native <select> of a select field). Otherwise that is
+          // the PageShell box, which scrolls on a short viewport: they would make it as tall as the form,
+          // and it would scroll the action bar out of the window.
+          className="relative flex-1 overflow-y-auto bg-muted/30 px-3 pb-6 sm:px-6"
         >
           {aboveSections && <div className="pt-4">{aboveSections}</div>}
           {sections.map((section, i) => (
@@ -157,7 +161,7 @@ export function EditPageShell({
       </Activity>
       {activeTab && (
         <div
-          className="flex-1 overflow-y-auto bg-muted/30 px-3 pt-4 pb-6 sm:px-6"
+          className="relative flex-1 overflow-y-auto bg-muted/30 px-3 pt-4 pb-6 sm:px-6"
           onScroll={collapse.onScroll}
         >
           {tabPanels?.[activeTab]}

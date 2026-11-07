@@ -52,7 +52,9 @@ export function PageTitleRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-3 pt-2 sm:px-4 sm:pt-3",
+        // Below sm the actions may not fit beside the title: they wrap onto their own line (right-aligned,
+        // see below) instead of sticking out of the screen.
+        "flex items-center gap-3 px-3 pt-2 max-sm:flex-wrap max-sm:gap-y-2 sm:px-4 sm:pt-3",
         wrap && "flex-wrap gap-y-2",
         centerBelow && "max-sm:flex-wrap max-sm:gap-y-2"
       )}
@@ -90,10 +92,8 @@ export function PageTitleRow({
           paper can be clicked. */}
       <div
         className={cn(
-          "flex flex-wrap items-center gap-2 self-start sm:gap-3 print:hidden",
-          wrap && "ml-auto",
-          // On its line below sm the center no longer pushes the actions right.
-          centerBelow && "max-sm:ml-auto"
+          "flex flex-wrap items-center gap-2 self-start max-sm:ml-auto sm:gap-3 print:hidden",
+          wrap && "ml-auto"
         )}
       >
         {children}

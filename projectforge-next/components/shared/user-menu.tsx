@@ -102,7 +102,8 @@ export function UserMenu({
         )}
         aria-label={t("myAccount")}
       >
-        <span className="truncate">{username}</span>
+        {/* Below sm the avatar beside it says who it is: the name would push the row off the screen. */}
+        <span className="truncate max-sm:hidden">{username}</span>
         {/* Same icon and size as a favourites folder, so both read as openable. */}
         <HugeiconsIcon icon={ArrowDown01Icon} size={14} className="shrink-0" />
       </MenubarTrigger>

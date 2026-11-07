@@ -117,10 +117,12 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
             their min-h-0, or their content-based min-height would be the whole chart height and the
             page would scroll on every viewport.
             [container-type:size]: the panel is the box the data tables are bounded to (100cqh, see
-            StatisticsTable), as its height comes from the flex column and not from its content. */}
+            StatisticsTable), as its height comes from the flex column and not from its content.
+            On a narrow or low screen it is exactly as tall as <main> (100cqh, see PageShell): the filters
+            and tabs scroll away with <main>, then the panel has the whole screen. */}
         <TabsContent
           value="forecast"
-          className="min-h-64 overflow-auto [container-type:size]"
+          className="min-h-64 overflow-auto [container-type:size] cramped:h-[100cqh] cramped:flex-none"
         >
           <OrderForecastChartsView
             filter={state.filter}
@@ -130,7 +132,7 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
         {meta.contributionMargin && (
           <TabsContent
             value="contributionMargin"
-            className="min-h-64 overflow-auto [container-type:size]"
+            className="min-h-64 overflow-auto [container-type:size] cramped:h-[100cqh] cramped:flex-none"
           >
             <OrderContributionMarginView filter={state.filter} />
           </TabsContent>
