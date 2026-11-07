@@ -68,12 +68,15 @@ public class PfNativeModule: Module {
     /// Shows the form of the system for a new contact, filled with the vCard at [fileUrl]: the user saves it to the
     /// own contacts or cancels. Needs no access to the contacts (the form saves it itself).
     AsyncFunction("addContact") { (fileUrl: String) async throws in
-      guard let url = URL(string: fileUrl), let data = try? Data(contentsOf: url),
-        let contact = (try? CNContactVCardSerialization.contacts(with: data))?.first
-      else {
-        throw ContactException("The vCard can't be read.")
+      // The url of expo-file-system may come without percent encoding (a name with spaces).
+      let url = URL(string: fileUrl) ?? URL(fileURLWithPath: fileUrl.replacingOccurrences(of: "file://", with: ""))
+      let data: Data
+      do {
+        data = try Data(contentsOf: url)
+      } catch {
+        throw ContactException("The vCard file can't be read: \(error.localizedDescription)")
       }
-      try await self.addContact(contact)
+      try await self.addContact(Self.contact(of: data))
     }
 
     /// A key chain item of the Flutter app (flutter_secure_storage: generic password, service [service], account
@@ -179,6 +182,31 @@ public class PfNativeModule: Module {
     }
     while let presented = top.presentedViewController { top = presented }
     top.present(controller, animated: true)
+  }
+
+  /// The contact of the vCard [data]. Without the entitlement for notes iOS may refuse a vCard with a NOTE: then
+  /// it is read once more without its notes.
+  private static func contact(of data: Data) throws -> CNContact {
+    do {
+      if let contact = try CNContactVCardSerialization.contacts(with: data).first { return contact }
+    } catch {
+      guard let text = String(data: data, encoding: .utf8) else { throw ContactException(error.localizedDescription) }
+      let withoutNotes = Self.withoutProperty("NOTE", of: text)
+      if let contact = try? CNContactVCardSerialization.contacts(with: Data(withoutNotes.utf8)).first { return contact }
+      throw ContactException("The vCard can't be read: \(error.localizedDescription)")
+    }
+    throw ContactException("The vCard has no contact.")
+  }
+
+  /// [text] without the lines of the property [name] (with their folded continuation lines).
+  private static func withoutProperty(_ name: String, of text: String) -> String {
+    var skipping = false
+    return text.components(separatedBy: "\r\n").filter { line in
+      if line.hasPrefix(" ") || line.hasPrefix("\t") { return !skipping }
+      let upper = line.uppercased()
+      skipping = upper.hasPrefix(name + ":") || upper.hasPrefix(name + ";")
+      return !skipping
+    }.joined(separator: "\r\n")
   }
 
   @MainActor
