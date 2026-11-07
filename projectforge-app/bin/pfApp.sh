@@ -27,13 +27,19 @@ Commands:
                    installs it and starts Metro (:19000+slot, not the 8081 of Metro's
                    default, which is the server of slot 1). Without -d/--device it boots an
                    iOS simulator (or reuses the running one). --android: expo run:android,
-                   the server as 10.0.2.2 (how the Android emulator reaches the Mac).
+                   the server as 10.0.2.2 (how the Android emulator reaches the Mac); boots
+                   the emulator if no Android device is attached (see emulator).
                    --ipad: the simulator is an iPad Pro 13-inch. --proxy: the server behind
                    the fake SSO proxy (see proxy), started alongside; iOS only. Args are
                    forwarded (e.g. pfApp.sh run 1 --device "iPhone 18 Pro")
-  metro [slot] [--proxy]
+  metro [slot] [--proxy] [--android]
                    Only Metro for an installed dev client (after a JS change no build is
-                   needed), with the server of the slot preset
+                   needed), with the server of the slot preset. --android: boots the
+                   emulator and opens the installed app in it
+  emulator [slot] [avd]
+                   Boot the Android emulator (the first AVD, or the named one) unless a
+                   device is attached, and forward Metro's port of the slot to it (adb
+                   reverse: the emulator doesn't reach the Mac's LAN address)
   proxy [slot] [args…]
                    The fake SSO proxy (tools/fake-sso-proxy.mjs) in front of the server of the
                    slot: http://localhost:18080+slot, its SSO login on http://127.0.0.1:18180+slot.
@@ -66,6 +72,7 @@ Commands:
 Slots as in bin/pfDev.sh: a number 1–9 picks the server :8080+n (bin/pfDev.sh run n), none :8080.
 
 Env:
+  ANDROID_HOME     The Android SDK (default: ~/Library/Android/sdk)
   APP_VARIANT      development (default: the dev client de.projectforge.mobileapp.dev) or
                    production (the store app de.projectforge.mobileapp), see app.config.ts
 EOF
@@ -99,6 +106,32 @@ open_simulator_app() {
     open "$xcode/Developer/Applications/Simulator.app" 2>/dev/null ||
     open -a Simulator 2>/dev/null ||
     echo "(No simulator window: open it in Xcode, Window → Devices.)"
+}
+
+# Boots the Android emulator (the AVD $1, default the first one) unless a device is attached, waits for its boot and
+# forwards Metro's port to it: the emulator doesn't reach the Mac's LAN address that expo announces.
+boot_emulator() {
+  export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+  export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+  command -v adb >/dev/null 2>&1 || { echo "adb not found (Android SDK: Android Studio's setup)" >&2; exit 1; }
+  if ! adb devices | awk 'NR > 1 && $2 == "device" { found = 1 } END { exit !found }'; then
+    local avd="${1:-$(emulator -list-avds 2>/dev/null | head -1)}"
+    [[ -n "$avd" ]] || { echo "No Android emulator (AVD): create one in Android Studio, Device Manager." >&2; exit 1; }
+    echo "Booting the Android emulator $avd (log: /tmp/pf-emulator.log)…"
+    nohup emulator -avd "$avd" -gpu host >/tmp/pf-emulator.log 2>&1 &
+    local waited=0
+    until [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]]; do
+      if ((waited >= 300)); then
+        echo "The emulator didn't boot within 5 minutes (see /tmp/pf-emulator.log; a damaged AVD: Wipe Data in" \
+          "Android Studio's Device Manager)." >&2
+        exit 1
+      fi
+      sleep 3
+      ((waited += 3))
+    done
+  fi
+  adb reverse "tcp:$METRO_PORT" "tcp:$METRO_PORT" >/dev/null
+  echo "Android device ready, Metro's port $METRO_PORT forwarded."
 }
 
 # Boots the iOS simulator named $1 (ipad: the first iPad Pro 13-inch) and sets SIM_UDID. Without a name an already
@@ -187,7 +220,9 @@ cmd_run() {
   export EXPO_PUBLIC_PF_SERVER="$server"
   echo "Server preset in the login: $server, Metro on :$METRO_PORT"
   if [[ -n "$android" ]]; then
-    npx expo run:android --port "$METRO_PORT" ${args[@]+"${args[@]}"}
+    boot_emulator
+    # The app reaches Metro on localhost: the port is forwarded by adb reverse.
+    REACT_NATIVE_PACKAGER_HOSTNAME=localhost npx expo run:android --port "$METRO_PORT" ${args[@]+"${args[@]}"}
     return
   fi
   if [[ -z "$device_given" && "$(uname)" == Darwin ]]; then
@@ -202,17 +237,28 @@ cmd_run() {
 }
 
 cmd_metro() {
-  local server="http://localhost:$SPRING_PORT"
+  local server="http://localhost:$SPRING_PORT" android=""
   check_server
-  if [[ "${1:-}" == --proxy ]]; then
-    start_proxy
-    server="http://localhost:$PROXY_PORT"
-  fi
+  for arg in "$@"; do
+    case "$arg" in
+      --proxy)
+        start_proxy
+        server="http://localhost:$PROXY_PORT"
+        ;;
+      --android) android=yes ;;
+    esac
+  done
   ensure_deps
   cd "$APP"
+  local start_args=()
+  if [[ -n "$android" ]]; then
+    boot_emulator
+    server="http://10.0.2.2:$SPRING_PORT"
+    start_args=(--android)
+  fi
   echo "Server preset in the login: $server, Metro on :$METRO_PORT"
   REACT_NATIVE_PACKAGER_HOSTNAME="${REACT_NATIVE_PACKAGER_HOSTNAME:-localhost}" EXPO_PUBLIC_PF_SERVER="$server" \
-    npx expo start --dev-client --port "$METRO_PORT"
+    npx expo start --dev-client --port "$METRO_PORT" ${start_args[@]+"${start_args[@]}"}
 }
 
 cmd="${1:-help}"
@@ -227,6 +273,10 @@ case "$cmd" in
     ;;
   sim)
     boot_simulator "${1:-}"
+    exit 0
+    ;;
+  emulator)
+    boot_emulator "${1:-}"
     exit 0
     ;;
   xcode)
