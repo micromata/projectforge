@@ -35,7 +35,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { errorText, t } from '../../core/i18n/translations';
 import { HeaderAction } from '../../core/ui/ScreenHeader';
@@ -46,6 +46,7 @@ import { displayName } from './businessCards';
 import { businessCards, useBusinessCards } from './businessCardsStore';
 
 const PADDING = 24;
+const BAR_HEIGHT = 48;
 
 /**
  * Full brightness while the code is shown, the brightness of before afterwards and while the app is in the background
@@ -85,15 +86,31 @@ function useFullBrightness() {
 export function BusinessCardQrScreen({ id, onClose }: { id: string; onClose: () => void }) {
   const state = useBusinessCards();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   useFullBrightness();
   const info = state.status === 'data' ? state.cards.data.cards.find((it) => it.card.id === id) : undefined;
   const offline = state.status === 'data' && state.cards.fromCache;
   const walletConfigured = state.status === 'data' && state.cards.data.walletConfigured === true;
   const landscape = width > height;
-  // Portrait: the texts below the code; landscape: beside it, the code as large as the height allows.
-  const available = landscape ? height - 2 * PADDING - 96 : Math.min(width - 2 * PADDING, height - 2 * PADDING - 176);
+  // Portrait: the texts below the code, all scrolling; landscape: the code as large as the height allows and fixed, the
+  // texts beside it scrolling on their own.
+  const available = landscape
+    ? height - insets.top - insets.bottom - BAR_HEIGHT - 2 * PADDING
+    : Math.min(width - 2 * PADDING, height - 2 * PADDING - 176);
   const size = Math.max(80, Math.min(400, available));
   const card = info?.card;
+  const qrCode = info?.preview.qrCodeUrl ? (
+    <Image source={{ uri: info.preview.qrCodeUrl }} style={{ width: size, height: size }} resizeMode="contain" />
+  ) : null;
+  const details = info && card && (
+    <>
+      <Text style={styles.name}>{displayName(card)}</Text>
+      {card.organization ? <Text style={styles.organization}>{card.organization}</Text> : null}
+      <View style={styles.contents}>
+        <BusinessCardContents info={info} />
+      </View>
+    </>
+  );
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="dark" />
@@ -103,57 +120,69 @@ export function BusinessCardQrScreen({ id, onClose }: { id: string; onClose: () 
           {card?.cardName ?? ''}
         </Text>
         {card && !offline && walletConfigured && walletAvailable && (
-          <HeaderAction icon="wallet-outline" label={t('businessCard.addToWallet')} color="#000" onPress={() => void addToWallet(card)} />
+          <HeaderAction
+            icon="wallet-outline"
+            label={t('businessCard.addToWallet')}
+            color="#000"
+            onPress={() => void addToWallet(card)}
+          />
         )}
         {card && !offline && (
-          <HeaderAction icon="share-outline" label={t('app.vCard.share')} color="#000" onPress={() => void shareVCard(card)} />
+          <HeaderAction
+            icon="share-outline"
+            label={t('app.vCard.share')}
+            color="#000"
+            onPress={() => void shareVCard(card)}
+          />
         )}
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        {info && card && (
-          <View style={[styles.layout, landscape && styles.landscape]}>
-            {info.preview.qrCodeUrl ? (
-              <Image source={{ uri: info.preview.qrCodeUrl }} style={{ width: size, height: size }} resizeMode="contain" />
-            ) : null}
-            <View style={landscape ? styles.detailsLandscape : [styles.details, { width: size }]}>
-              <Text style={styles.name}>{displayName(card)}</Text>
-              {card.organization ? <Text style={styles.organization}>{card.organization}</Text> : null}
-              <View style={styles.contents}>
-                <BusinessCardContents info={info} />
+      {info && landscape ? (
+        <View style={styles.landscape}>
+          {qrCode}
+          <ScrollView style={styles.fill} contentContainerStyle={styles.detailsLandscape}>
+            {details}
+          </ScrollView>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          {info && (
+            <View style={styles.layout}>
+              {qrCode}
+              <View style={[styles.details, { width: size }]}>{details}</View>
+            </View>
+          )}
+          {/* Opened by its id (a restored route): the cards are still loading, or it is gone. */}
+          {!info &&
+            (state.status === 'loading' ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <View style={styles.missing}>
+                <Text style={styles.organization}>
+                  {state.status === 'error' ? errorText(state.error) : t('app.notFound')}
+                </Text>
+                {state.status === 'error' && (
+                  <Pressable hitSlop={8} onPress={() => void businessCards.refresh()}>
+                    <Text style={styles.retry}>{t('refresh')}</Text>
+                  </Pressable>
+                )}
               </View>
-            </View>
-          </View>
-        )}
-        {/* Opened by its id (a restored route): the cards are still loading, or it is gone. */}
-        {!info &&
-          (state.status === 'loading' ? (
-            <ActivityIndicator color="#000" />
-          ) : (
-            <View style={styles.missing}>
-              <Text style={styles.organization}>
-                {state.status === 'error' ? errorText(state.error) : t('app.notFound')}
-              </Text>
-              {state.status === 'error' && (
-                <Pressable hitSlop={8} onPress={() => void businessCards.refresh()}>
-                  <Text style={styles.retry}>{t('refresh')}</Text>
-                </Pressable>
-              )}
-            </View>
-          ))}
-      </ScrollView>
+            ))}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  bar: { height: 48, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, gap: 4 },
+  fill: { flex: 1 },
+  bar: { height: BAR_HEIGHT, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, gap: 4 },
   barTitle: { flex: 1, color: '#000', fontSize: 18, fontWeight: '600', marginLeft: 4 },
   content: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: PADDING },
   layout: { alignItems: 'center', gap: 24 },
-  landscape: { flexDirection: 'row' },
+  landscape: { flex: 1, flexDirection: 'row', gap: 32, paddingHorizontal: PADDING, paddingTop: PADDING },
   details: { alignItems: 'center' },
-  detailsLandscape: { alignItems: 'flex-start', flexShrink: 1 },
+  detailsLandscape: { alignItems: 'flex-start', paddingBottom: PADDING },
   name: { color: '#000', fontSize: 22 },
   organization: { color: '#000000a0', fontSize: 16 },
   contents: { alignSelf: 'stretch', marginTop: 16 },
