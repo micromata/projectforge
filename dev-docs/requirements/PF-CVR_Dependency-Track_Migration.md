@@ -79,7 +79,11 @@ Done (configuration, client, probe and tile of the system dashboard, admin guide
   `IntegrationConfig` (timeouts, size limit), header `X-Api-Key`. An outgoing proxy isn't supported by
   `PooledHttpClients` yet (as for NVD, OSV, EUVD); open. Only the calls PF needs: projects, BOM
   upload and processing status, components, findings, vulnerability, analysis. Lists are paged (at most 100
-  entries per page, total in the header `X-Total-Count`); the client always reads all pages.
+  entries per page, total in the header `X-Total-Count`); the client always reads all pages (without total only a
+  page shorter than 100, otherwise it fails). Redirects aren't followed and `/api/version` is read without key, so
+  the key goes only to the configured url; a plain-http url other than localhost is logged as warning.
+  Open for phase 3: `getAll` keeps all pages in memory; the findings of the whole portfolio are read page by page
+  (a consumer per page) instead.
 - Health: DT version and reachability as a tile of the system dashboard (`SubsystemStatusProvider`, probe job
   `cveradar.deptrack.probe`, NFR-05); a failing DT doesn't affect the other pages.
 - Tests: client against a local stub server with recorded DT answers (from the spike).

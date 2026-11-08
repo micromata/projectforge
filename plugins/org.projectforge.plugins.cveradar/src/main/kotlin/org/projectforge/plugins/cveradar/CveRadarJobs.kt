@@ -123,7 +123,14 @@ class CveRadarJobs {
     fun deptrackProbe() {
         schedulerJobRunner.runAsync(DEPTRACK_PROBE_JOB) { run ->
             try {
-                run.note("Dependency-Track ${dependencyTrackClient.probe()}")
+                val result = dependencyTrackClient.probe()
+                run.note("Dependency-Track ${result.version ?: "(no version received)"}")
+                if (result.version.isNullOrBlank()) {
+                    run.fail("Dependency-Track: no version received from /api/version.")
+                }
+                if (result.missingPermissions.isNotEmpty()) {
+                    run.fail("The team of the API key misses the permissions ${result.missingPermissions.sorted().joinToString()}.")
+                }
             } catch (ex: Exception) {
                 // Recorded by the sync stats: the tile of the system dashboard shows it.
                 run.fail(ex.message ?: ex.javaClass.simpleName)

@@ -2077,7 +2077,10 @@ projectforge.plugin.cveradar.deptrack.probeCron=0 */15 * * * *
   the vulnerability sources NVD, GitHub Advisories and OSV. Switch off the task _Telemetry Submission_.
 * The tile _Dependency-Track (CVE-Radar)_ of the <<system_dashboard_and_log_viewer,system dashboard>> shows the host,
   the version and the result of the last test: down if Dependency-Track isn't reachable or refuses the key, degraded if
-  the team misses a permission (listed in the log). A failing Dependency-Track doesn't affect the other pages.
+  the team misses a permission (listed in the log and in the run of the job). A failing Dependency-Track doesn't
+  affect the other pages.
+* Use an `https` url: the API key is sent with every request (a plain `http` url other than localhost is logged as
+  warning). Redirects aren't followed, so give the url of the API server itself.
 
 [[cve_radar_jobs]]
 ==== Jobs and connections

@@ -50,6 +50,8 @@ class DependencyTrackClientTest {
 
     private var permissions = DependencyTrackClient.PERMISSIONS
 
+    private var versionAnswer = """{"application":"Dependency-Track","version":"5.2.1"}"""
+
     @BeforeEach
     fun start() {
         server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
@@ -58,7 +60,7 @@ class DependencyTrackClientTest {
             requests.add(exchange.requestURI.toString() to key)
             val path = exchange.requestURI.path
             when {
-                path == "/api/version" -> answer(exchange, 200, """{"application":"Dependency-Track","version":"5.2.1"}""")
+                path == "/api/version" -> answer(exchange, 200, versionAnswer)
                 key != API_KEY -> answer(exchange, 401, "Unauthorized")
                 path == "/api/v1/team/self" -> answer(
                     exchange, 200,
@@ -74,6 +76,11 @@ class DependencyTrackClientTest {
                     answer(exchange, 200, "[$entries]")
                 }
                 path == "/api/v1/plain" -> answer(exchange, 200, """[{"n":1},{"n":2}]""")
+                path == "/api/v1/full" -> answer(exchange, 200, (1..100).joinToString(",", "[", "]") { """{"n":$it}""" })
+                path == "/api/v1/moved" -> {
+                    exchange.responseHeaders.add("Location", "/api/v1/team/self")
+                    answer(exchange, 302, "")
+                }
                 else -> answer(exchange, 404, "Not found")
             }
         }
@@ -101,6 +108,27 @@ class DependencyTrackClientTest {
     }
 
     @Test
+    fun `a full page without total fails, as the list might be incomplete`() {
+        assertThrows<IllegalStateException> { client().getAll("/api/v1/full") }
+        assertEquals(1, requests.size)
+    }
+
+    @Test
+    fun `a redirect isn't followed, the key isn't sent to the redirect target`() {
+        val ex = assertThrows<CveRadarHttp.HttpException> { client().get("/api/v1/moved") }
+        assertEquals(302, ex.status)
+        assertEquals(1, requests.size)
+    }
+
+    @Test
+    fun `the key is sent trimmed, the version is read without key`() {
+        val client = client(apiKey = " $API_KEY\n")
+        assertEquals("projectforge", client.team().name)
+        assertEquals("5.2.1", client.version())
+        assertEquals(listOf(API_KEY, null), requests.map { it.second })
+    }
+
+    @Test
     fun `a wrong key is refused, the message doesn't contain the key`() {
         val ex = assertThrows<CveRadarHttp.HttpException> { client(apiKey = "wrong-key-value").team() }
         assertEquals(401, ex.status)
@@ -110,16 +138,25 @@ class DependencyTrackClientTest {
     @Test
     fun `the probe reads version and team, a missing permission counts as error`() {
         val client = client()
-        assertEquals("5.2.1", client.probe())
+        val result = client.probe()
+        assertEquals("5.2.1", result.version)
+        assertTrue(result.missingPermissions.isEmpty())
         assertEquals("5.2.1", client.lastVersion)
         assertEquals(SyncStats.Status.SUCCESS, SyncStatsRegistry.get(DependencyTrackClient.SYNC_TYPE).lastStatus)
 
         permissions = DependencyTrackClient.PERMISSIONS - "VULNERABILITY_ANALYSIS"
-        client.probe()
+        assertEquals(setOf("VULNERABILITY_ANALYSIS"), client.probe().missingPermissions)
         assertEquals(SyncStats.Status.ERRORS, SyncStatsRegistry.get(DependencyTrackClient.SYNC_TYPE).lastStatus)
 
-        assertThrows<CveRadarHttp.HttpException> { client(apiKey = "wrong").probe() }
+        permissions = DependencyTrackClient.PERMISSIONS
+        versionAnswer = """{"application":"Dependency-Track"}"""
+        assertNull(client.probe().version)
+        assertEquals(SyncStats.Status.ERRORS, SyncStatsRegistry.get(DependencyTrackClient.SYNC_TYPE).lastStatus)
+
+        val wrongKey = client(apiKey = "wrong")
+        assertThrows<CveRadarHttp.HttpException> { wrongKey.probe() }
         assertEquals(SyncStats.Status.ABORTED, SyncStatsRegistry.get(DependencyTrackClient.SYNC_TYPE).lastStatus)
+        assertNull(wrongKey.lastVersion, "a failed probe leaves no version")
     }
 
     @Test

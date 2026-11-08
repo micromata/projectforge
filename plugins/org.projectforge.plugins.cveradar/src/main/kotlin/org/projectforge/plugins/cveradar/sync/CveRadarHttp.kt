@@ -58,19 +58,23 @@ internal object CveRadarHttp {
     fun execute(integrationId: String, request: HttpUriRequestBase, jsonBody: String? = null, maxBytesLimit: Long? = null): String =
         executeForResponse(integrationId, request, jsonBody, maxBytesLimit).body
 
-    /** As [execute], with the headers of the answer (e.g. the total of a paged list). */
+    /**
+     * As [execute], with the headers of the answer (e.g. the total of a paged list).
+     * @param disableRedirects For requests with a secret header: a redirect fails instead of being followed.
+     */
     fun executeForResponse(
         integrationId: String,
         request: HttpUriRequestBase,
         jsonBody: String? = null,
         maxBytesLimit: Long? = null,
+        disableRedirects: Boolean = false,
     ): Response {
         jsonBody?.let { request.entity = StringEntity(it, ContentType.APPLICATION_JSON) }
         val configured = IntegrationConfig.get(integrationId).maxResponseBytes.takeIf { it > 0 }
             ?: DEFAULT_MAX_RESPONSE_BYTES
         // A smaller limit of the caller (e.g. one document of a bucket) counts as well.
         val maxBytes = maxBytesLimit?.let { minOf(it, configured) } ?: configured
-        return PooledHttpClients.get(integrationId).execute(request) { response ->
+        return PooledHttpClients.get(integrationId, disableRedirects = disableRedirects).execute(request) { response ->
             val body = response.entity?.content?.use { PooledHttpClients.readLimited(it, maxBytes) }
                 ?.toString(Charsets.UTF_8) ?: ""
             if (response.code !in 200..299) {

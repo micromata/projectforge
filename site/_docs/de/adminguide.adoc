@@ -2130,8 +2130,10 @@ projectforge.plugin.cveradar.deptrack.probeCron=0 */15 * * * *
   abschalten.
 * Die Kachel _Dependency-Track (CVE-Radar)_ des <<system_dashboard_and_log_viewer,System-Dashboards>> zeigt Host,
   Version und das Ergebnis der letzten Prüfung: ausgefallen, wenn Dependency-Track nicht erreichbar ist oder den
-  Schlüssel ablehnt, gestört, wenn dem Team ein Recht fehlt (im Log aufgeführt). Ein ausgefallenes Dependency-Track
-  beeinträchtigt die übrigen Seiten nicht.
+  Schlüssel ablehnt, gestört, wenn dem Team ein Recht fehlt (im Log und im Lauf des Jobs aufgeführt). Ein
+  ausgefallenes Dependency-Track beeinträchtigt die übrigen Seiten nicht.
+* Eine `https`-URL verwenden: Der API-Schlüssel geht mit jeder Anfrage mit (eine `http`-URL außer localhost wird als
+  Warnung geloggt). Weiterleitungen werden nicht verfolgt, daher die URL des API-Servers selbst angeben.
 
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen

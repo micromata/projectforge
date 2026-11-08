@@ -37,22 +37,30 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Client of the REST API v1 of Dependency-Track (PF-CVR-DT-MIG 4.1), optional ([CveRadarConfig.DependencyTrack]):
- * the API key goes in the header `X-Api-Key` only, never into a message or the log. Lists are paged (at most
- * [PAGE_SIZE] entries per page, the total in the header `X-Total-Count`): [getAll] reads all pages. Timeouts and the
- * size limit of the answers: integration id [CveRadarHttp.DEPTRACK].
+ * the API key goes in the header `X-Api-Key` only, never into a message or the log, and redirects aren't followed
+ * (they would send the key to the redirect target). Lists are paged (at most [PAGE_SIZE] entries per page, the total
+ * in the header `X-Total-Count`): [getAll] reads all pages. Timeouts and the size limit of the answers: integration
+ * id [CveRadarHttp.DEPTRACK].
  */
 @Service
 class DependencyTrackClient(private val config: CveRadarConfig) {
     /** The team of the API key with its permissions. */
     class Team(val name: String?, val permissions: Set<String>)
 
+    /** The result of a [probe]: [missingPermissions] of the team, empty if it has all [PERMISSIONS]. */
+    class ProbeResult(val version: String?, val missingPermissions: Set<String>)
+
     /** The version of Dependency-Track found by the last [probe], null before or if it failed. */
     @Volatile
     var lastVersion: String? = null
         private set
 
-    /** The version of the API server (`/api/version`, readable without key). */
-    fun version(): String? = get("/api/version").path("version").textValue()
+    /** The url an insecure (plain http) url was last warned about, so the warning isn't repeated every probe. */
+    @Volatile
+    private var warnedInsecureUrl: String? = null
+
+    /** The version of the API server (`/api/version`, readable without key, so the key isn't sent). */
+    fun version(): String? = get("/api/version", withKey = false).path("version").textValue()
 
     /** The team of the API key (`/api/v1/team/self`): an invalid key fails with status 401. */
     fun team(): Team {
@@ -61,9 +69,13 @@ class DependencyTrackClient(private val config: CveRadarConfig) {
         return Team(node.path("name").textValue(), permissions)
     }
 
-    fun get(path: String): JsonNode = objectMapper.readTree(execute(HttpGet(url(path))).body)
+    fun get(path: String): JsonNode = get(path, withKey = true)
 
-    /** All entries of a paged list, e.g. `/api/v1/finding/project/<uuid>`. */
+    /**
+     * All entries of a paged list, e.g. `/api/v1/finding/project/<uuid>`. Without total (header missing, e.g. removed
+     * by a proxy, or not a paged list) a page shorter than [PAGE_SIZE] is the last one; a full one fails, as the list
+     * might be incomplete.
+     */
     fun getAll(path: String): List<JsonNode> {
         val result = mutableListOf<JsonNode>()
         val separator = if (path.contains('?')) '&' else '?'
@@ -73,8 +85,13 @@ class DependencyTrackClient(private val config: CveRadarConfig) {
             val entries = objectMapper.readTree(response.body)
             check(entries.isArray) { "Dependency-Track: no list received for $path." }
             entries.forEach { result.add(it) }
-            // Without total (not a paged list) the first page is all.
-            val total = response.header("X-Total-Count")?.toIntOrNull() ?: return result
+            val total = response.header("X-Total-Count")?.toIntOrNull()
+            if (total == null) {
+                check(page == 1 && entries.size() < PAGE_SIZE) {
+                    "Dependency-Track: no total (X-Total-Count) received for $path, the list might be incomplete."
+                }
+                return result
+            }
             if (entries.isEmpty || result.size >= total) {
                 return result
             }
@@ -84,38 +101,63 @@ class DependencyTrackClient(private val config: CveRadarConfig) {
     }
 
     /**
-     * Tests the connection, recorded as a run of the sync stats [SYNC_TYPE] (tile on the system dashboard): version,
-     * key valid, the permissions of the team ([PERMISSIONS], a missing one counts as error).
-     * @return The version of Dependency-Track.
+     * Tests the connection, recorded as a run of the sync stats [SYNC_TYPE] (tile on the system dashboard): version
+     * (none received counts as error), key valid, the permissions of the team ([PERMISSIONS], a missing one counts
+     * as error).
      */
-    fun probe(): String? {
-        lastVersion = null
-        return SyncStatsRegistry.get(SYNC_TYPE).execute(SubsystemStatus.hostOf(config.deptrack.url)) { run ->
-            val version = run.step("version") { counts ->
-                version().also { counts.unchanged++ }
-            }
-            run.step("team") { counts ->
-                val missing = PERMISSIONS - team().permissions
-                counts.unchanged += PERMISSIONS.size - missing.size
-                counts.errors += missing.size
-                if (missing.isNotEmpty()) {
-                    log.warn { "Dependency-Track: the team of the API key misses the permissions ${missing.sorted().joinToString()}." }
+    fun probe(): ProbeResult {
+        warnIfInsecure()
+        try {
+            return SyncStatsRegistry.get(SYNC_TYPE).execute(SubsystemStatus.hostOf(config.deptrack.url)) { run ->
+                val version = run.step("version") { counts ->
+                    version().also { if (it.isNullOrBlank()) counts.errors++ else counts.unchanged++ }
                 }
+                // Set before the team is read, so the tile shows the version during the whole probe.
+                lastVersion = version
+                val missing = run.step("team") { counts ->
+                    val missing = PERMISSIONS - team().permissions
+                    counts.unchanged += PERMISSIONS.size - missing.size
+                    counts.errors += missing.size
+                    if (missing.isNotEmpty()) {
+                        log.warn { "Dependency-Track: the team of the API key misses the permissions ${missing.sorted().joinToString()}." }
+                    }
+                    missing
+                }
+                ProbeResult(version, missing)
             }
-            lastVersion = version
-            version
+        } catch (ex: Exception) {
+            lastVersion = null
+            throw ex
         }
     }
+
+    private fun warnIfInsecure() {
+        val url = config.deptrack.url.trim()
+        if (url == warnedInsecureUrl || !url.startsWith("http://", ignoreCase = true)) {
+            return
+        }
+        val host = SubsystemStatus.hostOf(url)
+        if (host !in LOCAL_HOSTS) {
+            log.warn { "Dependency-Track: the url $url isn't https, the API key is sent unencrypted." }
+        }
+        warnedInsecureUrl = url
+    }
+
+    private fun get(path: String, withKey: Boolean): JsonNode =
+        objectMapper.readTree(execute(HttpGet(url(path)), withKey).body)
 
     private fun url(path: String): String {
         check(config.deptrack.isConfigured()) { "Dependency-Track isn't configured." }
         return CveRadarHttp.url(config.deptrack.url, path)
     }
 
-    private fun execute(request: HttpUriRequestBase): CveRadarHttp.Response {
-        request.setHeader("X-Api-Key", config.deptrack.apiKey)
+    private fun execute(request: HttpUriRequestBase, withKey: Boolean = true): CveRadarHttp.Response {
+        if (withKey) {
+            // Trimmed: a key from a secret file often ends with a line break.
+            request.setHeader("X-Api-Key", config.deptrack.apiKey.trim())
+        }
         request.setHeader("Accept", "application/json")
-        return CveRadarHttp.executeForResponse(CveRadarHttp.DEPTRACK, request)
+        return CveRadarHttp.executeForResponse(CveRadarHttp.DEPTRACK, request, disableRedirects = true)
     }
 
     companion object {
@@ -132,6 +174,8 @@ class DependencyTrackClient(private val config: CveRadarConfig) {
             "BOM_UPLOAD", "PORTFOLIO_MANAGEMENT", "PROJECT_CREATION_UPLOAD", "VIEW_POLICY_VIOLATION", "VIEW_PORTFOLIO",
             "VIEW_VULNERABILITY", "VULNERABILITY_ANALYSIS",
         )
+
+        private val LOCAL_HOSTS = setOf("localhost", "127.0.0.1", "[::1]")
 
         private val objectMapper = ObjectMapper()
     }
