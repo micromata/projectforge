@@ -68,6 +68,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: BUNDLE_ID,
     versionCode: 7,
+    // The launcher masks the icon (circle, squircle, ...): the flames inside the safe zone, on the plate of the icon
+    // (dev-docs/logo/render-logos.py).
+    adaptiveIcon: { foregroundImage: './assets/adaptive-icon.png', backgroundColor: '#111d30' },
     allowBackup: false,
     predictiveBackGestureEnabled: false,
   },

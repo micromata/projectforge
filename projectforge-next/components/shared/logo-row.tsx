@@ -30,9 +30,10 @@ export function LogoRow({ collapsible = true }: LogoRowProps) {
       className={cn(
         // A fixed height animating to 0, not `auto` or a max-height: `height` between two lengths is
         // the one that interpolates everywhere, and the content's height is known (the wordmark is
-        // 43px, the customer logo is bounded to 36px). overflow-hidden is what makes the clipped
-        // state read as a collapse instead of an overlap.
-        "hidden shrink-0 items-center justify-between overflow-hidden bg-background px-4 roomy:flex",
+        // 32px, the customer logo is bounded to 36px). overflow-hidden is what makes the clipped
+        // state read as a collapse instead of an overlap. pr-2 as the navigation below (px-2): the wordmark
+        // ends flush with the user menu.
+        "hidden shrink-0 items-center justify-between overflow-hidden bg-background pl-4 pr-2 roomy:flex",
         "transition-[height] duration-200 ease-out motion-reduce:transition-none",
         collapsed ? "h-0" : "h-12"
       )}
