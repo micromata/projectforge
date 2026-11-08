@@ -42,19 +42,25 @@ export async function resetTreeState(
 ): Promise<void> {
   for (const id of close) {
     await page.request
-      .get(`/rs/task/tree?table=true&initial=true&close=${id}`)
+      .post(`/rs/task/tree?table=true&initial=true&close=${id}`, {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   }
   for (const select of ["", "&select=true"]) {
     await page.request
-      .get(
-        `/rs/task/tree?table=true${select}&searchString=&opened=true&notOpened=true&closed=false&deleted=false`
+      .post(
+        `/rs/task/tree?table=true${select}&searchString=&opened=true&notOpened=true&closed=false&deleted=false`,
+        { headers: await writeHeaders(page.request) }
       )
       .catch(() => undefined);
     await page.request
-      .post(`/rs/task/tree/resetGridState/?select=${select ? "true" : "false"}`, {
-        headers: await writeHeaders(page.request),
-      })
+      .post(
+        `/rs/task/tree/resetGridState/?select=${select ? "true" : "false"}`,
+        {
+          headers: await writeHeaders(page.request),
+        }
+      )
       .catch(() => undefined);
   }
 }

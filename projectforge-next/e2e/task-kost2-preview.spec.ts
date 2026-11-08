@@ -1,5 +1,6 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect } from "./fixtures/auth";
+import { writeHeaders } from "./fixtures/seed";
 import type {
   Kost2Preview,
   Kost2PreviewRequest,
@@ -137,9 +138,9 @@ test.describe("kost2 preview", { tag: "@lane-task" }, () => {
 
 /** The whole tree as the panel asks for it, root included where the account may see it. */
 async function fetchTree(request: APIRequestContext): Promise<TaskNode[]> {
-  const response = await request.get(
+  const response = await request.post(
     "/rs/task/tree?table=true&showRootForAdmins=true&opened=true&notOpened=true&closed=true&deleted=false",
-    { headers: { "X-PF-Frontend": "next" } }
+    { headers: await writeHeaders(request) }
   );
   expect(response.status(), "could not read the task tree").toBe(200);
   return ((await response.json()) as { nodes?: TaskNode[] }).nodes ?? [];

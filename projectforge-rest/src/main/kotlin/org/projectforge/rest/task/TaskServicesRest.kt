@@ -709,9 +709,11 @@ class TaskServicesRest {
      * @param closed Show closed tasks. For initial = true, this value is ignored.
      * @param deleted Show deleted tasks. For initial = true, this value is ignored.
      * @return json
+     *
+     * POST, although it mainly reads: [open], [close] and the filter values are stored for the user.
      */
     @AccessChecked("Nodes filtered by TaskDao select access; nodes of the user's booking grants by title only")
-    @GetMapping("tree")
+    @PostMapping("tree")
     fun getTree(
         request: HttpServletRequest,
         @RequestParam("initial") initial: Boolean?,

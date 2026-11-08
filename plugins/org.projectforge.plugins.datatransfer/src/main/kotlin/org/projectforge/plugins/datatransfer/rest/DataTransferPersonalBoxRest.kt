@@ -31,6 +31,7 @@ import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -61,16 +62,23 @@ class DataTransferPersonalBoxRest {
     class PersonalBox(val boxId: Long? = null, val user: User? = null)
 
     /**
-     * @param userId The user whose personal box is wanted, remembered for the next visit. Without it, the user
-     * chosen last time is answered, but no box is resolved.
+     * The user chosen last time, without a box resolved. Changes nothing, see [selectPersonalBox].
+     */
+    @AccessChecked("Any logged-in user: own user pref only")
+    @GetMapping("box")
+    fun getPersonalBox(): PersonalBox {
+        val lastUser = getUserPref().userId?.let { toUser(it) }
+        return PersonalBox(user = lastUser)
+    }
+
+    /**
+     * POST, because it changes state: the user is remembered for the next visit, and the box is created if
+     * missing.
+     * @param userId The user whose personal box is wanted.
      */
     @AccessChecked("Any logged-in user: every user's personal box is open for uploads; own user pref")
-    @GetMapping("box")
-    fun getPersonalBox(@RequestParam("userId", required = false) userId: Long?): PersonalBox {
-        if (userId == null) {
-            val lastUser = getUserPref().userId?.let { toUser(it) }
-            return PersonalBox(user = lastUser)
-        }
+    @PostMapping("box")
+    fun selectPersonalBox(@RequestParam("userId") userId: Long): PersonalBox {
         val user = toUser(userId) ?: return PersonalBox()
         getUserPref().userId = userId
         return PersonalBox(boxId = dataTransferAreaDao.ensurePersonalBox(userId)?.id, user = user)
