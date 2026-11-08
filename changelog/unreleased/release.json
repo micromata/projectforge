@@ -1,0 +1,36 @@
+{
+  "summary": {
+    "en": [
+      "**Chat**: link previews, clickable urls in all rich texts",
+      "**CVE-Radar**: findings per node, Dependency-Track connection, own backup dump",
+      "**New logo**: web interface, website, app icon",
+      "**App**: changelog, last used tab, wide-screen menu",
+      "**Security**: shorter CSRF token lifetime, library updates (freemarker, jsoup)"
+    ],
+    "de": [
+      "**Chat**: Linkvorschauen, anklickbare URLs in allen Rich-Texten",
+      "**CVE-Radar**: Findings je Knoten, Anbindung an Dependency-Track, eigener Backup-Dump",
+      "**Neues Logo**: Weboberfläche, Webseite, App-Icon",
+      "**App**: Changelog, zuletzt genutzter Tab, Menü für breite Bildschirme",
+      "**Sicherheit**: kürzere Lebensdauer des CSRF-Tokens, Bibliotheksupdates (freemarker, jsoup)"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Chat and rich texts:** a link in a message shows a preview of the linked page (fetched by the server, removable, can be switched off by administrators); urls in chat messages and all rich texts are clickable, an edited link leads to the edited url.",
+      "**CVE-Radar:** the dialog of an area, system, instance or component lists its open findings with key figures by severity; the answers of a team check show their counts and can be filtered; optional connection to Dependency-Track (for now the connection is tested); the imported vulnerability data goes into a dump of its own (adapt an existing backup script, see adminguide).",
+      "**New ProjectForge logo:** in the web interface (light and dark theme), on the website, as favicon and home screen icon, on the Wallet pass of the business card and as app icon.",
+      "**Lists:** the empty filters business unit, customer and project are shown as one pill in the lists of orders, invoices, projects, cost units and time sheets and in the order statistics.",
+      "**Mobile app (in preparation):** the changelog opens from the \"more\" menu, the app starts with the tab used last, the menu of the pages has several columns on wide screens and searches while typing, the navigation in landscape can be placed at the right side, the server switch and the settings slide up over the tabs, the daily progress of the time sheets follows the own weekly working hours.",
+      "**Security:** the CSRF token of a session is renewed after an hour at the latest, the task tree and the data transfer box choice change by POST only, requests with a foreign Origin or Referer are refused; security updates of freemarker (2.3.35) and jsoup (1.23.2)."
+    ],
+    "de": [
+      "**Chat und Rich-Texte:** Ein Link in einer Nachricht zeigt eine Vorschau der verlinkten Seite (vom Server abgerufen, entfernbar, von Administratoren abschaltbar); URLs in Chatnachrichten und allen Rich-Texten sind anklickbar, ein geänderter Link führt zur geänderten URL.",
+      "**CVE-Radar:** Der Dialog eines Bereichs, Systems, einer Instanz oder Komponente listet ihre offenen Findings mit Kennzahlen nach Schweregrad; die Antworten einer Team-Prüfung zeigen ihre Anzahlen und sind filterbar; optionale Anbindung an Dependency-Track (zunächst wird die Verbindung geprüft); die importierten Schwachstellendaten kommen in einen eigenen Dump (ein bestehendes Backup-Skript ist anzupassen, siehe Adminguide).",
+      "**Neues ProjectForge-Logo:** in der Weboberfläche (helles und dunkles Theme), auf der Webseite, als Favicon und Homescreen-Icon, auf dem Wallet-Pass der Visitenkarte und als App-Icon.",
+      "**Listen:** Die leeren Filter Business Unit, Kunde und Projekt erscheinen in den Listen der Aufträge, Rechnungen, Projekte, Kostenträger und Zeitberichte sowie in der Auftragsstatistik als eine Pille.",
+      "**Mobile App (in Vorbereitung):** Der Changelog öffnet sich über das „Mehr“-Menü, die App startet mit dem zuletzt genutzten Tab, das Menü der Seiten hat auf breiten Bildschirmen mehrere Spalten und sucht schon beim Tippen, die Navigation im Querformat lässt sich rechts platzieren, Serverwechsel und Einstellungen schieben sich über die Tabs hoch, der Tagesfortschritt der Zeitberichte richtet sich nach der eigenen Wochenarbeitszeit.",
+      "**Sicherheit:** Das CSRF-Token einer Session wird spätestens nach einer Stunde erneuert, Aufgabenbaum und Auswahl der Datentransfer-Box ändern sich nur per POST, Anfragen mit fremdem Origin oder Referer werden abgelehnt; Sicherheitsupdates von freemarker (2.3.35) und jsoup (1.23.2)."
+    ]
+  }
+}
