@@ -7,16 +7,16 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "{app} Der Changelog öffnet sich über das „Mehr“-Menü (der Eintrag mit der Version)." ]
+      "items" : [ "{app} Der Changelog öffnet sich über das „Mehr“-Menü (der Eintrag mit der Version).", "{app} Auf breiten Bildschirmen (Querformat, iPad) zeigt das Menü der Seiten seine Einträge in mehreren Spalten.", "{app} In den Einstellungen lässt sich die Navigation im Querformat (die Spalte der Symbole) statt links auch rechts platzieren, z. B. für den rechten Daumen.", "Chat: Ein Link in einer Nachricht zeigt eine Vorschau der verlinkten Seite (Titel, Beschreibung, Bild), wie in anderen Chats, schon beim Schreiben. Der Server ruft sie ab, sodass der Browser nichts von der verlinkten Seite lädt; die Vorschau lässt sich vor oder nach dem Senden entfernen, Administratoren können die Vorschauen abschalten (projectforge.chat.linkPreview.enabled=false)." ]
     }, {
       "type" : "improved",
-      "items" : [ "Chatnachrichten und alle Rich-Texte (Beschreibungen, Notizen, Hinweise) zeigen ihre URLs (mit http(s):// oder www.) als anklickbare Links, auch in älteren Texten und wenn die URL das letzte Wort ist." ]
+      "items" : [ "Sicherheit: Das CSRF-Token einer Session wird spätestens nach einer Stunde erneuert; Aufgabenbaum und Auswahl einer persönlichen Datentransfer-Box ändern sich nur noch per POST; bei Browsern ohne Fetch-Metadaten werden Anfragen abgelehnt, deren Origin oder Referer einen fremden Host nennt.", "Chatnachrichten und alle Rich-Texte (Beschreibungen, Notizen, Hinweise) zeigen ihre URLs (mit http(s):// oder www.) als anklickbare Links, auch in älteren Texten und wenn die URL das letzte Wort ist." ]
     }, {
       "type" : "changed",
-      "items" : [ "{app} Serverwechsel und Einstellungen des „Mehr“-Menüs schieben sich wie die Benachrichtigungen über die Tabs hoch, die Tab-Leiste bleibt darunter sichtbar (Server hinzufügen und das Log öffnen sich darin, mit einem Pfeil zurück); das „Mehr“-Menü wird so hoch, wie seine Einträge es brauchen." ]
+      "items" : [ "{app} Die App startet mit dem zuletzt auf dem Gerät genutzten Tab statt immer mit den Visitenkarten, und die Seiten (Weltkugel) mit der zuletzt gezeigten Seite.", "{app} Serverwechsel und Einstellungen des „Mehr“-Menüs schieben sich wie die Benachrichtigungen über die Tabs hoch, die Tab-Leiste bleibt darunter sichtbar (Server hinzufügen und das Log öffnen sich darin, mit einem Pfeil zurück); das „Mehr“-Menü wird so hoch, wie seine Einträge es brauchen.", "{app} Der Fortschritt eines Tages bei den Zeitberichten richtet sich nach einem Fünftel der an diesem Tag gültigen eigenen Wochenarbeitszeit statt nach 8 Stunden.", "CVE-Radar: Die importierten Daten der Schwachstellen liegen in einer eigenen Tabelle; das Backup-Skript schreibt sie mit den OSV-Advisories und dem Stand der Importe in einen eigenen Dump (projectforge_cveradar_…), aus den Quellen wiederherstellbar. Fälle, Team-Checks, Antworten und Befunde bleiben im Haupt-Dump, der auch ohne ihn vollständig ist. Ein bestehendes Backup-Skript ist anzupassen (Adminguide, „Backup-Skript“)." ]
     }, {
       "type" : "fixed",
-      "items" : [ "{app} Die Suche im Menü der Seiten zeigt ihre Treffer schon beim Tippen über der Tastatur (nicht erst nach der Suchtaste)." ]
+      "items" : [ "{app} Das + bei den Adressen öffnet das Formular einer neuen Adresse statt einer Fehlerseite (nicht gefunden).", "{app} Die Suche im Menü der Seiten zeigt ihre Treffer schon beim Tippen über der Tastatur (nicht erst nach der Suchtaste).", "Chatnachrichten und Rich-Texte: Ein Link, dessen URL nachträglich geändert wird, führt zur geänderten URL statt zur zuerst getippten." ]
     } ]
   },
   "groups" : [ {

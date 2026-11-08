@@ -65,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.util.unit.DataSize
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import java.util.Base64
 import java.util.concurrent.TimeUnit
 
 private val log = KotlinLogging.logger {}
@@ -238,7 +239,10 @@ class ChatRest {
     @AccessChecked("ChatService.send: write access of the host to the conversation; thread root of this conversation only")
     @PostMapping("conversation/{id}/messages", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun send(@PathVariable id: Long, @RequestBody request: ChatSendRequest): ChatMessage {
-        val message = chatService.send(id, request.threadRootId, request.html, quotedMessageId = request.quotedMessageId)
+        val message = chatService.send(
+            id, request.threadRootId, request.html, quotedMessageId = request.quotedMessageId,
+            linkPreview = request.linkPreview,
+        )
         return converter.convert(chatService.requireContext(id), message)
     }
 
@@ -254,7 +258,7 @@ class ChatRest {
         @RequestPart("files", required = false) files: List<MultipartFile>?,
     ): ChatMessage {
         val uploads = files.orEmpty().map { ChatFileService.Upload(it.originalFilename, it.bytes) }
-        val message = chatService.send(id, request.threadRootId, request.html, uploads, request.quotedMessageId)
+        val message = chatService.send(id, request.threadRootId, request.html, uploads, request.quotedMessageId, request.linkPreview)
         return converter.convert(chatService.requireContext(id), message)
     }
 
@@ -433,6 +437,48 @@ class ChatRest {
             .header("X-Content-Type-Options", "nosniff")
             .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePrivate())
             .body(InputStreamResource(inputStream))
+    }
+
+    /**
+     * The thumbnail of the link preview of a message (not of a deleted one, of a hidden one for moderators only),
+     * created by the server from the image of the linked page: the browser loads nothing from the linked site.
+     */
+    @AccessChecked("ChatService.readLinkPreviewImage: read access of the host to the conversation of the message (from the database), visible message only")
+    @GetMapping("message/{id}/linkPreviewImage")
+    fun linkPreviewImage(@PathVariable id: Long): ResponseEntity<ByteArray> {
+        val image = chatService.readLinkPreviewImage(id) ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok()
+            .contentType(MediaType.IMAGE_JPEG)
+            .header("X-Content-Type-Options", "nosniff")
+            .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePrivate())
+            .body(image)
+    }
+
+    /**
+     * The preview of the link of the message being written (shown while writing), no content if none. POST: it makes
+     * the server fetch the page, which a link or an image of another site mustn't trigger.
+     */
+    @AccessChecked("ChatService.previewLink: write access of the host to the conversation")
+    @PostMapping("conversation/{id}/linkPreview")
+    fun previewLink(@PathVariable id: Long, @RequestBody request: ChatLinkPreviewRequest): ResponseEntity<ChatLinkPreviewInfo> {
+        val (url, fetched) = chatService.previewLink(id, request.html) ?: return ResponseEntity.noContent().build()
+        val page = fetched.page
+        val thumbnail = fetched.thumbnail
+        return ResponseEntity.ok(
+            ChatLinkPreviewInfo(
+                url, page.title, page.description, page.siteName, imageId = null,
+                imageWidth = thumbnail?.width,
+                imageHeight = thumbnail?.height,
+                imageData = thumbnail?.let { "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(it.content) },
+            )
+        )
+    }
+
+    @AccessChecked("ChatService.dismissLinkPreview: own message only, write access of the host to its conversation (from the database)")
+    @PostMapping("message/{id}/linkPreview/dismiss")
+    fun dismissLinkPreview(@PathVariable id: Long): ResponseEntity<Unit> {
+        chatService.dismissLinkPreview(id)
+        return ResponseEntity.noContent().build()
     }
 
     @ExceptionHandler(AccessException::class)

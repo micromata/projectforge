@@ -121,6 +121,18 @@ nginx only needs a read timeout above 25 seconds (the example configuration `dev
 has 600 seconds). Other proxies need the buffering switched off for this path. Without it, the chat still works: it
 falls back to asking for new messages every few seconds.
 
+[[chat_link_previews]]
+==== Previews of links in the chat
+
+For the first link of a chat message the server fetches the linked page (http and https on ports 80 and 443) and
+shows its title, description and image as a preview. It connects to public addresses only, never to the internal
+network (private, loopback and link-local addresses are refused, also after a redirect), and needs outgoing access to
+the internet; without it there are simply no previews. To fetch nothing from other sites at all:
+
+----
+projectforge.chat.linkPreview.enabled=false
+----
+
 [[postgresql]]
 === PostgreSQL
 

@@ -21,8 +21,10 @@ import { QuoteBar } from "./quote-bar";
 import { SecretSendButton } from "./secret-send-button";
 import { SendingFiles } from "./sending-files";
 import { CHAT_COLUMN_CLASS } from "./chat-column";
+import { LinkPreviewCard } from "./link-preview-card";
 import type { ChatEditorHandle } from "./types";
 import { useChatDraft } from "./use-chat-draft";
+import { useDraftLinkPreview } from "./use-draft-link-preview";
 import { usePendingFiles } from "./use-pending-files";
 
 /**
@@ -45,7 +47,9 @@ export function ChatComposer({
   const editorRef = useRef<ChatEditorHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const draft = useChatDraft(conversation.id, threadRootId, conversation.me.id);
-  const [hasText, setHasText] = useState(!!draft.initial);
+  const [html, setHtml] = useState(draft.initial ?? "");
+  const hasText = !!html;
+  const linkPreview = useDraftLinkPreview(conversation.id, html);
   const pending = usePendingFiles(conversation);
   const { quoting, setQuoting, writingNotice } = useChatContext();
   const inThread = threadRootId != null;
@@ -64,7 +68,8 @@ export function ChatComposer({
         threadRootId,
         pending.files.map((it) => it.file),
         quote?.id ?? null,
-        { onProgress: setProgress, signal: abortRef.current.signal }
+        { onProgress: setProgress, signal: abortRef.current.signal },
+        linkPreview.linkPreview
       );
     },
     onSuccess: (message) => {
@@ -72,7 +77,8 @@ export function ChatComposer({
       pending.clear();
       setQuoting(inThread, null);
       draft.save("");
-      setHasText(false);
+      setHtml("");
+      linkPreview.reset();
       onSent(message);
     },
     // A cancelled upload is the user's own doing: the message stays as it was, nothing to report.
@@ -109,6 +115,16 @@ export function ChatComposer({
             <FormAlert tone="warning" className="mx-2 mt-2">
               {writingNotice}
             </FormAlert>
+          )}
+          {linkPreview.preview && (
+            <div className="px-2 pt-2">
+              <LinkPreviewCard
+                preview={linkPreview.preview}
+                imageSrc={linkPreview.preview.imageData ?? null}
+                compact
+                onRemove={linkPreview.dismiss}
+              />
+            </div>
           )}
           <PendingFiles files={pending.files} onRemove={pending.remove} />
           {send.isPending && pending.files.length > 0 && (
@@ -184,9 +200,9 @@ export function ChatComposer({
               autoFocus={autoFocus}
               onSubmit={submit}
               onFiles={pending.add}
-              onChange={(html) => {
-                setHasText(!!html);
-                draft.save(html);
+              onChange={(value) => {
+                setHtml(value);
+                draft.save(value);
               }}
               className="rounded-md border border-input focus-within:border-ring"
             />

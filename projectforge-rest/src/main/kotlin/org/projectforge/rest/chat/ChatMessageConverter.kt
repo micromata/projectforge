@@ -140,6 +140,11 @@ class ChatMessageConverter {
             own = message.authorId == meId,
             mentionsMe = meId != null && meId in ChatRoomDO.toIds(message.mentionedIds),
             fromBlocked = message.authorId in blocked,
+            linkPreview = if (showContent) message.readLinkPreview()?.takeIf { !it.dismissed }?.let {
+                ChatLinkPreviewInfo(
+                    it.url, it.title, it.description, it.siteName, it.imageFileId, it.imageWidth, it.imageHeight,
+                )
+            } else null,
             changeSeq = message.changeSeq,
         )
     }
