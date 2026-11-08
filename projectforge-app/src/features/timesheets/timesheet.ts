@@ -156,18 +156,18 @@ export interface Gap {
   stop: Date;
 }
 
-/** The bookings of a week (Monday to Sunday) and the tags the installation offers. */
+/** The bookings of a week (seven days from the user's first day of the week) and the tags the installation offers. */
 export interface TimesheetWeek {
-  monday: Date;
+  weekStart: Date;
   sheets: Timesheet[];
   tags: string[];
   /** The server wasn't reachable: the week as it was loaded last. */
   fromCache: boolean;
 }
 
-export function weekOf(monday: Date, json: AppTimesheetList, fromCache = false): TimesheetWeek {
+export function weekOf(weekStart: Date, json: AppTimesheetList, fromCache = false): TimesheetWeek {
   return {
-    monday,
+    weekStart,
     sheets: (json.timesheets ?? []).map(timesheetOf),
     tags: (json.tags ?? []).map(String),
     fromCache,

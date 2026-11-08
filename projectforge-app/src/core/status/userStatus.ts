@@ -42,15 +42,24 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export const parseTheme = (theme?: string | null): ThemeMode =>
   theme === 'light' || theme === 'dark' ? theme : 'system';
 
+/** The user's first day of the week (Monday 1 … Sunday 7), Monday if the server sends none or an invalid one. */
+export const parseFirstDayOfWeek = (value?: number | null): number =>
+  value != null && Number.isInteger(value) && value >= 1 && value <= 7 ? value : 1;
+
 const INTERVAL = 60_000;
 const RELOAD_DELAY = 3_000;
 const THEME_CACHE = 'theme';
+const FIRST_DAY_CACHE = 'firstDayOfWeek';
 
 interface State {
   status: UserStatusResult | null;
   /** The user's theme of the web pages, applied to the app's own screens too. */
   theme: ThemeMode;
+  /** The user's first day of the week (Monday 1 … Sunday 7), stored for a start without the server. */
+  firstDayOfWeek: number;
 }
+
+const INITIAL: State = { status: null, theme: 'system', firstDayOfWeek: 1 };
 
 /**
  * The user status (`GET /rs/userStatus`) for the badge of the chat tab, the bell of the notifications, the message of
@@ -60,7 +69,7 @@ interface State {
  * app's UserStatusController and ThemeController.
  */
 export class UserStatusStore {
-  private state: State = { status: null, theme: 'system' };
+  private state: State = INITIAL;
   private listeners = new Set<() => void>();
   private api: ApiClient | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -82,6 +91,10 @@ export class UserStatusStore {
     this.api = api;
     const stored = await JsonCache.read<{ theme?: string }>(THEME_CACHE);
     if (this.api === api && this.state.status == null && stored?.theme) this.setTheme(parseTheme(stored.theme));
+    const firstDay = await JsonCache.read<{ firstDayOfWeek?: number }>(FIRST_DAY_CACHE);
+    if (this.api === api && this.state.status == null && firstDay?.firstDayOfWeek != null) {
+      this.setFirstDayOfWeek(parseFirstDayOfWeek(firstDay.firstDayOfWeek));
+    }
     this.appState = AppState.addEventListener('change', this.onAppState);
     this.startTimer();
     await this.refresh();
@@ -95,7 +108,7 @@ export class UserStatusStore {
     this.appState?.remove();
     this.appState = null;
     this.api = null;
-    this.state = { status: null, theme: 'system' };
+    this.state = INITIAL;
     this.applyTheme();
     this.emit();
   }
@@ -113,6 +126,9 @@ export class UserStatusStore {
       } else {
         void this.loadThemeOfOlderServer(api);
       }
+      // An older server sends no first day of the week: the stored one stays.
+      const firstDay = status.userData?.isoFirstDayOfWeekValue;
+      if (firstDay != null) this.setFirstDayOfWeek(parseFirstDayOfWeek(firstDay), true);
       this.emit();
     } catch (e) {
       appLog.debug('status', `User status not loaded: ${String(e)}`);
@@ -186,6 +202,13 @@ export class UserStatusStore {
     this.emit();
   }
 
+  private setFirstDayOfWeek(firstDayOfWeek: number, store = false) {
+    if (store) JsonCache.write(FIRST_DAY_CACHE, { firstDayOfWeek });
+    if (firstDayOfWeek === this.state.firstDayOfWeek) return;
+    this.state = { ...this.state, firstDayOfWeek };
+    this.emit();
+  }
+
   /** The app's own screens (useColorScheme) follow the theme of the web pages. */
   private applyTheme() {
     Appearance.setColorScheme(this.state.theme === 'system' ? 'unspecified' : this.state.theme);
@@ -219,4 +242,9 @@ export const userStatus = new UserStatusStore();
 
 export function useUserStatus(): State {
   return useSyncExternalStore(userStatus.subscribe, userStatus.get);
+}
+
+/** The user's first day of the week (Monday 1 … Sunday 7). */
+export function useFirstDayOfWeek(): number {
+  return useSyncExternalStore(userStatus.subscribe, () => userStatus.get().firstDayOfWeek);
 }

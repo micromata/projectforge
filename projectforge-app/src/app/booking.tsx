@@ -21,11 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { mondayOf } from '@projectforge/shared/booking-time';
+import { weekStartOf } from '@projectforge/shared/booking-time';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFirstDayOfWeek } from '../core/status/userStatus';
 import { useColors } from '../core/ui/colors';
 import { BookingForm } from '../features/timesheets/BookingForm';
 import { bookingDone } from '../features/timesheets/TimesheetsScreen';
@@ -38,13 +39,14 @@ export default function Booking() {
   const close = useClose();
   const colors = useColors();
   const state = useTimesheets();
+  const firstDay = useFirstDayOfWeek();
   const [start] = useState<BookingStart | null>(() => timesheets.takeBooking());
   useEffect(() => {
     // Restored without its start (e.g. after a reload of the bundle): nothing to show.
     if (start == null) close();
   });
   if (start == null) return null;
-  const week = state.weeks[mondayOf(start.start).getTime()];
+  const week = state.weeks[weekStartOf(start.start, firstDay).getTime()];
   const sheets = week?.status === 'data' ? week.week : null;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'left', 'right']}>

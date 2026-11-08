@@ -22,21 +22,19 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, useRouter } from 'expo-router';
-import { ComponentProps, useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Tabs } from 'expo-router';
+import { ComponentProps, useEffect } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { appVersion } from '../../core/platform';
-import { authController } from '../../core/auth/authController';
 import { CompatibilityIssue } from '../../core/compat/compatibility';
 import { t } from '../../core/i18n/translations';
 import { useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
 import { severityColor, useColors } from '../../core/ui/colors';
-import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
+import { tabSheets, useTabSheet } from '../../core/ui/tabSheets';
 import { TIMESHEETS_TAB_ENABLED } from '../../core/web/nativePage';
-import { CHAT_PATH, useWebMenuOpen, useWebTabStates, WebTab, webTabs } from '../web/webTabs';
+import { CHAT_PATH, useWebMenuOpen, WebTab, webTabs } from '../web/webTabs';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -61,28 +59,30 @@ export function compatibilityText(issue: CompatibilityIssue): string {
 /**
  * The navigation of the app: slim, icons only (the label is their accessibility label), with the bell and the "more"
  * menu at its end (on a web tab with the browser functions first), so they are there on every tab (the pages bring
- * their own header).
- * The "more" menu counts the open notifications of the other logins (their servers push too).
+ * their own header). Both open a sheet over the tabs ([tabSheets]), the bar stays below it; the button again or a tab
+ * closes it. The "more" button counts the open notifications of the other logins (their servers push too).
  * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms. The
  * pages tab opens with its menu, tapped again it closes or opens it.
  * [rail]: in landscape a column at the left side (as the Flutter app's navigation rail), the bell and the menu at its
- * bottom.
+ * bottom. [onSize]: the size of the bar, the sheets leave it free.
  */
 export function TabBar({
   state,
   navigateToTab,
   issue,
   rail = false,
-}: TabBarProps & { issue: CompatibilityIssue | null; rail?: boolean }) {
+  onSize,
+}: TabBarProps & {
+  issue: CompatibilityIssue | null;
+  rail?: boolean;
+  onSize?: (size: { width: number; height: number }) => void;
+}) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { status } = useUserStatus();
-  const webStates = useWebTabStates();
   const webMenu = useWebMenuOpen();
-  const [menu, setMenu] = useState(false);
+  const sheet = useTabSheet();
   const focused = state.routes[state.index]?.name;
-  const webTab = focused ? TABS[focused]?.webTab : undefined;
   const unread = status?.chatUnread ?? 0;
   const openNotifications = status?.notifications?.openCount ?? 0;
   // The other logins' open notifications, at the menu with the server switch.
@@ -102,62 +102,13 @@ export function TabBar({
       (route.name !== 'timesheets' || TIMESHEETS_TAB_ENABLED),
   );
 
-  const browserItems = (): MenuItem[] => {
-    const handle = webTab ? webTabs.handle(webTab) : undefined;
-    const web = webTab ? webStates[webTab] : undefined;
-    return [
-      { key: 'back', label: t('back'), icon: 'arrow-back', disabled: !web?.canGoBack, onPress: () => handle?.goBack() },
-      { key: 'forward', label: t('app.web.forward'), icon: 'arrow-forward', disabled: !web?.canGoForward, onPress: () => handle?.goForward() },
-      { key: 'reload', label: t('app.web.reload'), icon: 'refresh', onPress: () => handle?.reload() },
-      { key: 'find', label: t('app.web.find'), icon: 'search', onPress: () => handle?.openFind() },
-      { key: 'share', label: t('app.web.share'), icon: 'share-outline', disabled: !web?.hasPage, onPress: () => handle?.share() },
-      { key: 'browser', label: t('app.web.openInBrowser'), icon: 'open-outline', disabled: !web?.hasPage, onPress: () => handle?.openInBrowser() },
-      { key: 'restart', label: t('app.web.restart'), icon: 'reload-circle-outline', onPress: () => handle?.restart() },
-    ];
-  };
-
-  /** The user and the server of the login, to read only. */
-  const accountItems = (): MenuItem[] => {
-    const session = authController.getState().session;
-    if (session == null) return [];
-    return [{ key: 'account', label: session.fullname ?? session.username ?? '', detail: session.serverUrl, info: true }];
-  };
-
-  /** On a web tab the browser functions first, then the account, the settings and the logout (as in the Flutter app). */
-  const moreItems = (): MenuItem[] => [
-    ...(webTab ? browserItems() : []),
-    ...accountItems(),
-    { key: 'version', label: t('app.version', appVersion), info: true },
-    ...(issue ? [{ key: 'compatibility', label: compatibilityText(issue), icon: 'warning-outline' as IconName, info: true }] : []),
-    {
-      key: 'servers',
-      label: t('app.server.switch'),
-      // The badge of the "more" button: the open notifications of the other logins, said here what it counts.
-      detail: otherOpen > 0 ? t('app.server.switch.notifications', otherOpen) : undefined,
-      badge: otherOpen,
-      icon: 'swap-horizontal',
-      onPress: () => router.push('/servers'),
-    },
-    { key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: () => router.push('/settings') },
-    {
-      key: 'logout',
-      label: t('menu.logout'),
-      icon: 'log-out-outline',
-      destructive: true,
-      onPress: () =>
-        Alert.alert(t('menu.logout'), t('app.logout.question'), [
-          { text: t('cancel'), style: 'cancel' },
-          { text: t('ok'), style: 'destructive', onPress: () => void authController.logout() },
-        ]),
-    },
-  ];
-
   return (
     <View
       style={[
         rail ? styles.rail : styles.bar,
         { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom },
       ]}
+      onLayout={(event) => onSize?.(event.nativeEvent.layout)}
     >
       {routes.map((route) => {
         const tab = TABS[route.name];
@@ -170,6 +121,8 @@ export function TabBar({
             accessibilityLabel={tab.label()}
             accessibilityState={{ selected: active }}
             onPress={() => {
+              // A sheet over the tabs closes, whichever tab is tapped.
+              tabSheets.close();
               if (active && route.name === 'chat') {
                 webTabs.open('chat', CHAT_PATH);
                 return;
@@ -206,12 +159,12 @@ export function TabBar({
       <Pressable
         style={styles.item}
         accessibilityLabel={t('notification.center')}
-        onPress={() => router.push('/notifications')}
+        onPress={() => tabSheets.toggle('notifications')}
       >
         <Ionicons
           name={openNotifications > 0 ? 'notifications' : 'notifications-outline'}
           size={24}
-          color={colors.textMuted}
+          color={sheet === 'notifications' ? colors.primary : colors.textMuted}
         />
         {openNotifications > 0 && (
           <View
@@ -224,15 +177,18 @@ export function TabBar({
           </View>
         )}
       </Pressable>
-      <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => setMenu(true)}>
-        <Ionicons name="ellipsis-horizontal-circle-outline" size={24} color={issue ? colors.danger : colors.textMuted} />
+      <Pressable style={styles.item} accessibilityLabel={t('app.menu.more')} onPress={() => tabSheets.toggle('more')}>
+        <Ionicons
+          name="ellipsis-horizontal-circle-outline"
+          size={24}
+          color={issue ? colors.danger : sheet === 'more' ? colors.primary : colors.textMuted}
+        />
         {otherOpen > 0 && (
           <View style={[styles.badge, { backgroundColor: colors.badge }]}>
             <Text style={styles.badgeText}>{otherOpen > 99 ? '99+' : otherOpen}</Text>
           </View>
         )}
       </Pressable>
-      <MenuSheet visible={menu} items={menu ? moreItems() : []} onClose={() => setMenu(false)} />
     </View>
   );
 }

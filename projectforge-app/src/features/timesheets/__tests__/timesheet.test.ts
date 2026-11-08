@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { ceil5, floor5, formatDuration, mondayOf, weekOfYear } from '@projectforge/shared/booking-time';
+import { ceil5, floor5, formatDuration, mondayOf, weekOfYear, weekStartOf } from '@projectforge/shared/booking-time';
 import {
   acceptancePending,
   bookingsOf,
@@ -63,6 +63,14 @@ describe('booking times', () => {
     expect(weekOfYear(new Date(2026, 0, 1))).toBe(1);
     expect(weekOfYear(new Date(2027, 0, 1))).toBe(53);
     expect(weekOfYear(new Date(2024, 11, 30))).toBe(1);
+  });
+
+  it('starts the week on the user\'s first day of the week', () => {
+    expect(weekStartOf(new Date(2026, 10, 1, 14, 30), 1)).toEqual(new Date(2026, 9, 26));
+    expect(weekStartOf(new Date(2026, 10, 1, 14, 30), 7)).toEqual(new Date(2026, 10, 1));
+    expect(weekStartOf(new Date(2026, 9, 31), 7)).toEqual(new Date(2026, 9, 25));
+    expect(weekStartOf(new Date(2026, 10, 1), 6)).toEqual(new Date(2026, 9, 31));
+    expect(weekStartOf(new Date(2026, 9, 30), 6)).toEqual(new Date(2026, 9, 24));
   });
 
   it('shows a duration as h:mm', () => {

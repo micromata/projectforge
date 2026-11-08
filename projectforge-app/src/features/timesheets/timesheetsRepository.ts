@@ -85,29 +85,29 @@ export class TimesheetsRepository {
     readonly userId: number,
   ) {}
 
-  private static weekName(monday: Date) {
-    return `timesheetWeek_${monday.getFullYear()}${two(monday.getMonth() + 1)}${two(monday.getDate())}`;
+  private static weekName(weekStart: Date) {
+    return `timesheetWeek_${weekStart.getFullYear()}${two(weekStart.getMonth() + 1)}${two(weekStart.getDate())}`;
   }
 
   /**
-   * The bookings of the week starting on [monday], with the tags. Without a connection the week as it was loaded last
+   * The bookings of the week starting on [weekStart], with the tags. Without a connection the week as it was loaded last
    * (marked as such), if there is one.
    */
-  async week(monday: Date): Promise<TimesheetWeek> {
-    const name = TimesheetsRepository.weekName(monday);
+  async week(weekStart: Date): Promise<TimesheetWeek> {
+    const name = TimesheetsRepository.weekName(weekStart);
     try {
       const json = await this.api.get<AppTimesheetList>(
         withQuery(`${TimesheetsRepository.PATH}/appList`, {
-          from: monday.getTime(),
-          to: addDays(monday, 7).getTime(),
+          from: weekStart.getTime(),
+          to: addDays(weekStart, 7).getTime(),
         }),
       );
       this.cache.write(name, json);
-      return weekOf(monday, json);
+      return weekOf(weekStart, json);
     } catch (e) {
       const cached = isOffline(e) ? await this.cache.read<AppTimesheetList>(name) : null;
       if (cached == null) throw e;
-      return weekOf(monday, cached, true);
+      return weekOf(weekStart, cached, true);
     }
   }
 

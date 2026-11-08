@@ -71,7 +71,6 @@ export default function RootLayout() {
             <Stack.Screen name="address/[id]" />
             <Stack.Screen name="booking" options={{ presentation: 'modal' }} />
             <Stack.Screen name="task-picker" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="notifications" options={{ ...modal, title: t('notification.center') }} />
             <Stack.Screen name="settings" options={{ ...modal, title: t('settings') }} />
             <Stack.Screen name="servers" options={{ ...modal, title: t('app.server.switch') }} />
             <Stack.Screen name="add-server" options={{ ...modal, title: t('app.server.add') }} />

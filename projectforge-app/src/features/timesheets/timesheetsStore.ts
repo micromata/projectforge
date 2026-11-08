@@ -32,7 +32,7 @@ import { TimesheetsRepository } from './timesheetsRepository';
 export type WeekState = { status: 'loading' } | { status: 'error'; error: unknown } | { status: 'data'; week: TimesheetWeek };
 
 export interface TimesheetsState {
-  /** By the time of the Monday. */
+  /** By the time of the first day of the week. */
   weeks: Record<number, WeekState>;
   timer: RunningTimer | null;
   /** What the user booked last, for the booking form (loaded again whenever it is opened). */
@@ -100,17 +100,17 @@ class TimesheetsStore {
   }
 
   /**
-   * Loads the week of [monday] if it isn't loaded yet ([force]: again, the shown one stays until the answer); done
+   * Loads the week of [weekStart] if it isn't loaded yet ([force]: again, the shown one stays until the answer); done
    * when the answer is there (or the failure).
    */
-  loadWeek(monday: Date, force = false): Promise<void> {
+  loadWeek(weekStart: Date, force = false): Promise<void> {
     const repo = this.repository();
     if (repo == null) return Promise.resolve();
-    const key = monday.getTime();
+    const key = weekStart.getTime();
     const current = this.state.weeks[key];
     if (current != null && !force) return Promise.resolve();
     if (current == null || current.status === 'error') this.setWeek(key, { status: 'loading' });
-    return repo.week(monday).then(
+    return repo.week(weekStart).then(
       (week) => {
         if (this.repo === repo) this.setWeek(key, { status: 'data', week });
       },

@@ -32,14 +32,15 @@ import {
   floor5,
   formatDuration,
   formatTime,
-  mondayOf,
   sameDay,
   weekOfYear,
+  weekStartOf,
 } from '@projectforge/shared/booking-time';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { errorText, t } from '../../core/i18n/translations';
+import { useFirstDayOfWeek } from '../../core/status/userStatus';
 import { useColors } from '../../core/ui/colors';
 import { MenuSheet } from '../../core/ui/MenuSheet';
 import { snackbar } from '../../core/ui/snackbar';
@@ -86,16 +87,17 @@ export function TimesheetsScreen({
   const [picker, setPicker] = useState<DateTimeRequest | null>(null);
   const pager = useRef<FlatList<number>>(null);
 
-  const monday = mondayOf(day);
-  const weekState = state.weeks[monday.getTime()];
+  const firstDay = useFirstDayOfWeek();
+  const weekStart = weekStartOf(day, firstDay);
+  const weekState = state.weeks[weekStart.getTime()];
   const week = weekState?.status === 'data' ? weekState.week : null;
 
-  // The week of the day and the ones around it (swiping across Sunday or Monday shows them at once).
+  // The week of the day and the ones around it (swiping the strip or across the first day of the week shows them).
   useEffect(() => {
-    timesheets.loadWeek(monday);
-    timesheets.loadWeek(addDays(monday, -7));
-    timesheets.loadWeek(addDays(monday, 7));
-  }, [monday.getTime()]); // eslint-disable-line react-hooks/exhaustive-deps
+    timesheets.loadWeek(weekStart);
+    timesheets.loadWeek(addDays(weekStart, -7));
+    timesheets.loadWeek(addDays(weekStart, 7));
+  }, [weekStart.getTime()]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const select = useCallback(
     (target: Date) => {
@@ -204,7 +206,7 @@ export function TimesheetsScreen({
     delete: (sheet) => void remove(sheet),
     menu: setMenuOf,
     refresh: () => timesheets.reloadWeeks(),
-    retry: () => timesheets.loadWeek(monday, true),
+    retry: () => timesheets.loadWeek(weekStart, true),
   };
 
   const main = (
@@ -224,7 +226,7 @@ export function TimesheetsScreen({
         >
           <View style={styles.titleLine}>
             <Text style={[styles.title, { color: colors.text }]}>
-              {t('app.timesheet.weekTitle', weekOfYear(day), monthYear(day))}
+              {t('app.timesheet.weekTitle', weekOfYear(addDays(weekStart, 3)), monthYear(day))}
             </Text>
             <Ionicons name="calendar-outline" size={16} color={colors.textMuted} />
           </View>
@@ -241,7 +243,14 @@ export function TimesheetsScreen({
         )}
       </View>
       <DateTimeSheet request={picker} onClose={() => setPicker(null)} />
-      <WeekStrip week={week} monday={monday} day={day} today={today} onSelect={select} />
+      <WeekStrip
+        weeks={state.weeks}
+        firstDay={firstDay}
+        day={day}
+        today={today}
+        rangeDays={RANGE_DAYS}
+        onSelect={select}
+      />
       {state.timer && (
         <TimerBanner timer={state.timer} onStop={stopTimer} onDiscard={() => timesheets.stopTimer()} />
       )}
@@ -270,7 +279,7 @@ export function TimesheetsScreen({
                 <View style={{ width: pageWidth }}>
                   <DayList
                     day={pageDay}
-                    week={state.weeks[mondayOf(pageDay).getTime()]}
+                    week={state.weeks[weekStartOf(pageDay, firstDay).getTime()]}
                     hidden={hidden}
                     selectedId={wide ? panel?.start.id : undefined}
                     actions={actions}

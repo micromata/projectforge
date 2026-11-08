@@ -4,6 +4,50 @@ ProjectForge is an open source, web-based solution for project management. It co
 Gantt charts, financial administration, controlling and work breakdown structures, and works together with
 issue management systems such as Jira. Besides the web application there is a mobile app and a REST API.
 
+== Screenshots
+
+Click a picture to see it in full size.
+
+[cols="3*^a", frame=none, grid=none]
+|===
+|image:site/uploads/screenshots/2026-OrderBook.png[Order book,260,link=site/uploads/screenshots/2026-OrderBook.png] +
+Order book
+|image:site/uploads/screenshots/2026-TaskTree.png[Structure tree,260,link=site/uploads/screenshots/2026-TaskTree.png] +
+Structure tree with consumption bars
+|image:site/uploads/screenshots/2026-Timesheets.png[Time sheets,260,link=site/uploads/screenshots/2026-Timesheets.png] +
+Time sheets
+|image:site/uploads/screenshots/2026-Calendar.png[Team calendar,260,link=site/uploads/screenshots/2026-Calendar.png] +
+Team calendar
+|image:site/uploads/screenshots/2026-ChatRoom.png[Chat,260,link=site/uploads/screenshots/2026-ChatRoom.png] +
+Chat
+|image:site/uploads/screenshots/2026-Dark.png[Dark theme,260,link=site/uploads/screenshots/2026-Dark.png] +
+Dark theme
+|===
+
+=== Mobile app for iPhone and iPad
+
+The ProjectForge app (iOS) will be available in the Apple App Store soon.
+
+[cols="4*^a", frame=none, grid=none]
+|===
+|image:site/uploads/screenshots/2026-App-iPhone-Timesheets.png[Time sheets,120,link=site/uploads/screenshots/2026-App-iPhone-Timesheets.png] +
+Time sheets
+|image:site/uploads/screenshots/2026-App-iPhone-StructureTree.png[Structure tree,120,link=site/uploads/screenshots/2026-App-iPhone-StructureTree.png] +
+Structure tree
+|image:site/uploads/screenshots/2026-App-iPhone-Calendar.png[Calendar,120,link=site/uploads/screenshots/2026-App-iPhone-Calendar.png] +
+Calendar
+|image:site/uploads/screenshots/2026-App-iPhone-Chat.png[Chat,120,link=site/uploads/screenshots/2026-App-iPhone-Chat.png] +
+Chat
+|===
+
+[cols="2*^a", frame=none, grid=none]
+|===
+|image:site/uploads/screenshots/2026-App-iPad-Calendar.png[Calendar on the iPad,260,link=site/uploads/screenshots/2026-App-iPad-Calendar.png] +
+Calendar on the iPad
+|image:site/uploads/screenshots/2026-App-iPad-Chat.png[Chat on the iPad,260,link=site/uploads/screenshots/2026-App-iPad-Chat.png] +
+Chat on the iPad
+|===
+
 == Documentation
 
 * https://projectforge.org/[projectforge.org]: the complete documentation, including the
@@ -99,8 +143,8 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 |Stop|`podman stop projectforge-postgres`
 |Start|`podman start projectforge-postgres`
 |Import dump (optional)|`podman exec -i projectforge-postgres psql -U projectforge -d projectforge < ~/ProjectForgeBackup/pf.sql` +
-Files dump: `podman exec -i projectforge-postgres pg_restore -U projectforge -d projectforge --no-owner < ~/ProjectForgeBackup/projectforge_files_2026-10-20_02-00.dump` +
-Schema `pf_files` (attachments), custom format, so `pg_restore` instead of `psql`. Import it after the main dump and
+Files dump (`projectforge_files.dump`): `podman exec -i projectforge-postgres pg_restore -U projectforge -d projectforge --no-owner < ~/ProjectForgeBackup/projectforge_files.dump` +
+The dump contains the schema `pf_files` (attachments) in custom format, so `pg_restore` instead of `psql`. Import it after the main dump and
 before starting ProjectForge. If the schema already exists, drop it first (`DROP SCHEMA pf_files CASCADE;`) or add
 `--clean --if-exists`. Afterwards run _Administration_ -> _System_ -> _Check system integrity_. See the
 https://projectforge.org/docs/adminguide/#restoring_a_backup[admin guide].
