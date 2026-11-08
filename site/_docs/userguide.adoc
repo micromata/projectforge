@@ -1477,8 +1477,9 @@ to take for each of them. Only names and versions are read, nothing is executed,
 A component often has several of them: the lockfile of the frontend, the libraries of the backend, the packages of
 its images. These are best collected by a *script in the project* (e.g. `collect-libraries.sh`), which packs them
 into one zip; the zip is uploaded as it is. Run it in the build pipeline or before a release, so the lists always
-belong to the delivered version and nobody collects them by hand. An example, to be adapted to the paths of the
-project:
+belong to the delivered version and nobody collects them by hand. ProjectForge's own one is `bin/collect-libraries.sh` in its repository: one zip
+per component (backend, frontend, app, each Docker image), CycloneDX wherever possible. An example, to be adapted to
+the paths of the project:
 
 [source,bash]
 ----
