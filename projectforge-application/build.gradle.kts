@@ -286,6 +286,26 @@ tasks.named<BootRun>("bootRun") {
     providers.gradleProperty("pfBootRunJvmArgs").orNull?.let { args ->
         jvmArgs(args.lines().filter { it.isNotBlank() })
     }
+    // pfBootRunProjectClasses: the jars of the other modules (build/libs) are replaced by their class and resource
+    // dirs, so classes compiled after the start (new ones, or not loaded yet) come from there and not from the old
+    // jar (hot code replacement, bin/pfDev.sh reload). Replaced, not added: classes found twice would be scanned twice.
+    if (providers.gradleProperty("pfBootRunProjectClasses").isPresent) {
+        val runtimeClasspath = classpath
+        val root = rootDir
+        classpath = files(provider {
+            runtimeClasspath.files.flatMap { file ->
+                val module = file.parentFile?.parentFile?.parentFile
+                if (file.extension != "jar" || file.parentFile?.name != "libs" || module?.startsWith(root) != true ||
+                    file.name.contains("-test-fixtures")
+                ) {
+                    return@flatMap listOf(file)
+                }
+                val dirs = listOf("classes/kotlin/main", "classes/java/main", "resources/main")
+                    .map { module.resolve("build/$it") }.filter { it.isDirectory }
+                if (dirs.any { it.path.contains("/classes/") }) dirs else listOf(file)
+            }.distinct()
+        })
+    }
 }
 
 tasks.named<BootJar>("bootJar") {
