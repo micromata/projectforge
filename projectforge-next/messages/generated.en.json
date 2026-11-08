@@ -995,6 +995,7 @@
   "cancel": "Cancel",
   "changelog": {
     "allChanges": "All changes",
+    "app": "App",
     "collapseAll": "Collapse all",
     "compare": "Changes",
     "expandAll": "Expand all",

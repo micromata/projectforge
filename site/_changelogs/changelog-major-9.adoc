@@ -42,14 +42,14 @@ __2026-11-08, tag https://github.com/micromata/projectforge/tree/9.2.7-RELEASE[9
 ++++
 - CVE-Radar: import of the vulnerabilities of the European Union Vulnerability Database (EUVD) as a supplement to the NVD. It adds the EUVD id, the EPSS and the day of exploitation, and brings vulnerabilities the NVD doesn't have yet, also ones without a CVE id. The EUVD names products only, so these match as possible. Off by default.
 - CVE-Radar: the list and the file of a vulnerability show where its data comes from (NVD, OSV, EUVD) as badges, and the list has a pinned filter to select by source.
-- App: the system message of the administrators (e.g. maintenance work) is shown above the pages, as in the web version.
+- [changelog-app]##App## The system message of the administrators (e.g. maintenance work) is shown above the pages, as in the web version.
 - Address campaign values: new filter "Edited by" to list the entries a chosen user has created or changed.
-- App: the web tabs have a browser menu with back, forward, reload, find in the page, share link, open in the browser and restart; pull to refresh now also works on the pages with the menu, and a lost connection shows an error with a retry instead of an empty page.
+- [changelog-app]##App## The web tabs have a browser menu with back, forward, reload, find in the page, share link, open in the browser and restart; pull to refresh now also works on the pages with the menu, and a lost connection shows an error with a retry instead of an empty page.
 - New column "Edited by" with a pill for everybody who created or changed an entry, in the lists of address campaign values, outgoing and incoming invoices, orders, leave corrections, liquidity entries, incoming and outgoing mail, contracts, the visitor book, notification rules, customers and projects.
 - CVE-Radar, notification rules: new rule type "Unanswered team checks of a case". The rule names a case and reminds the members who haven't answered one of its team checks asking every member yet, at most once a day, by schedule or triggered by hand. The reminder is done as soon as they answered.
-- App: all servers the app is logged in at send pushes, not only the one shown. The push names its server, a tap on one of another server offers to switch there and opens it; their open notifications are shown at the menu, in the server list and in the notification center, the icon counts all of them. Older servers push only while shown, as before.
-- App: a contact of the address book can be added to the own contacts of the device or shared as vCard (messages, mail, messengers), also without a connection to the server.
-- App: the ProjectForge tab (globe) opens with a menu that is easy to reach on a phone: tabs for the favorites, the pages opened last, the main menu with expandable areas and the user menu with the appearance (light, dark, system; the tab chosen last opens again), and a search across all entries (or in all data). Tapping the globe again closes the menu and shows the page as it was; tapped once more, it opens the menu again.
+- [changelog-app]##App## All servers the app is logged in at send pushes, not only the one shown. The push names its server, a tap on one of another server offers to switch there and opens it; their open notifications are shown at the menu, in the server list and in the notification center, the icon counts all of them. Older servers push only while shown, as before.
+- [changelog-app]##App## A contact of the address book can be added to the own contacts of the device or shared as vCard (messages, mail, messengers), also without a connection to the server.
+- [changelog-app]##App## The ProjectForge tab (globe) opens with a menu that is easy to reach on a phone: tabs for the favorites, the pages opened last, the main menu with expandable areas and the user menu with the appearance (light, dark, system; the tab chosen last opens again), and a search across all entries (or in all data). Tapping the globe again closes the menu and shows the page as it was; tapped once more, it opens the menu again.
 
 ++++
 {% include tag.html tag="improved" %}
@@ -59,7 +59,7 @@ __2026-11-08, tag https://github.com/micromata/projectforge/tree/9.2.7-RELEASE[9
 - Chat: on touch devices and in the app, a long press on a reaction shows who reacted.
 - Chat: the search lists all matching people, each with buttons to start a direct message or an encrypted chat.
 - E-invoice: the customer's invoice recipient email (BT-49) and the email of its contact person (BT-58) are separate fields now, on invoice and account. The seller's contact email (BT-43) is prefilled from the configuration and editable on the invoice.
-- App: below the QR code of a business card a small list shows every field the card contains, including the photo, also without a connection to the server.
+- [changelog-app]##App## Below the QR code of a business card a small list shows every field the card contains, including the photo, also without a connection to the server.
 - Digital business card: below the QR code a small list shows every field the card contains, including the photo.
 - The QR code of a business card is rendered at a higher resolution, so it stays sharp when shown large (e.g. in the app).
 
@@ -69,9 +69,9 @@ __2026-11-08, tag https://github.com/micromata/projectforge/tree/9.2.7-RELEASE[9
 - Digital business cards: the photo is linked by a public url with a random token (no login, not guessable), also without a gateway; the url stays the same when the image is replaced or deleted, and can be revoked with "Renew photo link" on the card. The base url can be set with `+projectforge.businessCard.photoBaseUrl+`. Update the gateway together with the server; photo links of earlier QR codes stop working.
 - Creating an e-invoice (XRechnung, ZUGFeRD) now runs the e-invoice checker over the generated file and shows the result (valid, warnings or errors) in a dialog.
 - Notification rules: the rule types come from the modules and plugins that provide them. The rule types of a deactivated plugin (e.g. the CVE-Radar) aren't offered any more, and its rules wait until the plugin is active again.
-- App: the week strip of the time sheets follows the finger when swiped and snaps to a whole week; the week starts on the first day of the week set in "My account".
+- [changelog-app]##App## The week strip of the time sheets follows the finger when swiped and snaps to a whole week; the week starts on the first day of the week set in "My account".
 - The notifications of chat messages show the beginning of the message (in rooms with its author) instead of repeating their title, in the app and in the notification center of the web pages. Only for the recipient while they may read the conversation; mails and pushes keep their generic text.
-- App: the notifications (bell) and the "more" menu slide up over the tabs like the menu of the pages, the tab bar stays visible below them; pulling them down, a tap above them or their button again closes them.
+- [changelog-app]##App## The notifications (bell) and the "more" menu slide up over the tabs like the menu of the pages, the tab bar stays visible below them; pulling them down, a tap above them or their button again closes them.
 
 ++++
 {% include tag.html tag="fixed" %}
@@ -80,7 +80,7 @@ __2026-11-08, tag https://github.com/micromata/projectforge/tree/9.2.7-RELEASE[9
 - Calendar: the start time of an entry can now be changed by dragging its top edge, not only the end time.
 - Notification mails (e.g. about new chat messages) now contain a link to the chat or the concerned entry.
 - Notification rules: the menu entries of plugins (e.g. the CVE-Radar) can be chosen as menu counter and as link of the notifications.
-- App: the badges of the chat and the notifications follow at once: a push sets the bell's count when it arrives, and a chat read or a notification done in the pages removes them right away, no longer only with the next update a minute later.
+- [changelog-app]##App## The badges of the chat and the notifications follow at once: a push sets the bell's count when it arrives, and a chat read or a notification done in the pages removes them right away, no longer only with the next update a minute later.
 - Calendar: a time sheet opened from a break keeps its end time when the start time is changed.
 ====
 
@@ -121,7 +121,7 @@ __2026-11-03, tag https://github.com/micromata/projectforge/tree/9.2.5-RELEASE[9
 {% include tag.html tag="improved" %}
 ++++
 - Address images: larger preview images, so they look sharp in the app's address list (existing previews are renewed when the images are shrunk again in the administration).
-- App: the chat tab shows no menu of the web version; tapping the chat button again leads back to the chat start page.
+- [changelog-app]##App## The chat tab shows no menu of the web version; tapping the chat button again leads back to the chat start page.
 
 ++++
 {% include tag.html tag="fixed" %}
@@ -161,14 +161,14 @@ __2026-11-02, tag https://github.com/micromata/projectforge/tree/9.2.4-RELEASE[9
 ++++
 {% include tag.html tag="added" %}
 ++++
-- App: a warning if the app is too old for the server or the server too old for the app; "My account" marks outdated apps.
-- App: the logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too.
+- [changelog-app]##App## A warning if the app is too old for the server or the server too old for the app; "My account" marks outdated apps.
+- [changelog-app]##App## The logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too.
 - E-invoice: new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account (department, cost center); the labels of the invoice and account forms name the e-invoice term (BT-x) the field is sent in. The invoice template gets the variables Bestellnummer and Kostenstelle (with isBestellnummer/isKostenstelle), the department is part of the address.
 
 ++++
 {% include tag.html tag="improved" %}
 ++++
-- App time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are chosen in a scrollable selection box with number and text, the time sheet tab is no longer marked as under construction, and the templates open in a list instead of a row of chips.
+- [changelog-app]##App## Time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are chosen in a scrollable selection box with number and text, the time sheet tab is no longer marked as under construction, and the templates open in a list instead of a row of chips.
 - Order mails: clearer layout with the buttons at the top, and a button to the order notification settings.
 
 ++++
@@ -179,7 +179,7 @@ __2026-11-02, tag https://github.com/micromata/projectforge/tree/9.2.4-RELEASE[9
 ++++
 {% include tag.html tag="fixed" %}
 ++++
-- App: connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link.
+- [changelog-app]##App## Connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link.
 ====
 
 [discrete#release-9-2-3.changelog-release]
@@ -244,23 +244,23 @@ __2026-11-02, tag https://github.com/micromata/projectforge/tree/9.2.2-RELEASE[9
 {% include tag.html tag="added" %}
 ++++
 - **Mobile app: notifications and push (iPhone)**
-  * The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.
-  * A new notification wakes the app with a push message (APNs, `+projectforge.push.apns.*+`), without its content in the message. Without a configured key nothing is sent and the app polls as before.
+  * [changelog-app]##App## The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.
+  * [changelog-app]##App## A new notification wakes the app with a push message (APNs, `+projectforge.push.apns.*+`), without its content in the message. Without a configured key nothing is sent and the app polls as before.
 - **Mobile app (in preparation): time sheets**
-  * The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.
-  * A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.
-  * The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link.
+  * [changelog-app]##App## The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.
+  * [changelog-app]##App## A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.
+  * [changelog-app]##App## The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link.
 - **CVE-Radar: notification without details and about outdated lists of libraries**
   * A new notification rule "New findings of the CVE radar" starts with a text that names no details ("there may be updates") and a link to the list; the new variable cvrListLink always links to the list.
   * New rule type "Outdated lists of libraries of the CVE radar": the responsible team of a component whose list of libraries was applied more than a number of days ago (30 by default) is told, at most once a week, and the notification is resolved by an update of the list. The day of the last list is now recorded per component.
 - **Mobile app (in preparation)**
-  * Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`+projectforge.app.proxyCookies+`); when it expires, the app logs in again in the browser.
-  * The login of the app offers the recently used servers, and the logout works even if the server can't be reached.
-  * Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.
-  * The app gives more room to the pages: no title bar above the web pages and the chat, a slim navigation bar with icons only, and in landscape a narrow navigation at the side.
-  * In the app, the menu entries "Chat" and "My business cards" and the bell of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.
-  * The app has an address book like the Contacts app: a search field, sections with an index at the side, and tapping a number offers a call or a message, a mail address opens the mail app. All addresses are stored on the device (also offline) and updated silently; editing opens the form of the web pages, and the address list of the web pages switches to the app's tab.
-  * The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading.
+  * [changelog-app]##App## Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`+projectforge.app.proxyCookies+`); when it expires, the app logs in again in the browser.
+  * [changelog-app]##App## The login of the app offers the recently used servers, and the logout works even if the server can't be reached.
+  * [changelog-app]##App## Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.
+  * [changelog-app]##App## The app gives more room to the pages: no title bar above the web pages and the chat, a slim navigation bar with icons only, and in landscape a narrow navigation at the side.
+  * [changelog-app]##App## In the app, the menu entries "Chat" and "My business cards" and the bell of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.
+  * [changelog-app]##App## The app has an address book like the Contacts app: a search field, sections with an index at the side, and tapping a number offers a call or a message, a mail address opens the mail app. All addresses are stored on the device (also offline) and updated silently; editing opens the form of the web pages, and the address list of the web pages switches to the app's tab.
+  * [changelog-app]##App## The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading.
 
 ++++
 {% include tag.html tag="changed" %}
@@ -324,9 +324,9 @@ __2026-11-01, tag https://github.com/micromata/projectforge/tree/9.2.1-RELEASE[9
   * The lockfile of pnpm (pnpm-lock.yaml, versions 5, 6 and 9) is read, without the development dependencies.
   * The upload dialog shows how to list the packages of a container image (e.g. eclipse-temurin: dpkg-query, apk, rpm or an SBOM from syft), where native libraries such as brotli, zlib or OpenSSL show up, and links to the chapter of the user guide.
 - **Mobile app (in preparation)**
-  * The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.
-  * All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.
-  * My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically.
+  * [changelog-app]##App## The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.
+  * [changelog-app]##App## All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.
+  * [changelog-app]##App## My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically.
 
 ++++
 {% include tag.html tag="changed" %}

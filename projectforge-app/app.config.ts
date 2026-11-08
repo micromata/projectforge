@@ -55,7 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   runtimeVersion: { policy: 'fingerprint' },
   ios: {
     bundleIdentifier: BUNDLE_ID,
-    buildNumber: '6',
+    buildNumber: '7',
     appleTeamId: 'E4Q65AC7LP',
     supportsTablet: true,
     infoPlist: {
@@ -67,7 +67,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: BUNDLE_ID,
-    versionCode: 6,
+    versionCode: 7,
     allowBackup: false,
     predictiveBackGestureEnabled: false,
   },

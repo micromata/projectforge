@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import DOMPurify from "dompurify";
 import { looksLikeMarkdown, markdownToHtml } from "@/lib/markdown-to-html";
 import { cn } from "@/lib/utils";
+import { linkifyHtml } from "./linkify-html";
 import { useCodeBlockCopyButtons } from "./use-code-block-copy-buttons";
 
 /** The markup [RichTextEditor] produces; everything else is removed. */
@@ -180,7 +181,8 @@ export function richTextToPlainText(text: string): string {
  * A rich text of [RichTextEditor] (HTML from the database), rendered sanitized: only the markup the
  * editor writes survives (paragraphs, headings, emphasis, lists, tables, links, text colour), no
  * scripts, no event handlers. A text written before it was rich text (plain text or markdown) is
- * converted first, see [toRichTextHtml]. With [code], every code block gets a copy button.
+ * converted first, see [toRichTextHtml]. Urls become links ([linkifyHtml]). With [code], every code block gets a
+ * copy button.
  */
 export function RichText({
   html,
@@ -196,7 +198,7 @@ export function RichText({
   decorate?: (sanitized: string) => string;
 }) {
   const sanitized = useMemo(() => {
-    const clean = sanitizeRichText(toRichTextHtml(html), { code });
+    const clean = linkifyHtml(sanitizeRichText(toRichTextHtml(html), { code }));
     return decorate ? decorate(clean) : clean;
   }, [html, code, decorate]);
   const ref = useRef<HTMLDivElement>(null);

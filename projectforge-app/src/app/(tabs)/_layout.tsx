@@ -30,6 +30,7 @@ import { authController, useAuth } from '../../core/auth/authController';
 import { Session } from '../../core/auth/session';
 import { compatibilityIssue } from '../../core/compat/compatibility';
 import { appVersion } from '../../core/platform';
+import { useAppSettings } from '../../core/settings/appSettings';
 import { expoPush } from '../../core/push/expoPush';
 import { PushService, pushTarget } from '../../core/push/pushService';
 import { otherServers, useOtherServers } from '../../core/status/otherServers';
@@ -41,7 +42,9 @@ import { CompatibilityBanner } from '../../features/home/CompatibilityBanner';
 import { MoreMenu } from '../../features/home/MoreMenu';
 import { askToSwitch } from '../../features/home/switchServer';
 import { TabBar } from '../../features/home/TabBar';
+import { ServerSwitchSheet } from '../../features/home/ServerSwitchSheet';
 import { NotificationsSheet } from '../../features/notifications/NotificationsSheet';
+import { SettingsSheet } from '../../features/settings/SettingsSheet';
 import { timesheets } from '../../features/timesheets/timesheetsStore';
 import { webTabs } from '../../features/web/webTabs';
 
@@ -62,9 +65,11 @@ export default function TabsLayout() {
   const issueKey = issue && `${auth.session?.serverUrl}#${issue.kind}#${issue.minVersion}`;
   const [confirmedIssue, setConfirmedIssue] = useState<string | null>(null);
   const router = useRouter();
-  // In landscape the tabs are a rail at the side, as in the Flutter app: the height is what the pages lack there.
+  // In landscape the tabs are a rail at the side, as in the Flutter app: the height is what the pages lack there. Left
+  // or right as chosen in the settings.
   const { width, height } = useWindowDimensions();
-  const rail = width > height;
+  const { railSide } = useAppSettings();
+  const rail = width > height ? railSide : null;
   // The sheets of the tab bar leave the bar free.
   const [bar, setBar] = useState({ width: 0, height: 0 });
 
@@ -143,7 +148,7 @@ export default function TabsLayout() {
           screenOptions={{
             headerShown: false,
             sceneStyle: { backgroundColor: colors.background },
-            tabBarPosition: rail ? 'left' : 'bottom',
+            tabBarPosition: rail ?? 'bottom',
           }}
           tabBar={(props) => <TabBar {...props} issue={issue} rail={rail} onSize={setBar} />}
         >
@@ -155,7 +160,7 @@ export default function TabsLayout() {
         </Tabs>
         {/* Outside the tabs of the login: the notifications stay open after switching to another one. */}
         <View
-          style={[StyleSheet.absoluteFill, rail ? { left: bar.width } : { bottom: bar.height }]}
+          style={[StyleSheet.absoluteFill, rail ? { [rail]: bar.width } : { bottom: bar.height }]}
           pointerEvents="box-none"
         >
           <NotificationsSheet
@@ -167,6 +172,8 @@ export default function TabsLayout() {
             onOtherServer={(session) => void askToSwitch(session, timesheets.getState().timer != null)}
           />
           <MoreMenu issue={issue} />
+          <ServerSwitchSheet timerRunning={() => timesheets.getState().timer != null} />
+          <SettingsSheet />
         </View>
       </View>
     </SafeAreaView>

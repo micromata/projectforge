@@ -4,13 +4,14 @@ import { useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { sanitizeChatHtml } from "@/components/shared/rich-text";
 import { cn } from "@/lib/utils";
+import { linkifyHtml } from "@/components/shared/linkify-html";
 import { useCodeBlockCopyButtons } from "@/components/shared/use-code-block-copy-buttons";
 import { CUSTOM_EMOJIS } from "@/components/shared/emoji/custom-emoji";
 import { decorateEmoji } from "@/components/shared/emoji/decorate-emoji";
 
 /**
- * The content of a chat message, sanitized ([sanitizeChatHtml]), with the mentions highlighted and a copy button
- * on every code block.
+ * The content of a chat message, sanitized ([sanitizeChatHtml]), its urls as links ([linkifyHtml]), with the mentions
+ * highlighted and a copy button on every code block.
  */
 export function ChatHtml({
   html,
@@ -22,7 +23,9 @@ export function ChatHtml({
   const t = useTranslations();
   const sanitized = useMemo(
     () =>
-      decorateEmoji(sanitizeChatHtml(html), (code) => t(CUSTOM_EMOJIS[code])),
+      decorateEmoji(linkifyHtml(sanitizeChatHtml(html)), (code) =>
+        t(CUSTOM_EMOJIS[code])
+      ),
     [html, t]
   );
   const ref = useRef<HTMLDivElement>(null);

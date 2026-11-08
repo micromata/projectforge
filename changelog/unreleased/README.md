@@ -27,6 +27,17 @@ A group (one level of sub items):
 ```
 
 `type` is one of the section types of `changelog.json` (`added`, `improved`, `changed`, `fixed`, …).
+
+A change of the mobile app starts with the marker `{app} ` (in both languages), shown as a badge "App"
+on the changelog pages; don't write "App: …" (the generator refuses it):
+
+```json
+{
+  "type": "added",
+  "en": "{app} The changelog opens from the \"more\" menu.",
+  "de": "{app} Der Changelog öffnet sich über das „Mehr“-Menü."
+}
+```
 ## The levels of a release: `release.json`
 
 On the website and on `/next/changelog` a release shows three levels: the `summary` (keywords and

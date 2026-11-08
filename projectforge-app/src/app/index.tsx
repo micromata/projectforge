@@ -24,12 +24,17 @@
 import { Redirect } from 'expo-router';
 
 import { useAuth } from '../core/auth/authController';
+import { appSettings } from '../core/settings/appSettings';
+import { TIMESHEETS_TAB_ENABLED } from '../core/web/nativePage';
 
 /**
- * The start: the tabs when logged in, otherwise the login. Explicit, because with the tabs protected the router would
- * otherwise fall back to the first route allowed, in the order of the files.
+ * The start: when logged in the tab used last on this device (the business cards at first), otherwise the login.
+ * Explicit, because with the tabs protected the router would otherwise fall back to the first route allowed, in the
+ * order of the files. A chat switched off on the server leaves for the business cards (TabBar).
  */
 export default function Start() {
   const auth = useAuth();
-  return <Redirect href={auth.status === 'loggedIn' ? '/cards' : '/login'} />;
+  const { lastTab } = appSettings.get();
+  const tab = lastTab === 'timesheets' && !TIMESHEETS_TAB_ENABLED ? 'cards' : lastTab;
+  return <Redirect href={auth.status === 'loggedIn' ? `/${tab}` : '/login'} />;
 }

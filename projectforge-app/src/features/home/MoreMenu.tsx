@@ -47,7 +47,8 @@ const webTabOf = (pathname: string): WebTab | undefined =>
 
 /**
  * The "more" menu of the tab bar, a sheet moved up over the tabs (the tab bar stays below it): on a web tab the browser
- * functions first, then the account, the settings and the logout (as in the Flutter app). It counts the open
+ * functions first, then the account, the version with the changelog, the server switch, the settings (both sheets of
+ * their own, the tab bar stays below them too) and the logout (as in the Flutter app). It counts the open
  * notifications of the other logins (their servers push too) at the server switch.
  */
 export function MoreMenu({ issue }: { issue: CompatibilityIssue | null }) {
@@ -82,7 +83,17 @@ export function MoreMenu({ issue }: { issue: CompatibilityIssue | null }) {
   const items = (): MenuItem[] => [
     ...(webTab ? browserItems() : []),
     ...accountItems(),
-    { key: 'version', label: t('app.version', appVersion), info: true },
+    {
+      // The changelog page of the server, with the version below, as in the status bar of the web version.
+      key: 'changelog',
+      label: t('changelog.title'),
+      detail: t('app.version', appVersion),
+      icon: 'document-text-outline',
+      onPress: () => {
+        webTabs.open('pages', '/next/changelog');
+        router.navigate('/pages');
+      },
+    },
     ...(issue ? [{ key: 'compatibility', label: compatibilityText(issue), icon: 'warning-outline' as IconName, info: true }] : []),
     {
       key: 'servers',
@@ -91,9 +102,9 @@ export function MoreMenu({ issue }: { issue: CompatibilityIssue | null }) {
       detail: otherOpen > 0 ? t('app.server.switch.notifications', otherOpen) : undefined,
       badge: otherOpen,
       icon: 'swap-horizontal',
-      onPress: () => router.push('/servers'),
+      onPress: () => tabSheets.open('servers'),
     },
-    { key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: () => router.push('/settings') },
+    { key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: () => tabSheets.open('settings') },
     {
       key: 'logout',
       label: t('menu.logout'),

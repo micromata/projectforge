@@ -29,6 +29,8 @@ import {
   floor5,
   minutesBetween,
   sameDay,
+  TARGET_MINUTES_PER_DAY,
+  two,
 } from '@projectforge/shared/booking-time';
 import type {
   AppTimesheetList,
@@ -161,6 +163,8 @@ export interface TimesheetWeek {
   weekStart: Date;
   sheets: Timesheet[];
   tags: string[];
+  /** The daily targets in minutes by day (`yyyy-MM-dd`), empty from an older server (see targetOf). */
+  targetMinutes: Record<string, number>;
   /** The server wasn't reachable: the week as it was loaded last. */
   fromCache: boolean;
 }
@@ -170,8 +174,18 @@ export function weekOf(weekStart: Date, json: AppTimesheetList, fromCache = fals
     weekStart,
     sheets: (json.timesheets ?? []).map(timesheetOf),
     tags: (json.tags ?? []).map(String),
+    targetMinutes: json.targetMinutes ?? {},
     fromCache,
   };
+}
+
+/**
+ * The minutes to book on [day]: a fifth of the weekly working hours valid on it (sent by the server), 8 hours from an
+ * older server or a week cached before.
+ */
+export function targetOf(week: TimesheetWeek | null | undefined, day: Date): number {
+  const key = `${day.getFullYear()}-${two(day.getMonth() + 1)}-${two(day.getDate())}`;
+  return week?.targetMinutes[key] ?? TARGET_MINUTES_PER_DAY;
 }
 
 export function bookingsOf(week: TimesheetWeek, day: Date): Timesheet[] {
