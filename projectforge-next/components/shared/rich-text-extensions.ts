@@ -5,6 +5,7 @@ import { TableKit } from "@tiptap/extension-table";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import { Placeholder } from "@tiptap/extensions";
 import { EmojiShortcodes } from "@/components/shared/emoji/emoji-shortcodes";
+import { LinkTextSync } from "@/components/shared/link-text-sync";
 import { sanitizeRichText } from "@/components/shared/rich-text";
 import { looksLikeMarkdown, markdownToHtml } from "@/lib/markdown-to-html";
 
@@ -64,6 +65,7 @@ export function richTextExtensions(
       horizontalRule: false,
       link: { openOnClick: false, autolink: true },
     }),
+    LinkTextSync, // An edited url leads where it says.
     // No column resizing: a stored width wouldn't survive the sanitizing anyway (only colours do).
     ...(features.tables
       ? [TableKit.configure({ table: { resizable: false } })]
