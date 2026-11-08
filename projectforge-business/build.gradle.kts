@@ -75,6 +75,7 @@ dependencies {
     api(libs.org.hsqldb.hsqldb)
     api(libs.org.mnode.ical4j.ical4j)
     api(libs.com.googlecode.ez.vcard)
+    api(libs.org.freemarker) // Raises ez-vcard's freemarker 2.3.34 (CVE-2026-84939).
     api(libs.com.thoughtworks.xstream)
     api(libs.bundles.org.apache.groovy)
     api(libs.org.jfree.jfreechart)
@@ -105,6 +106,8 @@ dependencies {
     // Brings com.lowagie:itext:2.1.7, which also serves TimesheetListPdfExport. Don't replace it by OpenPDF:
     // it shares the com.lowagie.text namespace but isn't binary compatible (e.g. PdfPTable.addCell returns
     // PdfPCell instead of void), so xdocreport's Word-to-PDF conversion fails with a NoSuchMethodError.
+    // CVE-2017-9096 (XXE, no fixed com.lowagie version) isn't reachable: ProjectForge and xdocreport only use the
+    // writer api (PdfWriter, PdfPTable, fonts), never the parsers of the CVE (PdfReader/XfaForm, XmlParser, rtf, html).
     api(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
     /*api(libs.com.webauthn4j.spring.security.core) {
         exclude("org.springframework")
