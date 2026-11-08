@@ -28,6 +28,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CompatibilityIssue } from '../../core/compat/compatibility';
+import { RailSide } from '../../core/settings/appSettings';
 import { t } from '../../core/i18n/translations';
 import { useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
@@ -63,18 +64,18 @@ export function compatibilityText(issue: CompatibilityIssue): string {
  * the server switch of the menu); the button again or a tab closes it. The "more" button counts the open notifications of the other logins (their servers push too).
  * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms. The
  * pages tab opens with its menu, tapped again it closes or opens it.
- * [rail]: in landscape a column at the left side (as the Flutter app's navigation rail), the bell and the menu at its
- * bottom. [onSize]: the size of the bar, the sheets leave it free.
+ * [rail]: in landscape a column at this side (as the Flutter app's navigation rail; left or right as chosen in the
+ * settings), the bell and the menu at its bottom. [onSize]: the size of the bar, the sheets leave it free.
  */
 export function TabBar({
   state,
   navigateToTab,
   issue,
-  rail = false,
+  rail = null,
   onSize,
 }: TabBarProps & {
   issue: CompatibilityIssue | null;
-  rail?: boolean;
+  rail?: RailSide | null;
   onSize?: (size: { width: number; height: number }) => void;
 }) {
   const colors = useColors();
@@ -105,7 +106,7 @@ export function TabBar({
   return (
     <View
       style={[
-        rail ? styles.rail : styles.bar,
+        rail ? [styles.rail, rail === 'left' ? styles.railLeft : styles.railRight] : styles.bar,
         { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom },
       ]}
       onLayout={(event) => onSize?.(event.nativeEvent.layout)}
@@ -195,7 +196,9 @@ export function TabBar({
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 4 },
-  rail: { flexDirection: 'column', alignItems: 'center', borderRightWidth: StyleSheet.hairlineWidth, paddingTop: 4 },
+  rail: { flexDirection: 'column', alignItems: 'center', paddingTop: 4 },
+  railLeft: { borderRightWidth: StyleSheet.hairlineWidth },
+  railRight: { borderLeftWidth: StyleSheet.hairlineWidth },
   item: { height: 44, minWidth: 52, alignItems: 'center', justifyContent: 'center' },
   spacer: { flex: 1 },
   badge: {
