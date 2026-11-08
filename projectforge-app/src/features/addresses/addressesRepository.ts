@@ -121,7 +121,7 @@ export class AddressesRepository {
 
   /**
    * The vCard of [address] with its stored photo (the image itself if it is stored, else the thumbnail), also without
-   * network. A server before 9.2.6 doesn't send it: then its export (with the photo) is loaded.
+   * network. A server before 9.2.7 doesn't send it: then its export (with the photo) is loaded.
    */
   async vCard(address: AppAddress): Promise<Uint8Array> {
     if (address.vCard == null) return this.api.download(`${AddressesRepository.PATH}/exportVCard/${address.id}`);

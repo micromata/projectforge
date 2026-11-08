@@ -168,7 +168,7 @@ export function AddressDetailScreen({
       onPress: () => void withVCard(address, (name, vCard) => SharedFiles.share(name, vCard, 'text/vcard')),
     },
   ];
-  // The vCard comes with the address book; a server before 9.2.6 sends none, then it is loaded from it.
+  // The vCard comes with the address book; a server before 9.2.7 sends none, then it is loaded from it.
   const shareable = address.vCard != null || !offline;
   return (
     <View style={[styles.screen, { backgroundImage: `linear-gradient(to bottom, ${color}, #1f1f24 70%)` }]}>

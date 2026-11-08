@@ -36,7 +36,7 @@ export interface AppAddressList {
   ids: number[];
   favoriteIds?: number[];
   addresses: AppAddress[];
-  /** The addresses come with their vCards (missing from servers before 9.2.6). */
+  /** The addresses come with their vCards (missing from servers before 9.2.7). */
   withVCards?: boolean;
 }
 
@@ -67,7 +67,7 @@ export interface AppAddress {
   writeAccess?: boolean;
   /** The version of the address and its image: an image on the device is valid for the same value. */
   lastUpdate: number;
-  /** The vCard of the address without the photo, for sharing (missing from servers before 9.2.6). */
+  /** The vCard of the address without the photo, for sharing (missing from servers before 9.2.7). */
   vCard?: string | null;
 }
 
