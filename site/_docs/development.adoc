@@ -539,13 +539,24 @@ export PF_HOTSWAP_AGENT_OPTS=disablePlugin=Spring,disablePlugin=Hibernate
 5. Change the code and build it in IntelliJ (_Build Project_ or _Recompile_); IntelliJ offers to reload the changed
    classes (or does it itself, see _Settings → Build, Execution, Deployment → Debugger → HotSwap_).
 
+Without IntelliJ, `bin/pfDev.sh reload [slot]` does the same: it compiles the worktree (classes only, no jars and no
+next build) and redefines the classes changed since the last reload in the running instance, with `jdb` of the JBR
+over the debug port. Only one debugger can be attached: detach IntelliJ first. Each worktree reloads its own code
+into its own slot, so no IntelliJ window per worktree is needed.
+
+With the agent, `bootRun` takes the other modules from their class and resource dirs (`build/classes`,
+`build/resources`) instead of their jars. A class can only be redefined once it is loaded; a new one (e.g. a new
+lambda or inner class) or one not loaded yet is then loaded from the latest compile, not from the jar of the start.
+Changed resources (e.g. i18n properties) still need a restart.
+
 The Spring plugin of HotswapAgent is off by default: it wraps the beans in proxies whose final Kotlin methods see
 uninitialized fields, so the start fails. Without it, the Spring wiring isn't refreshed: a new bean, a new injected
 field or a changed `@Value` still needs a restart. `PF_HOTSWAP_AGENT_OPTS=""` turns it on anyway.
 
 Without `pfDev.sh`, `bootRun` takes the JVM as a toolchain and the JVM args one per line, e.g.
 `./gradlew bootRun -Porg.gradle.java.installations.paths=<jbr> -Porg.gradle.java.installations.auto-detect=false
--PpfBootRunJavaVersion=25 -PpfBootRunJavaVendor=JetBrains -PpfBootRunJvmArgs=<JVM args>`.
+-PpfBootRunJavaVersion=25 -PpfBootRunJavaVendor=JetBrains -PpfBootRunJvmArgs=<JVM args>
+-PpfBootRunProjectClasses=true` (the last one for the class dirs instead of the jars).
 
 === Knowledge graph (graphify)
 
