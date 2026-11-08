@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "The lists of orders, invoices, projects, cost units and time sheets and the order statistics show the empty filters business unit, customer and project as one pill; a filter gets its own pill once something is selected in it.",
+  "de": "Die Listen der Aufträge, Rechnungen, Projekte, Kostenträger und Zeitberichte und die Auftragsstatistik zeigen die leeren Filter Business Unit, Kunde und Projekt in einer Pille; ein Filter bekommt seine eigene Pille, sobald darin etwas ausgewählt ist."
+}

@@ -95,6 +95,41 @@ export async function reopenPill(
   await expect(cancelButton(page, t)).toBeVisible();
 }
 
+/**
+ * The combined pill of the empty pinned checklists, "Business Unit / Kunde / Projekt" (see
+ * [PinnedFilterGroupPill]), as one that lists the field labelled `name`.
+ */
+export function pinnedGroupPill(page: Page, name: string): Locator {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return page.getByRole("button", {
+    // At least two labels, so a column header named like the field doesn't match.
+    name: new RegExp(`^(?=.* / )(.* / )?${escaped}( / .*)?$`),
+  });
+}
+
+/**
+ * Opens the pill of a pinned checklist (business unit, customer, project): its own pill if the row shows
+ * one, otherwise from the menu of the combined pill the empty ones share.
+ */
+export async function openPinnedPill(
+  page: Page,
+  t: Translate,
+  name: string
+): Promise<void> {
+  const own = page.getByRole("button", {
+    name: t("filter.editEntry", { arg0: name }),
+  });
+  const group = pinnedGroupPill(page, name);
+  await expect(own.or(group).first()).toBeVisible();
+  if (await own.isVisible()) {
+    await own.click();
+  } else {
+    await group.click();
+    await page.getByRole("menuitem", { name, exact: true }).click();
+  }
+  await expect(cancelButton(page, t)).toBeVisible();
+}
+
 export interface ListRequestBody {
   entries: {
     field: string;
@@ -120,7 +155,7 @@ export async function listRequest(
 export async function resetFilter(page: Page, entity: string): Promise<void> {
   await page.request
     .post(`/rs/${entity}/filter/reset`, {
-        headers: await writeHeaders(page.request),
-      })
+      headers: await writeHeaders(page.request),
+    })
     .catch(() => undefined);
 }
