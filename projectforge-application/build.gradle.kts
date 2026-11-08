@@ -30,6 +30,8 @@ extra["junit-jupiter.version"] = libs.versions.org.junit.get()
 // Same for Groovy: Boot 4 manages Groovy 5, which would mix the Groovy 5 modules (json, xml, templates, ...) with
 // the Groovy 4 core of our catalog. Groovy 5 is a separate step (major-upgrades.md, Phase 3).
 extra["groovy.version"] = libs.versions.org.apache.groovy.get()
+// Boot 4.1.1 manages freemarker 2.3.34 (CVE-2026-84939), the catalog has the fixed version.
+extra["freemarker.version"] = libs.versions.org.freemarker.get()
 
 configurations.all {
     // See buildlogic.pf-module-conventions: Jackson 2 only until the Jackson 3 migration.
@@ -156,6 +158,7 @@ dependencies {
     implementation(libs.com.google.zxing.core)
     implementation(libs.com.google.zxing.javase)
     implementation(libs.com.googlecode.ez.vcard)
+    implementation(libs.org.freemarker)
     implementation(libs.com.googlecode.gson)
     implementation(libs.com.googlecode.lanterna)
     implementation(libs.com.thoughtworks.xstream)
