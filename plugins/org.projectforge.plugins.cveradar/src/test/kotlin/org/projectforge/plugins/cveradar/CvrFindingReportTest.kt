@@ -91,7 +91,7 @@ class CvrFindingReportTest : CveRadarTestBase() {
     )
 
     @Test
-    fun `the report of a node has the findings the user sees, with the case, the names replaced on request`() {
+    fun `the report and the findings of a node have what the user sees, with the case, the names replaced on request`() {
         val product = "report1"
         val cveId = "CVE-2026-97001"
         import(cveId, product)
@@ -142,13 +142,29 @@ class CvrFindingReportTest : CveRadarTestBase() {
         assertTrue(inventory.findingReport(InventoryLevel.COMPONENT, fixed, anonymize = false).vulnerabilities.isEmpty())
         assertEquals(1, inventory.findingReport(InventoryLevel.COMPONENT, app, anonymize = false).vulnerabilityCount)
 
+        // The tab "Findings" of the dialog: one row per instance, with the case, the names as they are.
+        val rows = inventory.nodeFindings(InventoryLevel.AREA, area).findings
+        assertEquals(listOf("A", "B"), rows.map { it.instance })
+        rows.forEach { row ->
+            assertEquals(cveId, row.cveId)
+            assertEquals(cveId, row.caseCode)
+            assertEquals("RP1-S Shop", row.system)
+            assertEquals("APP App", row.component)
+            assertEquals("$product 9.0.80", row.technology)
+            assertEquals(CvrFindingCertainty.AFFECTED, row.certainty)
+        }
+        assertTrue(inventory.nodeFindings(InventoryLevel.COMPONENT, fixed).findings.isEmpty())
+        assertEquals(2, inventory.nodeFindings(InventoryLevel.COMPONENT, app).findings.size)
+
         // A reader outside the groups sees neither the system nor anything below the area.
         val outsider = user("report-outsider", CvrRole.READER)
         logon(outsider)
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true) }
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.AREA, area, anonymize = true) }
+        assertThrows(AccessException::class.java) { inventory.nodeFindings(InventoryLevel.SYSTEM, system) }
         logon(TEST_USER)
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true) }
+        assertThrows(AccessException::class.java) { inventory.nodeFindings(InventoryLevel.SYSTEM, system) }
     }
 
     @Test

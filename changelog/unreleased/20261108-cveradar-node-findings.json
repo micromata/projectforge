@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "CVE-Radar: the dialog of an area, system, instance or component has a tab \"Findings\" with its open findings (counts, filter by certainty, a click opens the CVE); a click on the counts of the tree opens it directly, and the export of the findings stays visible on every row with findings.",
+  "de": "CVE-Radar: Der Dialog eines Bereichs, Systems, einer Instanz oder Komponente hat einen Reiter „Findings“ mit ihren offenen Findings (Anzahlen, Filter nach Sicherheit, ein Klick öffnet die CVE); ein Klick auf die Anzahlen im Baum öffnet ihn direkt, und der Export der Findings bleibt in jeder Zeile mit Findings sichtbar."
+}

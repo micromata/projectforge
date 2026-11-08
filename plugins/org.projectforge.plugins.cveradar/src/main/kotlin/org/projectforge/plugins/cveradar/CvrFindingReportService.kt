@@ -37,6 +37,8 @@ import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.FindingReport
 import org.projectforge.plugins.cveradar.rest.FindingReportScope
 import org.projectforge.plugins.cveradar.rest.InventoryLevel
+import org.projectforge.plugins.cveradar.rest.NodeFinding
+import org.projectforge.plugins.cveradar.rest.NodeFindingList
 import org.projectforge.plugins.cveradar.rest.ReferenceLinkView
 import org.projectforge.plugins.cveradar.rest.ReportCase
 import org.projectforge.plugins.cveradar.rest.ReportFinding
@@ -74,13 +76,56 @@ class CvrFindingReportService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean): FindingReport {
+    /** The open findings below a node the user may read, of vulnerabilities not deleted. */
+    private class Scoped(
+        val scope: CvrInventoryService.ReportScope,
+        val findings: List<CvrFindingDO>,
+        val vulnerabilities: Map<Long, CvrVulnerabilityDO>,
+    )
+
+    private fun scoped(user: PFUserDO, level: InventoryLevel, id: Long): Scoped {
         access.checkReader(user)
         val scope = inventoryService.reportScope(user, level, id)
-        val findings = findingDao.selectOpenByInstances(scope.instances.keys)
+        val open = findingDao.selectOpenByInstances(scope.instances.keys)
             .filter { scope.componentId == null || it.componentId == scope.componentId }
-        val vulnerabilities = byId(CvrVulnerabilityDO::class.java, findings.mapNotNull { it.vulnerabilityId })
+        val vulnerabilities = byId(CvrVulnerabilityDO::class.java, open.mapNotNull { it.vulnerabilityId })
             .filterValues { !it.deleted }
+        return Scoped(scope, open.filter { it.vulnerabilityId in vulnerabilities }, vulnerabilities)
+    }
+
+    /**
+     * The open findings below a node one by one, for the tab "Findings" of its dialog: with the case of the security
+     * team, the names as they are (the user sees these instances anyway). Same access as [report].
+     */
+    fun nodeFindings(user: PFUserDO, level: InventoryLevel, id: Long): NodeFindingList {
+        val scoped = scoped(user, level, id)
+        val cases = caseDao.selectByVulnerabilityIds(scoped.vulnerabilities.keys)
+        val components = byId(CvrComponentDO::class.java, scoped.findings.mapNotNull { it.componentId })
+        val technologies = byId(CvrTechnologyDO::class.java, scoped.findings.mapNotNull { it.technologyId })
+        val findings = scoped.findings.map { finding ->
+            val vulnerability = scoped.vulnerabilities.getValue(finding.vulnerabilityId!!)
+            val case = cases[vulnerability.id]
+            val instance = scoped.scope.instances.getValue(finding.instanceId!!)
+            NodeFinding(
+                id = finding.id!!, vulnerabilityId = vulnerability.id!!, cveId = vulnerability.cveId,
+                severity = vulnerability.severity, cvssScore = vulnerability.cvssScore, kev = vulnerability.kevAdded != null,
+                caseCode = case?.code, caseStatus = case?.status, casePriority = case?.priority,
+                certainty = finding.certainty, matched = finding.matched, area = instance.area, system = instance.system,
+                instance = instance.instance, component = components[finding.componentId]?.let { "${it.code} ${it.name}" },
+                technology = technologies[finding.technologyId]?.let { listOfNotNull(it.product, it.version).joinToString(" ") },
+            )
+        }.sortedWith(
+            compareBy<NodeFinding> { !it.kev }.thenBy { it.casePriority?.ordinal ?: Int.MAX_VALUE }
+                .thenByDescending { it.cvssScore }.thenBy { it.cveId }.thenBy { it.system }.thenBy { it.instance ?: "" },
+        )
+        return NodeFindingList(findings)
+    }
+
+    fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean): FindingReport {
+        val scoped = scoped(user, level, id)
+        val scope = scoped.scope
+        val findings = scoped.findings
+        val vulnerabilities = scoped.vulnerabilities
         val cases = caseDao.selectByVulnerabilityIds(vulnerabilities.keys)
         val components = byId(CvrComponentDO::class.java, findings.mapNotNull { it.componentId })
         val technologies = byId(CvrTechnologyDO::class.java, findings.mapNotNull { it.technologyId })
@@ -105,7 +150,7 @@ class CvrFindingReportService {
             ),
             anonymized = anonymize,
             vulnerabilityCount = reported.size,
-            findingCount = findings.count { it.vulnerabilityId in vulnerabilities },
+            findingCount = findings.size,
             vulnerabilities = reported,
         )
     }

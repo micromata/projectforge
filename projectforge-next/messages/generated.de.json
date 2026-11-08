@@ -4736,6 +4736,10 @@
         "save": "Speichern",
         "site": "Standort",
         "stage": "Stage",
+        "tab": {
+          "data": "Stammdaten",
+          "findings": "Findings ({arg0})"
+        },
         "title": "Systeme",
         "vendor": "Hersteller",
         "version": "Version",
@@ -4908,6 +4912,15 @@
       },
       "no": "nein",
       "nobody": "niemand",
+      "nodeFindings": {
+        "none": "Keine offenen Findings.",
+        "stats": {
+          "cves": "CVEs",
+          "findings": "Findings",
+          "kev": "Aktiv ausgenutzt (KEV)"
+        },
+        "title": "Findings: {arg0}"
+      },
       "none": "Keine.",
       "notFound": "Nicht gefunden oder für diese Rolle nicht sichtbar.",
       "origin": {

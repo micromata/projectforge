@@ -132,6 +132,11 @@ class CvrInventoryRest {
         @RequestParam(defaultValue = "true") anonymize: Boolean,
     ): FindingReport = reportService.report(user, level, id, anonymize)
 
+    @AccessChecked("CvrFindingReportService.nodeFindings: reader role, read access to the node, only the instances the user may read")
+    @GetMapping("{level}/{id}/findings")
+    fun nodeFindings(@PathVariable level: InventoryLevel, @PathVariable id: Long): NodeFindingList =
+        reportService.nodeFindings(user, level, id)
+
     @AccessChecked("CvrInventoryService.delete: write access to the stored node, empty nodes only")
     @PostMapping("{level}/{id}/delete")
     fun delete(@PathVariable level: InventoryLevel, @PathVariable id: Long) = service.delete(user, level, id)

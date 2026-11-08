@@ -4736,6 +4736,10 @@
         "save": "Save",
         "site": "Site",
         "stage": "Stage",
+        "tab": {
+          "data": "Master data",
+          "findings": "Findings ({arg0})"
+        },
         "title": "Systems",
         "vendor": "Vendor",
         "version": "Version",
@@ -4908,6 +4912,15 @@
       },
       "no": "no",
       "nobody": "nobody",
+      "nodeFindings": {
+        "none": "No open findings.",
+        "stats": {
+          "cves": "CVEs",
+          "findings": "Findings",
+          "kev": "Actively exploited (KEV)"
+        },
+        "title": "Findings: {arg0}"
+      },
       "none": "None.",
       "notFound": "Not found or not visible for this role.",
       "origin": {

@@ -106,3 +106,29 @@ class ReportTechnology(
     /** Where it came from: entered by hand, an SBOM, a lockfile, … */
     val origin: CvrOrigin?,
 )
+
+/** The open findings below a node one by one (see `CvrFindingReportService.nodeFindings`), the most urgent first. */
+class NodeFindingList(val findings: List<NodeFinding>)
+
+class NodeFinding(
+    val id: Long,
+    val vulnerabilityId: Long,
+    val cveId: String?,
+    val severity: String?,
+    val cvssScore: BigDecimal?,
+    /** In the catalogue of known exploited vulnerabilities (CISA KEV). */
+    val kev: Boolean,
+    val caseCode: String?,
+    val caseStatus: CvrCaseStatus?,
+    val casePriority: CvrPriority?,
+    val certainty: CvrFindingCertainty?,
+    /** What matched, e.g. the CPE with its version range. */
+    val matched: String?,
+    val area: String?,
+    val system: String,
+    /** The code of the instance, null for the default instance of the system. */
+    val instance: String?,
+    val component: String?,
+    /** The technology that matched, with its version. */
+    val technology: String?,
+)

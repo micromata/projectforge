@@ -1581,6 +1581,10 @@ see: per vulnerability the data of the NVD (description, CVSS, CWE, KEV, referen
 (priority, fix version, workaround, measures) and the technologies that matched, with their versions, package URLs
 and the instances they matched in. The most urgent come first.
 
+A click on the counts of findings in the row opens the tab _Findings_ of the node's dialog: its open findings one by
+one (CVE, case, instance, component, technology, what matched), with their counts and a filter by certainty; a click
+on a finding opens the file of the CVE. The button _Export findings_ at the bottom of the dialog exports them.
+
 * _Replace internal names_ (on by default) replaces the codes and names of areas, systems, instances and components
   by neutral ones (`S1`, `S1-I1`, `C1`). The names of libraries and products stay.
 * The dialog also has a prompt for an approved AI system, with the report attached: it asks how to fix every

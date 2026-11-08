@@ -1622,6 +1622,10 @@ enthält, was man sehen darf: je Schwachstelle die Daten der NVD (Beschreibung, 
 des Security-Teams (Priorität, Fix-Version, Workaround, Maßnahmen) und die gefundenen Technologien mit Versionen,
 Paket-URLs und den Instanzen, in denen sie gefunden wurden. Das Dringendste steht vorn.
 
+Ein Klick auf die Anzahl der Findings in der Zeile öffnet den Reiter _Findings_ im Dialog des Knotens: seine offenen
+Findings einzeln (CVE, Fall, Instanz, Komponente, Technologie, Treffer) mit ihren Anzahlen und einem Filter nach
+Sicherheit; ein Klick auf ein Finding öffnet die Akte der CVE. Die Schaltfläche _Findings exportieren_ unten im Dialog exportiert sie.
+
 * _Interne Namen ersetzen_ (vorab eingeschaltet) ersetzt Codes und Namen von Bereichen, Systemen, Instanzen und
   Komponenten durch neutrale (`S1`, `S1-I1`, `C1`). Die Namen der Bibliotheken und Produkte bleiben stehen.
 * Der Dialog hat dazu einen Prompt für ein freigegebenes KI-System, mit dem Report im Anhang: Er fragt, wie jede
