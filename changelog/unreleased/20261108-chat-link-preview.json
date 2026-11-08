@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Chat: a link in a message shows a preview of the linked page (title, description, image), as in other chats, already while writing. The server fetches it, so the browser loads nothing from the linked site; the author can remove the preview (before or after sending), administrators can switch the previews off (projectforge.chat.linkPreview.enabled=false).",
+  "de": "Chat: Ein Link in einer Nachricht zeigt eine Vorschau der verlinkten Seite (Titel, Beschreibung, Bild), wie in anderen Chats, schon beim Schreiben. Der Server ruft sie ab, sodass der Browser nichts von der verlinkten Seite lädt; die Vorschau lässt sich vor oder nach dem Senden entfernen, Administratoren können die Vorschauen abschalten (projectforge.chat.linkPreview.enabled=false)."
+}

@@ -122,6 +122,19 @@ beachtet; nginx braucht daher nur einen Read-Timeout über 25 Sekunden (die Beis
 `dev-docs/misc/nginx_sites-available_projectforge` hat 600 Sekunden). Bei anderen Proxys muss das Puffern für diesen Pfad
 abgeschaltet werden. Ohne das funktioniert der Chat trotzdem: Er fragt dann alle paar Sekunden nach neuen Nachrichten.
 
+[[chat_link_previews]]
+==== Vorschau von Links im Chat
+
+Für den ersten Link einer Chatnachricht ruft der Server die verlinkte Seite ab (http und https auf den Ports 80 und
+443) und zeigt Titel, Beschreibung und Bild als Vorschau. Er verbindet sich nur mit öffentlichen Adressen, nie mit dem
+internen Netz (private, Loopback- und Link-Local-Adressen werden abgelehnt, auch nach einer Weiterleitung), und braucht
+ausgehenden Zugriff aufs Internet; ohne ihn gibt es einfach keine Vorschau. Damit nichts von anderen Seiten abgerufen
+wird:
+
+----
+projectforge.chat.linkPreview.enabled=false
+----
+
 [[postgresql]]
 === PostgreSQL
 

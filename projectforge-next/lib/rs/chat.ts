@@ -10,6 +10,7 @@ import type {
   ChatThread,
   ChatChanges,
   ChatHostEntry,
+  ChatLinkPreview,
   ChatSearchHit,
   ChatUnreadMessage,
 } from "./chat-types";
@@ -68,6 +69,11 @@ export function chatFileUrl(
   download = false
 ) {
   return `${BASE}/conversation/${conversationId}/file/${encodeURIComponent(fileId)}${download ? "?download=true" : ""}`;
+}
+
+/** The thumbnail of the link preview of a message; the id changes with the preview (cached by the browser). */
+export function chatLinkPreviewImageUrl(messageId: number, imageId: string) {
+  return `${BASE}/message/${messageId}/linkPreviewImage?v=${encodeURIComponent(imageId)}`;
 }
 
 export function openChatConversation(
@@ -177,10 +183,12 @@ export async function sendChatMessage(
   threadRootId: number | null,
   files: File[] = [],
   quotedMessageId: number | null = null,
-  options: UploadOptions = {}
+  options: UploadOptions = {},
+  /** False if the author removed the preview of the link while writing. */
+  linkPreview = true
 ): Promise<ChatMessage> {
   const path = `${BASE}/conversation/${id}/messages`;
-  const request = { html, threadRootId, quotedMessageId };
+  const request = { html, threadRootId, quotedMessageId, linkPreview };
   if (files.length === 0) {
     return chatPost<ChatMessage>(path, request);
   }
@@ -229,6 +237,24 @@ export function hideChatMessage(
     hidden,
     reason,
   });
+}
+
+/** The preview of the link of the message being written, undefined if it has none. */
+export function previewChatLink(
+  id: number,
+  html: string,
+  signal?: AbortSignal
+) {
+  return chatPost<ChatLinkPreview | undefined>(
+    `${BASE}/conversation/${id}/linkPreview`,
+    { html },
+    signal
+  );
+}
+
+/** The author removes the preview of the link of the own message. */
+export function dismissChatLinkPreview(messageId: number) {
+  return chatPost<void>(`${BASE}/message/${messageId}/linkPreview/dismiss`, {});
 }
 
 /** Reports a message to the administrators, optionally blocking its author as well. */

@@ -47,6 +47,24 @@ export interface ChatQuote {
 }
 
 /**
+ * The preview of the first link of a message, fetched by the server after sending: texts of the linked page (plain
+ * text) and its image as a thumbnail served by the chat (the browser loads nothing from the linked site).
+ */
+export interface ChatLinkPreview {
+  url: string;
+  title: string | null;
+  description: string | null;
+  siteName: string | null;
+  /** The id of the thumbnail (see chatLinkPreviewImageUrl), null for none. */
+  imageId: string | null;
+  /** The size of the thumbnail in pixels, null for none (or older previews). */
+  imageWidth?: number | null;
+  imageHeight?: number | null;
+  /** The thumbnail as data url, for the preview of a message being written only. */
+  imageData?: string | null;
+}
+
+/**
  * A message as the logged-in user sees it (ChatRest/ChatMessageConverter): no content of a deleted message,
  * of a hidden one only for moderators.
  */
@@ -76,6 +94,8 @@ export interface ChatMessage {
   mentionsMe: boolean;
   /** Has the logged-in user blocked the author? Shown folded. */
   fromBlocked?: boolean;
+  /** The preview of the first link, null for none (yet). */
+  linkPreview?: ChatLinkPreview | null;
   changeSeq: number;
 }
 

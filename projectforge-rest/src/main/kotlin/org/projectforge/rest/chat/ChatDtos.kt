@@ -84,6 +84,21 @@ class ChatQuote(
     val fromBlocked: Boolean = false,
 )
 
+/** The preview of a link of a message (texts of the linked page, plain text). */
+class ChatLinkPreviewInfo(
+    val url: String,
+    val title: String?,
+    val description: String?,
+    val siteName: String?,
+    /** The id of the thumbnail (`message/{id}/linkPreviewImage?v={imageId}`), null for none. */
+    val imageId: String?,
+    /** The size of the thumbnail in pixels, null for none. */
+    val imageWidth: Int? = null,
+    val imageHeight: Int? = null,
+    /** The thumbnail as data url, for the preview of a message being written only (it has no id yet). */
+    val imageData: String? = null,
+)
+
 /**
  * A message as shown to the logged-in user: the content of a deleted message is never sent, of a hidden one only to
  * moderators.
@@ -120,6 +135,8 @@ class ChatMessage(
     val mentionsMe: Boolean,
     /** Has the logged-in user blocked the author? The client folds the message. */
     val fromBlocked: Boolean = false,
+    /** The preview of the first link, null for none (yet, it is fetched after sending). */
+    val linkPreview: ChatLinkPreviewInfo? = null,
     val changeSeq: Long,
 )
 
@@ -172,7 +189,16 @@ class ChatOpenRequest(val hostType: String? = null, val hostId: Long? = null, va
 class ChatOpenResult(val conversationId: Long?)
 
 /** The message part of a message sent (multipart, with the files). */
-class ChatSendRequest(val html: String? = null, val threadRootId: Long? = null, val quotedMessageId: Long? = null)
+class ChatSendRequest(
+    val html: String? = null,
+    val threadRootId: Long? = null,
+    val quotedMessageId: Long? = null,
+    /** False, if the author removed the preview of the link while writing. */
+    val linkPreview: Boolean = true,
+)
+
+/** The text being written, for the preview of its link. */
+class ChatLinkPreviewRequest(val html: String? = null)
 
 class ChatEditRequest(val html: String? = null)
 

@@ -1139,6 +1139,9 @@
       },
       "history": "History",
       "linkCopied": "Link copied.",
+      "linkPreview": {
+        "remove": "Remove the preview"
+      },
       "markUnread": "Mark as unread",
       "placeholder": "Write a message, @ mentions somebody",
       "quote": {

@@ -113,6 +113,9 @@ open class IntegrationConfig {
         /** The connection of the CVE-Radar (plugin cveradar) to Dependency-Track. */
         const val CVERADAR_DEPTRACK = "cveradar-deptrack"
 
+        /** The previews of links in the chat: pages and images of any website given by users. */
+        const val LINK_PREVIEW = "link-preview"
+
         /**
          * Used, if neither the id nor the default is configured.
          */
@@ -142,6 +145,14 @@ open class IntegrationConfig {
             CVERADAR_EUVD to IntegrationSettings(responseTimeoutMs = 60_000, maxResponseBytes = 20L * 1024 * 1024),
             // A page of findings has up to 100 entries with component and vulnerability; uploads of large BOMs.
             CVERADAR_DEPTRACK to IntegrationSettings(responseTimeoutMs = 60_000, maxResponseBytes = 50L * 1024 * 1024),
+            // A preview is nice to have: given up soon, few connections per host.
+            LINK_PREVIEW to IntegrationSettings(
+                connectTimeoutMs = 3_000,
+                responseTimeoutMs = 5_000,
+                maxResponseBytes = 1024L * 1024,
+                maxConnections = 10,
+                maxConnectionsPerRoute = 2,
+            ),
         )
 
         private var instance: IntegrationConfig? = null

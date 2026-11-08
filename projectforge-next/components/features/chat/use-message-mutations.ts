@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import {
   deleteChatMessage,
+  dismissChatLinkPreview,
   editChatMessage,
   followChatThread,
   hideChatMessage,
@@ -83,5 +84,9 @@ export function useMessageMutations() {
       followChatThread(id, value),
     ...options,
   });
-  return { react, edit, remove, hide, report, follow };
+  const dismissLinkPreview = useMutation({
+    mutationFn: (id: number) => dismissChatLinkPreview(id),
+    ...options,
+  });
+  return { react, edit, remove, hide, report, follow, dismissLinkPreview };
 }

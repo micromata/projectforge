@@ -27,6 +27,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -72,6 +73,9 @@ open class ChatService {
 
     @Autowired
     private lateinit var notifier: ChatNotifier
+
+    @Autowired
+    private lateinit var linkPreviewService: ChatLinkPreviewService
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -209,6 +213,7 @@ open class ChatService {
      * @param files The files of the message, stored in the data transfer ([ChatFileService.store]) before; deleted
      * again if the message isn't saved.
      * @param quotedMessageId A message of the same conversation quoted by this one (MSG-08), not deleted or hidden.
+     * @param linkPreview False, if the author removed the preview of the link while writing ([previewLink]).
      */
     open fun send(
         conversationId: Long,
@@ -216,6 +221,7 @@ open class ChatService {
         html: String?,
         files: List<ChatFileService.Upload> = emptyList(),
         quotedMessageId: Long? = null,
+        linkPreview: Boolean = true,
     ): ChatMessageDO {
         val user = ThreadLocalUserContext.requiredLoggedInUser
         val context = chatAccess.requireWriteContext(conversationId, user)
@@ -239,7 +245,7 @@ open class ChatService {
         }
         val attachments = fileService.store(context, files)
         try {
-            return send(context, threadRootId, content, attachments, quotedMessageId)
+            return send(context, threadRootId, content, attachments, quotedMessageId, linkPreview)
         } catch (ex: Exception) {
             fileService.delete(attachments)
             throw ex
@@ -252,8 +258,10 @@ open class ChatService {
         content: ChatHtmlSanitizer.Result,
         attachments: List<ChatAttachment>,
         quotedMessageId: Long?,
+        linkPreview: Boolean,
     ): ChatMessageDO {
         val user = context.user
+        val previewUrl = linkPreviewService.previewUrl(content.html)
         val conversationId = context.conversationId
         val now = Date()
         var followers = emptySet<Long>()
@@ -279,6 +287,9 @@ open class ChatService {
                 it.contentText = content.text.take(ChatMessageDO.CONTENT_TEXT_LENGTH)
                 it.writeAttachments(attachments)
                 it.mentionedIds = ChatRoomDO.toCsv(content.mentionedIds)
+                if (previewUrl != null && !linkPreview) {
+                    it.writeLinkPreview(ChatLinkPreview(previewUrl, dismissed = true))
+                }
                 it.changeSeq = seq
             }
             chatMessageDao.insert(message)
@@ -307,6 +318,9 @@ open class ChatService {
         }
         publish(conversationId, seq)
         notifier.onMessage(messageInfo(context, message, content.mentionedIds, isNew = true, followers))
+        if (linkPreview) {
+            scheduleLinkPreview(conversationId, message.id!!, previewUrl)
+        }
         return message
     }
 
@@ -323,11 +337,18 @@ open class ChatService {
             throw UserException(ERROR_EMPTY)
         }
         var newlyMentioned = emptyList<Long>()
+        val previewUrl = linkPreviewService.previewUrl(content.html)
+        var replacedPreview: ChatLinkPreview? = null
         val (message, seq) = persistenceService.runInTransaction { pc ->
             val seq = nextSeq(pc, context.conversationId)
             val message = findMessage(messageId)!!
             val previous = ChatRoomDO.toIds(message.mentionedIds)
             newlyMentioned = content.mentionedIds.filter { it !in previous }
+            val preview = message.readLinkPreview()
+            if (preview != null && preview.url != previewUrl) {
+                replacedPreview = preview
+                message.writeLinkPreview(null)
+            }
             message.content = content.html
             message.contentText = content.text.take(ChatMessageDO.CONTENT_TEXT_LENGTH)
             message.mentionedIds = ChatRoomDO.toCsv(content.mentionedIds)
@@ -339,6 +360,10 @@ open class ChatService {
         publish(context.conversationId, seq)
         if (newlyMentioned.isNotEmpty()) {
             notifier.onMessage(messageInfo(context, message, newlyMentioned, isNew = false))
+        }
+        linkPreviewService.deleteImage(context.conversationId, replacedPreview)
+        if (message.linkPreview == null) {
+            scheduleLinkPreview(context.conversationId, messageId, previewUrl)
         }
         return message
     }
@@ -380,6 +405,93 @@ open class ChatService {
         }
         publish(context.conversationId, seq)
         fileService.delete(stored.readAttachments())
+        linkPreviewService.deleteImage(context.conversationId, stored.readLinkPreview())
+    }
+
+    /**
+     * The author removes the preview of the link of the own message: it isn't shown any more, also not after an edit
+     * keeping the link.
+     */
+    open fun dismissLinkPreview(messageId: Long) {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val stored = findMessage(messageId) ?: throw AccessException(user, NO_ACCESS)
+        val context = chatAccess.requireWriteContext(stored.conversationId, user)
+        if (stored.authorId != user.id || stored.deleted || stored.isHidden) {
+            throw AccessException(user, NO_ACCESS)
+        }
+        val url = linkPreviewService.previewUrl(stored.content) ?: return
+        var dismissed: ChatLinkPreview? = null
+        val seq = persistenceService.runInTransaction { pc ->
+            val seq = nextSeq(pc, context.conversationId)
+            dismissed = loadMessage(pc, messageId)?.readLinkPreview()
+            pc.executeUpdate(
+                "update ChatMessageDO m set m.linkPreview = :preview, m.changeSeq = :seq where m.id = :id",
+                Pair("preview", JsonUtils.toJson(ChatLinkPreview(url, dismissed = true))),
+                Pair("seq", seq),
+                Pair("id", messageId),
+            )
+            seq
+        }
+        publish(context.conversationId, seq)
+        linkPreviewService.deleteImage(context.conversationId, dismissed)
+    }
+
+    /**
+     * The preview of the link of a message being written by the user (shown while writing), null if it has none.
+     * @return The url previewed and the page.
+     */
+    open fun previewLink(conversationId: Long, html: String?): Pair<String, ChatLinkPreviewService.Fetched>? {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val context = chatAccess.requireWriteContext(conversationId, user)
+        val url = linkPreviewService.previewUrl(sanitize(context, html).html) ?: return null
+        return linkPreviewService.fetchNow(url)?.let { Pair(url, it) }
+    }
+
+    /**
+     * The thumbnail (JPEG) of the link preview of a message, if the user may see the message: not deleted, hidden ones
+     * only for moderators. Null if it has none.
+     */
+    open fun readLinkPreviewImage(messageId: Long): ByteArray? {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val stored = findMessage(messageId) ?: throw AccessException(user, NO_ACCESS)
+        val context = chatAccess.requireContext(stored.conversationId, user)
+        if (stored.deleted || (stored.isHidden && !context.isModerator)) {
+            return null
+        }
+        val fileId = stored.readLinkPreview()?.takeIf { !it.dismissed }?.imageFileId ?: return null
+        return linkPreviewService.readImage(context.conversationId, fileId)
+    }
+
+    /** Fetches the preview of the link of the message in the background, see [applyLinkPreview]. */
+    private fun scheduleLinkPreview(conversationId: Long, messageId: Long, url: String?) {
+        url ?: return
+        linkPreviewService.schedule(conversationId, url) { preview -> applyLinkPreview(conversationId, messageId, preview) }
+    }
+
+    /**
+     * Saves the fetched preview, if the message still links to its url and has no preview yet (not edited, deleted
+     * or dismissed meanwhile). The readers get it as a change of the message.
+     * @return False, if not saved.
+     */
+    private fun applyLinkPreview(conversationId: Long, messageId: Long, preview: ChatLinkPreview): Boolean {
+        val seq = persistenceService.runInTransaction { pc ->
+            val seq = nextSeq(pc, conversationId) // First: serialized with an edit of the message.
+            val message = loadMessage(pc, messageId)
+            if (message == null || message.deleted || message.linkPreview != null ||
+                linkPreviewService.previewUrl(message.content) != preview.url
+            ) {
+                return@runInTransaction null
+            }
+            pc.executeUpdate(
+                "update ChatMessageDO m set m.linkPreview = :preview, m.changeSeq = :seq where m.id = :id",
+                Pair("preview", JsonUtils.toJson(preview)),
+                Pair("seq", seq),
+                Pair("id", messageId),
+            )
+            seq
+        } ?: return false
+        publish(conversationId, seq)
+        return true
     }
 
     /** A moderator hides a message (of anybody) with a reason, or shows it again (SEC-05, historised). */
@@ -863,6 +975,7 @@ open class ChatService {
                 pc.executeUpdate("delete from ChatConversationDO c where c.id = :conversationId", params)
             }
             fileService.deleteArea(conversation)
+            linkPreviewService.deleteAll(conversationId)
             notifier.resolveAll(conversationId)
             log.info { "Chat conversation #$conversationId of $hostType #$hostId deleted." }
         }

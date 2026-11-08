@@ -671,6 +671,9 @@ transfer.
 * *Quotes* and *emoji reactions* on any message.
 * *Files of any type*: attach them, paste them or simply drop them into the message window. Images are shown
   as thumbnails and enlarged by a click.
+* *Link previews*: the first link of a message shows a preview of the linked page (title, description, image),
+  already while writing. The server fetches it, your browser loads nothing from that site. The × on the preview
+  removes it, before sending or later from your own message.
 * *Edit and delete* your own messages; an edited message is marked, and moderators see its history.
 * *Copy link* gives a link to a single message.
 

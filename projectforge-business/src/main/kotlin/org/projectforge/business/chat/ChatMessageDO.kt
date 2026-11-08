@@ -131,6 +131,11 @@ open class ChatMessageDO : DefaultBaseDO() {
     @get:Column(name = "unfollower_ids", length = 10000)
     open var unfollowerIds: String? = null
 
+    /** JSON: the preview of the first link ([ChatLinkPreview], see [readLinkPreview]), null for none (yet). */
+    @NoHistory
+    @get:Column(name = "link_preview", length = 4000)
+    open var linkPreview: String? = null
+
     @get:Transient
     @get:JsonIgnore
     open val isHidden: Boolean
@@ -176,6 +181,23 @@ open class ChatMessageDO : DefaultBaseDO() {
 
     fun writeAttachments(list: List<ChatAttachment>) {
         attachments = list.takeIf { it.isNotEmpty() }?.let { JsonUtils.toJson(it) }
+    }
+
+    fun readLinkPreview(): ChatLinkPreview? {
+        val json = linkPreview
+        if (json.isNullOrBlank()) {
+            return null
+        }
+        return try {
+            JsonUtils.fromJson(json, ChatLinkPreview::class.java, failOnUnknownProps = false)
+        } catch (ex: Exception) {
+            log.error { "Link preview of chat message #$id not readable: ${ex.message}" }
+            null
+        }
+    }
+
+    fun writeLinkPreview(preview: ChatLinkPreview?) {
+        linkPreview = preview?.let { JsonUtils.toJson(it) }
     }
 
     companion object {

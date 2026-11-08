@@ -685,6 +685,9 @@ persönlichen Box der Empfängerin oder des Empfängers im Datentransfer.
 * *Zitate* und *Emoji-Reaktionen* auf jede Nachricht.
 * *Dateien jeder Art*: anhängen, einfügen oder einfach ins Nachrichtenfenster ziehen. Bilder erscheinen als
   Vorschau und werden per Klick vergrößert.
+* *Link-Vorschau*: Der erste Link einer Nachricht zeigt eine Vorschau der verlinkten Seite (Titel, Beschreibung,
+  Bild), schon beim Schreiben. Der Server ruft sie ab, der Browser lädt nichts von dieser Seite. Das × an der
+  Vorschau entfernt sie, vor dem Senden oder später aus der eigenen Nachricht.
 * Eigene Nachrichten *bearbeiten und löschen*; eine bearbeitete Nachricht ist markiert, Moderatoren sehen ihre
   Historie.
 * *Link kopieren* liefert einen Link auf eine einzelne Nachricht.

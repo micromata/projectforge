@@ -24,6 +24,7 @@
 package org.projectforge.framework.integration
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.apache.hc.client5.http.DnsResolver
 import org.apache.hc.client5.http.config.ConnectionConfig
 import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
@@ -62,6 +63,15 @@ object PooledHttpClients {
     }
 
     /**
+     * A client of the id connecting to public addresses only ([PublicAddressResolver]) and following no redirects,
+     * for urls given by users (see [PublicUrlFetcher]).
+     */
+    @JvmStatic
+    fun getPublicOnly(id: String): CloseableHttpClient {
+        return clients.computeIfAbsent("$id(public-only)") { create(id, false, dnsResolver = PublicAddressResolver) }
+    }
+
+    /**
      * Request factory for [org.springframework.web.client.RestTemplate] using the pooled client of the given id.
      */
     @JvmStatic
@@ -81,7 +91,12 @@ object PooledHttpClients {
         clients.clear()
     }
 
-    private fun create(id: String, disableContentCompression: Boolean, disableRedirects: Boolean): CloseableHttpClient {
+    private fun create(
+        id: String,
+        disableContentCompression: Boolean,
+        disableRedirects: Boolean = false,
+        dnsResolver: DnsResolver? = null,
+    ): CloseableHttpClient {
         val timeouts = IntegrationConfig.get(id)
         log.info { "Creating pooled http client for '$id': $timeouts" }
         val connectionConfig = ConnectionConfig.custom()
@@ -93,6 +108,7 @@ object PooledHttpClients {
             .setDefaultConnectionConfig(connectionConfig)
             .setMaxConnTotal(timeouts.maxConnections)
             .setMaxConnPerRoute(timeouts.maxConnectionsPerRoute)
+            .also { if (dnsResolver != null) it.setDnsResolver(dnsResolver) }
             .build()
         val requestConfig = RequestConfig.custom()
             .setConnectionRequestTimeout(Timeout.ofMilliseconds(timeouts.connectionRequestTimeoutMs))
@@ -106,7 +122,8 @@ object PooledHttpClients {
         if (disableContentCompression) {
             builder.disableContentCompression()
         }
-        if (disableRedirects) {
+        // With a resolver for public addresses, every hop is checked by the caller.
+        if (disableRedirects || dnsResolver != null) {
             builder.disableRedirectHandling()
         }
         return builder.build()
