@@ -70,6 +70,8 @@
 
   /* The one layout breakpoint of the design: navigation, grids and splits collapse below 900px. */
   --breakpoint-md: 56.25rem;
+  /* The header switches to the menu button below 1120px: logo, navigation and actions need that width. */
+  --breakpoint-nav: 70rem;
 
   --container-site: 1120px;
   --container-narrow: 760px;
