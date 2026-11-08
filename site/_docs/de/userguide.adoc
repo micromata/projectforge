@@ -1514,7 +1514,9 @@ gespeichert.
 Eine Komponente hat oft mehrere davon: die Lockfile des Frontends, die Bibliotheken des Backends, die Pakete ihrer
 Images. Am besten sammelt sie ein *Script im Projekt* (z. B. `collect-libraries.sh`) und packt sie in ein Zip, das so
 hochgeladen wird. Läuft es in der Build-Pipeline oder vor einem Release, gehören die Listen immer zur ausgelieferten
-Version, und niemand muss sie von Hand zusammensuchen. Ein Beispiel, an die Pfade des Projekts anzupassen:
+Version, und niemand muss sie von Hand zusammensuchen. ProjectForge selbst hat dafür `bin/collect-libraries.sh` in
+seinem Repository: ein Zip je Komponente (Backend, Frontend, App, jedes Docker-Image), wo möglich als CycloneDX. Ein
+Beispiel, an die Pfade des Projekts anzupassen:
 
 [source,bash]
 ----
