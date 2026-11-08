@@ -194,12 +194,24 @@ open class TimesheetDayBookingService {
      * A fifth of the user's weekly working hours valid at [day], 8 if the user has no employee or no hours.
      */
     open fun defaultHoursPerDay(userId: Long?, day: LocalDate = LocalDate.now()): BigDecimal {
+        return hoursPerDay(userId, day, day).getValue(day)
+    }
+
+    /**
+     * [defaultHoursPerDay] of each day [from] until [until] (inclusive), each with the weekly working hours valid on it.
+     * The weekly hours of the employee are read once, not per day.
+     */
+    open fun hoursPerDay(userId: Long?, from: LocalDate, until: LocalDate): Map<LocalDate, BigDecimal> {
         val employee = employeeCache.getEmployeeByUserId(checkUser(userId))
-        val weekly = employeeService.getWeeklyWorkingHours(employee, day, checkAccess = false)
-        if (weekly == null || weekly.signum() <= 0) {
-            return DEFAULT_HOURS_PER_DAY
+        val entries = employee?.let { employeeService.selectWeeklyWorkingHoursEntries(it, checkAccess = false) }
+        return generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(until) }.associateWith { day ->
+            val weekly = entries?.let { employeeService.findActiveEntry(it, day) }?.value?.toBigDecimal()
+            if (weekly == null || weekly.signum() <= 0) {
+                DEFAULT_HOURS_PER_DAY
+            } else {
+                weekly.divide(BigDecimal(5), 2, RoundingMode.HALF_UP).stripTrailingZeros()
+            }
         }
-        return weekly.divide(BigDecimal(5), 2, RoundingMode.HALF_UP).stripTrailingZeros()
     }
 
     private fun plan(request: Request): List<Day> {
