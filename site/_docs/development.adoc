@@ -515,6 +515,38 @@ npm run dev -- -p 3005                                        # :3005 against th
 PF_BACKEND_URL=http://localhost:8081 npm run dev -- -p 3001   # :3001 against slot 1
 ```
 
+=== Hot code replacement (HotswapAgent)
+
+`bin/pfDev.sh run [slot]` can run the backend with https://github.com/HotswapProjects/HotswapAgent[HotswapAgent]
+on a JetBrains Runtime (JBR). Changed classes are reloaded without a restart, also with new methods or fields
+(enhanced class redefinition). It is off unless the agent jar is set:
+
+1. Download `hotswap-agent-<version>.jar` from the
+   https://github.com/HotswapProjects/HotswapAgent/releases[releases of HotswapAgent].
+2. Set the environment variables (e.g. in `~/.zshrc`):
++
+```
+export PF_HOTSWAP_AGENT=~/tools/hotswap-agent-2.0.4.jar
+# Optional: the JBR, by default the one of IntelliJ (/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home)
+export PF_HOTSWAP_JDK=~/Library/Java/JavaVirtualMachines/jbr-25/Contents/Home
+# Optional: options of the agent, default disablePlugin=Spring (see below)
+export PF_HOTSWAP_AGENT_OPTS=disablePlugin=Spring,disablePlugin=Hibernate
+```
+3. Start the backend: `bin/pfDev.sh run [slot]`. The app (not Gradle) runs on the JBR with
+   `-XX:+AllowEnhancedClassRedefinition`, the agent and a debug port on `localhost:5005+slot` (5005 for the main
+   instance, 5006 for slot 1, ...).
+4. In IntelliJ, create a run configuration _Remote JVM Debug_ on `localhost:5005` (or 5005+slot) and start it.
+5. Change the code and build it in IntelliJ (_Build Project_ or _Recompile_); IntelliJ offers to reload the changed
+   classes (or does it itself, see _Settings → Build, Execution, Deployment → Debugger → HotSwap_).
+
+The Spring plugin of HotswapAgent is off by default: it wraps the beans in proxies whose final Kotlin methods see
+uninitialized fields, so the start fails. Without it, the Spring wiring isn't refreshed: a new bean, a new injected
+field or a changed `@Value` still needs a restart. `PF_HOTSWAP_AGENT_OPTS=""` turns it on anyway.
+
+Without `pfDev.sh`, `bootRun` takes the JVM as a toolchain and the JVM args one per line, e.g.
+`./gradlew bootRun -Porg.gradle.java.installations.paths=<jbr> -Porg.gradle.java.installations.auto-detect=false
+-PpfBootRunJavaVersion=25 -PpfBootRunJavaVendor=JetBrains -PpfBootRunJvmArgs=<JVM args>`.
+
 === Knowledge graph (graphify)
 
 Optional developer tooling: graphify builds a local knowledge graph of the code base in `graphify-out/`,
