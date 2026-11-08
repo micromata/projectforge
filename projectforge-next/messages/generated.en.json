@@ -5135,6 +5135,11 @@
         "perPersonInfo": "Every member answers for themselves (e.g. checks the own client); the check stays open until all members answered who logged in lately (within 90 days by default). Otherwise one answer for the whole group.",
         "progress": "{arg0} of {arg1} answered",
         "reason": "Reason",
+        "stats": {
+          "affected": "Affected",
+          "answered": "Answered",
+          "unanswered": "Not answered yet"
+        },
         "subject": "Project or system"
       },
       "teamCheckFile": {

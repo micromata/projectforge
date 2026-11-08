@@ -5135,6 +5135,11 @@
         "perPersonInfo": "Jedes Mitglied antwortet für sich (z. B. prüft den eigenen Client); die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben, die sich zuletzt angemeldet haben (standardmäßig innerhalb von 90 Tagen). Sonst gibt es eine Antwort für die ganze Gruppe.",
         "progress": "{arg0} von {arg1} beantwortet",
         "reason": "Begründung",
+        "stats": {
+          "affected": "Betroffen",
+          "answered": "Beantwortet",
+          "unanswered": "Noch nicht beantwortet"
+        },
         "subject": "Projekt oder System"
       },
       "teamCheckFile": {
