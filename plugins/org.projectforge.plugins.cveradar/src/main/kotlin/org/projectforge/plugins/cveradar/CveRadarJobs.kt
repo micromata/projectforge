@@ -29,6 +29,7 @@ import org.projectforge.common.scheduling.SchedulerJobDefinition
 import org.projectforge.common.scheduling.SchedulerJobRunner
 import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.cveradar.sync.DependencyTrackClient
 import org.projectforge.plugins.cveradar.sync.EuvdImportService
 import org.projectforge.plugins.cveradar.sync.GraylogSyncService
 import org.projectforge.plugins.cveradar.sync.NvdImportService
@@ -38,14 +39,17 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /**
- * The sync of the external source (EXT-04) and the imports from the NVD (IMP-03), OSV.dev (IMP-13) and the EUVD (IMP-16),
- * also startable in the jobs monitor. Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
+ * The sync of the external source (EXT-04), the imports from the NVD (IMP-03), OSV.dev (IMP-13) and the EUVD (IMP-16)
+ * and the probe of Dependency-Track (PF-CVR-DT-MIG 4.1), also startable in the jobs monitor. Inactive while the plugin isn't activated or the source isn't configured. The sync of the devices
  * also deletes the outdated devices (EXT-07).
  */
 @Service
 class CveRadarJobs {
     @Autowired
     private lateinit var config: CveRadarConfig
+
+    @Autowired
+    private lateinit var dependencyTrackClient: DependencyTrackClient
 
     @Autowired
     private lateinit var deviceService: CvrDeviceService
@@ -82,6 +86,9 @@ class CveRadarJobs {
         schedulerJobRunner.register(EUVD_JOB, ::euvdImport) {
             inactiveReason() ?: if (!config.euvd.enabled) "The EUVD import isn't enabled." else null
         }
+        schedulerJobRunner.register(DEPTRACK_PROBE_JOB, ::deptrackProbe) {
+            inactiveReason() ?: if (!config.deptrack.isConfigured()) "Dependency-Track isn't configured." else null
+        }
     }
 
     @Scheduled(cron = GRAYLOG_CRON)
@@ -112,6 +119,18 @@ class CveRadarJobs {
         }
     }
 
+    @Scheduled(cron = DEPTRACK_PROBE_CRON)
+    fun deptrackProbe() {
+        schedulerJobRunner.runAsync(DEPTRACK_PROBE_JOB) { run ->
+            try {
+                run.note("Dependency-Track ${dependencyTrackClient.probe()}")
+            } catch (ex: Exception) {
+                // Recorded by the sync stats: the tile of the system dashboard shows it.
+                run.fail(ex.message ?: ex.javaClass.simpleName)
+            }
+        }
+    }
+
     private fun deleteOutdated(): String {
         val deleted = deviceService.deleteOutdated(config.deviceRetentionDays)
         return if (deleted > 0) ", $deleted outdated devices deleted" else ""
@@ -131,6 +150,8 @@ class CveRadarJobs {
         // After the NVD (minute 17), so the EUVD supplements what the NVD brought.
         private const val EUVD_CRON = "\${projectforge.plugin.cveradar.euvd.cron:0 37 */2 * * *}"
 
+        private const val DEPTRACK_PROBE_CRON = "\${projectforge.plugin.cveradar.deptrack.probeCron:0 */15 * * * *}"
+
         val GRAYLOG_JOB = SchedulerJobDefinition(
             "cveradar.graylog", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "graylogSync",
             SchedulerSchedule.Cron(GRAYLOG_CRON),
@@ -144,6 +165,11 @@ class CveRadarJobs {
         val EUVD_JOB = SchedulerJobDefinition(
             "cveradar.euvd", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "euvdImport",
             SchedulerSchedule.Cron(EUVD_CRON),
+        )
+
+        val DEPTRACK_PROBE_JOB = SchedulerJobDefinition(
+            "cveradar.deptrack.probe", SchedulerJobArea.INTEGRATION, CveRadarJobs::class.java, "deptrackProbe",
+            SchedulerSchedule.Cron(DEPTRACK_PROBE_CRON),
         )
 
         val OSV_JOB = SchedulerJobDefinition(

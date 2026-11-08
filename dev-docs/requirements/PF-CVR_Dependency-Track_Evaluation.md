@@ -4,7 +4,7 @@
 |---|---|
 | COMP-ID | PF-CVR |
 | DOC-ID | PF-CVR-DT |
-| Status | Draft 0.2 (decision paper; spike done, result: go, see the migration plan, section 8) |
+| Status | Draft 0.3 (decision paper; spike done, result: go in parallel operation, see the migration plan, D2 and section 8) |
 | Owner | Kai Reinhard |
 | Date | 2026-11-06 |
 | Related | [PF-CVR_CVE-Radar_Vulnerability_Management.md](PF-CVR_CVE-Radar_Vulnerability_Management.md) (spec, requirement IDs below refer to it), [PF-CHAT_Chat_Discussion.md](PF-CHAT_Chat_Discussion.md), [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md) (migration plan) |
@@ -401,7 +401,7 @@ Recommended: the hybrid of section 7, introduced in stages, so the CVE-Radar kee
 1. **Spike** (section 10), decision based on its results. Done: go. The detection is at parity with the own
    matching, not better; the go rests on the maintenance saving and the additional functions (migration plan,
    section 8).
-2. **Switch without parallel operation:** the comparison with the own matching is done once in the spike; DT becomes
-   the only matching source and the parts of section 8 are retired by new Flyway migrations (the CVE-Radar ships since
-   9.2.1). Plan: [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md).
+2. **Parallel operation:** DT is optional and used only if configured; DT and the own matching write into the same
+   findings, each with its sources. The retirement of section 8 is decided after this operation, by new Flyway
+   migrations (the CVE-Radar ships since 9.2.1). Plan: [PF-CVR_Dependency-Track_Migration.md](PF-CVR_Dependency-Track_Migration.md), D2.
 3. **Build** escalation (ESC) and system chat messages on the PF side, independent of DT.

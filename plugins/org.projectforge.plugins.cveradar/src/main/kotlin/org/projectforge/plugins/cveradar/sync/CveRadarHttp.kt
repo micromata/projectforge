@@ -35,13 +35,14 @@ import java.nio.file.Path
 
 /**
  * The HTTP calls of the connectors: pooled clients with the timeouts of [IntegrationConfig] (ids [GRAYLOG],
- * [NVD], [OSV]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
+ * [NVD], [OSV], [EUVD], [DEPTRACK]) and a size limit of every response (EXT-06, SEC-05). Error messages never contain request headers.
  */
 internal object CveRadarHttp {
     const val GRAYLOG = "cveradar-graylog"
     const val NVD = IntegrationConfig.CVERADAR_NVD
     const val OSV = IntegrationConfig.CVERADAR_OSV
     const val EUVD = IntegrationConfig.CVERADAR_EUVD
+    const val DEPTRACK = IntegrationConfig.CVERADAR_DEPTRACK
 
     /** Used, if `projectforge.integration.clients.<id>.maxResponseBytes` isn't given. */
     private const val DEFAULT_MAX_RESPONSE_BYTES = 50L * 1024 * 1024
@@ -49,7 +50,21 @@ internal object CveRadarHttp {
     /** @param status The HTTP status of the answer. */
     class HttpException(message: String, val status: Int) : RuntimeException(message)
 
-    fun execute(integrationId: String, request: HttpUriRequestBase, jsonBody: String? = null, maxBytesLimit: Long? = null): String {
+    /** @param headers The headers of the answer, by lower case name (the last one of a name repeated). */
+    class Response(val body: String, val headers: Map<String, String>) {
+        fun header(name: String): String? = headers[name.lowercase()]
+    }
+
+    fun execute(integrationId: String, request: HttpUriRequestBase, jsonBody: String? = null, maxBytesLimit: Long? = null): String =
+        executeForResponse(integrationId, request, jsonBody, maxBytesLimit).body
+
+    /** As [execute], with the headers of the answer (e.g. the total of a paged list). */
+    fun executeForResponse(
+        integrationId: String,
+        request: HttpUriRequestBase,
+        jsonBody: String? = null,
+        maxBytesLimit: Long? = null,
+    ): Response {
         jsonBody?.let { request.entity = StringEntity(it, ContentType.APPLICATION_JSON) }
         val configured = IntegrationConfig.get(integrationId).maxResponseBytes.takeIf { it > 0 }
             ?: DEFAULT_MAX_RESPONSE_BYTES
@@ -61,7 +76,7 @@ internal object CveRadarHttp {
             if (response.code !in 200..299) {
                 throw HttpException("${request.method} ${request.requestUri}: HTTP ${response.code} ${body.take(300)}", response.code)
             }
-            body
+            Response(body, response.headers.associate { it.name.lowercase() to it.value })
         }
     }
 

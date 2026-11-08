@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.7",
+    "date" : "2026-11-08",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "CVE-Radar: optional connection to Dependency-Track, as a second detection of the findings in parallel to the own matching; for now the connection is tested and shown on the system dashboard." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Security: the CSRF token of a session is renewed after an hour at the latest; the task tree and the choice of a personal data transfer box are only changed by POST requests." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

@@ -2105,16 +2105,44 @@ projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
 * Die EUVD dokumentiert kein Rate-Limit; ProjectForge pausiert zwischen den Anfragen und wiederholt mit wachsendem
   Abstand.
 
+[[cve_radar_deptrack]]
+==== Dependency-Track (optional)
+
+https://dependencytrack.org[Dependency-Track] kann die Befunde parallel zum eigenen Abgleich ermitteln. Die Anbindung
+ist optional: Ohne URL und API-Schlüssel arbeitet ProjectForge wie ohne sie. Dependency-Track läuft als eigener Dienst
+(API-Server, Frontend, PostgreSQL), betrieben von den Administratoren; sein Frontend brauchen die Benutzer nicht.
+Bisher prüft ProjectForge nur die Verbindung; die Übertragung des Inventars und der Befunde folgt.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.deptrack.url=https://dtrack.example.org
+# Besser als Umgebungsvariable PROJECTFORGE_PLUGIN_CVERADAR_DEPTRACK_APIKEY.
+projectforge.plugin.cveradar.deptrack.apiKey=...
+# Prüfung der Verbindung, alle 15 Minuten.
+projectforge.plugin.cveradar.deptrack.probeCron=0 */15 * * * *
+----
+
+* In Dependency-Track ein Team für ProjectForge anlegen (_Administration_ -> _Access Management_ -> _Teams_) mit den
+  Rechten `BOM_UPLOAD`, `PORTFOLIO_MANAGEMENT`, `PROJECT_CREATION_UPLOAD`, `VIEW_POLICY_VIOLATION`,
+  `VIEW_PORTFOLIO`, `VIEW_VULNERABILITY` und `VULNERABILITY_ANALYSIS` und seinen API-Schlüssel erzeugen.
+* Die externen Analyzer (OSS Index, Snyk, VulnDB) bleiben aus, sie würden die Liste der Komponenten nach außen
+  senden; die Schwachstellenquellen NVD, GitHub Advisories und OSV einschalten. Den Task _Telemetry Submission_
+  abschalten.
+* Die Kachel _Dependency-Track (CVE-Radar)_ des <<system_dashboard_and_log_viewer,System-Dashboards>> zeigt Host,
+  Version und das Ergebnis der letzten Prüfung: ausgefallen, wenn Dependency-Track nicht erreichbar ist oder den
+  Schlüssel ablehnt, gestört, wenn dem Team ein Recht fehlt (im Log aufgeführt). Ein ausgefallenes Dependency-Track
+  beeinträchtigt die übrigen Seiten nicht.
+
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen
 
 * Die Anbindung und die Importe laufen als Jobs, _CVE-Radar: Client-Agents_,
-  _CVE-Radar: NVD-Import_, _CVE-Radar: OSV-Import_ und _CVE-Radar: EUVD-Import_, aufgeführt
+  _CVE-Radar: NVD-Import_, _CVE-Radar: OSV-Import_, _CVE-Radar: EUVD-Import_ und _CVE-Radar: Dependency-Track-Prüfung_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
   konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
   `projectforge.integration.clients.cveradar-graylog.*` und
-  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*` eingestellt (z. B.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*`, `projectforge.integration.clients.cveradar-deptrack.*` eingestellt (z. B.
   `responseTimeoutMs`, `maxResponseBytes`, Default 50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000
   Schwachstellen enthält; bei OSV.dev 180 s und 1 GB für das Zip eines Ökosystems, das in eine temporäre Datei geladen
   wird).
