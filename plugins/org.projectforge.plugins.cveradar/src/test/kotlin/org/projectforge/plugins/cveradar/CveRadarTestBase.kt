@@ -101,6 +101,17 @@ abstract class CveRadarTestBase : AbstractTestBase() {
         return initTestDB.getUser(username)!!
     }
 
+    /**
+     * Removes the imported data of the vulnerability, as after restoring the main dump of a backup without the dump of
+     * the CVE-Radar sources.
+     */
+    protected fun dropDetails(vulnerabilityId: Long) {
+        persistenceService.runInTransaction { context ->
+            context.em.createNativeQuery("DELETE FROM ${CvrVulnerabilityDO.DETAIL_TABLE} WHERE vulnerability_fk = :id")
+                .setParameter("id", vulnerabilityId).executeUpdate()
+        }
+    }
+
     /** Makes the user a member of the group (created on first use). */
     protected fun addToGroup(user: PFUserDO, groupName: String) = addToGroup(user, groupName) {}
 

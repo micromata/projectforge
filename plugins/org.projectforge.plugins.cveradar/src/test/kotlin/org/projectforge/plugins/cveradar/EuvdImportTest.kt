@@ -160,6 +160,29 @@ class EuvdImportTest : CveRadarTestBase() {
     }
 
     @Test
+    fun `a vulnerability without details (main dump restored only) gets them from the EUVD, the NVD takes it over later`() {
+        logon(TEST_ADMIN_USER)
+        nvd("CVE-2026-990009", "eutool9")
+        val stored = vulnerabilityDao.findByCveId("CVE-2026-990009")!!
+        dropDetails(stored.id!!)
+        assertTrue(CvrVulnerabilityDO.lacksDetails(vulnerabilityDao.findByCveId("CVE-2026-990009")!!))
+
+        euvdImport.import(FakeEuvd(listOf(item("EUVD-2026-990009", "CVE-2026-990009", products = "eutool9"))), now)
+        val filled = vulnerabilityDao.findByCveId("CVE-2026-990009")!!
+        assertEquals(stored.id, filled.id)
+        assertEquals(EuvdImportService.STATUS_EUVD, filled.nvdStatus)
+        assertEquals("An out-of-bounds read.", filled.description)
+        assertEquals(BigDecimal("8.1"), filled.cvssScore)
+
+        nvd("CVE-2026-990009", "eutool9")
+        val taken = vulnerabilityDao.findByCveId("CVE-2026-990009")!!
+        assertEquals(stored.id, taken.id)
+        assertEquals("Analyzed", taken.nvdStatus)
+        assertEquals(BigDecimal("9.8"), taken.cvssScore)
+        assertEquals("EUVD-2026-990009", taken.euvdId)
+    }
+
+    @Test
     fun `a vulnerability of the NVD only gets the EUVD id, the EPSS and the day of exploitation`() {
         logon(TEST_ADMIN_USER)
         nvd("CVE-2026-990002", "eutool2")

@@ -252,13 +252,14 @@ class CvrOsvAdvisoryService {
 
     /**
      * Updates the vulnerabilities made of advisories ([isFromOsv]) with their advisories; one without advisories any
-     * more (all withdrawn, or they moved to another key) is marked rejected. The others belong to the NVD import.
+     * more (all withdrawn, or they moved to another key) is marked rejected. The others belong to the NVD import, except
+     * one without data yet ([CvrVulnerabilityDO.lacksDetails]): the advisories fill it until the NVD modifies it.
      */
     fun refresh(vulnerabilityIds: Collection<Long>) {
         if (vulnerabilityIds.isEmpty()) return
         persistenceService.executeQueryBatched(
             "from CvrVulnerabilityDO v where v.id in :ids and v.deleted = false", CvrVulnerabilityDO::class.java, "ids", vulnerabilityIds,
-        ).filter { isFromOsv(it) }.forEach { vulnerability ->
+        ).filter { isFromOsv(it) || CvrVulnerabilityDO.lacksDetails(it) }.forEach { vulnerability ->
             val advisories = persistenceService.executeQuery(
                 "from CvrOsvAdvisoryDO a where a.vulnerability.id = :id", CvrOsvAdvisoryDO::class.java, Pair("id", vulnerability.id),
             )
