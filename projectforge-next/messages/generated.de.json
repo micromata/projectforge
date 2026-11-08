@@ -4913,11 +4913,21 @@
       "no": "nein",
       "nobody": "niemand",
       "nodeFindings": {
+        "kpi": {
+          "critical": "Kritisch",
+          "criticalNote": "CVSS ≥ 9,0",
+          "cves": "CVEs",
+          "findings": "{arg0} Findings",
+          "high": "Hoch",
+          "highNote": "CVSS 7,0–8,9",
+          "kev": "Aktiv ausgenutzt",
+          "maxCvss": "max. CVSS {arg0}",
+          "mediumLow": "Mittel/niedrig",
+          "unscored": "{arg0} ohne Bewertung"
+        },
         "none": "Keine offenen Findings.",
         "stats": {
-          "cves": "CVEs",
-          "findings": "Findings",
-          "kev": "Aktiv ausgenutzt (KEV)"
+          "findings": "Findings"
         },
         "title": "Findings: {arg0}"
       },

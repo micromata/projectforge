@@ -1624,7 +1624,9 @@ Paket-URLs und den Instanzen, in denen sie gefunden wurden. Das Dringendste steh
 
 Ein Klick auf die Anzahl der Findings in der Zeile öffnet den Reiter _Findings_ im Dialog des Knotens: seine offenen
 Findings einzeln (CVE, Fall, Instanz, Komponente, Technologie, Treffer) mit ihren Anzahlen und einem Filter nach
-Sicherheit; ein Klick auf ein Finding öffnet die Akte der CVE. Die Schaltfläche _Findings exportieren_ unten im Dialog exportiert sie.
+Sicherheit; ein Klick auf ein Finding öffnet die Akte der CVE. Darüber zeigen Kacheln die Anzahl der CVEs und ihren
+Schweregrad (kritisch, hoch, mittel/niedrig, aktiv ausgenutzt); dieselben Kacheln erscheinen beim Darüberfahren über die
+Anzahlen in der Zeile. Ein Klick auf eine Kachel filtert die Findings danach, ein Klick auf _CVEs_ zeigt wieder alle. Die Schaltfläche _Findings exportieren_ unten im Dialog exportiert sie.
 
 * _Interne Namen ersetzen_ (vorab eingeschaltet) ersetzt Codes und Namen von Bereichen, Systemen, Instanzen und
   Komponenten durch neutrale (`S1`, `S1-I1`, `C1`). Die Namen der Bibliotheken und Produkte bleiben stehen.

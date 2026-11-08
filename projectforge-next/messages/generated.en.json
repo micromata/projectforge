@@ -4913,11 +4913,21 @@
       "no": "no",
       "nobody": "nobody",
       "nodeFindings": {
+        "kpi": {
+          "critical": "Critical",
+          "criticalNote": "CVSS ≥ 9.0",
+          "cves": "CVEs",
+          "findings": "{arg0} findings",
+          "high": "High",
+          "highNote": "CVSS 7.0–8.9",
+          "kev": "Actively exploited",
+          "maxCvss": "max. CVSS {arg0}",
+          "mediumLow": "Medium/low",
+          "unscored": "{arg0} without score"
+        },
         "none": "No open findings.",
         "stats": {
-          "cves": "CVEs",
-          "findings": "Findings",
-          "kev": "Actively exploited (KEV)"
+          "findings": "Findings"
         },
         "title": "Findings: {arg0}"
       },
