@@ -137,6 +137,8 @@
   --changelog-security: #fb3434;
   --changelog-technology: #a037ff;
   --changelog-docker: #79433d;
+  /* The badge "App" of a change of the mobile app ({app} in changelog/changelog.json). */
+  --changelog-app: #00777e;
 
   /*
    * Something is questionable but allowed - a cost unit outside the invoice's project, say (see

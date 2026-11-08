@@ -1,5 +1,5 @@
 {
   "type": "fixed",
-  "en": "App: the search of the pages menu shows its results while typing, above the keyboard (not only after the search key).",
-  "de": "App: Die Suche im Menü der Seiten zeigt ihre Treffer schon beim Tippen über der Tastatur (nicht erst nach der Suchtaste)."
+  "en": "{app} The search of the pages menu shows its results while typing, above the keyboard (not only after the search key).",
+  "de": "{app} Die Suche im Menü der Seiten zeigt ihre Treffer schon beim Tippen über der Tastatur (nicht erst nach der Suchtaste)."
 }

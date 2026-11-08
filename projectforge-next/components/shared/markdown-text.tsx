@@ -3,7 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import rehypeSanitize from "rehype-sanitize";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,8 +21,18 @@ import { cn } from "@/lib/utils";
  * one exception is `allowHtml`, for an authored text an admin configures that legitimately carries HTML
  * (a time sheet's AI-savings note links with an `<a>`, mirroring the legacy `DynamicAlert`'s `rehypeRaw`)
  * — trusted, admin-only content, never something from an end user. Sanitized all the same (the default
- * schema of rehype-sanitize: links and formatting, no scripts, event handlers or styles).
+ * schema of rehype-sanitize: links and formatting, no scripts, event handlers or styles), with classes on
+ * spans allowed (the red text and the badge "App" of the changelog, see ChangelogText).
  */
+/** The default schema of rehype-sanitize, plus `className` on spans. */
+const SANITIZE_SCHEMA = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    span: [...(defaultSchema.attributes?.span ?? []), "className"],
+  },
+};
+
 export function MarkdownText({
   text,
   className,
@@ -43,7 +53,9 @@ export function MarkdownText({
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={allowHtml ? [rehypeRaw, rehypeSanitize] : undefined}
+        rehypePlugins={
+          allowHtml ? [rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]] : undefined
+        }
       >
         {text}
       </ReactMarkdown>

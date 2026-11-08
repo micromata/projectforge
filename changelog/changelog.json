@@ -29,14 +29,14 @@
           "items": [
             "CVE-Radar: import of the vulnerabilities of the European Union Vulnerability Database (EUVD) as a supplement to the NVD. It adds the EUVD id, the EPSS and the day of exploitation, and brings vulnerabilities the NVD doesn't have yet, also ones without a CVE id. The EUVD names products only, so these match as possible. Off by default.",
             "CVE-Radar: the list and the file of a vulnerability show where its data comes from (NVD, OSV, EUVD) as badges, and the list has a pinned filter to select by source.",
-            "App: the system message of the administrators (e.g. maintenance work) is shown above the pages, as in the web version.",
+            "{app} The system message of the administrators (e.g. maintenance work) is shown above the pages, as in the web version.",
             "Address campaign values: new filter \"Edited by\" to list the entries a chosen user has created or changed.",
-            "App: the web tabs have a browser menu with back, forward, reload, find in the page, share link, open in the browser and restart; pull to refresh now also works on the pages with the menu, and a lost connection shows an error with a retry instead of an empty page.",
+            "{app} The web tabs have a browser menu with back, forward, reload, find in the page, share link, open in the browser and restart; pull to refresh now also works on the pages with the menu, and a lost connection shows an error with a retry instead of an empty page.",
             "New column \"Edited by\" with a pill for everybody who created or changed an entry, in the lists of address campaign values, outgoing and incoming invoices, orders, leave corrections, liquidity entries, incoming and outgoing mail, contracts, the visitor book, notification rules, customers and projects.",
             "CVE-Radar, notification rules: new rule type \"Unanswered team checks of a case\". The rule names a case and reminds the members who haven't answered one of its team checks asking every member yet, at most once a day, by schedule or triggered by hand. The reminder is done as soon as they answered.",
-            "App: all servers the app is logged in at send pushes, not only the one shown. The push names its server, a tap on one of another server offers to switch there and opens it; their open notifications are shown at the menu, in the server list and in the notification center, the icon counts all of them. Older servers push only while shown, as before.",
-            "App: a contact of the address book can be added to the own contacts of the device or shared as vCard (messages, mail, messengers), also without a connection to the server.",
-            "App: the ProjectForge tab (globe) opens with a menu that is easy to reach on a phone: tabs for the favorites, the pages opened last, the main menu with expandable areas and the user menu with the appearance (light, dark, system; the tab chosen last opens again), and a search across all entries (or in all data). Tapping the globe again closes the menu and shows the page as it was; tapped once more, it opens the menu again."
+            "{app} All servers the app is logged in at send pushes, not only the one shown. The push names its server, a tap on one of another server offers to switch there and opens it; their open notifications are shown at the menu, in the server list and in the notification center, the icon counts all of them. Older servers push only while shown, as before.",
+            "{app} A contact of the address book can be added to the own contacts of the device or shared as vCard (messages, mail, messengers), also without a connection to the server.",
+            "{app} The ProjectForge tab (globe) opens with a menu that is easy to reach on a phone: tabs for the favorites, the pages opened last, the main menu with expandable areas and the user menu with the appearance (light, dark, system; the tab chosen last opens again), and a search across all entries (or in all data). Tapping the globe again closes the menu and shows the page as it was; tapped once more, it opens the menu again."
           ]
         },
         {
@@ -47,7 +47,7 @@
             "Chat: on touch devices and in the app, a long press on a reaction shows who reacted.",
             "Chat: the search lists all matching people, each with buttons to start a direct message or an encrypted chat.",
             "E-invoice: the customer's invoice recipient email (BT-49) and the email of its contact person (BT-58) are separate fields now, on invoice and account. The seller's contact email (BT-43) is prefilled from the configuration and editable on the invoice.",
-            "App: below the QR code of a business card a small list shows every field the card contains, including the photo, also without a connection to the server.",
+            "{app} Below the QR code of a business card a small list shows every field the card contains, including the photo, also without a connection to the server.",
             "Digital business card: below the QR code a small list shows every field the card contains, including the photo.",
             "The QR code of a business card is rendered at a higher resolution, so it stays sharp when shown large (e.g. in the app)."
           ]
@@ -58,9 +58,9 @@
             "Digital business cards: the photo is linked by a public url with a random token (no login, not guessable), also without a gateway; the url stays the same when the image is replaced or deleted, and can be revoked with \"Renew photo link\" on the card. The base url can be set with `projectforge.businessCard.photoBaseUrl`. Update the gateway together with the server; photo links of earlier QR codes stop working.",
             "Creating an e-invoice (XRechnung, ZUGFeRD) now runs the e-invoice checker over the generated file and shows the result (valid, warnings or errors) in a dialog.",
             "Notification rules: the rule types come from the modules and plugins that provide them. The rule types of a deactivated plugin (e.g. the CVE-Radar) aren't offered any more, and its rules wait until the plugin is active again.",
-            "App: the week strip of the time sheets follows the finger when swiped and snaps to a whole week; the week starts on the first day of the week set in \"My account\".",
+            "{app} The week strip of the time sheets follows the finger when swiped and snaps to a whole week; the week starts on the first day of the week set in \"My account\".",
             "The notifications of chat messages show the beginning of the message (in rooms with its author) instead of repeating their title, in the app and in the notification center of the web pages. Only for the recipient while they may read the conversation; mails and pushes keep their generic text.",
-            "App: the notifications (bell) and the \"more\" menu slide up over the tabs like the menu of the pages, the tab bar stays visible below them; pulling them down, a tap above them or their button again closes them."
+            "{app} The notifications (bell) and the \"more\" menu slide up over the tabs like the menu of the pages, the tab bar stays visible below them; pulling them down, a tap above them or their button again closes them."
           ]
         },
         {
@@ -70,7 +70,7 @@
             "Calendar: the start time of an entry can now be changed by dragging its top edge, not only the end time.",
             "Notification mails (e.g. about new chat messages) now contain a link to the chat or the concerned entry.",
             "Notification rules: the menu entries of plugins (e.g. the CVE-Radar) can be chosen as menu counter and as link of the notifications.",
-            "App: the badges of the chat and the notifications follow at once: a push sets the bell's count when it arrives, and a chat read or a notification done in the pages removes them right away, no longer only with the next update a minute later.",
+            "{app} The badges of the chat and the notifications follow at once: a push sets the bell's count when it arrives, and a chat read or a notification done in the pages removes them right away, no longer only with the next update a minute later.",
             "Calendar: a time sheet opened from a break keeps its end time when the start time is changed."
           ]
         }
@@ -110,7 +110,7 @@
           "type": "improved",
           "items": [
             "Address images: larger preview images, so they look sharp in the app's address list (existing previews are renewed when the images are shrunk again in the administration).",
-            "App: the chat tab shows no menu of the web version; tapping the chat button again leads back to the chat start page."
+            "{app} The chat tab shows no menu of the web version; tapping the chat button again leads back to the chat start page."
           ]
         },
         {
@@ -153,15 +153,15 @@
         {
           "type": "added",
           "items": [
-            "App: a warning if the app is too old for the server or the server too old for the app; \"My account\" marks outdated apps.",
-            "App: the logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too.",
+            "{app} A warning if the app is too old for the server or the server too old for the app; \"My account\" marks outdated apps.",
+            "{app} The logins of several servers are kept, and the server can be switched in the account menu without logging in again; another server is added there too.",
             "E-invoice: new fields order number (BT-13), department of the orderer (BT-56) and cost center (BT-19) on the invoice and the account (department, cost center); the labels of the invoice and account forms name the e-invoice term (BT-x) the field is sent in. The invoice template gets the variables Bestellnummer and Kostenstelle (with isBestellnummer/isKostenstelle), the department is part of the address."
           ]
         },
         {
           "type": "improved",
           "items": [
-            "App time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are chosen in a scrollable selection box with number and text, the time sheet tab is no longer marked as under construction, and the templates open in a list instead of a row of chips.",
+            "{app} Time sheets: the structure element can be chosen in the task tree (level by level, starting at the current one, with a search in the level and everything below it), the search finds words of the whole path, the path is shown above the title, cost units are chosen in a scrollable selection box with number and text, the time sheet tab is no longer marked as under construction, and the templates open in a list instead of a row of chips.",
             "Order mails: clearer layout with the buttons at the top, and a button to the order notification settings."
           ]
         },
@@ -174,7 +174,7 @@
         {
           "type": "fixed",
           "items": [
-            "App: connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link."
+            "{app} Connecting the app behind an SSO proxy works at the first attempt, also when the proxy brings the browser back from its login without the parameters of the link."
           ]
         }
       ]
@@ -238,16 +238,16 @@
             {
               "title": "Mobile app: notifications and push (iPhone)",
               "items": [
-                "The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.",
-                "A new notification wakes the app with a push message (APNs, `projectforge.push.apns.*`), without its content in the message. Without a configured key nothing is sent and the app polls as before."
+                "{app} The notifications of the web version (rules, chat) are shown in the app as well: a bell with the count, the list with the archive, and confirming or finishing them; a link opens the page in the app.",
+                "{app} A new notification wakes the app with a push message (APNs, `projectforge.push.apns.*`), without its content in the message. Without a configured key nothing is sent and the app polls as before."
               ]
             },
             {
               "title": "Mobile app (in preparation): time sheets",
               "items": [
-                "The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.",
-                "A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.",
-                "The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link."
+                "{app} The app books time sheets on the phone: a week strip with the daily totals, the bookings of the day with the gaps between them (a tap books a gap), recent bookings and templates to start from, a task search, and the cost unit chosen automatically where the task has only one. The server's checks (overlap, closed tasks, protected periods) apply as in the web version.",
+                "{app} A timer in the app starts and stops a booking on the device; stopping opens the form with the time rounded to 5 minutes.",
+                "{app} The time sheet list of the web pages switches to the app's tab; the form of a single booking stays in the web pages when opened from a link."
               ]
             },
             {
@@ -260,13 +260,13 @@
             {
               "title": "Mobile app (in preparation)",
               "items": [
-                "Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.",
-                "The login of the app offers the recently used servers, and the logout works even if the server can't be reached.",
-                "Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.",
-                "The app gives more room to the pages: no title bar above the web pages and the chat, a slim navigation bar with icons only, and in landscape a narrow navigation at the side.",
-                "In the app, the menu entries \"Chat\" and \"My business cards\" and the bell of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.",
-                "The app has an address book like the Contacts app: a search field, sections with an index at the side, and tapping a number offers a call or a message, a mail address opens the mail app. All addresses are stored on the device (also offline) and updated silently; editing opens the form of the web pages, and the address list of the web pages switches to the app's tab.",
-                "The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading."
+                "{app} Behind an SSO proxy (e.g. Authentik as forward auth) the app gets the proxy's session from the browser login (`projectforge.app.proxyCookies`); when it expires, the app logs in again in the browser.",
+                "{app} The login of the app offers the recently used servers, and the logout works even if the server can't be reached.",
+                "{app} Business cards are stored in the app and shown offline too; they are reloaded silently when the tab is opened and by a button, and can be added to the Apple Wallet if the server is configured for it (iPhone), also by the link of the web page in the app.",
+                "{app} The app gives more room to the pages: no title bar above the web pages and the chat, a slim navigation bar with icons only, and in landscape a narrow navigation at the side.",
+                "{app} In the app, the menu entries \"Chat\" and \"My business cards\" and the bell of the web pages switch to the app's own tab; the new settings of the app can keep each of them in the web version.",
+                "{app} The app has an address book like the Contacts app: a search field, sections with an index at the side, and tapping a number offers a call or a message, a mail address opens the mail app. All addresses are stored on the device (also offline) and updated silently; editing opens the form of the web pages, and the address list of the web pages switches to the app's tab.",
+                "{app} The app's own screens follow the light or dark appearance chosen in the web pages (also offline), and the web pages no longer flash white while loading."
               ]
             }
           ]
@@ -358,9 +358,9 @@
             {
               "title": "Mobile app (in preparation)",
               "items": [
-                "The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.",
-                "All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.",
-                "My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically."
+                "{app} The ProjectForge app for iOS and Android logs in via the browser, with password and second factor (WebAuthn or code) as usual; the browser asks once more before an app is connected. The first version shows the own digital business cards, also without network.",
+                "{app} All other pages of ProjectForge open inside the app, without a second login. Logging out the app ends them as well.",
+                "{app} My account: the connected apps with their last usage, each can be logged out. A password change logs out all apps; an app unused for 90 days is logged out automatically."
               ]
             }
           ]

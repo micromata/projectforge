@@ -24,14 +24,14 @@
           "items": [
             "CVE-Radar: Import der Schwachstellen der European Union Vulnerability Database (EUVD) als Ergänzung zur NVD. Er ergänzt EUVD-ID, EPSS und den Tag der Ausnutzung und bringt Schwachstellen, die die NVD noch nicht hat, auch solche ohne CVE-ID. Die EUVD nennt nur Produkte, daher treffen diese als möglich. Standardmäßig aus.",
             "CVE-Radar: Liste und Akte einer Schwachstelle zeigen als Badges, woher die Daten stammen (NVD, OSV, EUVD), und die Liste hat einen angepinnten Filter zur Auswahl der Quelle.",
-            "App: Die Systemmeldung der Administration (z. B. Wartungsarbeiten) wird wie in der Webversion über den Seiten angezeigt.",
+            "{app} Die Systemmeldung der Administration (z. B. Wartungsarbeiten) wird wie in der Webversion über den Seiten angezeigt.",
             "Adresskampagnen-Werte: Neuer Filter \"Bearbeitet von\", der die Einträge zeigt, die eine gewählte Person angelegt oder geändert hat.",
-            "App: Die Web-Tabs haben ein Browser-Menü mit Zurück, Vorwärts, Neu laden, Suchen auf der Seite, Link teilen, Im Browser öffnen und Neustart; Runterziehen zum Neuladen funktioniert jetzt auch auf den Seiten mit Menü, und eine fehlende Verbindung zeigt einen Fehler mit erneutem Versuch statt einer leeren Seite.",
+            "{app} Die Web-Tabs haben ein Browser-Menü mit Zurück, Vorwärts, Neu laden, Suchen auf der Seite, Link teilen, Im Browser öffnen und Neustart; Runterziehen zum Neuladen funktioniert jetzt auch auf den Seiten mit Menü, und eine fehlende Verbindung zeigt einen Fehler mit erneutem Versuch statt einer leeren Seite.",
             "Neue Spalte \"Bearbeitet von\" mit einer Pille für alle, die einen Eintrag angelegt oder geändert haben, in den Listen der Adresskampagnen-Werte, Ausgangs- und Eingangsrechnungen, Aufträge, Urlaubskorrekturen, Liquiditätseinträge, Post-Ein- und -Ausgänge, Verträge, des Besuchsbuchs, der Benachrichtigungsregeln, Kunden und Projekte.",
             "CVE-Radar, Benachrichtigungsregeln: neuer Regeltyp „Unbeantwortete Teamabfragen eines Falls“. Die Regel nennt einen Fall und erinnert die Mitglieder, die eine seiner Teamabfragen, die jedes Mitglied beantwortet, noch nicht beantwortet haben, höchstens einmal am Tag, nach Zeitplan oder von Hand ausgelöst. Die Erinnerung erledigt sich, sobald sie geantwortet haben.",
-            "App: Alle Server, bei denen die App angemeldet ist, schicken Push-Nachrichten, nicht nur der angezeigte. Die Push-Nachricht nennt ihren Server; ein Tipp auf eine eines anderen Servers bietet den Wechsel dorthin an und öffnet sie. Deren offene Benachrichtigungen erscheinen am Menü, in der Serverliste und in der Benachrichtigungszentrale, das App-Icon zählt alle. Ältere Server schicken wie bisher nur, solange sie angezeigt werden.",
-            "App: Ein Kontakt des Adressbuchs kann in die eigenen Kontakte des Geräts übernommen oder als vCard geteilt werden (Nachrichten, Mail, Messenger), auch ohne Verbindung zum Server.",
-            "App: Der ProjectForge-Tab (Weltkugel) öffnet sich mit einem Menü, das auf dem Smartphone gut erreichbar ist: Tabs für Favoriten, zuletzt geöffnete Seiten, Hauptmenü mit aufklappbaren Bereichen und Benutzermenü mit dem Erscheinungsbild (hell, dunkel, System; der zuletzt gewählte Tab öffnet sich wieder) und eine Suche über alle Einträge (oder in allen Daten). Ein erneuter Tipp auf die Weltkugel schließt das Menü und zeigt die Seite wie zuvor; noch ein Tipp öffnet das Menü wieder."
+            "{app} Alle Server, bei denen die App angemeldet ist, schicken Push-Nachrichten, nicht nur der angezeigte. Die Push-Nachricht nennt ihren Server; ein Tipp auf eine eines anderen Servers bietet den Wechsel dorthin an und öffnet sie. Deren offene Benachrichtigungen erscheinen am Menü, in der Serverliste und in der Benachrichtigungszentrale, das App-Icon zählt alle. Ältere Server schicken wie bisher nur, solange sie angezeigt werden.",
+            "{app} Ein Kontakt des Adressbuchs kann in die eigenen Kontakte des Geräts übernommen oder als vCard geteilt werden (Nachrichten, Mail, Messenger), auch ohne Verbindung zum Server.",
+            "{app} Der ProjectForge-Tab (Weltkugel) öffnet sich mit einem Menü, das auf dem Smartphone gut erreichbar ist: Tabs für Favoriten, zuletzt geöffnete Seiten, Hauptmenü mit aufklappbaren Bereichen und Benutzermenü mit dem Erscheinungsbild (hell, dunkel, System; der zuletzt gewählte Tab öffnet sich wieder) und eine Suche über alle Einträge (oder in allen Daten). Ein erneuter Tipp auf die Weltkugel schließt das Menü und zeigt die Seite wie zuvor; noch ein Tipp öffnet das Menü wieder."
           ]
         },
         {
@@ -42,7 +42,7 @@
             "Chat: Auf Touch-Geräten und in der App zeigt ein langer Druck auf eine Reaktion, wer reagiert hat.",
             "Chat: Die Suche listet alle passenden Personen, jeweils mit Buttons für eine Direktnachricht oder einen verschlüsselten Chat.",
             "E-Rechnung: Die E-Mail-Adresse für den Rechnungseingang des Kunden (BT-49) und die des Ansprechpartners (BT-58) sind jetzt getrennte Felder an Rechnung und Konto. Die E-Mail-Adresse des Ansprechpartners des Verkäufers (BT-43) wird aus der Konfiguration vorbelegt und ist an der Rechnung änderbar.",
-            "App: Unter dem QR-Code einer Visitenkarte zeigt eine kleine Liste alle Felder der Karte, auch das Foto, auch ohne Verbindung zum Server.",
+            "{app} Unter dem QR-Code einer Visitenkarte zeigt eine kleine Liste alle Felder der Karte, auch das Foto, auch ohne Verbindung zum Server.",
             "Digitale Visitenkarte: Unter dem QR-Code zeigt eine kleine Liste alle Felder der Karte, auch das Foto.",
             "Der QR-Code einer Visitenkarte wird in höherer Auflösung erzeugt und bleibt so auch groß angezeigt scharf (z. B. in der App)."
           ]
@@ -53,9 +53,9 @@
             "Digitale Visitenkarten: Das Foto wird über eine öffentliche URL mit zufälligem Token verlinkt (ohne Anmeldung, nicht erratbar), auch ohne Gateway; die URL bleibt beim Ersetzen oder Löschen des Bildes gleich und lässt sich mit \"Foto-Link erneuern\" an der Karte widerrufen. Die Basis-URL lässt sich mit `projectforge.businessCard.photoBaseUrl` festlegen. Das Gateway zusammen mit dem Server aktualisieren; Foto-Links früherer QR-Codes funktionieren nicht mehr.",
             "Beim Erzeugen einer E-Rechnung (XRechnung, ZUGFeRD) prüft der E-Rechnungs-Checker jetzt die erzeugte Datei und zeigt das Ergebnis (gültig, Warnungen oder Fehler) in einem Dialog.",
             "Benachrichtigungsregeln: Die Regeltypen kommen von den Modulen und Plugins, die sie bereitstellen. Die Regeltypen eines deaktivierten Plugins (z. B. des CVE-Radars) werden nicht mehr angeboten, und seine Regeln warten, bis das Plugin wieder aktiv ist.",
-            "App: Die Wochenleiste der Zeitberichte folgt beim Wischen dem Finger und rastet auf eine ganze Woche ein; die Woche beginnt mit dem in \"Mein Zugang\" eingestellten ersten Wochentag.",
+            "{app} Die Wochenleiste der Zeitberichte folgt beim Wischen dem Finger und rastet auf eine ganze Woche ein; die Woche beginnt mit dem in \"Mein Zugang\" eingestellten ersten Wochentag.",
             "Benachrichtigungen zu Chat-Nachrichten zeigen den Anfang der Nachricht (in Räumen mit Verfasser) statt ihren Titel zu wiederholen, in der App und in der Benachrichtigungszentrale der Web-Seiten. Nur, solange die Unterhaltung lesbar ist; Mails und Push-Nachrichten behalten ihren allgemeinen Text.",
-            "App: Die Benachrichtigungen (Glocke) und das „Mehr“-Menü schieben sich wie das Menü der Seiten über die Tabs hoch, die Tab-Leiste bleibt darunter sichtbar; Herunterziehen, ein Tipp darüber oder ihr Knopf schließt sie wieder."
+            "{app} Die Benachrichtigungen (Glocke) und das „Mehr“-Menü schieben sich wie das Menü der Seiten über die Tabs hoch, die Tab-Leiste bleibt darunter sichtbar; Herunterziehen, ein Tipp darüber oder ihr Knopf schließt sie wieder."
           ]
         },
         {
@@ -65,7 +65,7 @@
             "Kalender: Die Anfangszeit eines Eintrags kann jetzt auch am oberen Rand gezogen werden, nicht nur die Endzeit.",
             "Benachrichtigungs-Mails (z.B. zu neuen Chat-Nachrichten) enthalten jetzt einen Link zum Chat bzw. zum betroffenen Eintrag.",
             "Benachrichtigungsregeln: Die Menüeinträge von Plugins (z. B. des CVE-Radars) können als Zähler im Menü und als Link der Benachrichtigungen gewählt werden.",
-            "App: Die Zähler an Chat und Benachrichtigungen ziehen sofort nach: Eine Push-Nachricht setzt die Zahl an der Glocke beim Eintreffen, und ein gelesener Chat oder eine erledigte Benachrichtigung in den Seiten nimmt sie gleich weg, nicht erst mit der nächsten Aktualisierung eine Minute später.",
+            "{app} Die Zähler an Chat und Benachrichtigungen ziehen sofort nach: Eine Push-Nachricht setzt die Zahl an der Glocke beim Eintreffen, und ein gelesener Chat oder eine erledigte Benachrichtigung in den Seiten nimmt sie gleich weg, nicht erst mit der nächsten Aktualisierung eine Minute später.",
             "Kalender: Ein aus einem Break geöffneter Zeitbericht behält seine Endezeit, wenn die Startzeit geändert wird."
           ]
         }
@@ -100,7 +100,7 @@
           "type": "improved",
           "items": [
             "Adressbilder: größere Vorschaubilder, damit sie in der Adressliste der App scharf dargestellt werden (vorhandene Vorschaubilder werden erneuert, wenn die Bilder in der Administration erneut verkleinert werden).",
-            "App: Der Chat-Tab zeigt kein Menü der Webversion; ein erneuter Klick auf den Chat-Button führt zurück zur Chat-Startseite."
+            "{app} Der Chat-Tab zeigt kein Menü der Webversion; ein erneuter Klick auf den Chat-Button führt zurück zur Chat-Startseite."
           ]
         },
         {
@@ -138,15 +138,15 @@
         {
           "type": "added",
           "items": [
-            "App: Eine Warnung, wenn die App für den Server zu alt ist oder der Server für die App; „Mein Konto“ markiert veraltete Apps.",
-            "App: Die Anmeldungen mehrerer Server werden gemerkt, und der Server lässt sich im Kontomenü wechseln, ohne sich neu anzumelden; dort wird auch ein weiterer Server hinzugefügt.",
+            "{app} Eine Warnung, wenn die App für den Server zu alt ist oder der Server für die App; „Mein Konto“ markiert veraltete Apps.",
+            "{app} Die Anmeldungen mehrerer Server werden gemerkt, und der Server lässt sich im Kontomenü wechseln, ohne sich neu anzumelden; dort wird auch ein weiterer Server hinzugefügt.",
             "E-Rechnung: neue Felder Bestellnummer (BT-13), Abteilung des Bestellers (BT-56) und Kostenstelle (BT-19) an der Rechnung und am Konto (Abteilung, Kostenstelle); die Beschriftungen im Rechnungs- und Kontoformular nennen den E-Rechnungs-Term (BT-x), in dem das Feld übertragen wird. Die Rechnungsvorlage erhält die Variablen Bestellnummer und Kostenstelle (mit isBestellnummer/isKostenstelle), die Abteilung steht in der Adresse."
           ]
         },
         {
           "type": "improved",
           "items": [
-            "App-Zeitberichte: Das Strukturelement kann im Strukturbaum gewählt werden (Ebene für Ebene, beginnend bei der aktuellen, mit einer Suche in der Ebene und allem darunter), die Suche findet Wörter im ganzen Pfad, der Pfad steht über dem Titel, Kostenträger werden in einer scrollbaren Auswahlbox mit Nummer und Text gewählt, der Zeitberichte-Tab ist nicht mehr als „Under construction“ markiert, und die Vorlagen öffnen sich als Liste statt als Reihe von Chips.",
+            "{app} Zeitberichte: Das Strukturelement kann im Strukturbaum gewählt werden (Ebene für Ebene, beginnend bei der aktuellen, mit einer Suche in der Ebene und allem darunter), die Suche findet Wörter im ganzen Pfad, der Pfad steht über dem Titel, Kostenträger werden in einer scrollbaren Auswahlbox mit Nummer und Text gewählt, der Zeitberichte-Tab ist nicht mehr als „Under construction“ markiert, und die Vorlagen öffnen sich als Liste statt als Reihe von Chips.",
             "Auftrags-E-Mails: übersichtlicher, die Buttons stehen oben, dazu ein Button zu den Auftragsbenachrichtigungen."
           ]
         },
@@ -159,7 +159,7 @@
         {
           "type": "fixed",
           "items": [
-            "App: Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch, auch wenn der Proxy den Browser nach seiner Anmeldung ohne die Parameter des Links zurückschickt."
+            "{app} Das Verbinden der App hinter einem SSO-Proxy klappt schon beim ersten Versuch, auch wenn der Proxy den Browser nach seiner Anmeldung ohne die Parameter des Links zurückschickt."
           ]
         }
       ]
@@ -213,16 +213,16 @@
             {
               "title": "Mobile App: Benachrichtigungen und Push (iPhone)",
               "items": [
-                "Die Benachrichtigungen der Web-Version (Regeln, Chat) werden auch in der App gezeigt: eine Glocke mit der Anzahl, die Liste mit dem Archiv sowie Bestätigen und Erledigen; ein Link öffnet die Seite in der App.",
-                "Eine neue Benachrichtigung weckt die App mit einer Push-Nachricht (APNs, `projectforge.push.apns.*`), ohne ihren Inhalt in der Nachricht. Ohne konfigurierten Schlüssel wird nichts gesendet und die App fragt wie bisher regelmäßig ab."
+                "{app} Die Benachrichtigungen der Web-Version (Regeln, Chat) werden auch in der App gezeigt: eine Glocke mit der Anzahl, die Liste mit dem Archiv sowie Bestätigen und Erledigen; ein Link öffnet die Seite in der App.",
+                "{app} Eine neue Benachrichtigung weckt die App mit einer Push-Nachricht (APNs, `projectforge.push.apns.*`), ohne ihren Inhalt in der Nachricht. Ohne konfigurierten Schlüssel wird nichts gesendet und die App fragt wie bisher regelmäßig ab."
               ]
             },
             {
               "title": "Mobile App (in Vorbereitung): Zeitberichte",
               "items": [
-                "Die App bucht Zeitberichte am Smartphone: eine Wochenleiste mit den Tagessummen, die Buchungen des Tages mit den Lücken dazwischen (ein Tipp bucht eine Lücke), zuletzt verwendete Buchungen und Vorlagen als Ausgangspunkt, eine Suche nach Strukturelementen und die automatisch gewählte Kostenstelle, wenn das Strukturelement nur eine hat. Die Prüfungen des Servers (Überschneidung, geschlossene Strukturelemente, geschützte Zeiträume) gelten wie in der Webversion.",
-                "Ein Timer in der App startet und stoppt eine Buchung auf dem Gerät; beim Stoppen öffnet sich das Formular mit der auf 5 Minuten gerundeten Zeit.",
-                "Die Zeitberichtsliste der Webseiten wechselt auf den Tab der App; das Formular einer einzelnen Buchung bleibt beim Öffnen über einen Link in den Webseiten."
+                "{app} Die App bucht Zeitberichte am Smartphone: eine Wochenleiste mit den Tagessummen, die Buchungen des Tages mit den Lücken dazwischen (ein Tipp bucht eine Lücke), zuletzt verwendete Buchungen und Vorlagen als Ausgangspunkt, eine Suche nach Strukturelementen und die automatisch gewählte Kostenstelle, wenn das Strukturelement nur eine hat. Die Prüfungen des Servers (Überschneidung, geschlossene Strukturelemente, geschützte Zeiträume) gelten wie in der Webversion.",
+                "{app} Ein Timer in der App startet und stoppt eine Buchung auf dem Gerät; beim Stoppen öffnet sich das Formular mit der auf 5 Minuten gerundeten Zeit.",
+                "{app} Die Zeitberichtsliste der Webseiten wechselt auf den Tab der App; das Formular einer einzelnen Buchung bleibt beim Öffnen über einen Link in den Webseiten."
               ]
             },
             {
@@ -235,13 +235,13 @@
             {
               "title": "Mobile App (in Vorbereitung)",
               "items": [
-                "Hinter einem SSO-Proxy (z. B. Authentik als Forward Auth) bekommt die App die Sitzung des Proxys aus der Anmeldung im Browser (`projectforge.app.proxyCookies`); läuft sie ab, meldet sich die App erneut im Browser an.",
-                "Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist.",
-                "Visitenkarten werden in der App gespeichert und auch offline gezeigt; sie werden beim Öffnen des Tabs still und per Button neu geladen und lassen sich in den Apple Wallet übernehmen, wenn der Server dafür konfiguriert ist (iPhone), auch über den Link der Webseite in der App.",
-                "Die App gibt den Seiten mehr Platz: keine Titelleiste über den Webseiten und dem Chat, eine schmale Navigationsleiste nur mit Symbolen und im Querformat eine schmale Navigation an der Seite.",
-                "In der App wechseln die Menüpunkte „Chat“ und „Meine Visitenkarten“ sowie die Glocke der Webseiten auf den eigenen Tab bzw. die eigene Liste der App; in den neuen Einstellungen der App kann jeder davon in der Webversion bleiben.",
-                "Die App hat ein Adressbuch wie die Kontakte-App: Suchfeld, Abschnitte mit Index am Rand, und ein Tipp auf eine Nummer bietet Anruf oder Nachricht an, eine E-Mail-Adresse öffnet das Mailprogramm. Alle Adressen liegen auf dem Gerät (auch offline) und werden still aktualisiert; Bearbeiten öffnet das Formular der Webseiten, und die Adressliste der Webseiten wechselt auf den Tab der App.",
-                "Die eigenen Seiten der App folgen dem in den Webseiten gewählten hellen oder dunklen Erscheinungsbild (auch offline), und die Webseiten blitzen beim Laden nicht mehr weiß auf."
+                "{app} Hinter einem SSO-Proxy (z. B. Authentik als Forward Auth) bekommt die App die Sitzung des Proxys aus der Anmeldung im Browser (`projectforge.app.proxyCookies`); läuft sie ab, meldet sich die App erneut im Browser an.",
+                "{app} Die Anmeldung der App bietet die zuletzt benutzten Server an, und das Abmelden klappt auch, wenn der Server nicht erreichbar ist.",
+                "{app} Visitenkarten werden in der App gespeichert und auch offline gezeigt; sie werden beim Öffnen des Tabs still und per Button neu geladen und lassen sich in den Apple Wallet übernehmen, wenn der Server dafür konfiguriert ist (iPhone), auch über den Link der Webseite in der App.",
+                "{app} Die App gibt den Seiten mehr Platz: keine Titelleiste über den Webseiten und dem Chat, eine schmale Navigationsleiste nur mit Symbolen und im Querformat eine schmale Navigation an der Seite.",
+                "{app} In der App wechseln die Menüpunkte „Chat“ und „Meine Visitenkarten“ sowie die Glocke der Webseiten auf den eigenen Tab bzw. die eigene Liste der App; in den neuen Einstellungen der App kann jeder davon in der Webversion bleiben.",
+                "{app} Die App hat ein Adressbuch wie die Kontakte-App: Suchfeld, Abschnitte mit Index am Rand, und ein Tipp auf eine Nummer bietet Anruf oder Nachricht an, eine E-Mail-Adresse öffnet das Mailprogramm. Alle Adressen liegen auf dem Gerät (auch offline) und werden still aktualisiert; Bearbeiten öffnet das Formular der Webseiten, und die Adressliste der Webseiten wechselt auf den Tab der App.",
+                "{app} Die eigenen Seiten der App folgen dem in den Webseiten gewählten hellen oder dunklen Erscheinungsbild (auch offline), und die Webseiten blitzen beim Laden nicht mehr weiß auf."
               ]
             }
           ]
@@ -328,9 +328,9 @@
             {
               "title": "Mobile App (in Vorbereitung)",
               "items": [
-                "Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz.",
-                "Alle anderen Seiten von ProjectForge öffnen sich in der App, ohne zweite Anmeldung. Mit dem Abmelden der App enden auch sie.",
-                "Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet."
+                "{app} Die ProjectForge-App für iOS und Android meldet sich über den Browser an, mit Passwort und zweitem Faktor (WebAuthn oder Code) wie gewohnt; vor dem Verbinden einer App fragt der Browser noch einmal nach. Die erste Version zeigt die eigenen digitalen Visitenkarten, auch ohne Netz.",
+                "{app} Alle anderen Seiten von ProjectForge öffnen sich in der App, ohne zweite Anmeldung. Mit dem Abmelden der App enden auch sie.",
+                "{app} Mein Zugang: die verbundenen Apps mit ihrer letzten Nutzung, jede kann abgemeldet werden. Eine Passwortänderung meldet alle Apps ab; eine 90 Tage nicht genutzte App wird automatisch abgemeldet."
               ]
             }
           ]
