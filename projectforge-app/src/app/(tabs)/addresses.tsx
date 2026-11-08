@@ -43,7 +43,7 @@ export default function AddressesTab() {
       <AddressesScreen
         onShow={(id) => router.push({ pathname: '/address/[id]', params: { id: String(id) } })}
         onCreate={() => {
-          webTabs.open('pages', '/next/address/new/edit');
+          webTabs.open('pages', '/next/address/new');
           router.navigate('/pages');
         }}
       />
