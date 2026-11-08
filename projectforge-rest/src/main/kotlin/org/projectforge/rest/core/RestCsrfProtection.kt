@@ -26,6 +26,8 @@ package org.projectforge.rest.core
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.configuration.PFSpringConfiguration
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
@@ -65,6 +67,14 @@ private val log = KotlinLogging.logger {}
 open class RestCsrfProtection {
     @Autowired
     private lateinit var sessionCsrfService: SessionCsrfService
+
+    @Autowired
+    private lateinit var domainService: DomainService
+
+    @PostConstruct
+    private fun init() {
+        configuredAuthority = domainService.domain?.let { authorityOf(it) }?.let { normalizeAuthority(it) }
+    }
 
     /**
      * @return true, if the request may proceed. If false is returned, the error response has already been
@@ -189,8 +199,11 @@ open class RestCsrfProtection {
          * strict-origin-when-cross-origin, see SecurityHeaderFilter); a foreign page can suppress the `Referer`, but
          * not fake it.
          *
-         * Own hosts: the `Host` header, `X-Forwarded-Host` (reverse proxy) and the server name. The scheme is ignored,
-         * TLS may end at the proxy. `Origin: null` (sandboxed frame, opaque origin) is foreign.
+         * Own hosts: the `Host` header, `X-Forwarded-Host` (reverse proxy), the server name and the configured
+         * `projectforge.domain`. The latter matters for plain http, where browsers send no `Sec-Fetch-Site` at all
+         * (secure contexts only), behind a proxy that rewrites `Host` without `X-Forwarded-Host` (nginx without
+         * `proxy_set_header Host`): every POST would be refused otherwise. The scheme is ignored, TLS may end at the
+         * proxy. `Origin: null` (sandboxed frame, opaque origin) is foreign.
          */
         private fun isOwnOrigin(request: HttpServletRequest): Boolean {
             val source = request.getHeader("Origin") ?: request.getHeader("Referer") ?: return true
@@ -199,9 +212,13 @@ open class RestCsrfProtection {
                 request.getHeader("Host"),
                 request.getHeader("X-Forwarded-Host")?.substringBefore(',')?.trim(),
                 request.serverName?.let { if (request.serverPort > 0) "$it:${request.serverPort}" else it },
-            ).map { normalizeAuthority(it) }
+            ).map { normalizeAuthority(it) } + listOfNotNull(configuredAuthority)
             return normalizeAuthority(sourceAuthority) in ownAuthorities
         }
+
+        /** Authority of `projectforge.domain`, normalized; set at startup. */
+        @Volatile
+        internal var configuredAuthority: String? = null
 
         /** The `host[:port]` of an absolute url, or null (e.g. for `null`). */
         private fun authorityOf(url: String): String? {

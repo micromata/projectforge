@@ -110,6 +110,26 @@ class RestCsrfProtectionTest {
     }
 
     /**
+     * Plain http (no `Sec-Fetch-Site` at all) behind a proxy that rewrites `Host` and sends no `X-Forwarded-Host`:
+     * the configured `projectforge.domain` is the own host, or every POST of the app would be refused.
+     */
+    @Test
+    fun configuredDomainIsOwnHostTest() {
+        val request = mockRequest(null, origin = "http://pf.intranet", host = "localhost:8080")
+        Assertions.assertFalse(RestCsrfProtection.isSameSiteRequest(request), "Unknown without the configured domain.")
+        try {
+            RestCsrfProtection.configuredAuthority = "pf.intranet"
+            Assertions.assertTrue(RestCsrfProtection.isSameSiteRequest(request), "The configured domain is own.")
+            Assertions.assertFalse(
+                RestCsrfProtection.isSameSiteRequest(mockRequest(null, origin = "http://evil.intranet", host = "localhost:8080")),
+                "Any other host is still foreign.",
+            )
+        } finally {
+            RestCsrfProtection.configuredAuthority = null
+        }
+    }
+
+    /**
      * The token is checked for every state changing call of a session, whatever the client claims to be: a
      * request without the `X-PF-Frontend` header used to skip the check.
      */
