@@ -14,7 +14,7 @@
     // Gallery in document order: images linked to an image file, plus unlinked AsciiDoc and hero screenshots.
     var items = [];
     main.querySelectorAll('img').forEach(function (img) {
-        if (!img.alt || img.closest('.pf-flame, header, footer')) {
+        if (!img.alt || img.closest('.pf-logo, header, footer')) {
             return;
         }
         var link = img.closest('a[href]');

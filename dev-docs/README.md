@@ -22,4 +22,5 @@ The documentation for users and administrators is on the website (`site/`, https
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
 | [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation), CVE radar (in implementation)               |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
+| [logo/](logo/README.md)                               | Assets    | Master SVGs of the ProjectForge logo and the script rendering every logo asset        |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |

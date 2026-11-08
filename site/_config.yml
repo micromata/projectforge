@@ -26,7 +26,7 @@ permalink:          /:title/
 url:                https://projectforge.org
 
 # Site logo # e.g. logo.png, upload logo image file to /uploads/ folder
-logo:               logo_projectforge.gif
+logo:               projectforge-logo.png
 
 tipue_search:
   include:

@@ -41,9 +41,11 @@ by hand; app only texts go into `assets/i18n/app.<locale>.json`. Keys are always
 
 ## App icon
 
-`assets/icon.png` (1024 × 1024, opaque) is the ProjectForge wordmark with the flame, rendered from the parts of the
-website logo (`site/_includes/logo.html`: Archivo Narrow bold italic, `projectforge-flame.svg`); Expo scales the
-platform icons from it.
+`assets/icon.png` (1024 × 1024, opaque) is the flame mark of the ProjectForge logo on the dark plate, full-bleed (the
+platforms round the corners), `assets/splash-icon.png` the flames on transparent. On Android the launcher masks the icon
+itself: `assets/adaptive-icon.png` holds the flames smaller, inside the safe zone, on the plate colour of
+`android.adaptiveIcon.backgroundColor`. All are rendered from the master SVGs by `dev-docs/logo/render-logos.py`, never
+edited by hand; Expo scales the platform icons from them.
 
 ## Release
 

@@ -86,14 +86,16 @@ open class PassKitService {
         val files = linkedMapOf<String, ByteArray>()
         val customLogo = loadCustomLogo()
         files["pass.json"] = passJson(card, vCard, translate, customLogo != null)
-        val logo = customLogo ?: loadDefaultLogo()
+        val logo = customLogo ?: loadImageResource("default-logo.png")
         // The logo box of a generic pass is 160 x 50 points.
         files["logo.png"] = png(scale(logo, 160, 50))
         files["logo@2x.png"] = png(scale(logo, 320, 100))
         files["logo@3x.png"] = png(scale(logo, 480, 150))
-        files["icon.png"] = png(square(logo, 58))
-        files["icon@2x.png"] = png(square(logo, 116))
-        files["icon@3x.png"] = png(square(logo, 174))
+        // The bundled wordmark would be unreadable on the small square: the flames alone.
+        val icon = customLogo ?: loadImageResource("default-icon.png")
+        files["icon.png"] = png(square(icon, 58))
+        files["icon@2x.png"] = png(square(icon, 116))
+        files["icon@3x.png"] = png(square(icon, 174))
         photo?.let { bytes ->
             readImage(bytes)?.let { image ->
                 files["thumbnail.png"] = png(scale(image, 180, 180))
@@ -228,10 +230,10 @@ open class PassKitService {
         return readImage(file.readBytes())
     }
 
-    private fun loadDefaultLogo(): BufferedImage {
-        val bytes = javaClass.getResourceAsStream("/images/default-logo.png")?.use { it.readBytes() }
-            ?: throw IllegalStateException("No logo for the Wallet pass.")
-        return readImage(bytes) ?: throw IllegalStateException("The bundled Wallet logo is not an image.")
+    private fun loadImageResource(name: String): BufferedImage {
+        val bytes = javaClass.getResourceAsStream("/images/$name")?.use { it.readBytes() }
+            ?: throw IllegalStateException("No $name for the Wallet pass.")
+        return readImage(bytes) ?: throw IllegalStateException("The bundled Wallet image $name is not an image.")
     }
 
     private fun readImage(bytes: ByteArray): BufferedImage? {
