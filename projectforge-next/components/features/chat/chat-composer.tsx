@@ -37,14 +37,26 @@ export function ChatComposer({
   threadRootId,
   onSent,
   autoFocus,
+  focusOnOpen,
 }: {
   conversation: ChatConversation;
   threadRootId: number | null;
   onSent: (message: ChatMessage) => void;
   autoFocus?: boolean;
+  /** Like [autoFocus], but not on touch devices: their keyboard would cover the messages right away. */
+  focusOnOpen?: boolean;
 }) {
   const t = useTranslations();
   const editorRef = useRef<ChatEditorHandle>(null);
+  // Decided once, when the editor is created (see useCoarsePointer for the touch detection).
+  const [focusHere] = useState(
+    () =>
+      autoFocus === true ||
+      (focusOnOpen === true &&
+        typeof window !== "undefined" &&
+        !window.matchMedia("(any-pointer: coarse)").matches &&
+        navigator.maxTouchPoints === 0)
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const draft = useChatDraft(conversation.id, threadRootId, conversation.me.id);
   const [html, setHtml] = useState(draft.initial ?? "");
@@ -197,7 +209,7 @@ export function ChatComposer({
               initialHtml={draft.initial}
               placeholder={placeholder}
               ariaLabel={placeholder}
-              autoFocus={autoFocus}
+              autoFocus={focusHere}
               onSubmit={submit}
               onFiles={pending.add}
               onChange={(value) => {

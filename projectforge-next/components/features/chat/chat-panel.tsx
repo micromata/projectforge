@@ -39,6 +39,7 @@ export function ChatPanel({
   threadRootId: initialThreadRootId = null,
   headerSlot = null,
   showNotice = false,
+  focusComposer = false,
   className,
 }: {
   conversationId: number;
@@ -51,6 +52,8 @@ export function ChatPanel({
    * above its description).
    */
   showNotice?: boolean;
+  /** Puts the cursor into the composer when opened (not when opened into a thread, which focuses its own composer). */
+  focusComposer?: boolean;
   className?: string;
 }) {
   const t = useTranslations();
@@ -246,6 +249,7 @@ export function ChatPanel({
           <ChatComposer
             conversation={conversation}
             threadRootId={null}
+            focusOnOpen={focusComposer && initialThreadRootId == null}
             onSent={(message) => {
               resume(); // Writing, the conversation is read again.
               applyChatChanges(queryClient, conversationId, [message]);
