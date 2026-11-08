@@ -30,7 +30,8 @@
 ### In the backup script, no change to ProjectForge
 `pforgebackup.sh` (adminguide, "Backup script") encrypts directly, without a plaintext intermediate file:
 
-    pg_dump -U projectforge -N pf_files | gzip | age -R $RECIPIENTS -o $BACKUPFILE.gz.age
+    pg_dump -U projectforge --data-only -Fc -Z 1 $CVERADAR_TABLES | age -R $RECIPIENTS -o $CVERADAR_BACKUPFILE.age
+    pg_dump -U projectforge -N pf_files $CVERADAR_EXCLUDE | gzip | age -R $RECIPIENTS -o $BACKUPFILE.gz.age
     pg_dump -U projectforge -n pf_files -Fc -Z 1 | age -R $RECIPIENTS -o $FILES_BACKUPFILE.age
 
 - Use `set -o pipefail` so a failing pg_dump aborts the script. Write to a `.tmp` file first and rename afterwards.
@@ -52,6 +53,7 @@
 ## Restore
     age -d -i <private-key-file> projectforge_2026-10-11_02-00.sql.gz.age | gunzip | psql …
     age -d -i <private-key-file> projectforge_files_….dump.age > files.dump && pg_restore -j 4 … files.dump
+    age -d -i <private-key-file> projectforge_cveradar_….dump.age | pg_restore --data-only -d projectforge …
 
 - Update the restore documentation in the adminguide ("Restoring a backup") and the Docker documentation.
 - Do a test restore with the emergency key once per quarter, so a lost key is noticed while plaintext backups still

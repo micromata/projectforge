@@ -20,7 +20,6 @@ The documentation for users and administrators is on the website (`site/`, https
 | [app-api-deprecations.md](app-api-deprecations.md)    | Reference | Fields and endpoints the published app still reads, kept for it; when they can go     |
 | [mobile-app.md](mobile-app.md)                        | Reference | Mobile app (React Native): app login via browser + PKCE, web session, SSO proxy, push, compatibility |
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
-| [cve-radar-db-reset.md](cve-radar-db-reset.md)        | Temporary | CVE-Radar: drop the plugin tables, restore the imported CVEs; remove once released    |
 | [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation), CVE radar (in implementation)               |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |

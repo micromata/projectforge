@@ -244,7 +244,7 @@ class EuvdImportService {
             existing.cveId = item.cveId
         }
         copySupplement(item, existing)
-        if (isFromEuvd(existing)) {
+        if (isFromEuvd(existing) || CvrVulnerabilityDO.lacksDetails(existing)) {
             copyDetails(item, existing)
         } else if (existing.cvssScore == null) {
             copyRating(item, existing) // Not rated by the NVD (yet).
