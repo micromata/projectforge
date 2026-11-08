@@ -1,6 +1,10 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
-import { filterElements, reopenPill } from "./fixtures/filter-pill";
+import {
+  filterElements,
+  openPinnedPill,
+  pinnedGroupPill,
+} from "./fixtures/filter-pill";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import {
   INVOICE_ENTITY,
@@ -203,6 +207,8 @@ for (const list of LISTS) {
         });
         await expect(pill).toContainText(first.displayName);
         await expect(pill).toContainText(second.displayName);
+        // Split off the combined pill, which now lists only the other fields.
+        await expect(pinnedGroupPill(page, label)).toHaveCount(0);
       });
     }
 
@@ -432,8 +438,8 @@ async function openFilter(
   expect(element?.valuesUrl).toBeTruthy();
   expect(element?.defaultFilter).toBe(true);
   const label = element!.label!;
-  // Pinned, so the row shows the pill before anything is ticked.
-  await reopenPill(page, t, label);
+  // Pinned, so the row shows the pill before anything is ticked — on its own or in the combined one.
+  await openPinnedPill(page, t, label);
   return label;
 }
 

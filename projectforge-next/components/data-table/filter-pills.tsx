@@ -24,6 +24,11 @@ import {
   HISTORY_FILTER_GROUP_ID,
 } from "./history-filter";
 import { HistoryFilterPill } from "./history-filter-pill";
+import {
+  foldedPinnedFilters,
+  isPinnedFilterGroupMember,
+} from "./pinned-filter-group";
+import { PinnedFilterGroupPill } from "./pinned-filter-group-pill";
 
 interface FilterPillsProps {
   /** Field definitions, for labels and for resolving LIST values to their text. */
@@ -49,7 +54,8 @@ interface FilterPillsProps {
  * picks another field — or opens every field at once (see [FilterFieldPicker]).
  *
  * The three change-history fields share one pill under the pseudo id `historyFilter`; see
- * [historyFilterGroupOf].
+ * [historyFilterGroupOf]. The pinned business unit, customer and project checklists share one while empty;
+ * see [foldedPinnedFilters].
  */
 export function FilterPills({
   elements,
@@ -79,15 +85,27 @@ export function FilterPills({
     history != null &&
     (historyFilterActive(values) || pendingId === HISTORY_FILTER_GROUP_ID);
 
+  const own = withoutHistoryFilters(elements);
+  // Folded row: nothing to fold, it shows the pills with a value only.
+  const folded = collapsed
+    ? []
+    : foldedPinnedFilters(own, values, [pendingId, openId]);
+
   // Derived, and in backend order, so pills don't jump around as values come and go. Folded, the ones with a
   // value only (see FilterPillsCollapsed).
-  const shown = withoutHistoryFilters(elements).filter((element) =>
-    collapsed
-      ? element.id in values
-      : element.defaultFilter ||
-        element.id in values ||
-        element.id === pendingId ||
-        keptBooleanIds.has(element.id)
+  const shown = own.filter(
+    (element) =>
+      !folded.includes(element) &&
+      (collapsed
+        ? element.id in values
+        : element.defaultFilter ||
+          element.id in values ||
+          element.id === pendingId ||
+          keptBooleanIds.has(element.id))
+  );
+  // The shared pill of the folded ones takes the place of the first of them.
+  const row = own.filter(
+    (element) => element === folded[0] || shown.includes(element)
   );
 
   function close() {
@@ -139,29 +157,45 @@ export function FilterPills({
                 }}
               />
             )}
-            {shown.map((element) => (
-              <FilterPill
-                key={element.id}
-                element={element}
-                value={values[element.id]}
-                open={openId === element.id}
-                onOpenChange={(open) =>
-                  open ? setOpenId(element.id) : close()
-                }
-                removable={!element.defaultFilter}
-                onSave={(value) => {
-                  // A boolean toggled here stays on the row even once emptied (see keptBooleanIds).
-                  if (element.filterType === "BOOLEAN") keepBoolean(element.id);
-                  onChange(withFilterValue(values, element.id, value));
-                }}
-                onDelete={() => {
-                  // The pill's × is the real removal: drop the value and stop keeping the empty pill.
-                  dropBoolean(element.id);
-                  onChange(withFilterValue(values, element.id, undefined));
-                  close();
-                }}
-              />
-            ))}
+            {row.map((element) =>
+              element === folded[0] ? (
+                <PinnedFilterGroupPill
+                  key={element.id}
+                  folded={folded}
+                  onSelect={(id) => {
+                    setPendingId(id);
+                    setOpenId(id);
+                  }}
+                />
+              ) : (
+                <FilterPill
+                  key={element.id}
+                  element={element}
+                  value={values[element.id]}
+                  open={openId === element.id}
+                  onOpenChange={(open) =>
+                    open ? setOpenId(element.id) : close()
+                  }
+                  // A filled member of the pinned group may be removed: emptied, it folds back.
+                  removable={
+                    !element.defaultFilter ||
+                    (isPinnedFilterGroupMember(element) && element.id in values)
+                  }
+                  onSave={(value) => {
+                    // A boolean toggled here stays on the row even once emptied (see keptBooleanIds).
+                    if (element.filterType === "BOOLEAN")
+                      keepBoolean(element.id);
+                    onChange(withFilterValue(values, element.id, value));
+                  }}
+                  onDelete={() => {
+                    // The pill's × is the real removal: drop the value and stop keeping the empty pill.
+                    dropBoolean(element.id);
+                    onChange(withFilterValue(values, element.id, undefined));
+                    close();
+                  }}
+                />
+              )
+            )}
             {!collapsed && (
               <FilterFieldPicker
                 entries={[
@@ -180,7 +214,7 @@ export function FilterPills({
                 ]}
                 activeIds={[
                   ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),
-                  ...shown.map((element) => element.id),
+                  ...[...shown, ...folded].map((element) => element.id),
                 ]}
                 onSelect={(id) => {
                   // A boolean has one meaningful state; picking it is the same as ticking it, so it
