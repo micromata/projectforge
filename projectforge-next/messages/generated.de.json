@@ -1008,6 +1008,11 @@
     "snapshots": "Entwicklungs-Snapshots",
     "tag": "Tag",
     "title": "Changelog",
+    "toc": {
+      "hide": "Inhaltsverzeichnis ausblenden",
+      "show": "Inhaltsverzeichnis einblenden",
+      "title": "Auf dieser Seite"
+    },
     "type": {
       "added": "Neu",
       "admin": "Administration",

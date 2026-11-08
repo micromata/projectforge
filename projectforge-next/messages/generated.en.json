@@ -1008,6 +1008,11 @@
     "snapshots": "Development snapshots",
     "tag": "Tag",
     "title": "Changelog",
+    "toc": {
+      "hide": "Hide table of contents",
+      "show": "Show table of contents",
+      "title": "On this page"
+    },
     "type": {
       "added": "Added",
       "admin": "Admin",

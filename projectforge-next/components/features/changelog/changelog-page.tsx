@@ -13,6 +13,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { CollapsibleTrigger } from "@/components/shared/copyable-collapsible-trigger";
+import { ChangelogTocColumn, ChangelogTocSheet } from "./changelog-toc-panel";
+import { majorAnchor, snapshotsAnchor } from "./changelog-toc";
 import { MatchStepper } from "./match-stepper";
 import {
   ReleaseEntry,
@@ -121,6 +123,17 @@ export function ChangelogPage() {
       return next;
     });
 
+  // A link of the table of contents: unfolds the snapshots it leads to, then scrolls there once they are rendered.
+  const navigate = (id: string) => {
+    const major = changelog.groups.find((g) => snapshotsAnchor(g.major) === id);
+    if (major) toggle(snapshotsKey(major.major), true);
+    window.requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ block: "start" });
+      window.history.replaceState(null, "", `#${id}`);
+    });
+  };
+  const toc = { unreleased, groups, container: results, onNavigate: navigate };
+
   const entry = (release: ChangelogRelease, head = false) => (
     <ReleaseEntry
       key={release.id}
@@ -163,6 +176,7 @@ export function ChangelogPage() {
         <Button variant="outline" size="sm" onClick={() => setOpen(new Set())}>
           {t("changelog.collapseAll")}
         </Button>
+        <ChangelogTocSheet {...toc} />
         <a
           href={WEBSITE_CHANGELOG_URL}
           target="_blank"
@@ -172,37 +186,45 @@ export function ChangelogPage() {
           {t("changelog.website")}
         </a>
       </PageTitleRow>
-      <div
-        ref={results}
-        className="flex max-w-4xl flex-col gap-6 px-4 pb-6 pt-2 text-[13px] font-normal leading-relaxed"
-      >
-        {unreleased && entry(unreleased)}
-        {groups.map((group) => (
-          <section key={group.major} className="flex flex-col gap-2">
-            <h2 className="text-base font-semibold">
-              ProjectForge {group.major}
-            </h2>
-            {group.head && group.updates.length > 0 && (
-              <MajorLink major={group.major} head={group.head} />
-            )}
-            {group.updates.map((release) => entry(release))}
-            {group.head && entry(group.head, true)}
-            {group.snapshots.length > 0 && (
-              <Snapshots
-                count={group.snapshots.length}
-                open={open.has(snapshotsKey(group.major))}
-                onOpenChange={(isOpen) =>
-                  toggle(snapshotsKey(group.major), isOpen)
-                }
-              >
-                {group.snapshots.map((release) => entry(release))}
-              </Snapshots>
-            )}
-          </section>
-        ))}
-        {!unreleased && groups.length === 0 && (
-          <p className="text-muted-foreground">{t("changelog.noMatches")}</p>
-        )}
+      <div className="flex gap-6 pr-4">
+        <div
+          ref={results}
+          className="flex min-w-0 max-w-4xl flex-1 flex-col gap-6 px-4 pb-6 pt-2 text-[13px] font-normal leading-relaxed"
+        >
+          {unreleased && entry(unreleased)}
+          {groups.map((group) => (
+            <section
+              key={group.major}
+              id={majorAnchor(group.major)}
+              className="flex scroll-mt-4 flex-col gap-2"
+            >
+              <h2 className="text-base font-semibold">
+                ProjectForge {group.major}
+              </h2>
+              {group.head && group.updates.length > 0 && (
+                <MajorLink major={group.major} head={group.head} />
+              )}
+              {group.updates.map((release) => entry(release))}
+              {group.head && entry(group.head, true)}
+              {group.snapshots.length > 0 && (
+                <Snapshots
+                  id={snapshotsAnchor(group.major)}
+                  count={group.snapshots.length}
+                  open={open.has(snapshotsKey(group.major))}
+                  onOpenChange={(isOpen) =>
+                    toggle(snapshotsKey(group.major), isOpen)
+                  }
+                >
+                  {group.snapshots.map((release) => entry(release))}
+                </Snapshots>
+              )}
+            </section>
+          ))}
+          {!unreleased && groups.length === 0 && (
+            <p className="text-muted-foreground">{t("changelog.noMatches")}</p>
+          )}
+        </div>
+        <ChangelogTocColumn {...toc} />
       </div>
     </PageShell>
   );
@@ -226,11 +248,13 @@ function MajorLink({ major, head }: { major: string; head: ChangelogRelease }) {
 
 /** The snapshots of develop leading up to a major, folded at first. */
 function Snapshots({
+  id,
   count,
   open,
   onOpenChange,
   children,
 }: {
+  id: string;
   count: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -238,7 +262,12 @@ function Snapshots({
 }) {
   const t = useTranslations();
   return (
-    <Collapsible open={open} onOpenChange={onOpenChange}>
+    <Collapsible
+      id={id}
+      className="scroll-mt-4"
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <CollapsibleTrigger className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:underline">
         <HugeiconsIcon
           icon={open ? ArrowDown01Icon : ArrowRight01Icon}
