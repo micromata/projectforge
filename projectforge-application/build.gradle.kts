@@ -272,6 +272,22 @@ tasks.named("processResources") {
     dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")
 }
 
+// Optional JVM and JVM args of the app run by bootRun only (not Gradle's own JVM), e.g. a JetBrains Runtime with
+// HotswapAgent (bin/pfDev.sh run): a toolchain of that version and vendor, found by Gradle's toolchain detection
+// (org.gradle.java.installations.paths). The JVM args are separated by newlines, so paths may contain spaces.
+tasks.named<BootRun>("bootRun") {
+    providers.gradleProperty("pfBootRunJavaVersion").orNull?.let { version ->
+        val vendorName = providers.gradleProperty("pfBootRunJavaVendor").orNull
+        javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(version))
+            vendorName?.let { vendor.set(JvmVendorSpec.matching(it)) }
+        })
+    }
+    providers.gradleProperty("pfBootRunJvmArgs").orNull?.let { args ->
+        jvmArgs(args.lines().filter { it.isNotBlank() })
+    }
+}
+
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-next:nextAppJar")
     dependsOn(tasks.named("jar")) // Ensure the plain JAR is built before bootJar

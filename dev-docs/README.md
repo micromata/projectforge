@@ -24,4 +24,5 @@ The documentation for users and administrators is on the website (`site/`, https
 | [requirements/PF-CVR_Dependency-Track_Evaluation.md](requirements/PF-CVR_Dependency-Track_Evaluation.md) | Proposal | CVE radar: Dependency-Track as detection engine, PF keeps assets and workflow; not decided |
 | [requirements/PF-CVR_Dependency-Track_Migration.md](requirements/PF-CVR_Dependency-Track_Migration.md) | Plan | CVE radar: migration to Dependency-Track in phases, spike as go/no-go; remove once done |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
+| [logo/](logo/README.md)                               | Assets    | Master SVGs of the ProjectForge logo and the script rendering every logo asset        |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |
