@@ -28,7 +28,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CompatibilityIssue } from '../../core/compat/compatibility';
-import { RailSide } from '../../core/settings/appSettings';
+import { APP_TABS, appSettings, RailSide } from '../../core/settings/appSettings';
 import { t } from '../../core/i18n/translations';
 import { useOtherServers } from '../../core/status/otherServers';
 import { chatEnabled, userStatus, useUserStatus } from '../../core/status/userStatus';
@@ -95,6 +95,12 @@ export function TabBar({
   useEffect(() => {
     if (chatOff && cardsKey) navigateToTab(cardsKey);
   }, [chatOff, cardsKey, navigateToTab]);
+
+  // The app starts with the tab shown last, also if it was reached by a link or a push.
+  useEffect(() => {
+    const tab = APP_TABS.find((it) => it === focused);
+    if (tab) appSettings.setLastTab(tab);
+  }, [focused]);
 
   const routes = state.routes.filter(
     (route) =>

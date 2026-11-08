@@ -81,6 +81,8 @@ interface Props {
    */
   onNativePage?: (page: NativePage) => boolean;
   onStateChange?: (state: WebScreenState) => void;
+  /** A page of the server is shown (also by a client side navigation of next): its path with query and fragment. */
+  onPage?: (path: string) => void;
 }
 
 /**
@@ -114,7 +116,7 @@ const IOS_CANCELLED = -999;
  * signal of next that its badges changed (`{pf: 'status'}`, no data: the user status is loaded again).
  */
 export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
-  { initialPath, active, onNativePage, onStateChange },
+  { initialPath, active, onNativePage, onStateChange, onPage },
   ref,
 ) {
   const colors = useColors();
@@ -465,6 +467,11 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       }
     }
     canGoBack.current = state.canGoBack;
+    // Not the login page (new web session) and not a page shown in a tab of its own.
+    if (navigation.isSameOrigin(url) && !navigation.isLoginPage(url) && navigation.nativePage(url) == null) {
+      const page = parseUrl(url);
+      if (page) onPage?.(`${page.pathname}${page.search}${page.hash}`);
+    }
     onStateChange?.({
       canGoBack: state.canGoBack,
       canGoForward: state.canGoForward,

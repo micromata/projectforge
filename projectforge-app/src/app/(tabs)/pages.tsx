@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 
 import { useIsFocused, useRouter } from 'expo-router';
@@ -31,6 +31,7 @@ import { appSettings, opensInApp } from '../../core/settings/appSettings';
 import { chatEnabled, userStatus } from '../../core/status/userStatus';
 import { tabSheets } from '../../core/ui/tabSheets';
 import { WebMenu } from '../../features/web/WebMenu';
+import { lastPage } from '../../features/web/lastPage';
 import { WebScreen } from '../../features/web/WebScreen';
 import { NativePage, WebNavigation } from '../../features/web/webNavigation';
 import { useWebMenuOpen, webTabs } from '../../features/web/webTabs';
@@ -38,6 +39,7 @@ import { useWebMenuOpen, webTabs } from '../../features/web/webTabs';
 /**
  * The pages of the server (next, and the legacy pages it links to), with the menu over them when the tab is chosen
  * (the globe of the tab bar opens and closes it). The page loads below the menu, closing it shows the page as it was.
+ * The page shown last is the start page the next time (lastPage).
  */
 export default function PagesTab() {
   const router = useRouter();
@@ -47,6 +49,17 @@ export default function PagesTab() {
     (handle: Parameters<typeof webTabs.register>[1]) => webTabs.register('pages', handle),
     [],
   );
+  // A page asked for (a push, a link), else the one shown last, shown without the menu (the globe opens it).
+  const [start] = useState(() => {
+    const pending = webTabs.takePending('pages');
+    return pending != null ? { path: pending, restored: false } : { path: lastPage.restore(), restored: true };
+  });
+  useEffect(() => {
+    // After the reset of the login's tabs, which runs after this (in an effect of the parent) and opens the menu.
+    if (start.restored && start.path != null) {
+      webTabs.afterReset(authController.getState().generation, () => webTabs.setMenu(false));
+    }
+  }, [start]);
   const serverUrl = authController.getState().session?.serverUrl;
   const navigation = useMemo(() => (serverUrl ? new WebNavigation(serverUrl) : null), [serverUrl]);
 
@@ -88,10 +101,11 @@ export default function PagesTab() {
     <View style={styles.fill}>
       <WebScreen
         ref={register}
-        initialPath={webTabs.takePending('pages')}
+        initialPath={start.path ?? undefined}
         // Under the menu as well: it loads the page (and renews a login refused by the SSO proxy) meanwhile.
         active={focused}
         onStateChange={(state) => webTabs.setState('pages', state)}
+        onPage={lastPage.remember}
         onNativePage={showNative}
       />
       <WebMenu open={menuOpen} active={focused} onOpen={openEntry} onClose={closeMenu} />

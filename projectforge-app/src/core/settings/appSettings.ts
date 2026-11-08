@@ -35,21 +35,32 @@ export interface AppSettings {
   webVersion: NativePage[];
   /** The side of the navigation in landscape: left (default) or right, e.g. for the thumb of the right hand. */
   railSide: RailSide;
+  /** The tab the app starts with: the one used last on this device. */
+  lastTab: AppTab;
 }
 
 export type RailSide = 'left' | 'right';
 
-const DEFAULTS: AppSettings = { webVersion: [], railSide: 'left' };
+/** The tabs of the logged-in app (the routes of `src/app/(tabs)/`). */
+export const APP_TABS = ['cards', 'addresses', 'timesheets', 'pages', 'chat'] as const;
+export type AppTab = (typeof APP_TABS)[number];
+
+const DEFAULTS: AppSettings = { webVersion: [], railSide: 'left', lastTab: 'cards' };
 
 /** True if a link of the web pages to [page] switches to the tab of the app. */
 export const opensInApp = (settings: AppSettings, page: NativePage) => !settings.webVersion.includes(page);
 
 /** The settings, parsed defensively: broken or of an older version, the defaults. */
 export function settingsFromJson(json: unknown): AppSettings {
-  const { webVersion: pages, railSide } = (json as { webVersion?: unknown; railSide?: unknown } | null) ?? {};
+  const {
+    webVersion: pages,
+    railSide,
+    lastTab,
+  } = (json as { webVersion?: unknown; railSide?: unknown; lastTab?: unknown } | null) ?? {};
   return {
     webVersion: Array.isArray(pages) ? pages.filter((it): it is NativePage => NATIVE_PAGES.includes(it)) : [],
     railSide: railSide === 'right' ? 'right' : 'left',
+    lastTab: APP_TABS.find((it) => it === lastTab) ?? 'cards',
   };
 }
 
@@ -84,6 +95,10 @@ class AppSettingsStore {
 
   setRailSide(railSide: RailSide) {
     this.save({ ...this.settings, railSide });
+  }
+
+  setLastTab(lastTab: AppTab) {
+    if (lastTab !== this.settings.lastTab) this.save({ ...this.settings, lastTab });
   }
 
   private save(settings: AppSettings) {
