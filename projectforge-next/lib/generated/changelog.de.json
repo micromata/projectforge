@@ -6,11 +6,17 @@
     "date" : "2026-11-09",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "CVE-Radar, Findings exportieren und Ad-hoc-Prüfung: Einzelne Schwachstellen lassen sich aus dem Report und dem KI-Prompt herausnehmen („Schwachstellen auswählen“), z. B. um eine Aktualisierung mit großen Änderungen in einem eigenen Branch zu behandeln. Der Prompt fragt jetzt zuerst nach einem neueren Release der direkten Abhängigkeit, das die gefixte Version mitbringt, und erst wenn es keins gibt, nach dem Erzwingen der Version." ]
+    }, {
       "type" : "improved",
       "items" : [ "{app} Seitenmenü: Auf dem Tablet sind die Kategorien des Hauptmenüs aufgeklappt, auf- oder zugeklappte bleiben so; der Tab Hauptmenü steht an zweiter Stelle.", {
         "title" : "Benachrichtigungen",
         "items" : [ "{app} Push-Nachrichten zeigen wie die Webversion den Titel und den Anfang der Benachrichtigung (bei einer Chat-Nachricht die Nachricht selbst). Jede Person kann den Inhalt in „Mein Konto“ (Apps) oder in den Einstellungen der App abschalten; `projectforge.push.content=false` lässt ihn aus allen Push-Nachrichten heraus.", "Der Text von Chat-Benachrichtigungen wiederholt nicht mehr ihren Titel: Er zeigt die Nachricht, mit ihrem Autor, wo der Titel ihn nicht nennt." ]
       } ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "CVE-Radar: Eine Maven-Version mit einem Zusatz, der keine Vorabversion kennzeichnet (bei Guava 33.7.2-jre oder 33.7.2-android, 1.0-jdk8, 5.3.18.RELEASE), gilt als das Release selbst und nicht mehr als dessen noch betroffene Vorabversion.", "CVE-Radar, Bibliotheken hochladen: Eine Datei über der Grenze (5 MB, ein zip 10 MB) wird sofort mit ihrer Meldung abgelehnt, statt im Browser zu scheitern, und der Fortschrittsbalken bleibt über den Buttons sichtbar." ]
     } ]
   },
   "groups" : [ {

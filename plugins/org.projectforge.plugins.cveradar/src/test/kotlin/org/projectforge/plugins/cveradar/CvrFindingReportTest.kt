@@ -79,13 +79,18 @@ class CvrFindingReportTest : CveRadarTestBase() {
 
     private fun groupId(name: String): Long = (initTestDB.getGroup(name) ?: initTestDB.addGroup(name)).id!!
 
-    private fun import(cveId: String, product: String) {
+    private fun import(cveId: String, product: String) = import(listOf(cveId), product)
+
+    private fun import(cveIds: List<String>, product: String) {
         logon(TEST_ADMIN_USER)
         val configurations = """{"nodes":[{"operator":"OR","negate":false,"cpeMatch":[
             {"vulnerable":true,"criteria":"cpe:2.3:a:apache:$product:*:*:*:*:*:*:*:*","versionEndExcluding":"9.0.90"}]}]}"""
         val metrics = """"cvssMetricV31":[{"type":"Primary","cvssData":{"vectorString":"CVSS:3.1/x","baseScore":9.8,"baseSeverity":"CRITICAL"}}]"""
         importService.import(
-            { _, _, _ -> NvdCveParser.parsePage(NvdCveParserTest.page(cve(cveId, metrics = metrics, configurations = configurations))) },
+            { _, _, _ ->
+                val cves = cveIds.map { cve(it, metrics = metrics, configurations = configurations) }
+                NvdCveParser.parsePage(NvdCveParserTest.page(*cves.toTypedArray()))
+            },
             Instant.parse("2026-11-01T10:00:00Z"),
         )
     }
@@ -194,6 +199,38 @@ class CvrFindingReportTest : CveRadarTestBase() {
         assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.SYSTEM, system) }
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true) }
         assertThrows(AccessException::class.java) { inventory.nodeFindings(InventoryLevel.SYSTEM, system) }
+    }
+
+    @Test
+    fun `vulnerabilities left out on request are missing in the report and in its libraries`() {
+        val product = "report2"
+        val kept = "CVE-2026-97011"
+        val left = "CVE-2026-97012"
+        import(listOf(kept, left), product)
+        val owner = user("report-exclude", CvrRole.READER)
+        addToGroup(owner, "cveradar-report-g2")
+        logon(owner)
+        val area = inventory.createArea(AreaRequest(code = "RP2", name = "Exclude area", groupId = groupId("cveradar-report-g2")))
+        val system = inventory.createSystem(SystemRequest(areaId = area, code = "RP2-S", name = "Shop"))
+        inventory.createInstance(InstanceRequest(systemId = system, code = "A"))
+        inventory.createComponent(ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(tech(product, "9.0.80"))))
+
+        val all = inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true)
+        assertEquals(2, all.vulnerabilityCount)
+        assertEquals(2, all.libraries.single().vulnerabilityCount)
+        assertTrue(all.excludedCveIds.isEmpty())
+
+        val report = inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true, exclude = listOf(left, "CVE-1999-0001"))
+        assertEquals(listOf(kept), report.vulnerabilities.map { it.cveId })
+        assertEquals(1, report.vulnerabilityCount)
+        assertEquals(1, report.findingCount)
+        assertEquals(1, report.libraries.single().vulnerabilityCount, "the library without the one left out")
+        assertEquals(listOf(left), report.excludedCveIds, "an unknown id is ignored")
+
+        val none = inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true, exclude = listOf(kept, left))
+        assertEquals(0, none.vulnerabilityCount)
+        assertTrue(none.libraries.isEmpty())
+        assertEquals(listOf(kept, left), none.excludedCveIds)
     }
 
     @Test

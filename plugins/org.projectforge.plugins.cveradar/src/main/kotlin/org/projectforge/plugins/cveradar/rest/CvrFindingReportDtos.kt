@@ -48,6 +48,8 @@ class FindingReport(
     val libraries: List<ReportLibrary>,
     /** The most urgent first: in the KEV catalogue, then by the priority of the case, then by the CVSS score. */
     val vulnerabilities: List<ReportVulnerability>,
+    /** The vulnerabilities left out on request (handled separately): not in [vulnerabilities] nor [libraries]. */
+    val excludedCveIds: List<String> = emptyList(),
 )
 
 /**
