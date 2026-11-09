@@ -113,10 +113,11 @@ class CvrInventoryRest {
     fun previewLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryDiff =
         service.previewLibraries(user, id, request)
 
-    @AccessChecked("CvrInventoryService.applyLibraries: write access to the stored component's system")
+    /** Starts a job; the client follows it via the job monitor (`/rs/jobsMonitor/jobs`). */
+    @AccessChecked("CvrInventoryService.startApplyLibraries: write access to the stored component's system")
     @PostMapping("component/{id}/libraries/apply")
-    fun applyLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryDiff =
-        service.applyLibraries(user, id, request)
+    fun applyLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryApplyStarted =
+        service.startApplyLibraries(user, id, request)
 
     @AccessChecked("CvrInventoryService.move: write access to the node and the target, the officer anywhere")
     @PostMapping("{level}/{id}/move")

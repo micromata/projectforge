@@ -69,7 +69,9 @@ private val log = KotlinLogging.logger {}
  * or of its catalogue node, the version compared with the range ([purlVersionMatch]). A Maven library without groupId
  * (jar listing) meets by its artifact only: *possible*. An advisory not linked to a vulnerability yet becomes one on its
  * first match ([CvrOsvAdvisoryService.materialize]). Where the advisories of a vulnerability know the package of a
- * library, their verdict counts: a *possible* match of the same vulnerability by CPE is dropped.
+ * library, their verdict counts: a *possible* match of the same vulnerability by CPE is dropped. An entry whose
+ * vulnerable code is built for some operating systems only (Go: `windows`) doesn't hit a component known to run on
+ * another one: one with packages of a Linux distribution runs on Linux (MAT-14).
  *
  * Matching is idempotent: a run creates what is missing, corrects what changed and removes what no longer matches; a
  * discarded finding is left alone while its component and instance exist, even if it doesn't match for a while (MAT-06). The scope of a run is a set of vulnerabilities (after
@@ -207,7 +209,9 @@ class CvrMatchingService {
             val hits = model.technologies.flatMap { technology ->
                 val component = model.components[technology.componentId] ?: return@flatMap emptyList()
                 if (model.instancesOf(component).isEmpty()) return@flatMap emptyList()
-                val purl = purlHitsOf(technology.id, technology.version, model.packages[technology.id].orEmpty(), candidates)
+                val purl = purlHitsOf(
+                    technology.id, technology.version, model.packages[technology.id].orEmpty(), candidates, model.osOf(component.id),
+                )
                 purl.hits.filterKeys { it !in purl.vulnerabilityIds }.entries
             }
             osvService.materialize(hits.map { it.key }, possibleOnly(hits))
@@ -233,6 +237,12 @@ class CvrMatchingService {
         /** The packages of the technologies with a purl (directly or by their catalogue node). */
         val packages: Map<Long, List<PurlPackage>>,
     ) {
+        /** The components with packages of a Linux distribution (deb, apk, rpm): they run on Linux (MAT-14). */
+        private val linuxComponents = technologies.filter { isLinuxPackage(it.purl) }.mapNotNull { it.componentId }.toSet()
+
+        /** The operating system a component runs on (Go `GOOS`), null if unknown. */
+        fun osOf(componentId: Long?): String? = if (componentId in linuxComponents) "linux" else null
+
         /** The instances a component counts for. */
         fun instancesOf(component: CvrComponentDO): List<Long> =
             if (component.instanceId != null) {
@@ -330,7 +340,9 @@ class CvrMatchingService {
             TechnologyHits(
                 component, instanceIds,
                 hitsOf(technology.id, technology.version, model.keys[technology.id].orEmpty(), candidates),
-                purlHitsOf(technology.id, technology.version, model.packages[technology.id].orEmpty(), purlCandidates),
+                purlHitsOf(
+                    technology.id, technology.version, model.packages[technology.id].orEmpty(), purlCandidates, model.osOf(component.id),
+                ),
             )
         }
         val vulnerabilityOfKey = perTechnology.flatMap { it.purl.vulnerabilityIds.entries }.associate { it.key to it.value }.toMutableMap()
@@ -396,8 +408,17 @@ class CvrMatchingService {
         return PurlCandidates(load("packageName", byName.map { it.name }.toSet()), load("shortName", byShortName.map { it.name }.toSet()))
     }
 
-    /** The hits of a technology with this [version] and these [packages] by the purl index. */
-    private fun purlHitsOf(technologyId: Long?, version: String?, packages: List<PurlPackage>, candidates: PurlCandidates): PurlHits {
+    /**
+     * The hits of a technology with this [version] and these [packages] by the purl index; [os]: the operating system of
+     * its component if known, entries built for other ones only don't hit (MAT-14).
+     */
+    private fun purlHitsOf(
+        technologyId: Long?,
+        version: String?,
+        packages: List<PurlPackage>,
+        candidates: PurlCandidates,
+        os: String? = null,
+    ): PurlHits {
         val hits = mutableMapOf<String, Hit>()
         val vulnerabilityIds = mutableMapOf<String, Long>()
         val covered = mutableSetOf<String>()
@@ -407,6 +428,10 @@ class CvrMatchingService {
                 candidate.vulnerabilityId?.let { vulnerabilityIds[candidate.key] = it }
                 if (!pkg.byShortName) {
                     covered.add(candidate.key)
+                }
+                // The advisory knows the package (covered), but its vulnerable code isn't built for this system.
+                if (os != null && candidate.match.goos?.split(',')?.map { it.trim() }?.contains(os) == false) {
+                    return@candidate
                 }
                 val versionCertainty = purlVersionMatch(version, candidate.match) ?: return@candidate
                 // Without groupId the artifact may be another one of the same name.
@@ -644,6 +669,13 @@ class CvrMatchingService {
 
     companion object {
         const val INDEX_STATE = "CPE_INDEX"
+
+        /** The purl types of the package managers of Linux distributions. */
+        private val LINUX_PURL_TYPES = setOf("deb", "apk", "rpm", "alpm")
+
+        /** Whether the purl is a package of a Linux distribution (deb, apk, rpm, alpm). */
+        internal fun isLinuxPackage(purl: String?): Boolean =
+            purl?.startsWith("pkg:") == true && purl.substring(4).substringBefore('/').lowercase() in LINUX_PURL_TYPES
         private const val INDEX_CHUNK = 200
         private const val INSERT_BATCH = 200
 
@@ -718,6 +750,15 @@ class CvrMatchingService {
             )
             val versions = if (range.isEmpty()) "all versions" else range.joinToString(", ")
             return "$osvId ${match.ecosystem} ${match.packageName} ($versions)".take(1000)
+        }
+
+        /**
+         * The first version no longer affected by the entry a finding [matched] (see [describe]): the `< x` of its range;
+         * null if it names no fix (`<= x`, a single version, all versions).
+         */
+        internal fun fixedVersionOf(matched: String?): String? {
+            val range = matched?.substringAfterLast(" (", "")?.removeSuffix(")") ?: return null
+            return range.split(", ").firstOrNull { it.startsWith("< ") }?.removePrefix("< ")?.trim()?.takeIf { it.isNotEmpty() }
         }
 
         /** The CPE with its range, e.g. `cpe:2.3:a:apache:tomcat:*:… (>= 9.0.0, < 9.0.90)`. */

@@ -1571,6 +1571,17 @@ mit `rpm -qa`. Images ohne Paketmanager (distroless, scratch) brauchen eine SBOM
 Hinweis: Die Distributionen portieren Fixes zurück, ohne die Version des Originals zu ändern; ob die installierte
 Version betroffen ist, sagt der Security-Tracker der Distribution (z. B. von Ubuntu oder Debian).
 
+*Wo eine Bibliothek gefunden wurde.* Jede Bibliothek behält beim Hochladen die Datei, aus der sie stammt (in einem Zip
+mit ihrem Pfad), und bei der SBOM eines Images die Stelle darin, z. B. `image-postgres.cdx.json: /usr/local/bin/gosu`.
+Die Findings, die Liste der Bibliotheken und der Export zeigen sie; früher hochgeladene Bibliotheken bekommen sie mit
+dem nächsten Hochladen.
+
+*Programme in einem Image.* Die SBOM eines Images führt die Standardbibliothek von Go (`stdlib`) jedes Go-Programms
+darin mit der Go-Version, mit der es gebaut wurde. Ein altes Programm (z. B. `gosu` in vielen Datenbank-Images) bringt
+alle seither behobenen Schwachstellen der Standardbibliothek mit; eine Aktualisierung des Images oder des Programms
+behebt sie alle auf einmal. Hinweise, die nur andere Betriebssysteme betreffen (z. B. Windows), treffen keine
+Komponente, die unter Linux läuft, also eine mit Paketen einer Linux-Distribution.
+
 [[cve_radar_case_ai]]
 === CVE-Radar: Fall mit KI recherchieren
 
@@ -1622,11 +1633,15 @@ Die offenen Findings eines Knotens im Inventar (Bereich, System, Instanz oder Ko
 eine JSON-Datei exportieren: das Download-Symbol in der Zeile eines Knotens mit Findings (_CVE-Radar > Systeme_). Sie
 enthält, was man sehen darf: je Schwachstelle die Daten der NVD (Beschreibung, CVSS, CWE, KEV, Referenzen), den Fall
 des Security-Teams (Priorität, Fix-Version, Workaround, Maßnahmen) und die gefundenen Technologien mit Versionen,
-Paket-URLs und den Instanzen, in denen sie gefunden wurden. Das Dringendste steht vorn.
+Paket-URLs, ihrem Fundort und den Instanzen, in denen sie gefunden wurden. Das Dringendste steht vorn. Davor fasst
+`libraries` die Schwachstellen je Bibliothek zusammen: ihre Anzahl, den höchsten Schweregrad und die Version, ab der
+keine davon mehr zutrifft (`fixVersion`), sodass eine Aktualisierung als eine Aufgabe erscheint.
 
 Ein Klick auf die Anzahl der Findings in der Zeile öffnet den Reiter _Findings_ im Dialog des Knotens: seine offenen
-Findings einzeln (CVE, Fall, Instanz, Komponente, Technologie, Treffer) mit ihren Anzahlen und einem Filter nach
-Sicherheit; ein Klick auf ein Finding öffnet die Akte der CVE. Darüber zeigen Kacheln die Anzahl der CVEs und ihren
+Findings einzeln (CVE, Fall, Instanz, Komponente, Technologie, Fundort, Treffer) mit ihren Anzahlen und einem Filter
+nach Sicherheit; ein Klick auf ein Finding öffnet die Akte der CVE. _Bibliotheken_ schaltet auf eine Zeile je
+Bibliothek um: ihre CVEs, wie viele davon betreffen, der höchste Schweregrad, die Aktualisierung, die sie behebt, und
+der Fundort; ein Klick auf eine Bibliothek zeigt ihre Findings. Darüber zeigen Kacheln die Anzahl der CVEs und ihren
 Schweregrad (kritisch, hoch, mittel/niedrig, aktiv ausgenutzt); dieselben Kacheln erscheinen beim Darüberfahren über die
 Anzahlen in der Zeile. Ein Klick auf eine Kachel filtert die Findings danach, ein Klick auf _CVEs_ zeigt wieder alle. Die Schaltfläche _Findings exportieren_ unten im Dialog exportiert sie.
 

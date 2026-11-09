@@ -28,6 +28,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -47,6 +48,7 @@ import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.rest.AreaRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
 import org.projectforge.plugins.cveradar.rest.InstanceRequest
+import org.projectforge.plugins.cveradar.rest.LibraryApplyStarted
 import org.projectforge.plugins.cveradar.rest.LibraryDiff
 import org.projectforge.plugins.cveradar.rest.LibraryRequest
 import org.projectforge.plugins.cveradar.rest.InventoryLevel
@@ -80,6 +82,9 @@ class CvrInventoryService {
 
     @Autowired
     private lateinit var catalogService: CvrCatalogService
+
+    @Autowired
+    private lateinit var jobHandler: JobHandler
 
     @Autowired
     private lateinit var libraryService: CvrLibraryService
@@ -474,6 +479,24 @@ class CvrInventoryService {
     }
 
     /**
+     * Like [applyLibraries], as a job ([CvrLibraryApplyJob]) the client polls for the progress: a big upload and the
+     * matching after it outlast a request. The access is checked here, before the job starts.
+     */
+    fun startApplyLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): LibraryApplyStarted {
+        val component = writableComponent(user, componentId)
+        if (request.files.size > LibraryListParser.MAX_FILES) {
+            throw UserException(LibraryListParser.ERROR_TOO_MANY_FILES, LibraryListParser.MAX_FILES.toString())
+        }
+        val job = CvrLibraryApplyJob(
+            component, request, libraryService,
+            rematch = { rematch { matchingService.rematchComponents(listOf(componentId)) } },
+            title = "CVE-Radar: libraries of component ${component.code}",
+        )
+        jobHandler.addJob(job)
+        return LibraryApplyStarted(job.id)
+    }
+
+    /**
      * Matches against the vulnerabilities after a change of the inventory (MAT-01). The change is stored by then, so a
      * failing match is logged and not passed on: the next change or the start of the plugin matches again.
      */
@@ -832,7 +855,7 @@ class CvrInventoryService {
                 component.code, component.name, false, canEdit,
                 technologies = techByComponent[component.id].orEmpty().sortedBy { it.product?.lowercase() }.map {
                     TechnologyView(it.id!!, it.kind, it.vendor, it.product, it.version, it.ecosystem, it.cpe, it.purl, it.origin,
-                        it.catalogNodeId, it.catalogNodeId?.let { id -> model.catalogNames[id] })
+                        it.catalogNodeId, it.catalogNodeId?.let { id -> model.catalogNames[id] }, it.source)
                 },
                 lastUpdate = component.lastUpdate, technologiesUpdated = techByComponent[component.id].orEmpty().mapNotNull { it.lastUpdate }.maxOrNull(),
                 findingCount = found.first, possibleCount = found.second,

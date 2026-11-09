@@ -1532,6 +1532,16 @@ The Alpine variant (`eclipse-temurin:21-jre-alpine`) lists with `apk info -v`, R
 hint: the distributions backport fixes without changing the upstream version, so the security tracker of the
 distribution (e.g. Ubuntu or Debian) tells whether the installed version is affected.
 
+*Where a library was found.* Every library keeps the file it came from with the upload (in a zip with its path), and
+for an SBOM of an image the place inside it, e.g. `image-postgres.cdx.json: /usr/local/bin/gosu`. The findings, the
+list of the libraries and the export show it; libraries uploaded before get it with the next upload.
+
+*Programs in an image.* An SBOM of an image lists the Go standard library (`stdlib`) of every Go program in it with the
+version of Go it was built with. An old program (e.g. `gosu` in many database images) brings all vulnerabilities of
+the standard library fixed since; an update of the image or of the program fixes all of them at once. Advisories for
+other operating systems only (e.g. Windows) don't match a component that runs on Linux, i.e. one with packages of a
+Linux distribution.
+
 [[cve_radar_case_ai]]
 === CVE-Radar: research a case with AI
 
@@ -1579,12 +1589,16 @@ file; quotes made typographic by copying (`“…”`) are straightened.
 The open findings of a node of the inventory (area, system, instance or component) and below can be exported as one
 JSON file: the download icon in the row of a node with findings (_CVE-Radar > Systems_). It contains what one may
 see: per vulnerability the data of the NVD (description, CVSS, CWE, KEV, references), the case of the security team
-(priority, fix version, workaround, measures) and the technologies that matched, with their versions, package URLs
-and the instances they matched in. The most urgent come first.
+(priority, fix version, workaround, measures) and the technologies that matched, with their versions, package URLs,
+where they were found and the instances they matched in. The most urgent come first. Before them, `libraries`
+summarizes the vulnerabilities per library: their number, the highest severity and the version from which on none of
+them matches (`fixVersion`), so one update shows as one task.
 
 A click on the counts of findings in the row opens the tab _Findings_ of the node's dialog: its open findings one by
-one (CVE, case, instance, component, technology, what matched), with their counts and a filter by certainty; a click
-on a finding opens the file of the CVE. Above them, tiles show the number of CVEs and their severity (critical, high,
+one (CVE, case, instance, component, technology, where it was found, what matched), with their counts and a filter by
+certainty; a click on a finding opens the file of the CVE. _Libraries_ switches to one row per library: its CVEs, how
+many of them affected, the highest severity, the update that fixes them and where it was found; a click on a library
+shows its findings. Above them, tiles show the number of CVEs and their severity (critical, high,
 medium/low, actively exploited); hovering over the counts in the row shows the same tiles.
 A click on a tile filters the findings by it, a click on _CVEs_ shows all again. The button _Export findings_ at the bottom of the dialog exports them.
 

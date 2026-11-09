@@ -56,10 +56,24 @@ class CvrLibraryService {
     fun preview(component: CvrComponentDO, request: LibraryRequest): LibraryDiff =
         plan(component, request, Catalog(catalogNodes())).diff()
 
-    /** In one transaction: a failure leaves the component as it was. */
-    fun apply(component: CvrComponentDO, request: LibraryRequest): LibraryDiff = persistenceService.runInTransaction { context ->
+    /** How far [apply] is: the libraries stored and removed so far, of how many. */
+    class Progress(val stored: Int, val toStore: Int, val removed: Int, val toRemove: Int)
+
+    /**
+     * In one transaction: a failure leaves the component as it was. [progress] is told after every library stored or
+     * removed; an exception thrown by it (a cancelled job) rolls everything back.
+     */
+    fun apply(
+        component: CvrComponentDO,
+        request: LibraryRequest,
+        progress: (Progress) -> Unit = {},
+    ): LibraryDiff = persistenceService.runInTransaction { context ->
         val catalog = Catalog(catalogNodes())
         val plan = plan(component, request, catalog)
+        var stored = 0
+        var removed = 0
+        fun report() = progress(Progress(stored, plan.added.size, removed, plan.removed.size))
+        report()
         plan.added.forEach { (entry, origin) ->
             val node = catalog.nodeOf(entry)
             technologyDao.insert(
@@ -74,12 +88,25 @@ class CvrLibraryService {
                     it.vendor = node?.cpeVendor?.take(100)
                     it.origin = origin
                     it.originDate = LocalDate.now()
+                    it.source = plan.sources[storedPurl(entry)]
                 },
                 checkAccess = false,
             )
+            stored++
+            report()
+        }
+        // Where the known ones were found this time; derived from the upload like the date below, so without history.
+        plan.unchanged.forEach { technology ->
+            val source = plan.sources[technology.purl]
+            if (source != technology.source) {
+                context.em.createQuery("update CvrTechnologyDO t set t.source = :source where t.id = :id")
+                    .setParameter("source", source).setParameter("id", technology.id).executeUpdate()
+            }
         }
         plan.removed.forEach {
             technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
+            removed++
+            report()
         }
         // Also if nothing changed: the list is up to date then. The loaded component must not write the old day back.
         component.librariesDate = LocalDate.now()
@@ -92,7 +119,10 @@ class CvrLibraryService {
         val files: List<LibraryFileView>,
         val added: List<Pair<LibraryEntry, CvrOrigin>>,
         val removed: List<CvrTechnologyDO>,
-        val unchanged: Int,
+        /** The stored libraries the files list again. */
+        val unchanged: List<CvrTechnologyDO>,
+        /** Where each library of the files was found ([CvrTechnologyDO.source]), by stored purl. */
+        val sources: Map<String, String>,
     ) {
         val withoutGroupId get() = added.count { it.first.group == null }
 
@@ -120,7 +150,7 @@ class CvrLibraryService {
                 removedCount = goneOnes.size,
                 changed = changes.take(MAX_LINES),
                 changedCount = changes.size,
-                unchangedCount = unchanged,
+                unchangedCount = unchanged.distinctBy { it.purl }.size,
                 withoutGroupIdCount = withoutGroupId,
             )
         }
@@ -135,10 +165,15 @@ class CvrLibraryService {
         val files = LibraryArchive.expand(request.files.map { Triple((it.name ?: "").take(255), it.text, it.data) })
         val parsed = LibraryListParser.parseAll(files.map { (name, text) -> name.take(255) to text })
         val wanted = LinkedHashMap<String, Pair<LibraryEntry, CvrOrigin>>()
+        val sources = mutableMapOf<String, MutableList<String>>()
         parsed.forEach { file ->
             val origin = originOf(file.format)
             // Keyed like the stored purl, so a very long one isn't added again on every upload.
-            file.entries.map { resolveGroup(it, catalog) }.forEach { wanted.putIfAbsent(storedPurl(it), it to origin) }
+            file.entries.map { resolveGroup(it, catalog) }.forEach { entry ->
+                val purl = storedPurl(entry)
+                wanted.putIfAbsent(purl, entry to origin)
+                sources.getOrPut(purl) { mutableListOf() }.add(file.name + (entry.location?.let { ": $it" } ?: ""))
+            }
         }
         val existing = persistenceService.executeQuery(
             "from CvrTechnologyDO t where t.deleted = false and t.component.id = :component and t.origin in :origins",
@@ -151,7 +186,8 @@ class CvrLibraryService {
             files = parsed.map { LibraryFileView(it.name, it.format, it.entries.size) },
             added = wanted.filterKeys { it !in known }.values.toList(),
             removed = if (request.replace) existing.filter { it.purl !in wanted } else emptyList(),
-            unchanged = wanted.keys.count { it in known },
+            unchanged = existing.filter { it.purl in wanted },
+            sources = sources.mapValues { (_, list) -> list.distinct().joinToString("; ").take(1000) },
         )
     }
 

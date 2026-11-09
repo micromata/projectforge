@@ -109,6 +109,7 @@ class CvrFindingService {
                 discardReason = finding.discardReason, area = instance.area, system = instance.system,
                 instance = instance.instance, component = component?.let { "${it.code} ${it.name}" },
                 technology = technology?.let { listOfNotNull(it.product, it.version).joinToString(" ") },
+                source = technology?.source,
             )
         }.sortedWith(compareBy({ it.status }, { it.certainty }, { it.system }, { it.instance ?: "" }))
         // Only open ones count as hidden: a discarded finding says nothing about a system.

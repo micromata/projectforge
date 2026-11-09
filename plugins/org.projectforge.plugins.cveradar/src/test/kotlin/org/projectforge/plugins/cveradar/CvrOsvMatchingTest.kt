@@ -312,6 +312,50 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
         assertEquals("Rejected", vulnerabilityDao.findByCveId("GHSA-OSV2-EEEE-FFFF")!!.nvdStatus)
     }
 
+    /** An advisory of the Go standard library fixed in [fixed]; [goos]: the systems of its vulnerable package, null all. */
+    private fun goStdlib(id: String, cve: String, fixed: String, goos: List<String>?) {
+        val imports = """{"path":"os"${goos?.let { list -> ",\"goos\":[${list.joinToString(",") { "\"$it\"" }}]" } ?: ""}}"""
+        bucket[id] = """{"id":"$id","modified":"2026-10-30T10:00:00Z","published":"2026-10-01T00:00:00Z",
+            "aliases":["$cve"],"summary":"In os","details":"Details.",
+            "affected":[{"package":{"ecosystem":"Go","name":"stdlib"},
+              "ranges":[{"type":"SEMVER","events":[{"introduced":"0"},{"fixed":"$fixed"}]}],
+              "ecosystem_specific":{"imports":[$imports]}}]}"""
+    }
+
+    @Test
+    fun `an advisory for other operating systems doesn't hit a component running on Linux`() {
+        cveRadarConfig.osv.ecosystems = "Maven,npm,Go"
+        persistenceService.runInTransaction { context ->
+            context.em.find(CvrImportStateDO::class.java, "${OsvImportService.SOURCE_PREFIX}Go")?.let { context.em.remove(it) }
+        }
+        val stdlib = TechnologyRequest(
+            kind = CvrTechnologyKind.PRODUCT, product = "stdlib", version = "1.18.2", ecosystem = "golang", purl = "pkg:golang/stdlib@1.18.2",
+        )
+        val deb = TechnologyRequest(
+            kind = CvrTechnologyKind.PRODUCT, product = "zlib1g", version = "1:1.2.13.dfsg-1", ecosystem = "deb",
+            purl = "pkg:deb/debian/zlib1g@1:1.2.13.dfsg-1?distro=debian-12",
+        )
+        val (system, owner) = system("OSV6", "cveradar-osv-g6")
+        inventory.createComponent(ComponentRequest(systemId = system, code = "IMAGE", name = "Image", technologies = listOf(stdlib, deb)))
+        inventory.createComponent(ComponentRequest(systemId = system, code = "BINARY", name = "Binary", technologies = listOf(stdlib)))
+        goStdlib("GO-2026-9001", "CVE-2026-98301", "1.18.3", listOf("windows"))
+        goStdlib("GO-2026-9002", "CVE-2026-98302", "1.18.3", null)
+        goStdlib("GO-2026-9003", "CVE-2026-98303", "1.18.3", listOf("linux", "windows"))
+        importOsv()
+        assertEquals(
+            "windows",
+            persistenceService.selectSingleResult(
+                "select m.goos from CvrPurlMatchDO m where m.advisory.osvId = :id", String::class.java, Pair("id", "GO-2026-9001"),
+            ),
+        )
+
+        fun components(cve: String) = findings(owner, vulnerabilityDao.findByCveId(cve)!!.id!!).map { it.component!!.substringBefore(" ") }.toSet()
+        assertEquals(setOf("BINARY"), components("CVE-2026-98301"), "the image runs on Linux, the binary alone may run on Windows")
+        assertEquals(setOf("IMAGE", "BINARY"), components("CVE-2026-98302"))
+        assertEquals(setOf("IMAGE", "BINARY"), components("CVE-2026-98303"))
+        assertEquals(0, matching.rematch().let { it.created + it.updated + it.removed }, "idempotent")
+    }
+
     @Test
     fun `the ad-hoc check finds advisories without a vulnerability and stores nothing`() {
         val group = "org.test.osv3"

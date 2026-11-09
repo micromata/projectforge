@@ -100,6 +100,8 @@ class CvrAdHocCheckService {
                     technology = ReportTechnology(
                         CvrTechnologyKind.PRODUCT, null, hit.entry.product, hit.entry.version, hit.entry.ecosystem,
                         hit.entry.purl, null, origin,
+                        // The paths inside an SBOM may name the project: not when anonymized.
+                        source = if (anonymize) name else name + (hit.entry.location?.let { ": $it" } ?: ""),
                     ),
                 )
             }
