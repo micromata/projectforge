@@ -323,8 +323,8 @@ class CvrOsvAdvisoryService {
                 (vulnerability.nvdStatus == STATUS_OSV || vulnerability.nvdStatus == STATUS_REJECTED)
 
         /**
-         * Not withdrawn, then GitHub (it rates the severity), then not a malicious package, then not of a distribution
-         * (it describes its packages), then the latest.
+         * Not withdrawn, then GitHub (it reviews the packages and rates the severity), then not a malicious package, then
+         * not of a distribution (it describes its packages), then the latest.
          */
         private val PREFERRED = compareBy<CvrOsvAdvisoryDO>(
             { it.withdrawn != null }, { it.osvId?.startsWith("GHSA-") != true }, { it.malicious },
@@ -369,8 +369,11 @@ class CvrOsvAdvisoryService {
             dest.cvss40Score = null
             dest.cvss40Severity = null
             dest.cvssScore = score
-            // A malicious package is critical: whoever installed it runs the code of an attacker.
-            dest.severity = sorted.firstNotNullOfOrNull { it.severity } ?: dest.cvss31Severity
+            // The severity belongs to the score shown; the one of the source (GitHub rates on its own, e.g. CRITICAL for
+            // 6.1) only without a score (CVSS 4 only, there is no CVSS 4 calculator). With a CVSS 4 vector as well, the 3.1
+            // score counts until the NVD rates the CVE. A malicious package is critical: whoever installed it runs the code
+            // of an attacker.
+            dest.severity = dest.cvss31Severity ?: sorted.firstNotNullOfOrNull { it.severity }
                 ?: if (main.malicious) "CRITICAL" else null
             dest.cwes = sorted.flatMap { it.cwes?.split(',').orEmpty() }.map { it.trim() }.filter { it.isNotEmpty() }
                 .distinct().joinToString(", ").take(CvrVulnerabilityDO.CWES_LENGTH).ifEmpty { null }
