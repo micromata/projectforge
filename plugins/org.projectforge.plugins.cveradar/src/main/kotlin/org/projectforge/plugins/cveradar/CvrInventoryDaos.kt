@@ -38,9 +38,9 @@ import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.springframework.stereotype.Service
 
 /**
- * The daos of the inventory only store (with history). Who may see or change which node depends on the groups along
- * the tree, which [CvrInventoryService] decides; the daos themselves refuse every access, so nothing reaches them
- * but the service (`checkAccess = false`).
+ * The daos of the inventory only store (with history, except the technologies: see [CvrTechnologyDO]). Who may see or
+ * change which node depends on the groups along the tree, which [CvrInventoryService] decides; the daos themselves
+ * refuse every access, so nothing reaches them but the service (`checkAccess = false`).
  */
 abstract class CvrInventoryBaseDao<O : ExtendedBaseDO<Long>>(clazz: Class<O>) : BaseDao<O>(clazz) {
     override fun hasAccess(
@@ -77,6 +77,13 @@ class CvrComponentDao : CvrInventoryBaseDao<CvrComponentDO>(CvrComponentDO::clas
 @Service
 class CvrTechnologyDao : CvrInventoryBaseDao<CvrTechnologyDO>(CvrTechnologyDO::class.java) {
     override fun newInstance(): CvrTechnologyDO = CvrTechnologyDO()
+
+    // Not historised, so the framework refuses to mark it as deleted: the flag is stored like any change, and the
+    // findings keep referring to the row.
+    override fun markAsDeleted(obj: CvrTechnologyDO, checkAccess: Boolean) {
+        obj.deleted = true
+        update(obj, checkAccess)
+    }
 }
 
 /** The catalogue is read and changed through [CvrCatalogService] only, which checks the security team. */

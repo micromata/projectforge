@@ -30,6 +30,9 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -37,12 +40,13 @@ import jakarta.persistence.Table
 import jakarta.persistence.Transient
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.time.LocalDate
 
 /**
  * A technology of a component with its version (INV-08): a product or an ecosystem (INV-23). The matching against
- * the vulnerabilities uses the CPE or the purl. Historised.
+ * the vulnerabilities uses the CPE or the purl. Not historised: the libraries of an upload would fill the history with
+ * thousands of entries nobody reads.
  */
 @Entity
 @Table(
@@ -52,7 +56,13 @@ import java.time.LocalDate
         Index(name = "idx_fk_t_plugin_cveradar_technology_catalog_node_fk", columnList = "catalog_node_fk"),
     ],
 )
-open class CvrTechnologyDO : DefaultBaseDO() {
+open class CvrTechnologyDO : AbstractBaseDO<Long>() {
+    @get:Id
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+    @get:Column(name = "pk")
+    @PropertyInfo(i18nKey = "id")
+    override var id: Long? = null
+
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "component_fk", nullable = false)
     @JsonSerialize(using = IdOnlySerializer::class)
