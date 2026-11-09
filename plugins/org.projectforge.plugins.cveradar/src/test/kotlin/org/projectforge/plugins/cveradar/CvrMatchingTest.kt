@@ -163,6 +163,13 @@ class CvrMatchingTest : CveRadarTestBase() {
         assertEquals(CvrFindingCertainty.POSSIBLE, byComponent.getValue("NOVER").first().certainty)
         assertEquals(CvrFindingCertainty.POSSIBLE, byComponent.getValue("OTHER").first().certainty, "by name, the vendor spelled otherwise")
         assertTrue(byComponent.getValue("SURE").first().matched!!.contains("< 9.0.90"))
+        logon(owner)
+        val rows = inventory.tree().rows
+        val systemCves = rows.single { it.id == system && it.level == InventoryLevel.SYSTEM }.cveCounts!!
+        assertEquals(listOf(1, 0, 0, 0), systemCves.let { listOf(it.critical, it.high, it.other, it.possible) },
+            "one CVE however many findings, sure as one of them is")
+        val nameCves = rows.single { it.level == InventoryLevel.COMPONENT && it.shortCode == "NAME" && it.code!!.startsWith("MT1-") }.cveCounts!!
+        assertEquals(listOf(0, 0, 0, 1), nameCves.let { listOf(it.critical, it.high, it.other, it.possible) }, "only possible here")
     }
 
     @Test

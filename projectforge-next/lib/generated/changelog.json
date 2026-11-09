@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "changed",
-      "items" : [ "CVE-Radar: the technologies and libraries of a component are no longer kept in the history; existing entries are removed." ]
+      "items" : [ "CVE-Radar inventory: the findings of a node are shown as CVEs by severity (critical, high, medium/low) and those only possibly affected, each CVE counted once, matching the key figures of its tooltip.", "CVE-Radar: the technologies and libraries of a component are no longer kept in the history; existing entries are removed." ]
     }, {
       "type" : "fixed",
       "items" : [ "CVE-Radar: a Maven version with a qualifier other than a pre-release (Guava's 33.7.2-jre or 33.7.2-android, 1.0-jdk8, 5.3.18.RELEASE) is the release itself, no longer a pre-release of it that is still affected.", "CVE-Radar library upload: a file above the limit (5 MB, a zip 10 MB) is refused at once with its message instead of failing in the browser, and the progress bar stays visible above the buttons." ]

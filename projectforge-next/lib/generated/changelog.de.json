@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "changed",
-      "items" : [ "CVE-Radar: Die Technologien und Bibliotheken einer Komponente werden nicht mehr historisiert; vorhandene Einträge werden entfernt." ]
+      "items" : [ "CVE-Radar-Inventar: Die Findings eines Knotens erscheinen als CVEs nach Schweregrad (kritisch, hoch, mittel/niedrig) und nur möglicherweise betroffene, jede CVE einmal gezählt, passend zu den Kennzahlen des Tooltips.", "CVE-Radar: Die Technologien und Bibliotheken einer Komponente werden nicht mehr historisiert; vorhandene Einträge werden entfernt." ]
     }, {
       "type" : "fixed",
       "items" : [ "CVE-Radar: Eine Maven-Version mit einem Zusatz, der keine Vorabversion kennzeichnet (bei Guava 33.7.2-jre oder 33.7.2-android, 1.0-jdk8, 5.3.18.RELEASE), gilt als das Release selbst und nicht mehr als dessen noch betroffene Vorabversion.", "CVE-Radar, Bibliotheken hochladen: Eine Datei über der Grenze (5 MB, ein zip 10 MB) wird sofort mit ihrer Meldung abgelehnt, statt im Browser zu scheitern, und der Fortschrittsbalken bleibt über den Buttons sichtbar." ]
