@@ -97,7 +97,12 @@ class CvrLibraryService {
         }
         // Where the known ones were found this time; derived from the upload like the date below, so without history.
         plan.unchanged.forEach { technology ->
-            val source = plan.sources[technology.purl]
+            val purl = plan.refined[technology.id] ?: technology.purl
+            if (purl != technology.purl) {
+                context.em.createQuery("update CvrTechnologyDO t set t.purl = :purl where t.id = :id")
+                    .setParameter("purl", purl).setParameter("id", technology.id).executeUpdate()
+            }
+            val source = plan.sources[purl]
             if (source != technology.source) {
                 context.em.createQuery("update CvrTechnologyDO t set t.source = :source where t.id = :id")
                     .setParameter("source", source).setParameter("id", technology.id).executeUpdate()
@@ -121,6 +126,8 @@ class CvrLibraryService {
         val removed: List<CvrTechnologyDO>,
         /** The stored libraries the files list again. */
         val unchanged: List<CvrTechnologyDO>,
+        /** The new purls of those of [unchanged] the files list with more detail ([refinedPurls]), by id. */
+        val refined: Map<Long, String>,
         /** Where each library of the files was found ([CvrTechnologyDO.source]), by stored purl. */
         val sources: Map<String, String>,
     ) {
@@ -182,13 +189,37 @@ class CvrLibraryService {
             Pair("origins", CvrOrigin.LIBRARY_LISTS),
         )
         val known = existing.mapNotNull { it.purl }.toSet()
+        val refined = refinedPurls(existing.filter { it.purl !in wanted }, wanted.keys.filter { it !in known })
+        val refinedIds = refined.keys.map { it.id }.toSet()
+        val refinedPurls = refined.values.toSet()
         return Plan(
             files = parsed.map { LibraryFileView(it.name, it.format, it.entries.size) },
-            added = wanted.filterKeys { it !in known }.values.toList(),
-            removed = if (request.replace) existing.filter { it.purl !in wanted } else emptyList(),
-            unchanged = existing.filter { it.purl in wanted },
+            added = wanted.filterKeys { it !in known && it !in refinedPurls }.values.toList(),
+            removed = if (request.replace) existing.filter { it.purl !in wanted && it.id !in refinedIds } else emptyList(),
+            unchanged = existing.filter { it.purl in wanted || it.id in refinedIds },
+            refined = refined.mapKeys { it.key.id!! },
             sources = sources.mapValues { (_, list) -> list.distinct().joinToString("; ").take(1000) },
         )
+    }
+
+    /**
+     * The stored packages of a distribution that the upload lists with what they lacked: the distribution and its
+     * release (a `dpkg-query` list with `/etc/os-release` now) or the source package (`upstream`). The same name and
+     * version; they stay, with the new purl, so their findings stay with them.
+     */
+    private fun refinedPurls(stored: List<CvrTechnologyDO>, newPurls: List<String>): Map<CvrTechnologyDO, String> {
+        val candidates = newPurls.mapNotNull { purl -> LibraryListParser.fromPurl(purl)?.takeIf { it.ecosystem == "deb" }?.let { purl to it } }
+            .groupBy { (_, entry) -> entry.name to entry.version }
+        fun refines(old: LibraryEntry, new: LibraryEntry) =
+            (old.group == null || old.group == new.group) && (old.distro == null || old.distro == new.distro) &&
+                    (old.source == null || old.source == new.source)
+        val taken = mutableSetOf<String>()
+        return stored.mapNotNull { technology ->
+            val old = LibraryListParser.fromPurl(technology.purl)?.takeIf { it.ecosystem == "deb" } ?: return@mapNotNull null
+            val purl = candidates[old.name to old.version]?.filter { (_, new) -> refines(old, new) }?.singleOrNull()?.first
+                ?.takeIf { taken.add(it) } ?: return@mapNotNull null
+            technology to purl
+        }.toMap()
     }
 
     /**

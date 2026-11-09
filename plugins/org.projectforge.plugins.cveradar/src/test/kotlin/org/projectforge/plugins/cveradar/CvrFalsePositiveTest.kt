@@ -235,6 +235,39 @@ class CvrFalsePositiveTest : CveRadarTestBase() {
     }
 
     @Test
+    fun `a binary package meets the advisories of its source package, with the version of the source`() {
+        val (system, owner) = system("FP3", "cveradar-fp-g3")
+        component(
+            system, "SSL", "pkg:deb/debian/libpffpssl3@3.0.15-1~deb12u1?distro=debian-12&upstream=pffpssl",
+            "libpffpssl3", "3.0.15-1~deb12u1", "deb",
+        )
+        // The binary package has a version of its own: the one of the source is compared.
+        component(system, "GPG", "pkg:deb/debian/pffpgnupg@3.0-1?distro=debian-12&upstream=pffpgnupg2%402.2.40-1.1", "pffpgnupg", "3.0-1", "deb")
+        val gnupg = importNvd("CVE-2026-89012", "cpe:2.3:a:gnupg:pffpgnupg:*:*:*:*:*:*:*:*", "4.0")
+        assertEquals(CvrFindingCertainty.POSSIBLE, findings(owner, gnupg).getValue("GPG").certainty, "before: by the name of the CPE")
+
+        cveRadarConfig.osv.ecosystems = "Debian"
+        distro("DEBIAN-CVE-2026-89011", "CVE-2026-89011", listOf(Triple("Debian:12", null, null)), "pffpssl")
+        distro("DEBIAN-CVE-2026-89012", "CVE-2026-89012", listOf(Triple("Debian:12", "2.2.40-1.1", null)), "pffpgnupg2")
+        distro(
+            "DEBIAN-CVE-2026-89013", "CVE-2026-89013", listOf(Triple("Debian:12", "2.2.41-1", null)), "pffpgnupg2",
+            severity = """{"type":"CVSS_V3","score":"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"}""",
+        )
+        importNvd("CVE-2026-89011", "cpe:2.3:a:openssl:pffpssl:*:*:*:*:*:*:*:*", "4.0")
+        importOsv()
+
+        val ssl = findings(owner, vulnerabilityDao.findByCveId("CVE-2026-89011")!!.id!!)
+        assertEquals(setOf("SSL"), ssl.keys, "the binary name isn't the one of the CPE, the source package is")
+        assertEquals(CvrFindingCertainty.AFFECTED, ssl.getValue("SSL").certainty)
+        assertTrue(ssl.getValue("SSL").matched!!.startsWith("DEBIAN-CVE-2026-89011 Debian:12 pffpssl"))
+        assertTrue(findings(owner, gnupg).isEmpty(), "fixed in the version of the source: the possible match by CPE is dropped")
+        val open = findings(owner, vulnerabilityDao.findByCveId("CVE-2026-89013")!!.id!!)
+        assertEquals(CvrFindingCertainty.AFFECTED, open.getValue("GPG").certainty, "2.2.40-1.1 < 2.2.41-1, not 3.0-1")
+        val again = matching.rematchSystem(system)
+        assertEquals(0, again.created + again.updated + again.removed, "idempotent: $again")
+    }
+
+    @Test
     fun `an entry of another platform or, by name, of another vendor doesn't meet a library`() {
         val (system, owner) = system("FP2", "cveradar-fp-g2")
         component(system, "DEBTAR", "pkg:deb/debian/pffptar@1.35+dfsg-3.1?distro=debian-13", "pffptar", "1.35+dfsg-3.1", "deb")

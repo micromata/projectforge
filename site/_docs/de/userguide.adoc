@@ -1537,7 +1537,8 @@ syft dir:backend -o cyclonedx-json="$out/backend-bom.json"
 # Images: die Pakete des Betriebssystems.
 for image in registry.example.org/app:1.4.2; do
   name="$(basename "${image%%:*}")"
-  docker run --rm --entrypoint dpkg-query "$image" -W -f '${Package} ${Version}\n' > "$out/os-$name.txt"
+  docker run --rm --entrypoint sh "$image" -c \
+    'cat /etc/os-release; dpkg-query -W -f "\${Package} \${Version} \${source:Package} \${source:Version}\n"' > "$out/os-$name.txt"
   # Alpine: docker run --rm --entrypoint apk "$image" info -v > "$out/os-$name.txt"
 done
 
@@ -1561,15 +1562,18 @@ Bibliotheken des Builds. Für `eclipse-temurin` (Ubuntu) und andere Images auf B
 
 [source,bash]
 ----
-docker run --rm --entrypoint dpkg-query eclipse-temurin:21-jre -W -f '${Package} ${Version}\n' > os-temurin.txt
-grep brotli os-temurin.txt   # z. B. libbrotli1 1.1.0-2build2
+docker run --rm --entrypoint sh eclipse-temurin:21-jre -c \
+  'cat /etc/os-release; dpkg-query -W -f "\${Package} \${Version} \${source:Package} \${source:Version}\n"' > os-temurin.txt
+grep brotli os-temurin.txt   # z. B. libbrotli1 1.1.0-2build2 brotli 1.1.0-2build2
 ----
 
 Die Alpine-Variante (`eclipse-temurin:21-jre-alpine`) listet mit `apk info -v`, Images auf Basis von Red Hat (UBI)
 mit `rpm -qa`. Images ohne Paketmanager (distroless, scratch) brauchen eine SBOM des Images:
-`syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. Die Version eines Distributionspakets ist nur ein
-Hinweis: Die Distributionen portieren Fixes zurück, ohne die Version des Originals zu ändern; ob die installierte
-Version betroffen ist, sagt der Security-Tracker der Distribution (z. B. von Ubuntu oder Debian).
+`syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. Die Distributionen portieren Fixes zurück, ohne
+die Version des Originals zu ändern; ob die installierte Version betroffen ist, sagt nur die Distribution. Mit den
+Zeilen von `/etc/os-release` (dem Release) und dem Quellpaket jedes Pakets (`openssl` für `libssl3`) fragt CVE-Radar
+die Advisories von Debian und Ubuntu, wie bei einer SBOM; eine Liste nur aus `${Package} ${Version}` trifft über den
+Namen des Pakets gegen die NVD, ihre Funde sind mögliche.
 
 *Wo eine Bibliothek gefunden wurde.* Jede Bibliothek behält beim Hochladen die Datei, aus der sie stammt (in einem Zip
 mit ihrem Pfad), und bei der SBOM eines Images die Stelle darin, z. B. `image-postgres.cdx.json: /usr/local/bin/gosu`.

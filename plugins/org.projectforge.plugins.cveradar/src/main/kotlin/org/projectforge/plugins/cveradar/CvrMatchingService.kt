@@ -74,7 +74,8 @@ private val log = KotlinLogging.logger {}
  * library, their verdict counts: a *possible* match of the same vulnerability by CPE is dropped. An entry whose
  * vulnerable code is built for some operating systems only (Go: `windows`) doesn't hit a component known to run on
  * another one: one with packages of a Linux distribution runs on Linux (MAT-14). A package of a distribution (Debian,
- * Ubuntu) meets the advisories of its release (the `distro` qualifier of its purl), its version compared as dpkg does
+ * Ubuntu) meets the advisories of its release (the `distro` qualifier of its purl) by its source package (`upstream`,
+ * [OsvPackages.ofPurl]), its version compared as dpkg does
  * ([DpkgVersionComparator]); another release doesn't decide (Debian tracks its LTS release apart). A vulnerability made
  * of advisories of a distribution only needs the threshold of the NVD import.
  *
@@ -451,7 +452,7 @@ class CvrMatchingService {
                 if (os != null && candidate.match.goos?.split(',')?.map { it.trim() }?.contains(os) == false) {
                     return@candidate
                 }
-                val versionCertainty = purlVersionMatch(version, candidate.match) ?: return@candidate
+                val versionCertainty = purlVersionMatch(pkg.version ?: version, candidate.match) ?: return@candidate
                 // Without groupId the artifact may be another one of the same name.
                 val certainty = if (pkg.byShortName) CvrFindingCertainty.POSSIBLE else versionCertainty
                 val old = hits[candidate.key]

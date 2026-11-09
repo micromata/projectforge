@@ -2109,7 +2109,8 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   zurückgewiesen.
 * Der Ad-hoc-Check nutzt die Advisories ebenfalls, ohne etwas zu speichern.
 * *Distributionen* (`Debian`, `Ubuntu`): Die Pakete eines Containers oder Servers (SBOM mit dem Qualifier `distro` in
-  der purl, z. B. `pkg:deb/debian/curl@7.88.1-10?distro=debian-12`) werden gegen die Advisories ihres Releases
+  der purl, z. B. `pkg:deb/debian/curl@7.88.1-10?distro=debian-12`, oder eine Liste von `dpkg-query` mit den Zeilen
+  von `/etc/os-release`, siehe Benutzerhandbuch) werden gegen die Advisories ihres Releases
   abgeglichen, die Versionen wie von dpkg verglichen. Die CPE des Upstream-Projekts kennt die Fixes nicht, die eine
   Distribution zurückportiert (`curl 7.81.0-1ubuntu1.30` ist behoben, obwohl unter `7.84.0`); kennt die Distribution
   das Paket für eine CVE in diesem Release, entscheidet sie, und ein Treffer _möglicherweise betroffen_ über die CPE entfällt. Eine CVE,
@@ -2117,8 +2118,10 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   Schwachstelle nur aus Advisories einer Distribution braucht die Schwelle des NVD-Imports (`minCvss`). Importiert
   werden nur die Advisories je CVE (`DEBIAN-CVE-…`, `UBUNTU-CVE-…`), nicht die Meldungen (DSA, DLA, USN), und ohne die
   Kernel (`linux`, `linux-aws`, …), die ein Inventar mit ihren Binärpaketen nennt; ihre Dokumente werden nicht
-  gespeichert. Das `all.zip` von Ubuntu hat etwa 800 MB, das von Debian 80 MB. Eine Paketliste ohne Release
-  (`dpkg-query`) trifft weiterhin nur über die CPE.
+  gespeichert. Das `all.zip` von Ubuntu hat etwa 800 MB, das von Debian 80 MB. Die Advisories nennen das Quellpaket:
+  Ein Binärpaket trifft über seine Quelle (der Qualifier `upstream` der purl, `libssl3` → `openssl`, mit ihrer Version,
+  wenn die abweicht). Eine Paketliste ohne Release (`dpkg-query` ohne `/etc/os-release`) trifft weiterhin nur über die
+  CPE.
 * Gegen Fehltreffer über den Namen einer CPE: Ein Eintrag für eine Laufzeitumgebung (`target_sw` `node.js`, `rust`,
   `python`, …) trifft nur Bibliotheken dieses Ökosystems (`isaacs:tar:…:node.js` ist nicht das Debian-Paket `tar`).
   Für die Bibliotheken eines Ökosystems, das von OSV importiert wird, braucht ein Treffer über den Namen einen Vendor,

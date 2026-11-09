@@ -218,4 +218,29 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertThrows(AccessException::class.java) { rest.previewLibraries(component, request(mavenA, false)) }
         assertThrows(AccessException::class.java) { applyLibraries(component, request(mavenA, false)) }
     }
+
+    @Test
+    fun `a package list with the release and the source packages keeps the packages listed before without them`() {
+        val owner = user("lib-owner2", null)
+        val groupId = (initTestDB.getGroup("cveradar-lib-g2") ?: initTestDB.addGroup("cveradar-lib-g2")).id!!
+        addToGroup(owner, "cveradar-lib-g2")
+        logon(owner)
+        val area = rest.createArea(AreaRequest(code = "LIB2", name = "Lib", groupId = groupId))
+        val system = rest.createSystem(SystemRequest(areaId = area, code = "LIB2-S", name = "S"))
+        val component = rest.createComponent(ComponentRequest(systemId = system, code = "IMG", name = "Image"))
+        val request = { text: String -> LibraryRequest(listOf(LibraryFile("os.txt", text)), replace = true) }
+        applyLibraries(component, request("libssl3 3.0.15-1~deb12u1\ncurl 7.88.1-10\n"))
+        val before = libraries("LIB2-S-IMG").associateBy { it.product }
+
+        val diff = applyLibraries(
+            component,
+            request("ID=debian\nVERSION_ID=\"12\"\nlibssl3 3.0.15-1~deb12u1 openssl 3.0.15-1~deb12u1\ncurl 7.88.1-10 curl 7.88.1-10\n"),
+        )
+        assertEquals(2, diff.unchangedCount)
+        assertEquals(0, diff.addedCount + diff.removedCount + diff.changedCount)
+        val after = libraries("LIB2-S-IMG").associateBy { it.product }
+        assertEquals(before.mapValues { it.value.id }, after.mapValues { it.value.id }, "the same technologies")
+        assertEquals("pkg:deb/debian/libssl3@3.0.15-1~deb12u1?distro=debian-12&upstream=openssl", after.getValue("libssl3").purl)
+        assertEquals("pkg:deb/debian/curl@7.88.1-10?distro=debian-12", after.getValue("curl").purl)
+    }
 }

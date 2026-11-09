@@ -118,33 +118,45 @@ object OsvPackages {
     /**
      * The package of a purl as looked up in the index: the [key] of its name, or (Maven without groupId, a jar
      * listing) the artifact as
-     * [CvrPurlMatchDO.shortName][org.projectforge.plugins.cveradar.model.CvrPurlMatchDO.shortName].
+     * [CvrPurlMatchDO.shortName][org.projectforge.plugins.cveradar.model.CvrPurlMatchDO.shortName]. [version]: the
+     * version to compare instead of the one of the technology (the source package of a distribution package).
      */
-    data class PurlPackage(val ecosystem: String, val name: String, val byShortName: Boolean)
+    data class PurlPackage(val ecosystem: String, val name: String, val byShortName: Boolean, val version: String? = null)
 
     /**
      * The package of a purl (`pkg:maven/group/artifact@1.0`, without version too); null for another type. A package
      * of a distribution (`pkg:deb/debian/curl@7.88.1-10?distro=debian-12`) belongs to its release ([release]); without
-     * a known release it is null.
+     * a known release it is null. The advisories of a distribution name the source package: the `upstream` qualifier
+     * (`pkg:deb/debian/libssl3@3.0.11-1?upstream=openssl&distro=debian-12`, with its version if it differs:
+     * `upstream=gnupg2%402.2.40-1.1`) is the package then.
      */
     fun ofPurl(purl: String?): PurlPackage? {
         val parts = partsOf(purl) ?: return null
         if (parts.type == "deb") {
             val release = release(parts.namespace, parts.distro) ?: return null
-            return PurlPackage(release, parts.name.trim().lowercase().takeIf { it.isNotEmpty() } ?: return null, byShortName = false)
+            val source = parts.upstream?.substringBefore('@')?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+            val version = parts.upstream?.substringAfter('@', "")?.trim()?.takeIf { source != null && it.isNotEmpty() }
+            val name = source ?: parts.name.trim().lowercase().takeIf { it.isNotEmpty() } ?: return null
+            return PurlPackage(release, name, byShortName = false, version = version)
         }
         return of(parts.type, parts.namespace, parts.name)
     }
 
-    /** A purl split: the type in lower case, the namespace (segments joined by `/`), the name, the `distro` qualifier. */
-    data class PurlParts(val type: String, val namespace: String?, val name: String, val distro: String?)
+    /**
+     * A purl split: the type in lower case, the namespace (segments joined by `/`), the name, the qualifiers `distro`
+     * and `upstream`.
+     */
+    data class PurlParts(val type: String, val namespace: String?, val name: String, val distro: String?, val upstream: String? = null)
 
     fun partsOf(purl: String?): PurlParts? {
         val match = PURL.matchEntire(purl?.trim() ?: return null) ?: return null
         val segments = match.groupValues[2].trim('/').split('/').filter { it.isNotEmpty() }.map(::decode)
         if (segments.isEmpty()) return null
-        val distro = match.groupValues[3].split('&').firstOrNull { it.startsWith("distro=") }?.substringAfter('=')?.let(::decode)
-        return PurlParts(match.groupValues[1].lowercase(), segments.dropLast(1).joinToString("/").ifEmpty { null }, segments.last(), distro)
+        fun qualifier(key: String) = match.groupValues[3].split('&').firstOrNull { it.startsWith("$key=") }?.substringAfter('=')?.let(::decode)
+        return PurlParts(
+            match.groupValues[1].lowercase(), segments.dropLast(1).joinToString("/").ifEmpty { null }, segments.last(),
+            qualifier("distro"), qualifier("upstream"),
+        )
     }
 
     /** The package of a purl given as type, namespace and name (e.g. of a catalogue node); null for another type. */

@@ -2057,7 +2057,8 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
 * A withdrawn advisory matches nothing any more; a vulnerability made of withdrawn advisories only is rejected.
 * The ad-hoc check uses the advisories as well, without storing anything.
 * *Distributions* (`Debian`, `Ubuntu`): the packages of a container or server (SBOM with the `distro` qualifier in the
-  purl, e.g. `pkg:deb/debian/curl@7.88.1-10?distro=debian-12`) are matched against the advisories of their release,
+  purl, e.g. `pkg:deb/debian/curl@7.88.1-10?distro=debian-12`, or a `dpkg-query` list with the lines of
+  `/etc/os-release`, see the user guide) are matched against the advisories of their release,
   the versions compared as dpkg does. The CPE of the upstream project doesn't know the fixes a distribution backports
   (`curl 7.81.0-1ubuntu1.30` is fixed, though below `7.84.0`); where the distribution knows the package for a CVE in
   that release, it decides, and a _possible_ match by the CPE is dropped. A CVE the distribution rates without impact (Debian
@@ -2065,7 +2066,9 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   needs the threshold of the NVD import (`minCvss`). Only the advisories per CVE are imported (`DEBIAN-CVE-…`,
   `UBUNTU-CVE-…`), not the notices (DSA, DLA, USN), and without the kernels (`linux`, `linux-aws`, …), which an
   inventory names by their binary packages; their documents aren't kept. Ubuntu's `all.zip` is about 800 MB, Debian's
-  80 MB. A package list without release (`dpkg-query`) keeps matching by the CPE only.
+  80 MB. The advisories name the source package: a binary package is matched by its source (the `upstream`
+  qualifier of the purl, `libssl3` → `openssl`, with its version if that differs). A package list without release
+  (`dpkg-query` without `/etc/os-release`) keeps matching by the CPE only.
 * Against false positives of a match by the name of a CPE: an entry for a runtime (`target_sw` `node.js`, `rust`,
   `python`, …) only meets libraries of that ecosystem (`isaacs:tar:…:node.js` isn't the Debian package `tar`). For
   the libraries of an ecosystem imported from OSV, a match by name needs a vendor that fits the package, its scope or

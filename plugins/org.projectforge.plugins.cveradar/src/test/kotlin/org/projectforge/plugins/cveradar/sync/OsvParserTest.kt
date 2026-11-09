@@ -145,6 +145,16 @@ class OsvParserTest {
         assertEquals(OsvPackages.PurlPackage("Debian:12", "openssl", false), OsvPackages.ofPurl("pkg:deb/debian/openssl@3.0.11?arch=amd64&distro=debian-12.9"))
         assertEquals(OsvPackages.PurlPackage("Debian:13", "curl", false), OsvPackages.ofPurl("pkg:deb/debian/curl@8.14.1-2?distro=trixie"))
         assertEquals(OsvPackages.PurlPackage("Ubuntu:22.04:LTS", "curl", false), OsvPackages.ofPurl("pkg:deb/ubuntu/curl@7.81.0-1ubuntu1.30?distro=ubuntu-22.04"))
+        assertEquals(
+            OsvPackages.PurlPackage("Debian:12", "openssl", false),
+            OsvPackages.ofPurl("pkg:deb/debian/libssl3@3.0.15-1~deb12u1?distro=debian-12&upstream=openssl"),
+            "the advisories name the source package",
+        )
+        assertEquals(
+            OsvPackages.PurlPackage("Debian:12", "bash", false, "5.2.15-2"),
+            OsvPackages.ofPurl("pkg:deb/debian/bash@5.2.15-2+b2?distro=debian-12&upstream=bash%405.2.15-2"),
+            "and its version",
+        )
         assertEquals("Ubuntu:25.10", OsvPackages.release("ubuntu", "ubuntu-25.10"), "not LTS")
         assertEquals("Ubuntu:24.04:LTS", OsvPackages.release("ubuntu", "noble"))
         assertNull(OsvPackages.release("ubuntu", "unknown"))

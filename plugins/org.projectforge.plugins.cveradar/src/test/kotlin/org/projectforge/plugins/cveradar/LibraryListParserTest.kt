@@ -379,4 +379,55 @@ class LibraryListParserTest {
         val unzip = LibraryListParser.parse("u.txt", "  1234  2024-01-01 12:00   BOOT-INF/lib/spring-core-6.1.2.jar\n")
         assertEquals(LibraryFormat.JAR, unzip.format)
     }
+
+    @Test
+    fun `the source package of a distribution package is kept from the purl, with its version if that differs`() {
+        val ssl = LibraryListParser.fromPurl("pkg:deb/debian/libssl3@3.0.15-1~deb12u1?arch=arm64&upstream=openssl&distro=debian-12")!!
+        assertEquals("openssl", ssl.source)
+        assertEquals("debian-12", ssl.distro)
+        assertEquals("pkg:deb/debian/libssl3@3.0.15-1~deb12u1?distro=debian-12&upstream=openssl", ssl.purl)
+        assertEquals(ssl, LibraryListParser.fromPurl(ssl.purl), "round trip")
+
+        val gnupg = LibraryListParser.fromPurl("pkg:deb/debian/gnupg@2.2.40-1.1?upstream=gnupg2%402.2.40-1.1&distro=debian-12")!!
+        assertEquals("gnupg2@2.2.40-1.1", gnupg.source)
+        assertEquals("pkg:deb/debian/gnupg@2.2.40-1.1?distro=debian-12&upstream=gnupg2%402.2.40-1.1", gnupg.purl)
+        assertEquals(gnupg, LibraryListParser.fromPurl(gnupg.purl), "round trip")
+    }
+
+    @Test
+    fun `a dpkg list with the lines of os-release and the source packages is read like an SBOM`() {
+        val debian = LibraryListParser.parse(
+            "os.txt",
+            """
+                PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+                NAME="Debian GNU/Linux"
+                VERSION_ID="12"
+                VERSION="12 (bookworm)"
+                VERSION_CODENAME=bookworm
+                ID=debian
+                HOME_URL="https://www.debian.org/"
+                libssl3 3.0.15-1~deb12u1 openssl 3.0.15-1~deb12u1
+                gnupg 2.2.40-1.1 gnupg2 2.2.40-1.1
+                bash 5.2.15-2+b2 bash 5.2.15-2
+                openssl 3.0.15-1~deb12u1 openssl 3.0.15-1~deb12u1
+            """.trimIndent(),
+        )
+        assertEquals(LibraryFormat.DEB, debian.format)
+        assertEquals(
+            listOf(
+                "pkg:deb/debian/libssl3@3.0.15-1~deb12u1?distro=debian-12&upstream=openssl",
+                "pkg:deb/debian/gnupg@2.2.40-1.1?distro=debian-12&upstream=gnupg2",
+                "pkg:deb/debian/bash@5.2.15-2+b2?distro=debian-12&upstream=bash%405.2.15-2",
+                "pkg:deb/debian/openssl@3.0.15-1~deb12u1?distro=debian-12",
+            ),
+            purls(debian),
+        )
+        assertEquals("libssl3", debian.entries.first().product)
+
+        val ubuntu = LibraryListParser.parse("os.txt", "ID=ubuntu\nVERSION_ID=\"22.04\"\nID_LIKE=debian\ncurl 7.81.0-1ubuntu1.30\n")
+        assertEquals(listOf("pkg:deb/ubuntu/curl@7.81.0-1ubuntu1.30?distro=ubuntu-22.04"), purls(ubuntu))
+
+        val testing = LibraryListParser.parse("os.txt", "ID=debian\nVERSION_CODENAME=forky\ncurl 8.14.1-2\n")
+        assertEquals(listOf("pkg:deb/debian/curl@8.14.1-2?distro=debian-forky"), purls(testing), "testing has no VERSION_ID")
+    }
 }
