@@ -94,6 +94,19 @@ class InventoryRow(
     /** The open findings (MAT-02) in the instances the user may see: sure ones, and the ones only possible (MAT-03). */
     val findingCount: Int = 0,
     val possibleCount: Int = 0,
+    /** The same findings as CVEs, each counted once, by severity (the pills of the tree); null without findings. */
+    val cveCounts: CveCounts? = null,
+)
+
+/**
+ * The CVEs of the open findings below a node, each counted once: the sure ones (at least one finding of the CVE is
+ * affected) by severity, critical, high and the others (medium, low and unscored), and those only possible (MAT-03).
+ */
+class CveCounts(
+    val critical: Int = 0,
+    val high: Int = 0,
+    val other: Int = 0,
+    val possible: Int = 0,
 )
 
 class InventoryTree(

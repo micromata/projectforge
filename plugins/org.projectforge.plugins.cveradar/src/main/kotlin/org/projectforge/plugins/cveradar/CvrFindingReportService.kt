@@ -125,11 +125,15 @@ class CvrFindingReportService {
         return NodeFindingList(findings, libraries)
     }
 
-    fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean): FindingReport {
+    /**
+     * [exclude]: the CVE ids left out (handled separately, e.g. in a branch of their own), with their findings and their
+     * share of the libraries; those found are named in [FindingReport.excludedCveIds].
+     */
+    fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean, exclude: Set<String> = emptySet()): FindingReport {
         val scoped = scoped(user, level, id)
         val scope = scoped.scope
-        val findings = scoped.findings
-        val vulnerabilities = scoped.vulnerabilities
+        val vulnerabilities = scoped.vulnerabilities.filterValues { it.cveId !in exclude }
+        val findings = scoped.findings.filter { it.vulnerabilityId in vulnerabilities }
         val cases = caseDao.selectByVulnerabilityIds(vulnerabilities.keys)
         val components = byId(CvrComponentDO::class.java, findings.mapNotNull { it.componentId })
         val technologies = byId(CvrTechnologyDO::class.java, findings.mapNotNull { it.technologyId })
@@ -157,6 +161,7 @@ class CvrFindingReportService {
             findingCount = findings.size,
             libraries = librariesOf(findings, vulnerabilities, technologies) { components[it]?.let(names::component) },
             vulnerabilities = reported,
+            excludedCveIds = excludedOf(scoped.vulnerabilities.values.map { it.cveId }, exclude),
         )
     }
 
@@ -164,12 +169,13 @@ class CvrFindingReportService {
      * The report of an ad-hoc check (see [CvrAdHocCheckService]): per vulnerability the findings in the uploaded
      * files, which the caller built; the vulnerabilities are read here. Anything for a deleted one is left out.
      * [advisoryFindings]: the findings of OSV advisories not linked to a vulnerability yet, by vulnerability key; the
-     * vulnerability is made of the advisories for the report only, it isn't stored.
+     * vulnerability is made of the advisories for the report only, it isn't stored. [exclude]: as for [report].
      */
     fun adHocReport(
         findings: Map<Long, List<ReportFinding>>,
         advisoryFindings: Map<String, List<ReportFinding>>,
         anonymize: Boolean,
+        exclude: Set<String> = emptySet(),
     ): FindingReport {
         val vulnerabilities = byId(CvrVulnerabilityDO::class.java, findings.keys).filterValues { !it.deleted }
         val cases = caseDao.selectByVulnerabilityIds(vulnerabilities.keys)
@@ -178,11 +184,12 @@ class CvrFindingReportService {
             val advisories = advisoriesOfKey[key] ?: return@mapNotNull null
             reportVulnerability(osvService.toVulnerability(advisories), null, list) to null
         }
-        val reported = sorted(
+        val all = sorted(
             vulnerabilities.map { (id, vulnerability) ->
                 reportVulnerability(vulnerability, cases[id], findings.getValue(id)) to cases[id]
             } + fromAdvisories,
         )
+        val reported = all.filter { it.cveId !in exclude }
         return FindingReport(
             schemaVersion = SCHEMA_VERSION,
             generated = Date(),
@@ -193,8 +200,13 @@ class CvrFindingReportService {
             // The files of an ad-hoc check are no inventory: one row per library would repeat the vulnerabilities.
             libraries = emptyList(),
             vulnerabilities = reported,
+            excludedCveIds = excludedOf(all.map { it.cveId }, exclude),
         )
     }
+
+    /** The CVE ids of [exclude] that are in the report, sorted; unknown ones are ignored. */
+    private fun excludedOf(cveIds: Collection<String?>, exclude: Set<String>): List<String> =
+        if (exclude.isEmpty()) emptyList() else cveIds.filterNotNull().filter { it in exclude }.distinct().sorted()
 
     /** Works for a vulnerability that isn't stored as well (made of OSV advisories for an ad-hoc check). */
     private fun reportVulnerability(vulnerability: CvrVulnerabilityDO, case: CvrCaseDO?, findings: List<ReportFinding>): ReportVulnerability {

@@ -73,6 +73,11 @@ object Cvss3 {
         else -> "CRITICAL"
     }
 
+    /** The severity of a vulnerability: as given if one of LOW…CRITICAL, else of its [score], NONE without both. */
+    fun severityOf(severity: String?, score: BigDecimal?): String =
+        severity?.uppercase()?.takeIf { it in setOf("LOW", "MEDIUM", "HIGH", "CRITICAL") }
+            ?: score?.let { severity(it) } ?: "NONE"
+
     /** The smallest number with one decimal not lower than [value], free of floating point errors (Appendix A). */
     private fun roundUp(value: Double): Double {
         val int = (value * 100_000).roundToLong()

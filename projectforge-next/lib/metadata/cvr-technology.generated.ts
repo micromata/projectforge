@@ -6,7 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const CVR_TECHNOLOGY_METADATA = {
   entity: "CvrTechnologyDO",
-  historizable: true,
+  historizable: false,
   fields: {
     cpe: {
       dataType: "STRING",

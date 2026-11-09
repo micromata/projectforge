@@ -24,10 +24,12 @@
 
 package org.projectforge.plugins.cveradar
 
+import jakarta.persistence.Tuple
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingDO
 import org.projectforge.plugins.cveradar.model.CvrFindingStatus
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 
 /**
  * The findings (MAT-02): read by the readers and changed by the security team ([CveRadarAccess]), but which one a user
@@ -68,6 +70,22 @@ class CvrFindingDao : CvrBaseDao<CvrFindingDO>(CvrFindingDO::class.java) {
             CvrFindingDO::class.java,
             Pair("status", CvrFindingStatus.NEW),
         )
+    }
+
+    /**
+     * The severities of the vulnerabilities with open findings, by their id, for the counts of the inventory tree:
+     * as given, else of their CVSS score (see [Cvss3.severityOf]).
+     */
+    fun selectOpenSeverities(): Map<Long, String> {
+        return persistenceService.executeQuery(
+            "select v.id as id, v.severity as severity, v.cvssScore as score from CvrVulnerabilityDO v where v.deleted = false" +
+                    " and v.id in (select f.vulnerability.id from CvrFindingDO f where f.deleted = false and f.status = :status)",
+            Tuple::class.java,
+            Pair("status", CvrFindingStatus.NEW),
+        ).associate { row ->
+            row.get("id", Long::class.javaObjectType) to
+                    Cvss3.severityOf(row.get("severity", String::class.java), row.get("score", BigDecimal::class.java))
+        }
     }
 
     /** The findings (deleted ones not) of the given vulnerabilities and components; null: not restricted. */

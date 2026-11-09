@@ -4598,6 +4598,7 @@
           "technology": "Technologie"
         },
         "counts": {
+          "severityTooltip": "CVEs: {arg0} kritisch, {arg1} hoch, {arg2} mittel/niedrig, {arg3} nur möglicherweise betroffen",
           "tooltip": "{arg0} betroffen, {arg1} möglicherweise betroffen"
         },
         "discard": {
@@ -4933,6 +4934,7 @@
           "criticalNote": "CVSS ≥ 9,0",
           "cves": "CVEs",
           "findings": "{arg0} Findings",
+          "findingsPossible": "{arg0} Findings, {arg1} CVEs nur möglich",
           "high": "Hoch",
           "highNote": "CVSS 7,0–8,9",
           "kev": "Aktiv ausgenutzt",

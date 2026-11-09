@@ -163,6 +163,13 @@ class CvrMatchingTest : CveRadarTestBase() {
         assertEquals(CvrFindingCertainty.POSSIBLE, byComponent.getValue("NOVER").first().certainty)
         assertEquals(CvrFindingCertainty.POSSIBLE, byComponent.getValue("OTHER").first().certainty, "by name, the vendor spelled otherwise")
         assertTrue(byComponent.getValue("SURE").first().matched!!.contains("< 9.0.90"))
+        logon(owner)
+        val rows = inventory.tree().rows
+        val systemCves = rows.single { it.id == system && it.level == InventoryLevel.SYSTEM }.cveCounts!!
+        assertEquals(listOf(1, 0, 0, 0), systemCves.let { listOf(it.critical, it.high, it.other, it.possible) },
+            "one CVE however many findings, sure as one of them is")
+        val nameCves = rows.single { it.level == InventoryLevel.COMPONENT && it.shortCode == "NAME" && it.code!!.startsWith("MT1-") }.cveCounts!!
+        assertEquals(listOf(0, 0, 0, 1), nameCves.let { listOf(it.critical, it.high, it.other, it.possible) }, "only possible here")
     }
 
     @Test
@@ -238,6 +245,31 @@ class CvrMatchingTest : CveRadarTestBase() {
         matching.rebuildIndex()
         matching.rematch()
         assertEquals(2, findings(team, vulnerabilityId).findings.size)
+    }
+
+    @Test
+    fun `after restoring the main dump only, the findings stay until an import filled their vulnerability`() {
+        val P = "tomcat6"
+        val (system, _) = system("MT6", "cveradar-match-g6")
+        inventory.createComponent(
+            ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))),
+        )
+        val vulnerabilityId = importTomcat("CVE-2026-94006", P)
+        val team = user("team6", CvrRole.SECURITY_TEAM)
+        addToGroup(team, "cveradar-match-g6")
+        val before = findings(team, vulnerabilityId).findings.map { it.id }.toSet()
+        assertEquals(2, before.size)
+
+        // As after the restore: neither the data of the vulnerability nor its index entries.
+        dropDetails(vulnerabilityId)
+        persistenceService.runInTransaction {
+            it.executeUpdate("delete from CvrCpeMatchDO m where m.vulnerability.id = :id", Pair("id", vulnerabilityId))
+        }
+        matching.rematch()
+        assertEquals(before, findings(team, vulnerabilityId).findings.map { it.id }.toSet(), "no index yet: kept")
+
+        importTomcat("CVE-2026-94006", P)
+        assertEquals(before, findings(team, vulnerabilityId).findings.map { it.id }.toSet(), "filled: the same findings")
     }
 
     @Test

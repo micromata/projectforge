@@ -77,8 +77,11 @@ class CvrAdHocRest {
     /** A GET: the report changes nothing. */
     @AccessChecked("CvrAdHocCheckService.report: reader role, the finished job of the caller only")
     @GetMapping("{jobId}/report")
-    fun report(@PathVariable jobId: Int, @RequestParam(defaultValue = "true") anonymize: Boolean): FindingReport =
-        service.report(user, jobId, anonymize)
+    fun report(
+        @PathVariable jobId: Int,
+        @RequestParam(defaultValue = "true") anonymize: Boolean,
+        @RequestParam(required = false) exclude: List<String>? = null,
+    ): FindingReport = service.report(user, jobId, anonymize, exclude.orEmpty().toSet())
 
     @ExceptionHandler(AccessException::class)
     fun handleAccessException(ex: AccessException): ResponseEntity<RestError> {
