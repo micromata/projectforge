@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Chat: opening a conversation puts the cursor into the message field (not on touch devices, where the keyboard would cover the messages).",
-  "de": "Chat: Beim Öffnen einer Unterhaltung steht der Cursor im Nachrichtenfeld (nicht auf Touch-Geräten, wo die Tastatur die Nachrichten verdecken würde)."
-}

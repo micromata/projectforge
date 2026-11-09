@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Chat messages and rich texts: a link whose url is edited afterwards leads to the edited url, not to the one typed first.",
-  "de": "Chatnachrichten und Rich-Texte: Ein Link, dessen URL nachträglich geändert wird, führt zur geänderten URL statt zur zuerst getippten."
-}

@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "CVE-Radar: optional connection to Dependency-Track, as a second detection of the findings in parallel to the own matching; for now the connection is tested and shown on the system dashboard.",
-  "de": "CVE-Radar: optionale Anbindung an Dependency-Track als zweite Erkennung der Befunde parallel zum eigenen Abgleich; zunächst wird die Verbindung geprüft und auf dem System-Dashboard angezeigt."
-}

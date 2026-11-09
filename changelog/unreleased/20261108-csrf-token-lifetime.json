@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Security: the CSRF token of a session is renewed after an hour at the latest; the task tree and the choice of a personal data transfer box are only changed by POST requests; for browsers without fetch metadata, requests whose Origin or Referer names a foreign host are refused.",
-  "de": "Sicherheit: Das CSRF-Token einer Session wird spätestens nach einer Stunde erneuert; Aufgabenbaum und Auswahl einer persönlichen Datentransfer-Box ändern sich nur noch per POST; bei Browsern ohne Fetch-Metadaten werden Anfragen abgelehnt, deren Origin oder Referer einen fremden Host nennt."
-}
