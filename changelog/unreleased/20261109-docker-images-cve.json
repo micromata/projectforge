@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Docker: the image is based on Ubuntu 24.04 (Eclipse Temurin 21 JRE, formerly Ubuntu 22.04) and installs the security updates of the base image when it is built; the compose example uses PostgreSQL 17 instead of 13, which is out of support (an existing database has to be dumped and restored, see docker/README.adoc).",
-  "de": "Docker: Das Image basiert auf Ubuntu 24.04 (Eclipse Temurin 21 JRE, bisher Ubuntu 22.04) und spielt beim Bauen die Sicherheitsupdates des Basis-Images ein; das Compose-Beispiel verwendet PostgreSQL 17 statt des nicht mehr unterstützten 13 (eine bestehende Datenbank muss gesichert und wieder eingespielt werden, siehe docker/README.adoc)."
-}

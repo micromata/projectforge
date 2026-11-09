@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "CVE-Radar: the dialog of an area, system, instance or component has a tab \"Findings\" with its open findings (key figures of the CVEs by severity, also as filters, counts, filter by certainty, a click opens the CVE); a click on the counts of the tree opens it directly, hovering over them shows the key figures, and the export of the findings stays visible on every row with findings.",
-  "de": "CVE-Radar: Der Dialog eines Bereichs, Systems, einer Instanz oder Komponente hat einen Reiter „Findings“ mit ihren offenen Findings (Kennzahlen der CVEs nach Schweregrad, auch als Filter, Anzahlen, Filter nach Sicherheit, ein Klick öffnet die CVE); ein Klick auf die Anzahlen im Baum öffnet ihn direkt, beim Darüberfahren zeigen sie die Kennzahlen, und der Export der Findings bleibt in jeder Zeile mit Findings sichtbar."
-}
