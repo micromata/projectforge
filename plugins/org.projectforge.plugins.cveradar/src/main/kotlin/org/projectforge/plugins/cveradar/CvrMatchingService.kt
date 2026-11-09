@@ -770,20 +770,42 @@ class CvrMatchingService {
         }
 
         /**
-         * A version as [VersionComparator] orders it right: without build metadata (`+…`); Maven without the qualifier
-         * of a release (`5.3.0.RELEASE`, `2.6.0.Final` as `5.3.0`, `2.6.0`); PyPI with a post release as a further
-         * number (`1.0.post1` as `1.0.0.1`: after `1.0`, before `1.0.1`).
+         * A version as [VersionComparator] orders it right: without build metadata (`+…`); Maven see
+         * [normalizeMavenVersion]; PyPI with a post release as a further number (`1.0.post1` as `1.0.0.1`: after `1.0`,
+         * before `1.0.1`).
          */
         internal fun normalizeVersion(version: String, ecosystem: String?): String {
             val v = version.trim().substringBefore('+')
             return when (ecosystem) {
-                "Maven" -> v.replace(MAVEN_RELEASE, "")
+                "Maven" -> normalizeMavenVersion(v)
                 "PyPI" -> v.replace(PYPI_POST, ".0.$1")
                 else -> v
             }
         }
 
-        private val MAVEN_RELEASE = Regex("""[.\-](final|release|ga)$""", RegexOption.IGNORE_CASE)
+        /**
+         * A Maven version is its version number and a qualifier, if any. A qualifier of a pre-release (`-beta1`, `-RC2`,
+         * `-M1`, `-SNAPSHOT`, a timestamped snapshot `-20230101.123456-1` as `-SNAPSHOT`) stays, so the version is
+         * lower than the release; any other one names the release itself or a flavor of it and is cut (`5.3.0.RELEASE`,
+         * `2.6.0.Final`, Guava's `33.7.2-jre` and `33.7.2-android`, `1.0-jdk8` as `5.3.0`, `2.6.0`, `33.7.2`, `1.0`).
+         * A qualifier starting with a digit (a build number, `1.0-1`) stays as a further part.
+         */
+        private fun normalizeMavenVersion(version: String): String {
+            val v = version.replace(MAVEN_TIMESTAMP_SNAPSHOT, "-SNAPSHOT")
+            val match = MAVEN_VERSION.matchEntire(v) ?: return v
+            val qualifier = match.groupValues[2]
+            if (qualifier.isEmpty() || qualifier.first().isDigit() || MAVEN_PRE_RELEASE.matches(qualifier)) {
+                return v
+            }
+            return match.groupValues[1]
+        }
+
+        private val MAVEN_VERSION = Regex("""(\d+(?:\.\d+)*)[.\-_]?(.*)""")
+        private val MAVEN_PRE_RELEASE = Regex(
+            """(alpha|a|beta|b|milestone|m|rc|cr|snapshot|preview|pre|ea|dev|nightly)([.\-_]?\d+)*([.\-_].*)?""",
+            RegexOption.IGNORE_CASE,
+        )
+        private val MAVEN_TIMESTAMP_SNAPSHOT = Regex("""-\d{8}\.\d{6}-\d+$""")
         private val PYPI_POST = Regex("""[.\-_]?post(\d+)$""", RegexOption.IGNORE_CASE)
 
         /** The advisory, the package and its range, e.g. `GHSA-… Maven com.fasterxml.jackson.core:jackson-databind (>= 2.0.0, < 2.12.7.1)`. */

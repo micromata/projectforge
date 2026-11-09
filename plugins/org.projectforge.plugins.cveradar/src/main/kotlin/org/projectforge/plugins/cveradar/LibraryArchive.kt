@@ -39,6 +39,7 @@ import java.util.zip.ZipInputStream
  * taken from the header) and of all files together and their number are limited.
  */
 object LibraryArchive {
+    /** Checked in the browser too (`projectforge-next/components/features/cve-radar/read-library-files.ts`): change both. */
     const val MAX_ARCHIVE_BYTES = 10 * 1024 * 1024
     const val MAX_UNPACKED_BYTES = 50 * 1024 * 1024
     const val MAX_FILES = 100
