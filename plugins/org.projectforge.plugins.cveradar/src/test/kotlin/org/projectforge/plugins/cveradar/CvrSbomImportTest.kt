@@ -25,10 +25,13 @@
 package org.projectforge.plugins.cveradar
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.io.TempDir
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
@@ -43,6 +46,11 @@ import org.projectforge.plugins.cveradar.rest.SbomImportStatus
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.attribute.FileTime
+import java.time.Duration
+import java.time.Instant
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -209,6 +217,19 @@ class CvrSbomImportTest : CveRadarTestBase() {
         val jobId = service.startAnalysis(owner, area, broken.size.toLong(), ByteArrayInputStream(broken)).jobId
         val job = await<CvrSbomImportAnalyzeJob>(jobId, AbstractJob.Status.FAILED)
         assertEquals(translate(SbomImportArchive.ERROR_INVALID), job.errorMessage)
+    }
+
+    @Test
+    fun `zips left by a restart are deleted, the ones of a running import stay`(@TempDir dir: Path) {
+        val left = Files.createFile(dir.resolve("cveradar-sbom-import-1.zip"))
+        Files.setLastModifiedTime(left, FileTime.from(Instant.now().minus(Duration.ofHours(4))))
+        val running = Files.createFile(dir.resolve("cveradar-sbom-import-2.zip"))
+        val other = Files.createFile(dir.resolve("other.zip"))
+        Files.setLastModifiedTime(other, FileTime.from(Instant.now().minus(Duration.ofHours(4))))
+        service.deleteLeftFiles(dir, Instant.now().minus(Duration.ofHours(3)))
+        assertFalse(Files.exists(left))
+        assertTrue(Files.exists(running))
+        assertTrue(Files.exists(other))
     }
 
     @Test

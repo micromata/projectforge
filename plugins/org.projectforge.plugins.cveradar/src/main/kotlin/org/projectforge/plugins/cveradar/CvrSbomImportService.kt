@@ -25,6 +25,7 @@
 package org.projectforge.plugins.cveradar
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jobs.JobHandler
@@ -42,6 +43,8 @@ import org.springframework.stereotype.Service
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 private val log = KotlinLogging.logger {}
@@ -98,7 +101,7 @@ class CvrSbomImportService {
     }
 
     private fun store(user: PFUserDO, areaId: Long, areaCode: String, limit: Long, input: InputStream): JobStarted {
-        val file = Files.createTempFile("cveradar-sbom-import-", ".zip")
+        val file = Files.createTempFile(TEMP_PREFIX, TEMP_SUFFIX)
         try {
             Files.newOutputStream(file).use { out ->
                 val buffer = ByteArray(64 * 1024)
@@ -227,6 +230,29 @@ class CvrSbomImportService {
 
     internal fun rematch(componentIds: List<Long>) = inventoryService.rematchImported(componentIds)
 
+    /** The zips left by a restart during an upload or analysis (the job deletes them otherwise). */
+    @PostConstruct
+    private fun deleteLeftFiles() {
+        deleteLeftFiles(Path.of(System.getProperty("java.io.tmpdir")), Instant.now().minus(LEFT_AFTER))
+    }
+
+    /**
+     * The zips of imports in [dir] older than [before]; younger ones may belong to another instance sharing the
+     * directory (no upload and analysis takes that long).
+     */
+    internal fun deleteLeftFiles(dir: Path, before: Instant) {
+        try {
+            Files.newDirectoryStream(dir, "$TEMP_PREFIX*$TEMP_SUFFIX").use { files ->
+                files.filter { Files.getLastModifiedTime(it).toInstant().isBefore(before) }.forEach { file ->
+                    log.info { "Temporary file of an SBOM import left by a restart deleted: $file" }
+                    deleteQuietly(file)
+                }
+            }
+        } catch (ex: Exception) {
+            log.warn(ex) { "Temporary files of SBOM imports not cleaned up in $dir" }
+        }
+    }
+
     internal fun deleteQuietly(file: Path) {
         try {
             Files.deleteIfExists(file)
@@ -239,6 +265,9 @@ class CvrSbomImportService {
 
     companion object {
         private const val MAX_SOURCES = 20
+        private const val TEMP_PREFIX = "cveradar-sbom-import-"
+        private const val TEMP_SUFFIX = ".zip"
+        private val LEFT_AFTER = Duration.ofHours(3)
 
         const val ERROR_TOO_LARGE = "plugins.cveradar.sbomImport.error.tooLarge"
         const val ERROR_EXPIRED = "plugins.cveradar.sbomImport.error.expired"
