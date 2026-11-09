@@ -136,7 +136,9 @@ class CvrInventoryRest {
         @PathVariable level: InventoryLevel,
         @PathVariable id: Long,
         @RequestParam(defaultValue = "true") anonymize: Boolean,
-    ): FindingReport = reportService.report(user, level, id, anonymize)
+        /** CVE ids to leave out (handled separately). */
+        @RequestParam(required = false) exclude: List<String>? = null,
+    ): FindingReport = reportService.report(user, level, id, anonymize, exclude.orEmpty().toSet())
 
     @AccessChecked("CvrFindingReportService.nodeFindings: reader role, read access to the node, only the instances the user may read")
     @GetMapping("{level}/{id}/findings")

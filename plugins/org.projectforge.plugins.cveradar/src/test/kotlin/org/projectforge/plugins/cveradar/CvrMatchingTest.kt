@@ -248,6 +248,31 @@ class CvrMatchingTest : CveRadarTestBase() {
     }
 
     @Test
+    fun `after restoring the main dump only, the findings stay until an import filled their vulnerability`() {
+        val P = "tomcat6"
+        val (system, _) = system("MT6", "cveradar-match-g6")
+        inventory.createComponent(
+            ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))),
+        )
+        val vulnerabilityId = importTomcat("CVE-2026-94006", P)
+        val team = user("team6", CvrRole.SECURITY_TEAM)
+        addToGroup(team, "cveradar-match-g6")
+        val before = findings(team, vulnerabilityId).findings.map { it.id }.toSet()
+        assertEquals(2, before.size)
+
+        // As after the restore: neither the data of the vulnerability nor its index entries.
+        dropDetails(vulnerabilityId)
+        persistenceService.runInTransaction {
+            it.executeUpdate("delete from CvrCpeMatchDO m where m.vulnerability.id = :id", Pair("id", vulnerabilityId))
+        }
+        matching.rematch()
+        assertEquals(before, findings(team, vulnerabilityId).findings.map { it.id }.toSet(), "no index yet: kept")
+
+        importTomcat("CVE-2026-94006", P)
+        assertEquals(before, findings(team, vulnerabilityId).findings.map { it.id }.toSet(), "filled: the same findings")
+    }
+
+    @Test
     fun `who sees an instance sees its findings, everybody else only the count, the security team discards`() {
         val P = "tomcat4"
         val vulnerabilityId = importTomcat("CVE-2026-94004", P)
