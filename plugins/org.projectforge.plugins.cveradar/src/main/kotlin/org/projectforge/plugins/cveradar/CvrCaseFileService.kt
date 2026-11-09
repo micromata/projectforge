@@ -504,6 +504,7 @@ class CvrCaseFileService {
 
     internal fun vulnerabilityView(vulnerability: CvrVulnerabilityDO): VulnerabilityView {
         val (remediation, other) = partitionedReferences(vulnerability)
+        val advisories = osvService.advisoriesOfVulnerability(vulnerability.id!!)
         return VulnerabilityView(
             id = vulnerability.id!!,
             cveId = vulnerability.cveId,
@@ -512,7 +513,8 @@ class CvrCaseFileService {
             epss = vulnerability.epss,
             exploitedSince = vulnerability.exploitedSince,
             euvdOnly = EuvdImportService.isFromEuvd(vulnerability),
-            sources = CvrOsvAdvisoryService.sourcesOf(vulnerability, vulnerability.id!! in osvService.idsWithAdvisories(listOf(vulnerability.id!!))),
+            sources = CvrOsvAdvisoryService.sourcesOf(vulnerability, advisories.isNotEmpty()),
+            ratings = CvrSourceRatings.of(vulnerability, advisories),
             rejected = vulnerability.nvdStatus.equals("Rejected", ignoreCase = true),
             published = vulnerability.published,
             nvdLastModified = vulnerability.nvdLastModified,
