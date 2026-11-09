@@ -60,11 +60,12 @@ class ApnsPushSenderTest {
     }
 
     @Test
-    fun `payload has no content of the notification`() {
+    fun `payload carries the text and the ids`() {
         val json = ObjectMapper().readTree(
             ApnsPushSender.payload(PushMessage("Title", "Text", 3, true, "/chat/5", 42L, "pf.example.org"), 7L),
         )
         Assertions.assertEquals("Title", json.path("aps").path("alert").path("title").asText())
+        Assertions.assertEquals("Text", json.path("aps").path("alert").path("body").asText())
         Assertions.assertEquals("pf.example.org", json.path("aps").path("alert").path("subtitle").asText())
         Assertions.assertEquals(7L, json.path("device").asLong())
         Assertions.assertEquals("pf.example.org", json.path("server").asText())

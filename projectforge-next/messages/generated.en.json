@@ -3733,6 +3733,8 @@
         "text": "Open the app to read it.",
         "title": "New chat message"
       },
+      "content": "Show the content in push messages",
+      "contentInfo": "The title and the beginning of a notification appear on the lock screen. The push message is delivered by the push service of Apple.",
       "text": "Open the app to see it.",
       "title": "New notification"
     },

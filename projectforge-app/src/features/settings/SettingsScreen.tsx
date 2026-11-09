@@ -21,10 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
-import { t } from '../../core/i18n/translations';
+import { errorText, t } from '../../core/i18n/translations';
 import { appSettings, opensInApp, RailSide, useAppSettings } from '../../core/settings/appSettings';
+import { userStatus, useUserStatus } from '../../core/status/userStatus';
 import { useColors } from '../../core/ui/colors';
 import { NativePage, NATIVE_PAGES } from '../../core/web/nativePage';
 
@@ -49,11 +51,17 @@ const RAIL_SIDES: { side: RailSide; label: () => string }[] = [
 
 /**
  * The settings of the app on this device: the side of the navigation in landscape, which menu entries of the web pages
- * open the app's tab, the log.
+ * open the app's tab, the log. And of the user at the server: whether pushes show the content (as in "My account").
  */
 export function SettingsScreen({ onShowLog }: { onShowLog: () => void }) {
   const colors = useColors();
   const settings = useAppSettings();
+  const { pushSettings } = useUserStatus();
+  // One change at a time: a later answer must not overwrite the one chosen last.
+  const [pushBusy, setPushBusy] = useState(false);
+  useEffect(() => {
+    void userStatus.loadPushSettings();
+  }, []);
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.container}>
       <View style={[styles.row, { borderColor: colors.border }]}>
@@ -91,6 +99,28 @@ export function SettingsScreen({ onShowLog }: { onShowLog: () => void }) {
           />
         </View>
       ))}
+      {pushSettings?.available && (
+        <View style={[styles.row, styles.pushRow, { borderColor: colors.border }]}>
+          <View style={styles.fill}>
+            <Text style={[styles.label, { color: colors.text }]}>{t('notification.push.content')}</Text>
+            <Text style={[styles.info, styles.rowInfo, { color: colors.textMuted }]}>
+              {t('notification.push.contentInfo')}
+            </Text>
+          </View>
+          <Switch
+            testID="settings-push-content"
+            value={pushSettings.content}
+            disabled={pushBusy || pushSettings.writeAccess === false}
+            onValueChange={(content) => {
+              setPushBusy(true);
+              userStatus
+                .choosePushContent(content)
+                .catch((e: unknown) => Alert.alert(errorText(e)))
+                .finally(() => setPushBusy(false));
+            }}
+          />
+        </View>
+      )}
       <Pressable style={[styles.row, styles.logRow, { borderColor: colors.border }]} onPress={onShowLog}>
         <Text style={[styles.label, { color: colors.text }]}>{t('app.log.title')}</Text>
         <Text style={[styles.info, { color: colors.textMuted }]}>{t('app.log.settingsInfo')}</Text>
@@ -110,6 +140,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  pushRow: { marginTop: 24 },
   logRow: { flexDirection: 'column', alignItems: 'flex-start', marginTop: 24, gap: 4 },
   label: { fontSize: 16 },
   fill: { flex: 1, marginRight: 12 },

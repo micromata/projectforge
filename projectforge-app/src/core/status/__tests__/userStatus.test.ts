@@ -165,3 +165,39 @@ test('a theme the server refused to store is taken back', async () => {
   await expect(store.chooseTheme('dark')).rejects.toBeDefined();
   expect(store.get().theme).toBe('light');
 });
+
+test('the push settings are loaded and a choice is stored for the user', async () => {
+  const { client, requests } = api((request) =>
+    request.url.endsWith('/rs/pushSettings')
+      ? request.init.method === 'POST'
+        ? { body: { available: true, content: false, writeAccess: true } }
+        : { body: { available: true, content: true, writeAccess: true } }
+      : { body: { theme: 'light' } },
+  );
+  const store = await started(client);
+  expect(store.get().pushSettings).toBeNull();
+  await store.loadPushSettings();
+  expect(store.get().pushSettings?.content).toBe(true);
+  await store.choosePushContent(false);
+  expect(store.get().pushSettings?.content).toBe(false);
+  const post = requests.find((it) => it.url.endsWith('/rs/pushSettings') && it.init.method === 'POST');
+  expect(post?.body).toEqual({ content: false });
+});
+
+test('an older server has no push settings, a refused choice is taken back', async () => {
+  let known = false;
+  const { client } = api((request) =>
+    request.url.endsWith('/rs/pushSettings')
+      ? known && request.init.method !== 'POST'
+        ? { body: { available: true, content: true } }
+        : { status: known ? 500 : 404 }
+      : { body: { theme: 'light' } },
+  );
+  const store = await started(client);
+  await store.loadPushSettings();
+  expect(store.get().pushSettings).toBeNull();
+  known = true;
+  await store.loadPushSettings();
+  await expect(store.choosePushContent(false)).rejects.toBeDefined();
+  expect(store.get().pushSettings?.content).toBe(true);
+});

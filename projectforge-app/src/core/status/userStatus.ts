@@ -21,7 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import type { UIThemeRequest, UIThemeSettings, UserStatusResult } from '@projectforge/shared/rs/user-status';
+import type {
+  PushSettings,
+  PushSettingsRequest,
+  UIThemeRequest,
+  UIThemeSettings,
+  UserStatusResult,
+} from '@projectforge/shared/rs/user-status';
 import { useSyncExternalStore } from 'react';
 import { AppState, AppStateStatus, Appearance } from 'react-native';
 
@@ -57,9 +63,11 @@ interface State {
   theme: ThemeMode;
   /** The user's first day of the week (Monday 1 … Sunday 7), stored for a start without the server. */
   firstDayOfWeek: number;
+  /** Loaded by the settings ([loadPushSettings]); null before, offline and for an older server without them. */
+  pushSettings: PushSettings | null;
 }
 
-const INITIAL: State = { status: null, theme: 'system', firstDayOfWeek: 1 };
+const INITIAL: State = { status: null, theme: 'system', firstDayOfWeek: 1, pushSettings: null };
 
 /**
  * The user status (`GET /rs/userStatus`) for the badge of the chat tab, the bell of the notifications, the message of
@@ -150,6 +158,46 @@ export class UserStatusStore {
       if (this.api === api && answer?.theme) this.setTheme(parseTheme(answer.theme), true);
     } catch (e) {
       if (this.api === api) this.setTheme(before, true);
+      throw e;
+    }
+  };
+
+  /** The settings of the pushes (`PushSettingsRest`), for the settings screen; an older server has none. */
+  loadPushSettings = async () => {
+    const api = this.api;
+    if (api == null) return;
+    try {
+      const pushSettings = await api.get<PushSettings>('/rs/pushSettings', { renewLogin: false });
+      if (this.api !== api) return;
+      this.state = { ...this.state, pushSettings };
+      this.emit();
+    } catch (e) {
+      appLog.debug('status', `Push settings not loaded: ${String(e)}`);
+    }
+  };
+
+  /**
+   * The user chose whether pushes show the content: shown at once and stored for the user (the same setting as in "My
+   * account"). A failure is thrown, the setting shown before is back then.
+   */
+  choosePushContent = async (content: boolean) => {
+    const api = this.api;
+    const before = this.state.pushSettings;
+    if (api == null || before == null) return;
+    this.state = { ...this.state, pushSettings: { ...before, content } };
+    this.emit();
+    try {
+      const body: PushSettingsRequest = { content };
+      const answer = await api.post<PushSettings | undefined>('/rs/pushSettings', { body });
+      if (this.api === api && answer != null) {
+        this.state = { ...this.state, pushSettings: answer };
+        this.emit();
+      }
+    } catch (e) {
+      if (this.api === api) {
+        this.state = { ...this.state, pushSettings: before };
+        this.emit();
+      }
       throw e;
     }
   };

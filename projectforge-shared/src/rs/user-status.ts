@@ -21,8 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-// The user status (UserStatusRest, GET /rs/userStatus) and the theme of the web pages (UISettingsRest). See
-// src/rs/app-auth.ts for @server.
+// The user status (UserStatusRest, GET /rs/userStatus), the theme of the web pages (UISettingsRest) and the push
+// settings (PushSettingsRest). See src/rs/app-auth.ts for @server.
 
 import type { SystemData } from './app-auth';
 
@@ -73,4 +73,22 @@ export interface UIThemeSettings {
 /** The theme chosen in the app (`light`, `dark` or `system`). @request org.projectforge.rest.UIThemeSettings */
 export interface UIThemeRequest {
   theme: string;
+}
+
+/**
+ * Whether a push shows the title and the beginning of the notification (PushSettingsRest, /rs/pushSettings): the same
+ * setting as in "My account".
+ * @server org.projectforge.rest.PushSettingsRest$Data
+ */
+export interface PushSettings {
+  /** False if the server keeps the content out of every push: nothing to choose then. */
+  available: boolean;
+  content: boolean;
+  /** False for a restricted or demo user (a shared account). */
+  writeAccess?: boolean;
+}
+
+/** The setting chosen in the app. @request org.projectforge.rest.PushSettingsRest$Request */
+export interface PushSettingsRequest {
+  content: boolean;
 }

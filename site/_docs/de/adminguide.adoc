@@ -312,9 +312,12 @@ Entwicklerkontos, zu dem die App gehört (`keyFile`, `keyId`, `teamId` und die B
 `keyFile` wird keine Push-Nachricht gesendet, und die App fragt wie bisher gelegentlich nach neuen Benachrichtigungen.
 
 Der Schlüssel gehört dem Herausgeber der App. Pushes funktionieren daher für Installationen, die den Schlüssel des
-Herausgebers haben oder einen eigenen Build der App. Die Nachricht enthält keinen Inhalt der Benachrichtigung, nur
-einen allgemeinen Text, den Link und die Anzahl offener Benachrichtigungen; den Inhalt lädt die App selbst. Debug-Builds
-der App nutzen die Sandbox von APNs, Release-Builds den Produktivdienst.
+Herausgebers haben oder einen eigenen Build der App. Die Nachricht zeigt wie die Webversion den Titel und den Anfang
+der Benachrichtigung, dazu den Link und die Anzahl offener Benachrichtigungen. Apple sieht diesen Inhalt: Jede Person
+kann ihn abschalten („Mein Konto“, Apps, und die Einstellungen der App; dann kommt ein allgemeiner Text, und die App
+lädt den Inhalt selbst), und `projectforge.push.content=false` lässt ihn aus allen Push-Nachrichten heraus.
+Chat-Nachrichten erscheinen nur dort, wo sie auch in Mails erscheinen. Debug-Builds der App nutzen die Sandbox von APNs,
+Release-Builds den Produktivdienst.
 
 [[customization]]
 === Anpassungen

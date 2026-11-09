@@ -166,8 +166,9 @@ class ChatNotifier {
                 notificationService.notifyDirect(
                     recipientId = recipientId,
                     title = I18nHelper.getLocalizedMessage(recipient, "chat.notification.secret.title", senderName),
+                    // The title names the sender already.
                     body = "<p>${StringEscapeUtils.escapeHtml4(
-                        I18nHelper.getLocalizedMessage(recipient, "chat.notification.secret.text", senderName)
+                        I18nHelper.getLocalizedMessage(recipient, "chat.notification.secret.text")
                     )}</p>",
                     link = "/chat/$conversationId",
                     dedupKey = "${secretPrefix(conversationId, recipientId)}$offeredAt",
@@ -217,7 +218,7 @@ class ChatNotifier {
             notificationService.notifyDirect(
                 recipientId = userId,
                 title = I18nHelper.getLocalizedMessage(user, "chat.notification.mention.title", authorName, titleFor(user!!)),
-                body = body(user, "chat.notification.mention.text", authorName, titleFor(user), info, withContent),
+                body = body(user, null, authorName, info, withContent), // The title names the author.
                 link = link,
                 dedupKey = mentionKey(info.conversationId, userId, info.threadRootId, info.messageId),
                 delivery = MENTION_DELIVERY,
@@ -249,13 +250,14 @@ class ChatNotifier {
                 val direct = info.hostType == ChatDirectChatHost.HOST_TYPE
                 val i18nKey = when {
                     info.threadRootId != null -> "chat.notification.reply"
-                    direct -> "chat.notification.direct" // The title is the recipient's own name for the author.
+                    direct -> DIRECT_I18N_KEY // The title is the recipient's own name for the author.
                     else -> "chat.notification.new"
                 }
                 notificationService.notifyDirect(
                     recipientId = userId,
                     title = I18nHelper.getLocalizedMessage(user, "$i18nKey.title", authorName, titleFor(user!!)),
-                    body = body(user, "$i18nKey.text", authorName, titleFor(user), info, withContent),
+                    // The title of a direct message names the author: the text is the message only.
+                    body = body(user, "$i18nKey.text".takeUnless { i18nKey == DIRECT_I18N_KEY }, authorName, info, withContent),
                     link = link,
                     dedupKey = "$prefix${info.messageId}",
                     delivery = NEW_MESSAGE_DELIVERY,
@@ -266,19 +268,31 @@ class ChatNotifier {
     }
 
     /**
-     * The text of the notification (HTML): the names are user data (e.g. the room name chosen by anybody), escaped,
-     * so they can't bring markup (a link) into the notification.
+     * The text of the notification (HTML), without repeating its title (the push and the bell show both): the message,
+     * if its host allows it in mails, with the author first where the title doesn't name them; else who wrote,
+     * [authorI18nKey] (null if the title names the author: only the hint to open the chat then). The names are user data (e.g. the room
+     * name chosen by anybody), escaped, so they can't bring markup (a link) into the notification.
      */
     private fun body(
         user: PFUserDO,
-        i18nKey: String,
+        authorI18nKey: String?,
         authorName: String,
-        title: String,
         info: MessageInfo,
         withContent: Boolean,
     ): String {
-        val text = StringEscapeUtils.escapeHtml4(I18nHelper.getLocalizedMessage(user, i18nKey, authorName, title))
-        return if (withContent && info.html.isNotBlank()) "<p>$text</p>${info.html}" else "<p>$text</p>"
+        if (withContent && info.html.isNotBlank()) {
+            return if (authorI18nKey == null) {
+                info.html
+            } else {
+                "<p>${StringEscapeUtils.escapeHtml4(authorName)}:</p>${info.html}"
+            }
+        }
+        val text = if (authorI18nKey == null) {
+            I18nHelper.getLocalizedMessage(user, "chat.notification.read")
+        } else {
+            I18nHelper.getLocalizedMessage(user, authorI18nKey, authorName)
+        }
+        return "<p>${StringEscapeUtils.escapeHtml4(text)}</p>"
     }
 
     private fun mutedUserIds(conversationId: Long): Set<Long> {
@@ -309,6 +323,8 @@ class ChatNotifier {
         private val SECRET_DELIVERY = NotificationDelivery(
             listOf(NotificationDeliveryStep(NotificationChannel.IN_APP, 0))
         )
+
+        private const val DIRECT_I18N_KEY = "chat.notification.direct"
 
         internal fun secretPrefix(conversationId: Long, userId: Long) = "chat:secret:$conversationId:$userId:"
 

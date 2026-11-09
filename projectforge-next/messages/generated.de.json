@@ -3733,6 +3733,8 @@
         "text": "Zum Lesen die App öffnen.",
         "title": "Neue Chat-Nachricht"
       },
+      "content": "Inhalt in Push-Nachrichten anzeigen",
+      "contentInfo": "Titel und Textanfang einer Benachrichtigung erscheinen auf dem Sperrbildschirm. Die Push-Nachricht wird über den Push-Dienst von Apple zugestellt.",
       "text": "Zum Ansehen die App öffnen.",
       "title": "Neue Benachrichtigung"
     },

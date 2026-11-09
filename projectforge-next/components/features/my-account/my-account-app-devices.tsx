@@ -14,12 +14,13 @@ import {
   MY_ACCOUNT_QUERY_KEY,
 } from "@/lib/rs/my-account";
 import { toast } from "@/lib/toast";
+import { MyAccountPushSettings } from "./my-account-push-settings";
 import type { MyAccountAppDevice, MyAccountInit } from "./types";
 
 /**
  * The connected ProjectForge apps (one app token each, AppDeviceDO), most recently used first. Each can be
  * logged out: its token is deleted and the app asks for a new login in the browser. Plain rows like
- * [MyAccountDevices]: a user has a handful of apps.
+ * [MyAccountDevices]: a user has a handful of apps. Below them the setting of the pushes to the apps.
  */
 export function MyAccountAppDevices({
   devices,
@@ -134,6 +135,7 @@ export function MyAccountAppDevices({
           </table>
         </div>
       )}
+      <MyAccountPushSettings />
       <ConfirmDialog
         open={pendingId != null}
         onOpenChange={(open) => !open && setPendingId(null)}

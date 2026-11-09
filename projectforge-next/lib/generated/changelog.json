@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.8",
+    "date" : "2026-11-09",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ {
+        "title" : "Notifications",
+        "items" : [ "{app} Push messages show the title and the beginning of the notification, as in the web version (for a chat message the message itself). Each user can switch the content off in \"My account\" (Apps) or in the settings of the app; `projectforge.push.content=false` keeps it out of every push.", "The text of chat notifications no longer repeats their title: it shows the message, with its author where the title doesn't name them." ]
+      } ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

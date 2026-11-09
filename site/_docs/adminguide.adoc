@@ -303,9 +303,11 @@ itself: it needs an APNs authentication key (`AuthKey_<keyId>.p8`) of the Apple 
 app asks for new notifications from time to time as before.
 
 The key belongs to the publisher of the app. The pushes therefore work for installations that have the publisher's key
-or their own build of the app. The message contains no content of the notification, only a generic text, the link and
-the number of open notifications; the app loads the content itself. Debug builds of the app use the sandbox of APNs,
-release builds the production service.
+or their own build of the app. The message shows the title and the beginning of the notification, as the web version
+does, plus the link and the number of open notifications. Apple sees this payload: each user can switch the content
+off ("My account", Apps, and the settings of the app; a generic text then, and the app loads the content itself), and
+`projectforge.push.content=false` keeps the content out of every push. Chat messages appear only where they appear in
+mails too. Debug builds of the app use the sandbox of APNs, release builds the production service.
 
 [[customization]]
 === Customization

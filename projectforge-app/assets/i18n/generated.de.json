@@ -101,6 +101,8 @@
   "notification.centerEmpty" : "Keine offenen Benachrichtigungen.",
   "notification.markDone" : "Als erledigt markieren",
   "notification.open" : "Öffnen",
+  "notification.push.content" : "Inhalt in Push-Nachrichten anzeigen",
+  "notification.push.contentInfo" : "Titel und Textanfang einer Benachrichtigung erscheinen auf dem Sperrbildschirm. Die Push-Nachricht wird über den Push-Dienst von Apple zugestellt.",
   "ok" : "OK",
   "refresh" : "Neu laden",
   "save" : "Speichern",
