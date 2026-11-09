@@ -716,11 +716,11 @@ step 5a does this automatically before every start.
 
 ### Base image not found
 
-The Dockerfile uses `docker.io/eclipse-temurin:21-jre-jammy`. If Podman cannot resolve the
+The Dockerfile uses `docker.io/eclipse-temurin:21-jre-noble`. If Podman cannot resolve the
 registry:
 
 ```bash
-podman pull docker.io/eclipse-temurin:21-jre-jammy
+podman pull docker.io/eclipse-temurin:21-jre-noble
 ```
 
 ### JAR_FILE build argument

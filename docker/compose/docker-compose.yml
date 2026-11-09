@@ -21,7 +21,7 @@ services:
       - projectforge-db
 
   projectforge-db:
-    image: postgres:13.18
+    image: docker.io/library/postgres:17
     container_name: projectforge-db
     restart: always
     #ports:

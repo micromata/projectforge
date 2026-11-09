@@ -133,6 +133,26 @@ tbd.
 
 tbd.
 
+==== Upgrading PostgreSQL to a new major version
+
+`docker-compose.yml` uses PostgreSQL 17 (formerly 13). A data directory of an older major version
+(`./ProjectForgeDB`) can't be opened by the new one, so dump it with the old image and restore it into a
+fresh directory:
+
+[source,shell]
+----
+docker compose stop projectforge-app
+docker compose exec projectforge-db pg_dumpall -U "$POSTGRES_USER" > projectforge-dump.sql
+docker compose down
+mv ProjectForgeDB ProjectForgeDB-pg13
+# docker-compose.yml with postgres:17:
+docker compose up -d projectforge-db
+docker compose exec -T projectforge-db psql -U "$POSTGRES_USER" -d postgres < projectforge-dump.sql
+docker compose up -d
+----
+
+Keep `ProjectForgeDB-pg13` until ProjectForge runs fine with the new database.
+
 
 == Deploying docker images
 
