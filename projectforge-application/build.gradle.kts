@@ -30,6 +30,8 @@ extra["junit-jupiter.version"] = libs.versions.org.junit.get()
 // Same for Groovy: Boot 4 manages Groovy 5, which would mix the Groovy 5 modules (json, xml, templates, ...) with
 // the Groovy 4 core of our catalog. Groovy 5 is a separate step (major-upgrades.md, Phase 3).
 extra["groovy.version"] = libs.versions.org.apache.groovy.get()
+// Boot 4.1.1 manages freemarker 2.3.34 (CVE-2026-84939), the catalog has the fixed version.
+extra["freemarker.version"] = libs.versions.org.freemarker.get()
 
 configurations.all {
     // See buildlogic.pf-module-conventions: Jackson 2 only until the Jackson 3 migration.
@@ -156,6 +158,7 @@ dependencies {
     implementation(libs.com.google.zxing.core)
     implementation(libs.com.google.zxing.javase)
     implementation(libs.com.googlecode.ez.vcard)
+    implementation(libs.org.freemarker)
     implementation(libs.com.googlecode.gson)
     implementation(libs.com.googlecode.lanterna)
     implementation(libs.com.thoughtworks.xstream)
@@ -270,6 +273,42 @@ tasks.named<Test>("test") {
 
 tasks.named("processResources") {
     dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")
+}
+
+// Optional JVM and JVM args of the app run by bootRun only (not Gradle's own JVM), e.g. a JetBrains Runtime with
+// HotswapAgent (bin/pfDev.sh run): a toolchain of that version and vendor, found by Gradle's toolchain detection
+// (org.gradle.java.installations.paths). The JVM args are separated by newlines, so paths may contain spaces.
+tasks.named<BootRun>("bootRun") {
+    providers.gradleProperty("pfBootRunJavaVersion").orNull?.let { version ->
+        val vendorName = providers.gradleProperty("pfBootRunJavaVendor").orNull
+        javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(version))
+            vendorName?.let { vendor.set(JvmVendorSpec.matching(it)) }
+        })
+    }
+    providers.gradleProperty("pfBootRunJvmArgs").orNull?.let { args ->
+        jvmArgs(args.lines().filter { it.isNotBlank() })
+    }
+    // pfBootRunProjectClasses: the jars of the other modules (build/libs) are replaced by their class and resource
+    // dirs, so classes compiled after the start (new ones, or not loaded yet) come from there and not from the old
+    // jar (hot code replacement, bin/pfDev.sh reload). Replaced, not added: classes found twice would be scanned twice.
+    if (providers.gradleProperty("pfBootRunProjectClasses").isPresent) {
+        val runtimeClasspath = classpath
+        val root = rootDir
+        classpath = files(provider {
+            runtimeClasspath.files.flatMap { file ->
+                val module = file.parentFile?.parentFile?.parentFile
+                if (file.extension != "jar" || file.parentFile?.name != "libs" || module?.startsWith(root) != true ||
+                    file.name.contains("-test-fixtures")
+                ) {
+                    return@flatMap listOf(file)
+                }
+                val dirs = listOf("classes/kotlin/main", "classes/java/main", "resources/main")
+                    .map { module.resolve("build/$it") }.filter { it.isDirectory }
+                if (dirs.any { it.path.contains("/classes/") }) dirs else listOf(file)
+            }.distinct()
+        })
+    }
 }
 
 tasks.named<BootJar>("bootJar") {

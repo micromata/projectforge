@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
 import { waitForRows } from "./fixtures/list-table";
-import { fetchRootTaskId } from "./fixtures/seed";
+import { fetchRootTaskId, writeHeaders } from "./fixtures/seed";
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 import { luceneQueryDocsUrl } from "../lib/docs-links";
 
@@ -114,9 +114,9 @@ test.describe("task tree actions", { tag: "@lane-task" }, () => {
     // Whether the row is there at all is the backend's decision — it appends the root for admins and
     // financial staff only. Asked before the page is opened, so an account without the right skips
     // instead of waiting 20 s for a row that will never come.
-    const answer = await page.request.get(
+    const answer = await page.request.post(
       "/rs/task/tree?table=true&showRootForAdmins=true&initial=true",
-      { headers: { "X-PF-Frontend": "next" } }
+      { headers: await writeHeaders(page.request) }
     );
     const { nodes = [] } = (await answer.json()) as {
       nodes?: { root?: boolean }[];

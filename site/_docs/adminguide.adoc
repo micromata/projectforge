@@ -121,6 +121,18 @@ nginx only needs a read timeout above 25 seconds (the example configuration `dev
 has 600 seconds). Other proxies need the buffering switched off for this path. Without it, the chat still works: it
 falls back to asking for new messages every few seconds.
 
+[[chat_link_previews]]
+==== Previews of links in the chat
+
+For the first link of a chat message the server fetches the linked page (http and https on ports 80 and 443) and
+shows its title, description and image as a preview. It connects to public addresses only, never to the internal
+network (private, loopback and link-local addresses are refused, also after a redirect), and needs outgoing access to
+the internet; without it there are simply no previews. To fetch nothing from other sites at all:
+
+----
+projectforge.chat.linkPreview.enabled=false
+----
+
 [[postgresql]]
 === PostgreSQL
 
@@ -1512,12 +1524,13 @@ If the data transfer files are encrypted, the key mustn't be part of this backup
 [[postgresql_dumps]]
 ==== PostgreSQL dumps
 
-The files of the file store (attachments of contracts, orders, invoices etc.) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
+The files of the file store (attachments of contracts, orders, invoices etc.) are stored in the own schema `pf_files`. This schema may become large, so the files get a dump of their own; the same goes for the sources of the CVE-Radar:
 
-* The main dump without the files: `pg_dump -N pf_files ...` (excludes the schema `pf_files`).
+* The main dump without the files and without the data of the CVE-Radar sources: `pg_dump -N pf_files --exclude-table-data=... ...` (excludes the schema `pf_files`, the tables of the sources stay, empty).
 * The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
+* The dump of the CVE-Radar sources only: `pg_dump --data-only -Fc -t ... ...` (the imported details of the vulnerabilities, the OSV advisories, their indexes for the matching and the state of the imports). They can be imported again from the sources (NVD, EUVD, OSV), so they don't enlarge the main dump. The cases, team checks, answers, the inventory and the findings are part of the main dump, and so are the vulnerabilities themselves (id and CVE id), which they refer to.
 
-Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
+The dump of the files is independent of the main dump: there are no foreign keys between `pf_files` and the other tables. The main dump is complete without the dump of the CVE-Radar sources; the CVE-Radar dump refers to the vulnerabilities of the main dump, so it's made first: the main dump then contains every vulnerability it refers to. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
 (`projectforge.cron.sanityChecks`) and on demand via _Administration_ -> _System_ -> _Check system integrity_.
 
 Data transfer files (`<home>/datatransfer`) are not part of the dumps: their metadata is in `pf_files`, but the content is stored in the file system. The backup script archives them as `projectforge_datatransfer_...tar` (uncompressed, the files are already stored compressed). If they are encrypted, the key isn't part of this archive, see <<encryption_of_the_data_transfer_files>>.
@@ -1534,6 +1547,15 @@ gunzip projectforge_2026-10-06_02-00.sql.gz
 psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
 
+Restoring the CVE-Radar sources afterwards (data only, into the tables of the main dump):
+
+[source,shell,linenums]
+----
+pg_restore -U postgres -d projectforge --data-only projectforge_cveradar_2026-10-06_02-00.dump
+----
+
+Without this dump, the cases, team checks, answers and findings are complete anyway, but the vulnerabilities have no details (description, CVSS, ...) and the OSV advisories are missing until the imports fill them again. The imports start over as after the installation: the NVD imports only the vulnerabilities modified in the last `initialDays` (see <<cve_radar_nvd>>), so set e.g. `projectforge.plugin.cveradar.nvd.initialDays=10000` for the first start to fill all of them (takes about an hour).
+
 Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain it):
 
 [source,shell,linenums]
@@ -1548,7 +1570,7 @@ Restoring the data transfer files (from the same backup as the files dump, becau
 tar xf projectforge_datatransfer_2026-10-06_02-00.tar -C ~/ProjectForge
 ----
 
-Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_ (they also report missing data transfer files).
+Restore all dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_ (they also report missing data transfer files).
 
 For dropping and creating a new database, see <<postgresql>>.
 Don't forget to rebuild the search index afterwards (_Administration_ -> _System_ -> _Reindex_)!
@@ -1605,13 +1627,32 @@ echo Starting backup of ProjectForge ...
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump of the files only (schema pf_files, attachments of contracts, orders, invoices etc.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
+# Dump of the CVE-Radar sources only (data of the tables below, restorable from the sources by the imports).
+CVERADAR_BACKUPFILE=$BACKUPDIR/${BASENAME}_cveradar_${TIMESTAMP}.dump
+CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
+  t_plugin_cveradar_purl_match t_plugin_cveradar_import_state"
 # Archive of the data transfer files (content in the file system, metadata in pf_files).
 DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
 
-echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
+echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE, $CVERADAR_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
+
+CVERADAR_TABLES=
+CVERADAR_EXCLUDE=
+for TABLE in $CVERADAR_SOURCES; do
+  CVERADAR_TABLES="$CVERADAR_TABLES -t $TABLE"
+  CVERADAR_EXCLUDE="$CVERADAR_EXCLUDE --exclude-table-data=$TABLE"
+done
+
+# Only with the CVE-Radar plugin (pg_dump -t fails if no table matches). Before the main dump: it then contains every
+# vulnerability the sources refer to.
+if [ -n "`$PGSQL_DIR/psql -U projectforge -tAc "select to_regclass('t_plugin_cveradar_vulnerability_detail')"`" ]; then
+  echo Exporting CVE-Radar sources ...
+  # Custom format, compressed (-Z 1): the gzipped documents (bytea) are written hex encoded.
+  $PGSQL_DIR/pg_dump -U projectforge --data-only -Fc -Z 1 $CVERADAR_TABLES -f $CVERADAR_BACKUPFILE || { echo "Error: export of CVE-Radar sources failed."; exit 1; }
+fi
 
 echo Exporting data ...
-$PGSQL_DIR/pg_dump -U projectforge -N pf_files -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
+$PGSQL_DIR/pg_dump -U projectforge -N pf_files $CVERADAR_EXCLUDE -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
 
 echo Zipping backupfile ...
 gzip $BACKUPFILE
@@ -1630,7 +1671,7 @@ if [ -d $PF_HOME/datatransfer ]; then
 fi
 
 # For using scp for remote backup:
-#scp $BACKUPFILE.gz $FILES_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE $CVERADAR_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
 
 # Deleting of daily backups is done by ProjectForge (projectforge.cron.purgeBackupDir, see below). Monthly backups
 # are kept forever, because they're needed for financial, yearly comparisons.
@@ -1644,12 +1685,12 @@ ProjectForge purges the daily backups (keeping weekly and monthly ones), if the 
 ----
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # Optional: comma-separated prefixes of the backup series. If not given, all files containing a date are processed.
-# Each series (text in front of the date, here projectforge_, projectforge_files_ and projectforge_datatransfer_) is
-# purged on its own.
+# Each series (text in front of the date, here projectforge_, projectforge_files_, projectforge_cveradar_ and
+# projectforge_datatransfer_) is purged on its own.
 #projectforge.cron.purgeBackupFilesPrefix=projectforge_
 ----
 
-The files dump `projectforge_files_...` and the archive `projectforge_datatransfer_...` are series of their own, so they are purged like the main dump (also with the prefix `projectforge_`, because they start with it).
+The files dump `projectforge_files_...`, the CVE-Radar dump `projectforge_cveradar_...` and the archive `projectforge_datatransfer_...` are series of their own, so they are purged like the main dump (also with the prefix `projectforge_`, because they start with it).
 
 For allowing `pg_dump` without prompting a password, run the script as the Unix user `projectforge` and add
 the following line to `pg_hba.conf` (peer authentication: the Unix user name must match the database user name):
@@ -1661,7 +1702,7 @@ local projectforge projectforge peer
 ----
 
 Alternatively, store the password in `~/.pgpass` of the user running the script (`chmod 600 ~/.pgpass`):
-`localhost:5432:projectforge:projectforge:<password>` (then add `-h localhost` to the `pg_dump` calls).
+`localhost:5432:projectforge:projectforge:<password>` (then add `-h localhost` to the `pg_dump` and `psql` calls).
 
 [[adding_crontab]]
 ==== Adding crontab
@@ -1993,8 +2034,8 @@ SBOMs, lockfiles and build lists. The import is off by default, as it needs inte
 projectforge.plugin.cveradar.osv.enabled=true
 # The public bucket of OSV.dev.
 projectforge.plugin.cveradar.osv.url=https://osv-vulnerabilities.storage.googleapis.com
-# The ecosystems (OSV keys), comma separated.
-projectforge.plugin.cveradar.osv.ecosystems=Maven,npm,PyPI,NuGet,Packagist,Go,crates.io
+# The ecosystems and distributions (OSV keys), comma separated.
+projectforge.plugin.cveradar.osv.ecosystems=Maven,npm,PyPI,NuGet,Packagist,Go,crates.io,Debian,Ubuntu
 # Also the malicious packages (MAL-...): some hundred thousand advisories, almost all of npm and PyPI.
 projectforge.plugin.cveradar.osv.malicious=false
 # Every 6 hours at minute 47 (UTC).
@@ -2015,6 +2056,24 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   package of a library, they decide: a _possible_ match of the same vulnerability by the name of the CPE is dropped.
 * A withdrawn advisory matches nothing any more; a vulnerability made of withdrawn advisories only is rejected.
 * The ad-hoc check uses the advisories as well, without storing anything.
+* *Distributions* (`Debian`, `Ubuntu`): the packages of a container or server (SBOM with the `distro` qualifier in the
+  purl, e.g. `pkg:deb/debian/curl@7.88.1-10?distro=debian-12`, or a `dpkg-query` list with the lines of
+  `/etc/os-release`, see the user guide) are matched against the advisories of their release,
+  the versions compared as dpkg does. The CPE of the upstream project doesn't know the fixes a distribution backports
+  (`curl 7.81.0-1ubuntu1.30` is fixed, though below `7.84.0`); where the distribution knows the package for a CVE in
+  that release, it decides, and a _possible_ match by the CPE is dropped. A CVE the distribution rates without impact (Debian
+  `unimportant`, Ubuntu `negligible`) matches nothing. A vulnerability made of advisories of a distribution only
+  needs the threshold of the NVD import (`minCvss`). Only the advisories per CVE are imported (`DEBIAN-CVE-…`,
+  `UBUNTU-CVE-…`), not the notices (DSA, DLA, USN), and without the kernels (`linux`, `linux-aws`, …), which an
+  inventory names by their binary packages; their documents aren't kept. Ubuntu's `all.zip` is about 800 MB, Debian's
+  80 MB. The advisories name the source package: a binary package is matched by its source (the `upstream`
+  qualifier of the purl, `libssl3` → `openssl`, with its version if that differs). A package list without release
+  (`dpkg-query` without `/etc/os-release`) keeps matching by the CPE only.
+* Against false positives of a match by the name of a CPE: an entry for a runtime (`target_sw` `node.js`, `rust`,
+  `python`, …) only meets libraries of that ecosystem (`isaacs:tar:…:node.js` isn't the Debian package `tar`). For
+  the libraries of an ecosystem imported from OSV, a match by name needs a vendor that fits the package, its scope or
+  groupId (`adobe:connect` isn't the npm package `connect`, `fasterxml:jackson-databind` is
+  `com.fasterxml.jackson.core:jackson-databind`).
 
 [[cve_radar_euvd]]
 ==== Vulnerabilities from the EUVD
@@ -2053,17 +2112,46 @@ projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
   for the CVE, these replace the entries made of the names.
 * The EUVD doesn't document a rate limit; ProjectForge pauses between requests and retries with a growing delay.
 
+[[cve_radar_deptrack]]
+==== Dependency-Track (optional)
+
+https://dependencytrack.org[Dependency-Track] can detect the findings in parallel to the own matching. The
+connection is optional: without url and API key ProjectForge works as without it. Dependency-Track runs as a service
+of its own (API server, frontend, PostgreSQL), operated by the administrators; its frontend isn't needed by the users.
+So far ProjectForge only tests the connection; the transfer of the inventory and of the findings follows.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.deptrack.url=https://dtrack.example.org
+# Better given as environment variable PROJECTFORGE_PLUGIN_CVERADAR_DEPTRACK_APIKEY.
+projectforge.plugin.cveradar.deptrack.apiKey=...
+# Test of the connection, every 15 minutes.
+projectforge.plugin.cveradar.deptrack.probeCron=0 */15 * * * *
+----
+
+* In Dependency-Track, create a team for ProjectForge (_Administration_ -> _Access Management_ -> _Teams_) with the
+  permissions `BOM_UPLOAD`, `PORTFOLIO_MANAGEMENT`, `PROJECT_CREATION_UPLOAD`, `VIEW_POLICY_VIOLATION`,
+  `VIEW_PORTFOLIO`, `VIEW_VULNERABILITY` and `VULNERABILITY_ANALYSIS`, and generate its API key.
+* Leave the external analysers (OSS Index, Snyk, VulnDB) off, they would send the list of components outside; enable
+  the vulnerability sources NVD, GitHub Advisories and OSV. Switch off the task _Telemetry Submission_.
+* The tile _Dependency-Track (CVE-Radar)_ of the <<system_dashboard_and_log_viewer,system dashboard>> shows the host,
+  the version and the result of the last test: down if Dependency-Track isn't reachable or refuses the key, degraded if
+  the team misses a permission (listed in the log and in the run of the job). A failing Dependency-Track doesn't
+  affect the other pages.
+* Use an `https` url: the API key is sent with every request (a plain `http` url other than localhost is logged as
+  warning). Redirects aren't followed, so give the url of the API server itself.
+
 [[cve_radar_jobs]]
 ==== Jobs and connections
 
 * The connector and the imports run as jobs, _CVE-Radar: client agents_,
-  _CVE-Radar: NVD import_, _CVE-Radar: OSV import_ and _CVE-Radar: EUVD import_, listed under
+  _CVE-Radar: NVD import_, _CVE-Radar: OSV import_, _CVE-Radar: EUVD import_ and _CVE-Radar: Dependency-Track probe_, listed under
   _Administration_ -> _Job monitor_. There they can be started at once (_Run now_); while their source isn't configured, they
   are shown as inactive with the reason. The summary of every run is
   shown in the run and logged, errors are part of the error digest.
 * Timeouts and the max size of a response are set per connection with
   `projectforge.integration.clients.cveradar-graylog.*` and
-  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*` (e.g.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*`, `projectforge.integration.clients.cveradar-deptrack.*` (e.g.
   `responseTimeoutMs`, `maxResponseBytes`, default 50 MB; for the NVD 180 s and 200 MB, as a page has up to 2000
   vulnerabilities; for OSV.dev 180 s and 1 GB for the zip of an ecosystem, downloaded into a temporary file).
 * An outgoing proxy isn't supported yet: ProjectForge must reach the hosts directly.

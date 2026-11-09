@@ -58,6 +58,20 @@ class GenerateChangelogMainTest {
   }
 
   @Test
+  fun appMarkerBecomesABadge() {
+    assertEquals("[changelog-app]##App## The **menu**.", GenerateChangelogMain.inlineToAdoc("{app} The **menu**."))
+    assertEquals("`App` The menu.", GenerateChangelogMain.textToMarkdown("{app} The menu."))
+    fun errors(text: String) = mutableListOf<String>().also { GenerateChangelogMain.validateText(text, "t", it) }
+    assertTrue(errors("{app} The menu.").isEmpty())
+    assertEquals(1, errors("The {app} menu.").size)
+    assertEquals(1, errors("{app}The menu.").size)
+    assertEquals(1, errors("App: the menu.").size)
+    assertEquals(1, errors("App time sheets: the menu.").size)
+    assertEquals(1, errors("App-Zeitberichte: Das Menü.").size)
+    assertTrue(errors("App and server warn each other.").isEmpty())
+  }
+
+  @Test
   fun blocksKeepParagraphsAndLists() {
     assertEquals(
       "First **paragraph**.\n\nList:\n- one\n- __two__",
@@ -454,6 +468,15 @@ class GenerateChangelogMainTest {
     assertTrue(errors.any { it.contains("summary: must be an array of 1 entries") }, errors.toString())
     assertTrue(errors.any { it.contains("overview: must be an array of 1 entries") }, errors.toString())
     assertTrue(errors.any { it.contains("'version' can't be translated") }, errors.toString())
+
+    val withoutBadge = mapper.readTree(
+      """
+      {"releases": {"r1": {"title": "Freigabe", "summary": ["eins"], "overview": ["eins\n- zwei"], "sections": [{"type": "fixed",
+         "items": ["{app} Fehler\n- Detail", {"title": "Gruppe", "items": ["a", "b"]}]}]}}}
+      """.trimIndent()
+    )
+    val badgeErrors = GenerateChangelogMain.validateTranslation(root, withoutBadge)
+    assertTrue(badgeErrors.any { it.contains("starts with {app} in only one") }, badgeErrors.toString())
     assertTrue(errors.any { it.contains("the type must be 'fixed'") }, errors.toString())
     assertTrue(errors.any { it.contains("number of sub list lines") }, errors.toString())
     assertTrue(errors.any { it.contains("must be a group") }, errors.toString())

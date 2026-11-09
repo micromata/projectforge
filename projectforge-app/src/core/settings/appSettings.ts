@@ -33,18 +33,34 @@ export interface AppSettings {
    * version doesn't work with the server).
    */
   webVersion: NativePage[];
+  /** The side of the navigation in landscape: left (default) or right, e.g. for the thumb of the right hand. */
+  railSide: RailSide;
+  /** The tab the app starts with: the one used last on this device. */
+  lastTab: AppTab;
 }
 
-const DEFAULTS: AppSettings = { webVersion: [] };
+export type RailSide = 'left' | 'right';
+
+/** The tabs of the logged-in app (the routes of `src/app/(tabs)/`). */
+export const APP_TABS = ['cards', 'addresses', 'timesheets', 'pages', 'chat'] as const;
+export type AppTab = (typeof APP_TABS)[number];
+
+const DEFAULTS: AppSettings = { webVersion: [], railSide: 'left', lastTab: 'cards' };
 
 /** True if a link of the web pages to [page] switches to the tab of the app. */
 export const opensInApp = (settings: AppSettings, page: NativePage) => !settings.webVersion.includes(page);
 
 /** The settings, parsed defensively: broken or of an older version, the defaults. */
 export function settingsFromJson(json: unknown): AppSettings {
-  const pages = (json as { webVersion?: unknown } | null)?.webVersion;
+  const {
+    webVersion: pages,
+    railSide,
+    lastTab,
+  } = (json as { webVersion?: unknown; railSide?: unknown; lastTab?: unknown } | null) ?? {};
   return {
     webVersion: Array.isArray(pages) ? pages.filter((it): it is NativePage => NATIVE_PAGES.includes(it)) : [],
+    railSide: railSide === 'right' ? 'right' : 'left',
+    lastTab: APP_TABS.find((it) => it === lastTab) ?? 'cards',
   };
 }
 
@@ -74,7 +90,19 @@ class AppSettingsStore {
 
   setOpensInApp(page: NativePage, inApp: boolean) {
     const others = this.settings.webVersion.filter((it) => it !== page);
-    this.settings = { webVersion: inApp ? others : [...others, page] };
+    this.save({ ...this.settings, webVersion: inApp ? others : [...others, page] });
+  }
+
+  setRailSide(railSide: RailSide) {
+    this.save({ ...this.settings, railSide });
+  }
+
+  setLastTab(lastTab: AppTab) {
+    if (lastTab !== this.settings.lastTab) this.save({ ...this.settings, lastTab });
+  }
+
+  private save(settings: AppSettings) {
+    this.settings = settings;
     const file = this.file();
     file.parentDirectory.create({ intermediates: true, idempotent: true });
     file.create({ overwrite: true });

@@ -35,6 +35,7 @@ import {
   nextStartOf,
   shortPath,
   storedTimer,
+  targetOf,
   taskInfoOf,
   taskOfDisplayObject,
   taskOfTimesheet,
@@ -144,6 +145,21 @@ describe('time sheet models', () => {
     // A new booking continues after the last one, on an empty day at the start of the working day.
     expect(nextStartOf(week, monday)).toEqual(new Date(2031, 2, 10, 13));
     expect(nextStartOf(week, new Date(2031, 2, 11))).toEqual(new Date(2031, 2, 11, 8));
+  });
+
+  it('measures each day against the target the server sent for it, 8 hours without', () => {
+    const monday = new Date(2031, 2, 10);
+    // The weekly hours change from 40 to 30 on Wednesday.
+    const week = weekOf(monday, {
+      timesheets: [],
+      targetMinutes: { '2031-03-10': 480, '2031-03-11': 480, '2031-03-12': 360 },
+    });
+    expect(targetOf(week, new Date(2031, 2, 11, 14))).toBe(480);
+    expect(targetOf(week, new Date(2031, 2, 12))).toBe(360);
+    expect(targetOf(week, new Date(2031, 2, 16))).toBe(480);
+    // An older server, or a week cached before.
+    expect(targetOf(weekOf(monday, { timesheets: [] }), new Date(2031, 2, 12))).toBe(480);
+    expect(targetOf(null, monday)).toBe(480);
   });
 
   it('turns a recent entry of the server into what a booking fills in', () => {

@@ -103,6 +103,13 @@ open class CvrTechnologyDO : DefaultBaseDO() {
     @get:Column(name = "origin_date")
     open var originDate: LocalDate? = null
 
+    /**
+     * Where a library read from lists was found (INV-26): the file of the upload (in a zip with its path), with the
+     * place inside an SBOM, e.g. `image-postgres.cdx.json: /usr/local/bin/gosu`; several files separated by `; `.
+     */
+    @get:Column(length = 1000)
+    open var source: String? = null
+
     val componentId: Long?
         @Transient
         get() = component?.id

@@ -113,10 +113,16 @@ class CvrInventoryRest {
     fun previewLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryDiff =
         service.previewLibraries(user, id, request)
 
-    @AccessChecked("CvrInventoryService.applyLibraries: write access to the stored component's system")
+    /** Starts a job; the client follows it via the job monitor (`/rs/jobsMonitor/jobs`). */
+    @AccessChecked("CvrInventoryService.startApplyLibraries: write access to the stored component's system")
     @PostMapping("component/{id}/libraries/apply")
-    fun applyLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryDiff =
-        service.applyLibraries(user, id, request)
+    fun applyLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): JobStarted =
+        service.startApplyLibraries(user, id, request)
+
+    /** Starts a job matching the components below the node again; followed via the job monitor. */
+    @AccessChecked("CvrInventoryService.startRematch: reader role, read access to the node, only systems the user may read")
+    @PostMapping("{level}/{id}/rematch")
+    fun rematch(@PathVariable level: InventoryLevel, @PathVariable id: Long): JobStarted = service.startRematch(user, level, id)
 
     @AccessChecked("CvrInventoryService.move: write access to the node and the target, the officer anywhere")
     @PostMapping("{level}/{id}/move")
@@ -131,6 +137,11 @@ class CvrInventoryRest {
         @PathVariable id: Long,
         @RequestParam(defaultValue = "true") anonymize: Boolean,
     ): FindingReport = reportService.report(user, level, id, anonymize)
+
+    @AccessChecked("CvrFindingReportService.nodeFindings: reader role, read access to the node, only the instances the user may read")
+    @GetMapping("{level}/{id}/findings")
+    fun nodeFindings(@PathVariable level: InventoryLevel, @PathVariable id: Long): NodeFindingList =
+        reportService.nodeFindings(user, level, id)
 
     @AccessChecked("CvrInventoryService.delete: write access to the stored node, empty nodes only")
     @PostMapping("{level}/{id}/delete")

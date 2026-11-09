@@ -12,7 +12,7 @@ import { PersonSelect } from "@/components/shared/person-select";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { SectionCard } from "@/components/shared/section-card";
 import { toast } from "@/lib/toast";
-import { fetchPersonalBox } from "@/lib/rs/datatransfer";
+import { fetchLastPersonalBox, selectPersonalBox } from "@/lib/rs/datatransfer";
 import { toPickerRef } from "@/lib/page-def/reference";
 
 /**
@@ -25,14 +25,14 @@ export function DataTransferPersonalBoxPage() {
   const router = useRouter();
   const last = useQuery({
     queryKey: ["datatransfer", "personalBox", "last"],
-    queryFn: ({ signal }) => fetchPersonalBox(undefined, signal),
+    queryFn: ({ signal }) => fetchLastPersonalBox(signal),
   });
   const [picked, setPicked] = useState<EntityRef | null>(null);
   const lastUser = last.data?.user;
   const user = picked ?? toPickerRef(lastUser);
 
   const open = useMutation({
-    mutationFn: (userId: number) => fetchPersonalBox(userId),
+    mutationFn: (userId: number) => selectPersonalBox(userId),
     onSuccess: (box) => {
       // Without `/next`: the router adds the base path itself.
       if (box.boxId != null) router.push(`/datatransfer/${box.boxId}`);

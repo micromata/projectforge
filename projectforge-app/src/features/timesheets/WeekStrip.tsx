@@ -28,7 +28,6 @@ import {
   formatDuration,
   isoWeekday,
   sameDay,
-  TARGET_MINUTES_PER_DAY,
   weekStartOf,
 } from '@projectforge/shared/booking-time';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -37,11 +36,11 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { t } from '../../core/i18n/translations';
 import { useColors } from '../../core/ui/colors';
 import { weekdayShort } from './format';
-import { bookingsOf, totalOf, TimesheetWeek } from './timesheet';
+import { bookingsOf, targetOf, totalOf, TimesheetWeek } from './timesheet';
 import { WeekState } from './timesheetsStore';
 
 /**
- * The days of the week with their totals, a bar measuring them against the working day. The weeks lie side by side:
+ * The days of the week with their totals, a bar measuring them against the working day (see targetOf). The weeks lie side by side:
  * the strip follows the finger and snaps to a whole week (starting on the user's first day of the week); the arrows
  * show the week before or after. Another week selects the same weekday in it.
  */
@@ -167,7 +166,7 @@ const WeekPage = memo(function WeekPage({
         const total = week ? totalOf(bookingsOf(week, d)) : 0;
         const weekend = isoWeekday(d) > 5;
         const dim = weekend && !selected ? colors.textMuted : colors.text;
-        const bar = total >= TARGET_MINUTES_PER_DAY ? colors.primary : total > 0 ? colors.warning : colors.border;
+        const bar = total >= targetOf(week, d) ? colors.primary : total > 0 ? colors.warning : colors.border;
         return (
           <Pressable
             key={i}

@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.jobs.AbstractJob
+import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
@@ -65,6 +67,9 @@ class CvrFindingReportTest : CveRadarTestBase() {
     @Autowired
     private lateinit var inventory: CvrInventoryRest
 
+    @Autowired
+    private lateinit var jobHandler: JobHandler
+
     @BeforeEach
     fun resetImportState() {
         persistenceService.runInTransaction { context ->
@@ -91,7 +96,7 @@ class CvrFindingReportTest : CveRadarTestBase() {
     )
 
     @Test
-    fun `the report of a node has the findings the user sees, with the case, the names replaced on request`() {
+    fun `the report and the findings of a node have what the user sees, with the case, the names replaced on request`() {
         val product = "report1"
         val cveId = "CVE-2026-97001"
         import(cveId, product)
@@ -130,6 +135,15 @@ class CvrFindingReportTest : CveRadarTestBase() {
         assertEquals("APP App", finding.component)
         assertEquals(CvrFindingCertainty.AFFECTED, finding.certainty)
         assertEquals("9.0.80", finding.technology!!.version)
+        // Per library: what one update fixes (MAT-15).
+        val library = plain.libraries.single()
+        assertEquals("$product 9.0.80", library.technology)
+        assertEquals(listOf("APP App"), library.components)
+        assertEquals(1, library.vulnerabilityCount)
+        assertEquals(1, library.affectedCount)
+        assertEquals("CRITICAL", library.severity)
+        assertEquals("9.0.90", library.fixVersion, "the end of the matched range")
+        assertEquals(0, library.withoutFixCount)
 
         val anonymized = inventory.findingReport(InventoryLevel.AREA, area, anonymize = true)
         assertEquals("PROJECT", anonymized.scope.code)
@@ -138,17 +152,60 @@ class CvrFindingReportTest : CveRadarTestBase() {
         assertEquals("S1", hidden.system)
         assertEquals(listOf("S1-I1", "S1-I2"), hidden.instances)
         assertEquals("C1", hidden.component)
+        assertEquals(listOf("C1"), anonymized.libraries.single().components)
 
         assertTrue(inventory.findingReport(InventoryLevel.COMPONENT, fixed, anonymize = false).vulnerabilities.isEmpty())
         assertEquals(1, inventory.findingReport(InventoryLevel.COMPONENT, app, anonymize = false).vulnerabilityCount)
+
+        // The tab "Findings" of the dialog: one row per instance, with the case, the names as they are.
+        val rows = inventory.nodeFindings(InventoryLevel.AREA, area).findings
+        assertEquals(listOf("A", "B"), rows.map { it.instance })
+        rows.forEach { row ->
+            assertEquals(cveId, row.cveId)
+            assertEquals(cveId, row.caseCode)
+            assertEquals("RP1-S Shop", row.system)
+            assertEquals("APP App", row.component)
+            assertEquals("$product 9.0.80", row.technology)
+            assertEquals(CvrFindingCertainty.AFFECTED, row.certainty)
+        }
+        assertEquals(listOf("APP App"), inventory.nodeFindings(InventoryLevel.AREA, area).libraries.single().components)
+        assertTrue(inventory.nodeFindings(InventoryLevel.COMPONENT, fixed).findings.isEmpty())
+        assertEquals(2, inventory.nodeFindings(InventoryLevel.COMPONENT, app).findings.size)
+
+        // Checked again by hand: the same findings, nothing new.
+        val job = jobHandler.getJobById(inventory.rematch(InventoryLevel.SYSTEM, system).jobId)!!
+        val until = System.currentTimeMillis() + 30_000
+        while (!job.terminated && System.currentTimeMillis() < until) {
+            Thread.sleep(20)
+        }
+        assertEquals(AbstractJob.Status.FINISHED, job.status, job.errorMessage)
+        assertEquals(2, inventory.nodeFindings(InventoryLevel.SYSTEM, system).findings.size)
 
         // A reader outside the groups sees neither the system nor anything below the area.
         val outsider = user("report-outsider", CvrRole.READER)
         logon(outsider)
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true) }
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.AREA, area, anonymize = true) }
+        assertThrows(AccessException::class.java) { inventory.nodeFindings(InventoryLevel.SYSTEM, system) }
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.SYSTEM, system) }
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.AREA, area) }
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.COMPONENT, app) }
         logon(TEST_USER)
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.SYSTEM, system) }
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true) }
+        assertThrows(AccessException::class.java) { inventory.nodeFindings(InventoryLevel.SYSTEM, system) }
+    }
+
+    @Test
+    fun `the fix of a match is the end of its range, if it names one`() {
+        assertEquals("1.26.10", CvrMatchingService.fixedVersionOf("GO-2026-6809 Go stdlib (< 1.26.10)"))
+        assertEquals("1.18.3", CvrMatchingService.fixedVersionOf("GO-2022-0477 Go stdlib (>= 1.18.0-0, < 1.18.3)"))
+        assertEquals("7.84.0", CvrMatchingService.fixedVersionOf("cpe:2.3:a:haxx:curl:*:*:*:*:*:*:*:* (>= 7.69.0, < 7.84.0)"))
+        assertNull(CvrMatchingService.fixedVersionOf("cpe:2.3:a:perl:perl:*:*:*:*:*:*:*:* (<= 5.43.9)"), "the last affected one")
+        assertNull(CvrMatchingService.fixedVersionOf("GHSA-x npm a (= 1.0.0)"))
+        assertNull(CvrMatchingService.fixedVersionOf("GHSA-x npm a (all versions)"))
+        assertNull(CvrMatchingService.fixedVersionOf("cpe:2.3:a:uutils:coreutils:-:*:*:*:*:rust:*:*"))
+        assertNull(CvrMatchingService.fixedVersionOf(null))
     }
 
     @Test

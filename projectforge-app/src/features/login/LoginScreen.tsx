@@ -25,8 +25,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -42,6 +40,7 @@ import { Session } from '../../core/auth/session';
 import { t } from '../../core/i18n/translations';
 import { appLog } from '../../core/log/appLog';
 import { useColors } from '../../core/ui/colors';
+import { KeyboardAvoidingFill } from '../../core/ui/KeyboardAvoidingFill';
 
 /** The development server of `bin/pfApp.sh run <slot>` (only set by it, inlined at bundle time). */
 const DEV_SERVER_URL = process.env.EXPO_PUBLIC_PF_SERVER ?? '';
@@ -136,10 +135,7 @@ export function LoginScreen({
   const devServer = DEV_SERVER_URL && !servers.includes(DEV_SERVER_URL) ? DEV_SERVER_URL : null;
   const offered = [...servers, ...(devServer ? [devServer] : [])];
   return (
-    <KeyboardAvoidingView
-      style={[styles.fill, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingFill style={{ backgroundColor: colors.background }}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={[styles.title, { color: colors.text }]}>ProjectForge</Text>
         {/* Why the app is logged out (e.g. the session expired): stays while the user tries again. */}
@@ -206,7 +202,7 @@ export function LoginScreen({
           <Text style={{ color: colors.primary }}>{t('app.log.title')}</Text>
         </Pressable>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAvoidingFill>
   );
 }
 

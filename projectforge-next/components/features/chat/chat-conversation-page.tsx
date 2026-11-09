@@ -169,6 +169,7 @@ export function ChatConversationPage({
           }
           threadRootId={Number.isInteger(thread) && thread > 0 ? thread : null}
           headerSlot={headerSlot}
+          focusComposer
         />
       </div>
       {roomId != null && (

@@ -41,9 +41,11 @@ by hand; app only texts go into `assets/i18n/app.<locale>.json`. Keys are always
 
 ## App icon
 
-`assets/icon.png` (1024 × 1024, opaque) is the ProjectForge wordmark with the flame, rendered from the parts of the
-website logo (`site/_includes/logo.html`: Archivo Narrow bold italic, `projectforge-flame.svg`); Expo scales the
-platform icons from it.
+`assets/icon.png` (1024 × 1024, opaque) is the flame mark of the ProjectForge logo on the dark plate, full-bleed (the
+platforms round the corners), `assets/splash-icon.png` the flames on transparent. On Android the launcher masks the icon
+itself: `assets/adaptive-icon.png` holds the flames smaller, inside the safe zone, on the plate colour of
+`android.adaptiveIcon.backgroundColor`. All are rendered from the master SVGs by `dev-docs/logo/render-logos.py`, never
+edited by hand; Expo scales the platform icons from them.
 
 ## Release
 
@@ -63,9 +65,15 @@ eas-cli with them, for the store app (`APP_VARIANT=production` unless given).
 ```bash
 npx eas-cli@latest login                                     # once: the organization of the project, role Release Manager
 printf 'EXPO_OWNER=…\nEAS_PROJECT_ID=…\n' > .env.local       # once, values from the expo.dev project page
-bin/pfApp.sh eas build --platform ios --profile preview      # cloud build, ~10 min
-bin/pfApp.sh eas submit --platform ios --profile preview --latest
+bin/pfApp.sh publish                                         # store build (profile production), tag, upload
+git push origin app-<version>+<build>                        # the tag it created
 ```
+
+`publish [production|preview]` checks for a clean tree and an unused tag, runs `check`, builds in the cloud (~10 min),
+tags the built commit `app-<version>+<build>` (e.g. `app-1.1.0+8`; it asks, Enter means yes) and submits the build. The tag marks what a
+published app reads (dev-docs/mobile-app.md). By hand: `bin/pfApp.sh eas build --platform ios --profile preview`, then
+`bin/pfApp.sh eas submit --platform ios --profile preview --latest`, and tag the commit of the build
+(`eas build:list` names it).
 
 - Before every build, raise `ios.buildNumber` (and `android.versionCode`) in `app.config.ts` (`appVersionSource`
   `local`): App Store Connect refuses a build number twice per version.

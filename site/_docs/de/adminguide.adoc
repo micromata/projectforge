@@ -122,6 +122,19 @@ beachtet; nginx braucht daher nur einen Read-Timeout über 25 Sekunden (die Beis
 `dev-docs/misc/nginx_sites-available_projectforge` hat 600 Sekunden). Bei anderen Proxys muss das Puffern für diesen Pfad
 abgeschaltet werden. Ohne das funktioniert der Chat trotzdem: Er fragt dann alle paar Sekunden nach neuen Nachrichten.
 
+[[chat_link_previews]]
+==== Vorschau von Links im Chat
+
+Für den ersten Link einer Chatnachricht ruft der Server die verlinkte Seite ab (http und https auf den Ports 80 und
+443) und zeigt Titel, Beschreibung und Bild als Vorschau. Er verbindet sich nur mit öffentlichen Adressen, nie mit dem
+internen Netz (private, Loopback- und Link-Local-Adressen werden abgelehnt, auch nach einer Weiterleitung), und braucht
+ausgehenden Zugriff aufs Internet; ohne ihn gibt es einfach keine Vorschau. Damit nichts von anderen Seiten abgerufen
+wird:
+
+----
+projectforge.chat.linkPreview.enabled=false
+----
+
 [[postgresql]]
 === PostgreSQL
 
@@ -1546,12 +1559,13 @@ Sind die Datentransfer-Dateien verschlüsselt, darf der Schlüssel nicht Teil di
 [[postgresql_dumps]]
 ==== PostgreSQL-Dumps
 
-Die Dateien des Dateispeichers (Anhänge von Verträgen, Aufträgen, Rechnungen usw.) liegen im eigenen Schema `pf_files`. Dieses Schema kann groß werden, daher werden zwei Dumps erstellt:
+Die Dateien des Dateispeichers (Anhänge von Verträgen, Aufträgen, Rechnungen usw.) liegen im eigenen Schema `pf_files`. Dieses Schema kann groß werden, daher bekommen die Dateien einen eigenen Dump; ebenso die Quellen des CVE-Radars:
 
-* Der Haupt-Dump ohne die Dateien: `pg_dump -N pf_files ...` (schließt das Schema `pf_files` aus).
+* Der Haupt-Dump ohne die Dateien und ohne die Daten der CVE-Radar-Quellen: `pg_dump -N pf_files --exclude-table-data=... ...` (schließt das Schema `pf_files` aus, die Tabellen der Quellen bleiben leer erhalten).
 * Der Dump nur der Dateien: `pg_dump -n pf_files -Fc ...` (Custom-Format, mit `pg_restore -j` parallel wiederherstellbar).
+* Der Dump nur der CVE-Radar-Quellen: `pg_dump --data-only -Fc -t ... ...` (die importierten Details der Schwachstellen, die OSV-Advisories, ihre Indizes für das Matching und der Stand der Importe). Sie lassen sich aus den Quellen (NVD, EUVD, OSV) erneut importieren und vergrößern daher den Haupt-Dump nicht. Die Fälle, Team-Checks, Antworten, das Inventar und die Befunde gehören zum Haupt-Dump, ebenso die Schwachstellen selbst (Id und CVE-Id), auf die sie verweisen.
 
-Beide Dumps sind voneinander unabhängig: Zwischen `pf_files` und den übrigen Tabellen gibt es keine Fremdschlüssel. Abweichungen nach dem Einspielen von Dumps verschiedener Tage melden die Integritätsprüfungen, die nachts laufen
+Der Dump der Dateien ist vom Haupt-Dump unabhängig: Zwischen `pf_files` und den übrigen Tabellen gibt es keine Fremdschlüssel. Der Haupt-Dump ist auch ohne den Dump der CVE-Radar-Quellen vollständig; der CVE-Radar-Dump verweist auf die Schwachstellen des Haupt-Dumps und wird daher zuerst erstellt: Der Haupt-Dump enthält dann jede Schwachstelle, auf die er verweist. Abweichungen nach dem Einspielen von Dumps verschiedener Tage melden die Integritätsprüfungen, die nachts laufen
 (`projectforge.cron.sanityChecks`) und bei Bedarf über _Administration_ -> _System_ -> _Check system integrity_ gestartet werden.
 
 Datentransfer-Dateien (`<home>/datatransfer`) sind nicht Teil der Dumps: Ihre Metadaten liegen in `pf_files`, der Inhalt aber im Dateisystem. Das Backup-Skript archiviert sie als `projectforge_datatransfer_...tar` (unkomprimiert, die Dateien sind bereits komprimiert gespeichert). Sind sie verschlüsselt, ist der Schlüssel nicht Teil dieses Archivs, siehe <<encryption_of_the_data_transfer_files,Verschlüsselung der Datentransfer-Dateien>>.
@@ -1568,6 +1582,15 @@ gunzip projectforge_2026-10-06_02-00.sql.gz
 psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
 
+Anschließend die CVE-Radar-Quellen wiederherstellen (nur Daten, in die Tabellen des Haupt-Dumps):
+
+[source,shell,linenums]
+----
+pg_restore -U postgres -d projectforge --data-only projectforge_cveradar_2026-10-06_02-00.dump
+----
+
+Ohne diesen Dump sind die Fälle, Team-Checks, Antworten und Befunde trotzdem vollständig, aber den Schwachstellen fehlen die Details (Beschreibung, CVSS, ...) und die OSV-Advisories, bis die Importe sie wieder füllen. Die Importe beginnen von vorn wie nach der Installation: Der NVD-Import holt nur die in den letzten `initialDays` geänderten Schwachstellen (siehe <<cve_radar_nvd>>), daher für den ersten Start z. B. `projectforge.plugin.cveradar.nvd.initialDays=10000` setzen, um alle zu füllen (dauert etwa eine Stunde).
+
 Anschließend die Dateien wiederherstellen (Schema `pf_files`, der Haupt-Dump enthält es nicht):
 
 [source,shell,linenums]
@@ -1582,7 +1605,7 @@ Die Datentransfer-Dateien wiederherstellen (aus demselben Backup wie der Datei-D
 tar xf projectforge_datatransfer_2026-10-06_02-00.tar -C ~/ProjectForge
 ----
 
-Beide Dumps werden vor dem Start von ProjectForge eingespielt: Der Haupt-Dump enthält die Flyway-Historie, daher legt Flyway das Schema `pf_files` nicht erneut an. Existiert das Schema in der Zieldatenbank bereits, wird es zuvor gelöscht (`DROP SCHEMA pf_files CASCADE;`) oder `pg_restore --clean --if-exists` verwendet. Nach dem Wiederherstellen die Integritätsprüfungen über _Administration_ -> _System_ -> _Check system integrity_ ausführen (sie melden auch fehlende Datentransfer-Dateien).
+Alle Dumps werden vor dem Start von ProjectForge eingespielt: Der Haupt-Dump enthält die Flyway-Historie, daher legt Flyway das Schema `pf_files` nicht erneut an. Existiert das Schema in der Zieldatenbank bereits, wird es zuvor gelöscht (`DROP SCHEMA pf_files CASCADE;`) oder `pg_restore --clean --if-exists` verwendet. Nach dem Wiederherstellen die Integritätsprüfungen über _Administration_ -> _System_ -> _Check system integrity_ ausführen (sie melden auch fehlende Datentransfer-Dateien).
 
 Zum Löschen und Neuanlegen einer Datenbank siehe <<postgresql,PostgreSQL>>.
 Anschließend nicht vergessen, den Suchindex neu aufzubauen (_Administration_ -> _System_ -> _Reindex_)!
@@ -1642,13 +1665,32 @@ echo Starting backup of ProjectForge ...
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump nur der Dateien (Schema pf_files, Anhänge von Verträgen, Aufträgen, Rechnungen usw.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
+# Dump nur der CVE-Radar-Quellen (Daten der folgenden Tabellen, aus den Quellen durch die Importe wiederherstellbar).
+CVERADAR_BACKUPFILE=$BACKUPDIR/${BASENAME}_cveradar_${TIMESTAMP}.dump
+CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
+  t_plugin_cveradar_purl_match t_plugin_cveradar_import_state"
 # Archiv der Datentransfer-Dateien (Inhalt im Dateisystem, Metadaten in pf_files).
 DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
 
-echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
+echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE, $CVERADAR_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
+
+CVERADAR_TABLES=
+CVERADAR_EXCLUDE=
+for TABLE in $CVERADAR_SOURCES; do
+  CVERADAR_TABLES="$CVERADAR_TABLES -t $TABLE"
+  CVERADAR_EXCLUDE="$CVERADAR_EXCLUDE --exclude-table-data=$TABLE"
+done
+
+# Nur mit dem CVE-Radar-Plugin (pg_dump -t schlägt fehl, wenn keine Tabelle passt). Vor dem Haupt-Dump: Dieser enthält
+# dann jede Schwachstelle, auf die die Quellen verweisen.
+if [ -n "`$PGSQL_DIR/psql -U projectforge -tAc "select to_regclass('t_plugin_cveradar_vulnerability_detail')"`" ]; then
+  echo Exporting CVE-Radar sources ...
+  # Custom-Format, komprimiert (-Z 1): Die gezippten Dokumente (bytea) werden hex-kodiert geschrieben.
+  $PGSQL_DIR/pg_dump -U projectforge --data-only -Fc -Z 1 $CVERADAR_TABLES -f $CVERADAR_BACKUPFILE || { echo "Error: export of CVE-Radar sources failed."; exit 1; }
+fi
 
 echo Exporting data ...
-$PGSQL_DIR/pg_dump -U projectforge -N pf_files -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
+$PGSQL_DIR/pg_dump -U projectforge -N pf_files $CVERADAR_EXCLUDE -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
 
 echo Zipping backupfile ...
 gzip $BACKUPFILE
@@ -1667,7 +1709,7 @@ if [ -d $PF_HOME/datatransfer ]; then
 fi
 
 # Für ein Remote-Backup per scp:
-#scp $BACKUPFILE.gz $FILES_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE $CVERADAR_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
 
 # Das Löschen der täglichen Backups übernimmt ProjectForge (projectforge.cron.purgeBackupDir, siehe unten). Monatliche
 # Backups werden dauerhaft aufbewahrt, da sie für finanzielle Jahresvergleiche benötigt werden.
@@ -1681,12 +1723,12 @@ ProjectForge bereinigt die täglichen Backups (wöchentliche und monatliche blei
 ----
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # Optional: kommagetrennte Präfixe der Backup-Serien. Ohne Angabe werden alle Dateien verarbeitet, die ein Datum enthalten.
-# Jede Serie (Text vor dem Datum, hier projectforge_, projectforge_files_ und projectforge_datatransfer_) wird für
-# sich bereinigt.
+# Jede Serie (Text vor dem Datum, hier projectforge_, projectforge_files_, projectforge_cveradar_ und
+# projectforge_datatransfer_) wird für sich bereinigt.
 #projectforge.cron.purgeBackupFilesPrefix=projectforge_
 ----
 
-Der Datei-Dump `projectforge_files_...` und das Archiv `projectforge_datatransfer_...` sind eigene Serien und werden daher wie der Haupt-Dump bereinigt (auch mit dem Präfix `projectforge_`, da sie damit beginnen).
+Der Datei-Dump `projectforge_files_...`, der CVE-Radar-Dump `projectforge_cveradar_...` und das Archiv `projectforge_datatransfer_...` sind eigene Serien und werden daher wie der Haupt-Dump bereinigt (auch mit dem Präfix `projectforge_`, da sie damit beginnen).
 
 Damit `pg_dump` ohne Passwortabfrage läuft, wird das Skript als Unix-Benutzer `projectforge` ausgeführt und
 folgende Zeile in `pg_hba.conf` ergänzt (Peer-Authentifizierung: Der Unix-Benutzername muss dem Datenbankbenutzernamen
@@ -1699,7 +1741,7 @@ local projectforge projectforge peer
 ----
 
 Alternativ wird das Passwort in `~/.pgpass` des Benutzers abgelegt, der das Skript ausführt (`chmod 600 ~/.pgpass`):
-`localhost:5432:projectforge:projectforge:<password>` (dann `-h localhost` zu den `pg_dump`-Aufrufen hinzufügen).
+`localhost:5432:projectforge:projectforge:<password>` (dann `-h localhost` zu den `pg_dump`- und `psql`-Aufrufen hinzufügen).
 
 [[adding_crontab]]
 ==== Crontab-Eintrag hinzufügen
@@ -2043,8 +2085,8 @@ Lockfiles und Build-Listen. Der Import ist standardmäßig aus, da er Internetzu
 projectforge.plugin.cveradar.osv.enabled=true
 # Der öffentliche Bucket von OSV.dev.
 projectforge.plugin.cveradar.osv.url=https://osv-vulnerabilities.storage.googleapis.com
-# Die Ökosysteme (OSV-Schlüssel), durch Komma getrennt.
-projectforge.plugin.cveradar.osv.ecosystems=Maven,npm,PyPI,NuGet,Packagist,Go,crates.io
+# Die Ökosysteme und Distributionen (OSV-Schlüssel), durch Komma getrennt.
+projectforge.plugin.cveradar.osv.ecosystems=Maven,npm,PyPI,NuGet,Packagist,Go,crates.io,Debian,Ubuntu
 # Auch die Schadpakete (MAL-...): einige hunderttausend Advisories, fast alle von npm und PyPI.
 projectforge.plugin.cveradar.osv.malicious=false
 # Alle 6 Stunden zur Minute 47 (UTC).
@@ -2066,6 +2108,25 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
 * Ein zurückgezogenes Advisory trifft nichts mehr; eine Schwachstelle nur aus zurückgezogenen Advisories ist
   zurückgewiesen.
 * Der Ad-hoc-Check nutzt die Advisories ebenfalls, ohne etwas zu speichern.
+* *Distributionen* (`Debian`, `Ubuntu`): Die Pakete eines Containers oder Servers (SBOM mit dem Qualifier `distro` in
+  der purl, z. B. `pkg:deb/debian/curl@7.88.1-10?distro=debian-12`, oder eine Liste von `dpkg-query` mit den Zeilen
+  von `/etc/os-release`, siehe Benutzerhandbuch) werden gegen die Advisories ihres Releases
+  abgeglichen, die Versionen wie von dpkg verglichen. Die CPE des Upstream-Projekts kennt die Fixes nicht, die eine
+  Distribution zurückportiert (`curl 7.81.0-1ubuntu1.30` ist behoben, obwohl unter `7.84.0`); kennt die Distribution
+  das Paket für eine CVE in diesem Release, entscheidet sie, und ein Treffer _möglicherweise betroffen_ über die CPE entfällt. Eine CVE,
+  die die Distribution ohne Auswirkung einstuft (Debian `unimportant`, Ubuntu `negligible`), trifft nichts. Eine
+  Schwachstelle nur aus Advisories einer Distribution braucht die Schwelle des NVD-Imports (`minCvss`). Importiert
+  werden nur die Advisories je CVE (`DEBIAN-CVE-…`, `UBUNTU-CVE-…`), nicht die Meldungen (DSA, DLA, USN), und ohne die
+  Kernel (`linux`, `linux-aws`, …), die ein Inventar mit ihren Binärpaketen nennt; ihre Dokumente werden nicht
+  gespeichert. Das `all.zip` von Ubuntu hat etwa 800 MB, das von Debian 80 MB. Die Advisories nennen das Quellpaket:
+  Ein Binärpaket trifft über seine Quelle (der Qualifier `upstream` der purl, `libssl3` → `openssl`, mit ihrer Version,
+  wenn die abweicht). Eine Paketliste ohne Release (`dpkg-query` ohne `/etc/os-release`) trifft weiterhin nur über die
+  CPE.
+* Gegen Fehltreffer über den Namen einer CPE: Ein Eintrag für eine Laufzeitumgebung (`target_sw` `node.js`, `rust`,
+  `python`, …) trifft nur Bibliotheken dieses Ökosystems (`isaacs:tar:…:node.js` ist nicht das Debian-Paket `tar`).
+  Für die Bibliotheken eines Ökosystems, das von OSV importiert wird, braucht ein Treffer über den Namen einen Vendor,
+  der zum Paket, seinem Scope oder seiner groupId passt (`adobe:connect` ist nicht das npm-Paket `connect`,
+  `fasterxml:jackson-databind` ist `com.fasterxml.jackson.core:jackson-databind`).
 
 [[cve_radar_euvd]]
 ==== Schwachstellen aus der EUVD
@@ -2105,16 +2166,46 @@ projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
 * Die EUVD dokumentiert kein Rate-Limit; ProjectForge pausiert zwischen den Anfragen und wiederholt mit wachsendem
   Abstand.
 
+[[cve_radar_deptrack]]
+==== Dependency-Track (optional)
+
+https://dependencytrack.org[Dependency-Track] kann die Befunde parallel zum eigenen Abgleich ermitteln. Die Anbindung
+ist optional: Ohne URL und API-Schlüssel arbeitet ProjectForge wie ohne sie. Dependency-Track läuft als eigener Dienst
+(API-Server, Frontend, PostgreSQL), betrieben von den Administratoren; sein Frontend brauchen die Benutzer nicht.
+Bisher prüft ProjectForge nur die Verbindung; die Übertragung des Inventars und der Befunde folgt.
+
+[source,properties]
+----
+projectforge.plugin.cveradar.deptrack.url=https://dtrack.example.org
+# Besser als Umgebungsvariable PROJECTFORGE_PLUGIN_CVERADAR_DEPTRACK_APIKEY.
+projectforge.plugin.cveradar.deptrack.apiKey=...
+# Prüfung der Verbindung, alle 15 Minuten.
+projectforge.plugin.cveradar.deptrack.probeCron=0 */15 * * * *
+----
+
+* In Dependency-Track ein Team für ProjectForge anlegen (_Administration_ -> _Access Management_ -> _Teams_) mit den
+  Rechten `BOM_UPLOAD`, `PORTFOLIO_MANAGEMENT`, `PROJECT_CREATION_UPLOAD`, `VIEW_POLICY_VIOLATION`,
+  `VIEW_PORTFOLIO`, `VIEW_VULNERABILITY` und `VULNERABILITY_ANALYSIS` und seinen API-Schlüssel erzeugen.
+* Die externen Analyzer (OSS Index, Snyk, VulnDB) bleiben aus, sie würden die Liste der Komponenten nach außen
+  senden; die Schwachstellenquellen NVD, GitHub Advisories und OSV einschalten. Den Task _Telemetry Submission_
+  abschalten.
+* Die Kachel _Dependency-Track (CVE-Radar)_ des <<system_dashboard_and_log_viewer,System-Dashboards>> zeigt Host,
+  Version und das Ergebnis der letzten Prüfung: ausgefallen, wenn Dependency-Track nicht erreichbar ist oder den
+  Schlüssel ablehnt, gestört, wenn dem Team ein Recht fehlt (im Log und im Lauf des Jobs aufgeführt). Ein
+  ausgefallenes Dependency-Track beeinträchtigt die übrigen Seiten nicht.
+* Eine `https`-URL verwenden: Der API-Schlüssel geht mit jeder Anfrage mit (eine `http`-URL außer localhost wird als
+  Warnung geloggt). Weiterleitungen werden nicht verfolgt, daher die URL des API-Servers selbst angeben.
+
 [[cve_radar_jobs]]
 ==== Jobs und Verbindungen
 
 * Die Anbindung und die Importe laufen als Jobs, _CVE-Radar: Client-Agents_,
-  _CVE-Radar: NVD-Import_, _CVE-Radar: OSV-Import_ und _CVE-Radar: EUVD-Import_, aufgeführt
+  _CVE-Radar: NVD-Import_, _CVE-Radar: OSV-Import_, _CVE-Radar: EUVD-Import_ und _CVE-Radar: Dependency-Track-Prüfung_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
   konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
   `projectforge.integration.clients.cveradar-graylog.*` und
-  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*` eingestellt (z. B.
+  `projectforge.integration.clients.cveradar-nvd.*`, `projectforge.integration.clients.cveradar-osv.*`, `projectforge.integration.clients.cveradar-euvd.*`, `projectforge.integration.clients.cveradar-deptrack.*` eingestellt (z. B.
   `responseTimeoutMs`, `maxResponseBytes`, Default 50 MB; bei der NVD 180 s und 200 MB, da eine Seite bis zu 2000
   Schwachstellen enthält; bei OSV.dev 180 s und 1 GB für das Zip eines Ökosystems, das in eine temporäre Datei geladen
   wird).

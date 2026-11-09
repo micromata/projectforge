@@ -78,7 +78,12 @@ database.
                    skips the question. The next dev server keeps running
   run [slot]       Build (skip tests), then run the app in dev mode (Spring on
                    :8080+slot); the first run after setup initializes the
-                   database with test data and prints the admin login
+                   database with test data and prints the admin login. With
+                   PF_HOTSWAP_AGENT set: hot code replacement (see Env)
+  reload [slot]    Hot code replacement (PF_HOTSWAP_AGENT): compiles the
+                   worktree (classes only) and reloads the classes changed since
+                   the last reload into the running instance (jdb, debug port
+                   :5005+slot; not while IntelliJ is attached)
   dev [slot] […]   next dev (projectforge-next) on :3000+slot against :8080+slot;
                    -p <n> picks another port (pfDev.sh dev -p 3005)
   e2e [slot] […]   Playwright e2e tests against :8080+slot (or :3000+slot with
@@ -101,6 +106,14 @@ database.
 
 Env:
   PROJECTFORGE_HOME  Base dir of the main instance (default: ~/ProjectForge)
+  PF_HOTSWAP_AGENT   HotswapAgent jar: `run` starts the app with it on a JetBrains
+                     Runtime and a debug port :5005+slot; reload changed classes
+                     with `pfDev.sh reload`, or attach IntelliJ (Remote JVM Debug)
+  PF_HOTSWAP_JDK     Home of that JetBrains Runtime (default: IntelliJ's own,
+                     /Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home)
+  PF_HOTSWAP_AGENT_OPTS
+                     Options of the agent (default disablePlugin=Spring: its bean
+                     proxies break the start; "" turns it on)
 EOF
 }
 
@@ -539,6 +552,146 @@ slot_reset() {
   return 0
 }
 
+INTELLIJ_JBR="/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home"
+
+# Hot code replacement for `run`, only if $PF_HOTSWAP_AGENT (the HotswapAgent jar) is set: the app runs on a JetBrains
+# Runtime ($PF_HOTSWAP_JDK, default IntelliJ's own) with enhanced class redefinition, the agent and a debug port
+# (5005+slot) for IntelliJ, which reloads changed classes. Fills HOTSWAP_GRADLE_ARGS with the bootRun properties; the
+# options don't go into JAVA_TOOL_OPTIONS, which Gradle's own JVMs read as well.
+HOTSWAP_GRADLE_ARGS=()
+# Debug port of the slot, and the stamp: changed classes are those newer than it (set by `run` and every `reload`).
+hotswap_port() { echo $((5005 + SLOT)); }
+hotswap_stamp() { echo "$PF_HOME/.hotswap-reload"; }
+
+# The JetBrains Runtime of hotswap ($PF_HOTSWAP_JDK or IntelliJ's own), checked.
+hotswap_jdk() {
+  local jdk="${PF_HOTSWAP_JDK:-$INTELLIJ_JBR}"
+  if [[ ! -x "$jdk/bin/java" ]]; then
+    echo "No java in $jdk; set PF_HOTSWAP_JDK to the home of a JetBrains Runtime (e.g. $INTELLIJ_JBR)." >&2
+    exit 1
+  fi
+  echo "$jdk"
+}
+
+hotswap_setup() {
+  [[ -n "${PF_HOTSWAP_AGENT:-}" ]] || return 0
+  local jdk jar="$PF_HOTSWAP_AGENT" port
+  port="$(hotswap_port)"
+  jdk="$(hotswap_jdk)" || exit 1
+  local java="$jdk/bin/java" agent
+  if [[ ! -f "$jar" ]]; then
+    echo "PF_HOTSWAP_AGENT: no HotswapAgent jar $jar." >&2
+    exit 1
+  fi
+  if ! "$java" -XX:+AllowEnhancedClassRedefinition -version >/dev/null 2>&1; then
+    echo "$jdk is no JetBrains Runtime with enhanced class redefinition (PF_HOTSWAP_JDK)." >&2
+    exit 1
+  fi
+  # A JVM just stopped (stop, renew) may still hold the port for a few seconds after its http port is closed.
+  for _ in $(seq 1 30); do
+    [[ -z "$(listener_pid "$port")" ]] && break
+    sleep 0.5
+  done
+  if [[ -n "$(listener_pid "$port")" ]]; then
+    echo "The debug port :$port is already in use." >&2
+    exit 1
+  fi
+  # The Spring plugin is off by default: it wraps beans in proxies (no constructor run), whose final Kotlin methods
+  # then see null fields, and the start fails. Classes are reloaded without it, only the Spring wiring isn't
+  # refreshed (new beans or injected fields need a restart). PF_HOTSWAP_AGENT_OPTS="" turns it on.
+  local opts="${PF_HOTSWAP_AGENT_OPTS-disablePlugin=Spring}"
+  agent="-javaagent:$jar${opts:+=$opts}"
+  local jvm_args=(
+    -XX:+AllowEnhancedClassRedefinition -XX:HotswapAgent=external "$agent"
+    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:$port"
+    # Reflective access of HotswapAgent's plugins (as documented by HotswapAgent for JDK 17+).
+    --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+    --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED
+    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.security.action=ALL-UNNAMED
+    --add-opens=java.desktop/java.beans=ALL-UNNAMED --add-opens=java.desktop/com.sun.beans=ALL-UNNAMED
+    --add-opens=java.desktop/com.sun.beans.introspect=ALL-UNNAMED --add-opens=java.desktop/com.sun.beans.util=ALL-UNNAMED
+  )
+  # bootRun takes the JVM as a toolchain (see projectforge-application/build.gradle.kts): its version and vendor,
+  # found only in $jdk (no auto-detection, which might pick another JDK of the same version). One JVM arg per line,
+  # paths may contain spaces.
+  local settings version vendor
+  settings="$("$java" -XshowSettings:properties -version 2>&1)"
+  version="$(sed -n 's/^ *java\.specification\.version = //p' <<<"$settings")"
+  vendor="$(sed -n 's/^ *java\.vendor = //p' <<<"$settings")"
+  HOTSWAP_GRADLE_ARGS=(
+    "-Porg.gradle.java.installations.paths=$jdk" -Porg.gradle.java.installations.auto-detect=false
+    "-PpfBootRunJavaVersion=$version" "-PpfBootRunJavaVendor=$vendor"
+    "-PpfBootRunJvmArgs=$(printf '%s\n' "${jvm_args[@]}")"
+    # The other modules from their class dirs instead of their jars: new classes and those not loaded yet come from
+    # the latest compile.
+    -PpfBootRunProjectClasses=true
+  )
+  echo "Hotswap: $jdk, agent $(basename "$jar"), debugger on :$port (\`pfDev.sh reload\` or IntelliJ: Remote JVM Debug)."
+}
+
+# `reload`: compiles the worktree (classes only: no jars, no next build) and redefines the classes changed since
+# the last reload in the running instance via jdb over the debug port of hotswap.
+slot_reload() {
+  if [[ -z "${PF_HOTSWAP_AGENT:-}" ]]; then
+    echo "reload needs hot code replacement: set PF_HOTSWAP_AGENT and start with \`pfDev.sh run\`." >&2
+    exit 1
+  fi
+  local port stamp_file
+  port="$(hotswap_port)"
+  stamp_file="$(hotswap_stamp)"
+  if [[ -z "$(listener_pid "$port")" ]]; then
+    if [[ -n "$(listener_pid "$SPRING_PORT")" ]]; then
+      # The JVM doesn't listen on its debug port while a debugger is attached.
+      echo "Nothing listens on the debug port :$port: a debugger is attached (IntelliJ? only one at a time), or the" \
+        "instance on :$SPRING_PORT was started without PF_HOTSWAP_AGENT." >&2
+    else
+      echo "No instance on :$SPRING_PORT; start it with \`pfDev.sh run\` (PF_HOTSWAP_AGENT set)." >&2
+    fi
+    exit 1
+  fi
+  local jdk
+  jdk="$(hotswap_jdk)" || exit 1
+  [[ -f "$stamp_file" ]] || touch "$stamp_file"
+  "$GRADLEW" -p "$ROOT" compileKotlin compileJava -q || exit 1
+  # The next stamp: after this compile, before the redefine (classes compiled from now on are changed next time).
+  local stamp="$stamp_file.new"
+  touch "$stamp"
+  local commands=() dir file count=0
+  while IFS= read -r dir; do
+    while IFS= read -r file; do
+      local name="${file#"$dir"/}"
+      name="${name%.class}"
+      [[ "$name" == module-info || "$name" == */package-info ]] && continue
+      commands+=("redefine ${name//\//.} $file")
+      count=$((count + 1))
+    done < <(find "$dir" -name '*.class' -newer "$stamp_file")
+  done < <(find "$ROOT" -maxdepth 5 \( -name node_modules -o -name .git \) -prune -o -type d -path '*/build/classes/*/main' -print)
+  if ((count == 0)); then
+    mv "$stamp" "$stamp_file"
+    echo "Nothing to reload."
+    return 0
+  fi
+  # A redefined class prints nothing; one not loaded yet can't be redefined, it is loaded from the class dirs when
+  # needed. Anything else is an error. English messages, whatever the locale.
+  local output messages skipped errors
+  output="$(printf '%s\n' "${commands[@]}" exit \
+    | "$jdk/bin/jdb" -J-Duser.language=en -J-Duser.country=US -attach "127.0.0.1:$port" 2>&1)"
+  if grep -q "Unable to attach" <<<"$output"; then
+    echo "jdb can't attach to :$port; only one debugger at a time (IntelliJ attached?)." >&2
+    rm -f "$stamp"
+    exit 1
+  fi
+  messages="$(sed -E 's/^(> ?)+//' <<<"$output" | grep -v "^ *$\|^Set uncaught\|^Set deferred\|^Initializing jdb" || true)"
+  skipped="$(grep -c "^No class named" <<<"$messages" || true)"
+  errors="$(grep -v "^No class named" <<<"$messages" || true)"
+  mv "$stamp" "$stamp_file"
+  echo "Reloaded $((count - skipped)) classes ($skipped not loaded yet, they come fresh from the class dirs)."
+  if [[ -n "$errors" ]]; then
+    echo "$errors" >&2
+    exit 1
+  fi
+}
+
 # `run`: builds, then runs the app in dev mode in the foreground (replaces this shell); args go to bootRun.
 slot_run() {
   local opts="-XX:ReservedCodeCacheSize=256m -Dprojectforge.base.dir=$PF_HOME"
@@ -554,11 +707,13 @@ slot_run() {
     # The main instance keeps whatever its projectforge.properties says.
     opts+=" -Dserver.port=$SPRING_PORT -Dprojectforge.domain=http://localhost:$SPRING_PORT -Dserver.servlet.session.cookie.name=$COOKIE"
   fi
+  hotswap_setup
   "$GRADLEW" -p "$ROOT" build -x test
+  [[ -n "${PF_HOTSWAP_AGENT:-}" ]] && touch "$(hotswap_stamp)"
   # First start after `setup`: fill the fresh database as soon as the instance answers.
   [[ -f "$PF_HOME/$SETUP_PENDING" ]] && init_database &
   JAVA_TOOL_OPTIONS="$opts" \
-    exec "$GRADLEW" -p "$ROOT" :projectforge-application:bootRun "$@"
+    exec "$GRADLEW" -p "$ROOT" :projectforge-application:bootRun ${HOTSWAP_GRADLE_ARGS[@]+"${HOTSWAP_GRADLE_ARGS[@]}"} "$@"
 }
 
 # `renew`: stops the Spring of a slot, deletes its home, sets it up again and starts it. The question comes
@@ -590,6 +745,9 @@ case "$cmd" in
     ;;
   run)
     slot_run "$@"
+    ;;
+  reload)
+    slot_reload
     ;;
   setup)
     require_slot setup

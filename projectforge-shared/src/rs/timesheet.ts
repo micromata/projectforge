@@ -29,6 +29,11 @@ export interface AppTimesheetList {
   timesheets: TimesheetData[];
   /** The tags the installation offers, empty where none is configured. */
   tags?: string[] | null;
+  /**
+   * The daily target in minutes of each day of the period (key `yyyy-MM-dd`): a fifth of the weekly working hours valid
+   * on that day, 8 hours without. Missing from servers before 9.2.8.
+   */
+  targetMinutes?: Record<string, number> | null;
 }
 
 /** @server org.projectforge.rest.TimesheetEntityRest$RecentTimesheets */

@@ -46,6 +46,7 @@ private val log = KotlinLogging.logger {}
  *   [MAX_SINGLE]) are read from the zip again,
  * - idempotent: an advisory is stored once per OSV id and only read again if its modification time changed,
  * - the malicious packages only if configured ([CveRadarConfig.Osv.malicious]),
+ * - of a distribution (Debian, Ubuntu) the advisories per CVE only, not its notices ([OsvPackages.Distro]),
  * - an ecosystem failing doesn't stop the others; its watermark stays, so the next run tries again.
  *
  * Afterwards the changed advisories are matched against the inventory: those that match become vulnerabilities
@@ -119,7 +120,7 @@ class OsvImportService {
         result.fullImports.add(ecosystem)
         var newest: Instant? = null
         val batch = mutableListOf<OsvAdvisory>()
-        source.all(ecosystem, { !config.osv.malicious && it.startsWith(MALICIOUS) }) { json ->
+        source.all(ecosystem, { skip(ecosystem, it) }) { json ->
             parse(json, ecosystems, result)?.let { advisory ->
                 newest = maxOf(newest ?: advisory.modified, advisory.modified)
                 batch.add(advisory)
@@ -140,7 +141,7 @@ class OsvImportService {
      */
     private fun importModified(source: OsvSource, ecosystem: String, ecosystems: Set<String>, watermark: Instant, result: Result): Instant? {
         val modified = source.modifiedSince(ecosystem, watermark.minus(OVERLAP))
-            .filter { config.osv.malicious || !it.second.startsWith(MALICIOUS) }
+            .filter { !skip(ecosystem, it.second) }
         if (modified.size > MAX_SINGLE) {
             return importAll(source, ecosystem, ecosystems, result)
         }
@@ -165,6 +166,10 @@ class OsvImportService {
         failed?.let { return it.minusNanos(1) }
         return modified.maxOfOrNull { it.first }
     }
+
+    /** Not read at all: a malicious package (if not configured), a notice of a distribution. */
+    private fun skip(ecosystem: String, osvId: String): Boolean =
+        (!config.osv.malicious && osvId.startsWith(MALICIOUS)) || !OsvPackages.isImportedId(ecosystem, osvId)
 
     private fun parse(json: String, ecosystems: Set<String>, result: Result): OsvAdvisory? {
         val advisory = try {

@@ -3,9 +3,11 @@
 import { memo, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTime, formatTimestampMinutes } from "@/lib/format";
+import { chatLinkPreviewImageUrl } from "@/lib/rs/chat";
 import type { ChatMessage } from "@/lib/rs/chat-types";
 import { cn } from "@/lib/utils";
 import { useChatContext } from "./chat-context";
+import { LinkPreviewCard } from "./link-preview-card";
 import { MessageActions } from "./message-actions";
 import { MessageAttachments } from "./message-attachments";
 import { MessageAuthor } from "./message-author";
@@ -19,8 +21,8 @@ import { useMessageMutations } from "./use-message-mutations";
 /**
  * One message, grouped as in Google Chat: the first of a group shows the avatar and the header (author, a click
  * offers a direct message; time, "edited", MSG-02), a [continued] one only its time on hover. Then the bubble (quote,
- * content or placeholder), files, reactions and, in the conversation, the summary of its thread. The user's own
- * messages are aligned right, without avatar and name.
+ * content or placeholder), the preview of its link, files, reactions and, in the conversation, the summary of its
+ * thread. The user's own messages are aligned right, without avatar and name.
  */
 export const MessageItem = memo(function MessageItem({
   message,
@@ -44,7 +46,7 @@ export const MessageItem = memo(function MessageItem({
     actionsMessageId,
     setActionsMessageId,
   } = useChatContext();
-  const { react } = useMessageMutations();
+  const { react, dismissLinkPreview } = useMessageMutations();
   const [editing, setEditing] = useState(false);
   // A click or tap on the bubble pins its actions (one message at a time), another one hides them. Beside that, a
   // mouse shows them on hovering in a wide column; touch devices and narrow columns have the click only.
@@ -155,6 +157,24 @@ export const MessageItem = memo(function MessageItem({
             </div>
           )}
         </div>
+        {message.linkPreview && !editing && !message.fromBlocked && (
+          <LinkPreviewCard
+            preview={message.linkPreview}
+            imageSrc={
+              message.linkPreview.imageId
+                ? chatLinkPreviewImageUrl(
+                    message.id,
+                    message.linkPreview.imageId
+                  )
+                : null
+            }
+            onRemove={
+              message.own && conversation.canWrite
+                ? () => dismissLinkPreview.mutate(message.id)
+                : null
+            }
+          />
+        )}
         <MessageAttachments
           conversationId={conversation.id}
           files={message.files}

@@ -1,0 +1,19 @@
+{
+  "type": "improved",
+  "en": "CVE-Radar",
+  "de": "CVE-Radar",
+  "items": [
+    {
+      "en": "Packages of Debian and Ubuntu (SBOMs of containers and servers) are matched against the advisories of their release from OSV.dev: fixes backported by the distribution no longer show as possibly affected, open CVEs of the release as affected, CVEs without impact (unimportant, negligible) not at all. New OSV ecosystems Debian and Ubuntu, on by default.",
+      "de": "Pakete von Debian und Ubuntu (SBOMs von Containern und Servern) werden gegen die Advisories ihres Releases von OSV.dev abgeglichen: Von der Distribution zurückportierte Fixes erscheinen nicht mehr als möglicherweise betroffen, offene CVEs des Releases als betroffen, CVEs ohne Auswirkung (unimportant, negligible) gar nicht. Neue OSV-Ökosysteme Debian und Ubuntu, standardmäßig an."
+    },
+    {
+      "en": "Binary packages of a distribution (libssl3) are matched by their source package (openssl), as the advisories name it (upstream qualifier of an SBOM). A dpkg-query list with the lines of /etc/os-release and the source packages is matched like an SBOM; the command in the user guide writes them.",
+      "de": "Binärpakete einer Distribution (libssl3) werden über ihr Quellpaket (openssl) abgeglichen, wie es die Advisories nennen (Qualifier upstream einer SBOM). Eine Liste von dpkg-query mit den Zeilen von /etc/os-release und den Quellpaketen wird wie eine SBOM abgeglichen; der Befehl im Benutzerhandbuch schreibt sie."
+    },
+    {
+      "en": "Fewer false positives by the name of a CPE: an entry for a runtime (node.js, Rust, Python, …) only meets libraries of that ecosystem, and for libraries known to OSV the vendor has to fit the package (Adobe Connect is no longer the npm package connect).",
+      "de": "Weniger Fehltreffer über den Namen einer CPE: Ein Eintrag für eine Laufzeitumgebung (node.js, Rust, Python, …) trifft nur Bibliotheken dieses Ökosystems, und bei Bibliotheken, die OSV kennt, muss der Vendor zum Paket passen (Adobe Connect ist nicht mehr das npm-Paket connect)."
+    }
+  ]
+}

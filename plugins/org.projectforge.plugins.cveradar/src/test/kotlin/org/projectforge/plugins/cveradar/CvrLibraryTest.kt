@@ -31,6 +31,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.jobs.AbstractJob
+import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.plugins.cveradar.model.CvrCatalogKind
 import org.projectforge.plugins.cveradar.model.CvrOrigin
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
@@ -39,6 +41,7 @@ import org.projectforge.plugins.cveradar.rest.CatalogNodeRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
 import org.projectforge.plugins.cveradar.rest.CvrCatalogRest
 import org.projectforge.plugins.cveradar.rest.CvrInventoryRest
+import org.projectforge.plugins.cveradar.rest.LibraryDiff
 import org.projectforge.plugins.cveradar.rest.LibraryFile
 import org.projectforge.plugins.cveradar.rest.LibraryRequest
 import org.projectforge.plugins.cveradar.rest.SystemRequest
@@ -68,6 +71,20 @@ class CvrLibraryTest : CveRadarTestBase() {
 
     private val mavenA = "    com.fasterxml.jackson.core:jackson-databind:jar:2.17.2:compile\n    org.slf4j:slf4j-api:jar:2.0.9:compile\n"
     private val mavenB = "    org.slf4j:slf4j-api:jar:2.0.9:compile\n    io.netty:netty-codec:jar:4.1.100.Final:runtime\n"
+
+    @Autowired
+    private lateinit var jobHandler: JobHandler
+
+    /** Through the endpoint, which starts a job ([CvrLibraryApplyJob]): awaited here. */
+    private fun applyLibraries(component: Long, request: LibraryRequest): LibraryDiff {
+        val job = jobHandler.getJobById(rest.applyLibraries(component, request).jobId) as CvrLibraryApplyJob
+        val until = System.currentTimeMillis() + 30_000
+        while (!job.terminated && System.currentTimeMillis() < until) {
+            Thread.sleep(20)
+        }
+        assertEquals(AbstractJob.Status.FINISHED, job.status, job.errorMessage)
+        return job.diff!!
+    }
 
     private fun libraries(component: String) =
         rest.tree().rows.single { it.code == component }.technologies.filter { it.origin != CvrOrigin.MANUAL }
@@ -103,7 +120,7 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertEquals(2, preview.addedCount)
         assertEquals(0, libraries("LIB1-S-APP").size)
 
-        rest.applyLibraries(component, request(mavenA, false))
+        applyLibraries(component, request(mavenA, false))
         val first = libraries("LIB1-S-APP")
         assertEquals(setOf("jackson-databind", "slf4j-api"), first.map { it.product }.toSet())
         val linked = first.single { it.product == "jackson-databind" }
@@ -113,13 +130,13 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertNull(first.single { it.product == "slf4j-api" }.catalogNodeId)
 
         // A second list only adds.
-        val merged = rest.applyLibraries(component, request(mavenB, false))
+        val merged = applyLibraries(component, request(mavenB, false))
         assertEquals(1, merged.addedCount)
         assertEquals(1, merged.unchangedCount)
         assertEquals(3, libraries("LIB1-S-APP").size)
 
         // Replace removes what the lists no longer name.
-        val replaced = rest.applyLibraries(component, request(mavenB, true))
+        val replaced = applyLibraries(component, request(mavenB, true))
         assertEquals(1, replaced.removedCount)
         assertEquals(setOf("slf4j-api", "netty-codec"), libraries("LIB1-S-APP").map { it.product }.toSet())
 
@@ -132,9 +149,9 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertEquals(0, bump.addedCount + bump.removedCount)
         assertEquals(1, bump.unchangedCount)
         assertEquals(setOf("2.0.9"), libraries("LIB1-S-APP").filter { it.product == "slf4j-api" }.map { it.version }.toSet(), "preview stores nothing")
-        rest.applyLibraries(component, bumped)
+        applyLibraries(component, bumped)
         assertEquals(listOf("2.0.13"), libraries("LIB1-S-APP").filter { it.product == "slf4j-api" }.map { it.version })
-        rest.applyLibraries(component, request(mavenB, true))
+        applyLibraries(component, request(mavenB, true))
 
         // Saving the component dialog (manual technologies only) keeps the libraries; the manual one is untouched.
         val manual = rest.tree().rows.single { it.code == "LIB1-S-APP" }.technologies.single { it.origin == CvrOrigin.MANUAL }
@@ -146,13 +163,13 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertEquals("22", rest.tree().rows.single { it.code == "LIB1-S-APP" }.technologies.single { it.origin == CvrOrigin.MANUAL }.version)
 
         // All libraries of the lists go with an empty replace.
-        rest.applyLibraries(component, LibraryRequest(emptyList(), replace = true))
+        applyLibraries(component, LibraryRequest(emptyList(), replace = true))
         assertEquals(0, libraries("LIB1-S-APP").size)
         assertNotNull(rest.tree().rows.single { it.code == "LIB1-S-APP" }.technologies.singleOrNull { it.origin == CvrOrigin.MANUAL })
 
         // A jar listing has no groupId: the catalogue gives it where the name is unique, the rest is counted.
         val jars = "BOOT-INF/lib/jackson-databind-2.17.2.jar\nBOOT-INF/lib/mystery-1.0.jar\n"
-        val jarDiff = rest.applyLibraries(component, LibraryRequest(listOf(LibraryFile("jars.txt", jars)), false))
+        val jarDiff = applyLibraries(component, LibraryRequest(listOf(LibraryFile("jars.txt", jars)), false))
         assertEquals(2, jarDiff.addedCount)
         assertEquals(1, jarDiff.withoutGroupIdCount)
         val fromJars = libraries("LIB1-S-APP").filter { it.origin == CvrOrigin.JAR_LIST }
@@ -167,7 +184,7 @@ class CvrLibraryTest : CveRadarTestBase() {
         val sbom = """{"bomFormat":"CycloneDX","components":[
             {"purl":"pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.2?type=jar"},
             {"purl":"pkg:deb/debian/openssl@3.0.11-1~deb12u2?arch=amd64&distro=debian-12"}]}"""
-        val sbomDiff = rest.applyLibraries(component, LibraryRequest(listOf(LibraryFile("bom.json", sbom)), false))
+        val sbomDiff = applyLibraries(component, LibraryRequest(listOf(LibraryFile("bom.json", sbom)), false))
         assertEquals(LibraryFormat.CYCLONEDX, sbomDiff.files.single().format)
         assertEquals(1, sbomDiff.unchangedCount)
         assertEquals(1, sbomDiff.addedCount)
@@ -175,6 +192,8 @@ class CvrLibraryTest : CveRadarTestBase() {
         assertEquals(CvrOrigin.SBOM, openssl.origin)
         assertEquals("deb", openssl.ecosystem)
         assertEquals("pkg:deb/debian/openssl@3.0.11-1~deb12u2?distro=debian-12", openssl.purl)
+        assertEquals("bom.json", openssl.source)
+        assertEquals("bom.json", libraries("LIB1-S-APP").single { it.product == "jackson-databind" }.source, "a known one gets the new place")
 
         // A zip collected by a script of the project: every list in it, the files that may hold tokens unread.
         val pnpm = "lockfileVersion: '9.0'\nimporters:\n  .:\n    dependencies:\n      left-pad:\n        specifier: 1.3.0\n        version: 1.3.0\nsnapshots:\n  left-pad@1.3.0: {}\n"
@@ -183,12 +202,13 @@ class CvrLibraryTest : CveRadarTestBase() {
             "os/packages.txt" to "zlib1g 1:1.2.13.dfsg-1\n",
             "frontend/.npmrc" to "_authToken=secret",
         )
-        val zipDiff = rest.applyLibraries(component, LibraryRequest(listOf(LibraryFile("libraries.zip", data = zip)), false))
+        val zipDiff = applyLibraries(component, LibraryRequest(listOf(LibraryFile("libraries.zip", data = zip)), false))
         assertEquals(
             listOf("libraries.zip/frontend/pnpm-lock.yaml" to LibraryFormat.PNPM, "libraries.zip/os/packages.txt" to LibraryFormat.DEB),
             zipDiff.files.map { it.name to it.format },
         )
         assertEquals(CvrOrigin.LOCKFILE, libraries("LIB1-S-APP").single { it.product == "left-pad" }.origin)
+        assertEquals("libraries.zip/frontend/pnpm-lock.yaml", libraries("LIB1-S-APP").single { it.product == "left-pad" }.source)
         assertEquals(CvrOrigin.PACKAGE_LIST, libraries("LIB1-S-APP").single { it.product == "zlib1g" }.origin)
         assertThrows(UserException::class.java) {
             rest.previewLibraries(component, LibraryRequest((0..LibraryListParser.MAX_FILES).map { LibraryFile("f$it.txt", "") }))
@@ -196,6 +216,31 @@ class CvrLibraryTest : CveRadarTestBase() {
 
         logon(outsider)
         assertThrows(AccessException::class.java) { rest.previewLibraries(component, request(mavenA, false)) }
-        assertThrows(AccessException::class.java) { rest.applyLibraries(component, request(mavenA, false)) }
+        assertThrows(AccessException::class.java) { applyLibraries(component, request(mavenA, false)) }
+    }
+
+    @Test
+    fun `a package list with the release and the source packages keeps the packages listed before without them`() {
+        val owner = user("lib-owner2", null)
+        val groupId = (initTestDB.getGroup("cveradar-lib-g2") ?: initTestDB.addGroup("cveradar-lib-g2")).id!!
+        addToGroup(owner, "cveradar-lib-g2")
+        logon(owner)
+        val area = rest.createArea(AreaRequest(code = "LIB2", name = "Lib", groupId = groupId))
+        val system = rest.createSystem(SystemRequest(areaId = area, code = "LIB2-S", name = "S"))
+        val component = rest.createComponent(ComponentRequest(systemId = system, code = "IMG", name = "Image"))
+        val request = { text: String -> LibraryRequest(listOf(LibraryFile("os.txt", text)), replace = true) }
+        applyLibraries(component, request("libssl3 3.0.15-1~deb12u1\ncurl 7.88.1-10\n"))
+        val before = libraries("LIB2-S-IMG").associateBy { it.product }
+
+        val diff = applyLibraries(
+            component,
+            request("ID=debian\nVERSION_ID=\"12\"\nlibssl3 3.0.15-1~deb12u1 openssl 3.0.15-1~deb12u1\ncurl 7.88.1-10 curl 7.88.1-10\n"),
+        )
+        assertEquals(2, diff.unchangedCount)
+        assertEquals(0, diff.addedCount + diff.removedCount + diff.changedCount)
+        val after = libraries("LIB2-S-IMG").associateBy { it.product }
+        assertEquals(before.mapValues { it.value.id }, after.mapValues { it.value.id }, "the same technologies")
+        assertEquals("pkg:deb/debian/libssl3@3.0.15-1~deb12u1?distro=debian-12&upstream=openssl", after.getValue("libssl3").purl)
+        assertEquals("pkg:deb/debian/curl@7.88.1-10?distro=debian-12", after.getValue("curl").purl)
     }
 }

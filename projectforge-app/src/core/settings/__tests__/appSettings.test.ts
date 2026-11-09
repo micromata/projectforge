@@ -42,3 +42,16 @@ test('unknown or broken settings give the defaults', () => {
   expect(settingsFromJson({ webVersion: 'chat' }).webVersion).toEqual([]);
   expect(settingsFromJson('{').webVersion).toEqual([]);
 });
+
+test('the navigation in landscape at the left unless chosen right', () => {
+  expect(settingsFromJson(null).railSide).toBe('left');
+  expect(settingsFromJson({ webVersion: [] }).railSide).toBe('left');
+  expect(settingsFromJson({ railSide: 'right' }).railSide).toBe('right');
+  expect(settingsFromJson({ railSide: 'top' }).railSide).toBe('left');
+});
+
+test('the start in the tab used last, the business cards at first', () => {
+  expect(settingsFromJson(null).lastTab).toBe('cards');
+  expect(settingsFromJson({ lastTab: 'timesheets' }).lastTab).toBe('timesheets');
+  expect(settingsFromJson({ lastTab: 'gone' }).lastTab).toBe('cards');
+});

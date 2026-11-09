@@ -26,6 +26,9 @@ package org.projectforge.business.timesheet
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
@@ -49,6 +52,12 @@ class TimesheetDayBookingServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var taskDao: TaskDao
+
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
+    private lateinit var employeeService: EmployeeService
 
     @Test
     fun planSkipsWeekendsHolidaysAndOverlapsAndBooksHalfDaysProRata() {
@@ -175,6 +184,33 @@ class TimesheetDayBookingServiceTest : AbstractTestBase() {
         // Someone who may not see the time sheets of others may not plan theirs either.
         logon(TEST_USER)
         refused("timesheet.bookDays.error.otherUser", request(user, task, day, day))
+    }
+
+    @Test
+    fun hoursPerDayFollowTheWeeklyHoursValidOnEachDay() {
+        logon(TEST_FINANCE_USER)
+        val user = initTestDB.addUser("bookDays-hours-user")
+        val employee = EmployeeDO().also {
+            it.user = user
+            it.eintrittsDatum = LocalDate.of(2020, 1, 1)
+        }
+        employeeDao.insert(employee, checkAccess = false)
+        employeeService.insertWeeklyHours(employee, LocalDate.of(2020, 1, 1), BigDecimal(40), checkAccess = false)
+        // Part time from Wed 04.11. on:
+        employeeService.insertWeeklyHours(employee, LocalDate.of(2026, 11, 4), BigDecimal(30), checkAccess = false)
+        val days = service.hoursPerDay(user.id, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 8))
+        Assertions.assertEquals(7, days.size)
+        Assertions.assertEquals(BigDecimal(8), days[LocalDate.of(2026, 11, 3)])
+        Assertions.assertEquals(BigDecimal("6"), days[LocalDate.of(2026, 11, 4)])
+        Assertions.assertEquals(BigDecimal("6"), days[LocalDate.of(2026, 11, 8)])
+        Assertions.assertEquals(BigDecimal("6"), service.defaultHoursPerDay(user.id, LocalDate.of(2026, 11, 5)))
+
+        // A user without employee: 8 hours.
+        val other = initTestDB.addUser("bookDays-hours-other")
+        Assertions.assertEquals(
+            setOf(BigDecimal(8)),
+            service.hoursPerDay(other.id, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 3)).values.toSet(),
+        )
     }
 
     private fun request(

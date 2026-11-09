@@ -41,6 +41,17 @@ export const JsonCache = {
     }
   },
 
+  /** [read] at once, for what a screen needs before its first render. */
+  readSync<T = Record<string, unknown>>(name: string): T | null {
+    const file = new File(cacheDir(), `${name}.json`);
+    if (!file.exists) return null;
+    try {
+      return JSON.parse(file.textSync()) as T;
+    } catch {
+      return null;
+    }
+  },
+
   write(name: string, json: unknown): void {
     const dir = cacheDir();
     dir.create({ intermediates: true, idempotent: true });

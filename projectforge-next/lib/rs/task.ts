@@ -279,7 +279,8 @@ export function fetchTaskTree(
   }
   return request<TaskTreeResult>(
     `/rs/task/tree?${query}`,
-    { method: "GET" },
+    // POST: open/close and the filter values are stored for the user.
+    { method: "POST" },
     signal
   );
 }

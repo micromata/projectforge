@@ -1,6 +1,6 @@
 # Base image (openjdk:* is deprecated and its tags were removed from Docker Hub).
 # Defaults to the JRE image (running a prebuilt fat jar needs no JDK):
-ARG BASE_IMAGE=docker.io/eclipse-temurin:21-jre-jammy
+ARG BASE_IMAGE=docker.io/eclipse-temurin:21-jre-noble
 FROM ${BASE_IMAGE}
 
 # Argument for JAR file name to use in working directory:
@@ -26,8 +26,8 @@ RUN addgroup --system projectforge && adduser --system --ingroup projectforge pr
 
 # Install findutils (xargs needed by gradle)
 #RUN apt-get update && apt-get install -y findutils && rm -rf /var/lib/apt/lists/*
-# pgrep needed by the entrypoint.sh
-RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
+# Security updates of the base image packages; pgrep needed by the entrypoint.sh
+RUN apt-get update && apt-get upgrade -y && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
 
 
 # Expose the port and declare the volume

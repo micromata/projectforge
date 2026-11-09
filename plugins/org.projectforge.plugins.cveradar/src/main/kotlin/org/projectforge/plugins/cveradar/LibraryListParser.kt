@@ -35,7 +35,9 @@ enum class LibraryFormat { NPM, YARN, PNPM, PIP, GO, CARGO, COMPOSER, MAVEN, GRA
  * One library of a list: [ecosystem] is the purl type (`maven`, `npm`, `pypi`, `deb`, ...), [group] the purl namespace
  * (Maven: the groupId, npm: the scope with its `@`, deb: the distribution), [name] the name (Maven: the artifactId,
  * npm: the name without scope). [distro] is the `distro` qualifier of an operating system package (`debian-12`): the
- * same version may be fixed in one release and not in another. The other qualifiers (`arch`, ...) are dropped.
+ * same version may be fixed in one release and not in another. [source] is its `upstream` qualifier, the source package
+ * the advisories of the distribution name (`openssl` of `libssl3`), with `@version` if that differs (`gnupg2@2.2.40-1.1`).
+ * The other qualifiers (`arch`, ...) are dropped.
  */
 data class LibraryEntry(
     val ecosystem: String,
@@ -43,11 +45,15 @@ data class LibraryEntry(
     val name: String,
     val version: String,
     val distro: String? = null,
+    /** Where it was found inside the listed thing, e.g. the path of a binary in a container image (SBOM). */
+    val location: String? = null,
+    val source: String? = null,
 ) {
     /** The package URL with the version; it identifies the entry (npm: `@` of a scope as `%40`). */
     val purl: String
         get() = "pkg:$ecosystem/${group?.let { "${it.replace("@", "%40")}/" } ?: ""}$name@$version" +
-            (distro?.let { "?distro=$it" } ?: "")
+            listOfNotNull(distro?.let { "distro=$it" }, source?.let { "upstream=${it.replace("@", "%40")}" })
+                .joinToString("&").let { if (it.isEmpty()) "" else "?$it" }
 
     /**
      * The name of the technology: the full name where the namespace is part of it (npm with scope, Go module, Composer
@@ -84,6 +90,8 @@ object LibraryListParser {
     private val objectMapper = ObjectMapper()
 
     private const val ID = "[A-Za-z0-9_.\\-]+"
+    private const val DEB_NAME = "(?=[a-z0-9+.\\-]*[a-z])[a-z0-9][a-z0-9+.\\-]*"
+    private const val DEB_VERSION = "(?:\\d+:)?\\d[A-Za-z0-9.+~:\\-]*"
     private val MAVEN_LINE = Regex("""^(?:\[[A-Z]+\]\s+)?[\s|+\\\-]*($ID):($ID):($ID):(?:($ID):)?($ID):(compile|runtime|provided|test|system|import)(?:\s.*)?$""")
     private val GRADLE_LINE = Regex("""^[\s|]*[+\\]---\s+([^\s:]+):([^\s:]+)(?::(\S+))?(?:\s+->\s+(\S+))?(.*)$""")
     private val JAR_NAME = Regex("""^(.+?)-(\d.*?)(?:-(?:sources|javadoc|tests|test-sources|all|linux-\S+|osx-\S+|macos-\S+|windows-\S+))?\.jar$""", RegexOption.IGNORE_CASE)
@@ -92,8 +100,12 @@ object LibraryListParser {
     private val GO_LINE = Regex("""^\s*(?:require\s+)?([a-z0-9][A-Za-z0-9._~\-]*(?:/[A-Za-z0-9._~\-]+)+)\s+(v\d[A-Za-z0-9.+\-]*)(?:\s*//.*)?$""")
     private val APK_LINE = Regex("""^([a-z0-9][a-z0-9._+\-]*)-(\d[A-Za-z0-9._]*-r\d+)$""")
     private val RPM_LINE = Regex("""^(?:\d+:)?([A-Za-z0-9][A-Za-z0-9._+\-]*)-(\d[^\s-]*-[^\s-]+)\.(x86_64|aarch64|noarch|i[3-6]86|armv\d\w*|ppc64le|s390x|src)$""")
+    private val DEB_SOURCE_LINE = Regex("""^($DEB_NAME)(?::[a-z0-9]+)?\s+($DEB_VERSION)\s+($DEB_NAME)\s+($DEB_VERSION)$""")
+    private val OS_RELEASE_LINE = Regex("""^(ID|VERSION_ID|VERSION_CODENAME)=["']?([A-Za-z0-9._\-]*)["']?$""")
     private val DEB_LINE = Regex("""^(?:ii\s+)?((?=[a-z0-9+.\-]*[a-z])[a-z0-9][a-z0-9+.\-]*)(?::[a-z0-9]+)?\s+((?:\d+:)?\d[A-Za-z0-9.+~:\-]*)(?:\s+.*)?$""")
     private val PNPM_RUNTIME = setOf("dependencies", "optionalDependencies")
+    private val SYFT_LOCATION = Regex("""syft:location:\d+:path""")
+    private const val MAX_LOCATIONS = 3
     private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(.+?)@([^?#]+)(?:\?([^#]*))?(?:#.*)?$""")
 
     /**
@@ -140,7 +152,10 @@ object LibraryListParser {
             LibraryFormat.DEB to lines.mapNotNull { parseDebLine(it) },
         ).map { (format, entries) -> format to entries.distinct() }
         val best = candidates.filter { it.second.isNotEmpty() }.maxByOrNull { it.second.size }
-        if (best != null) return ParsedLibraryFile(name, best.first, best.second)
+        if (best != null) {
+            val entries = if (best.first == LibraryFormat.DEB) withOsRelease(best.second, lines) else best.second
+            return ParsedLibraryFile(name, best.first, entries)
+        }
         // None of them: perhaps the file names of a jar (`unzip -l`, `ls`, `jar tf`).
         val jars = lines.flatMap { parseJarLine(it) }.distinct()
         return ParsedLibraryFile(name, if (jars.isEmpty()) null else LibraryFormat.JAR, jars)
@@ -156,14 +171,15 @@ object LibraryListParser {
         val (type, path, version, qualifiers) = match.destructured
         val segments = path.trim('/').split('/').filter { it.isNotEmpty() }.map(::decode)
         if (segments.isEmpty() || segments.any { it.isBlank() }) return null
-        val distro = qualifiers.split('&').firstOrNull { it.startsWith("distro=") }?.substringAfter('=')
-            ?.let(::decode)?.takeIf { it.isNotBlank() }
+        fun qualifier(key: String) = qualifiers.split('&').firstOrNull { it.startsWith("$key=") }?.substringAfter('=')
+            ?.let(::decode)?.trim()?.takeIf { it.isNotEmpty() }
         return LibraryEntry(
             ecosystem = type.lowercase(),
             group = segments.dropLast(1).joinToString("/").takeIf { it.isNotEmpty() },
             name = segments.last(),
             version = decode(version).takeIf { it.isNotBlank() } ?: return null,
-            distro = distro,
+            distro = qualifier("distro"),
+            source = qualifier("upstream"),
         )
     }
 
@@ -183,13 +199,39 @@ object LibraryListParser {
             components.forEach { component ->
                 val scope = component.path("scope").asText("")
                 if (scope != "excluded" && scope != "optional") {
-                    fromPurl(component.path("purl").asText(null))?.let { entries.add(it) }
+                    fromPurl(component.path("purl").asText(null))?.let { entries.add(it.copy(location = locationOf(component))) }
                 }
                 walk(component.path("components"), depth + 1)
             }
         }
         walk(root.path("components"), 0)
-        return entries.distinct()
+        // One entry per library; the places of a library found several times (a Go binary each) together.
+        return entries.groupBy { it.copy(location = null) }.map { (entry, list) ->
+            entry.copy(location = joinLocations(list.mapNotNull { it.location }))
+        }
+    }
+
+    /**
+     * Where a component of a CycloneDX SBOM was found: the occurrences of its evidence (CycloneDX 1.5), otherwise the
+     * locations syft writes as properties (`syft:location:0:path`).
+     */
+    private fun locationOf(component: JsonNode): String? {
+        val occurrences = component.path("evidence").path("occurrences").mapNotNull { it.path("location").textOrNull() }
+        val paths = occurrences.ifEmpty {
+            component.path("properties").filter { SYFT_LOCATION.matches(it.path("name").asText("")) }
+                .mapNotNull { it.path("value").textOrNull() }
+        }
+        return joinLocations(paths)
+    }
+
+    private fun JsonNode.textOrNull(): String? = takeIf { it.isTextual }?.asText()?.trim()?.takeIf { it.isNotEmpty() }
+
+    /** At most [MAX_LOCATIONS] places, the rest counted. */
+    private fun joinLocations(locations: List<String>): String? {
+        val distinct = locations.distinct()
+        if (distinct.isEmpty()) return null
+        val shown = distinct.take(MAX_LOCATIONS).joinToString(", ")
+        return if (distinct.size > MAX_LOCATIONS) "$shown, +${distinct.size - MAX_LOCATIONS}" else shown
     }
 
     /** The packages of an SPDX document by their purl (external reference of the type `purl`). */
@@ -402,10 +444,35 @@ object LibraryListParser {
         return LibraryEntry("rpm", null, match.groupValues[1], match.groupValues[2])
     }
 
-    /** `dpkg-query -W -f '${Package} ${Version}\n'` or a line of `dpkg -l` (`ii  name  version  arch  description`). */
+    /**
+     * `dpkg-query -W -f '${Package} ${Version}\n'`, with the source package (`… ${source:Package} ${source:Version}`), or a
+     * line of `dpkg -l` (`ii  name  version  arch  description`).
+     */
     private fun parseDebLine(line: String): LibraryEntry? {
+        DEB_SOURCE_LINE.matchEntire(line.trim())?.let { match ->
+            val (name, version, sourceName, sourceVersion) = match.destructured
+            val source = when {
+                sourceVersion != version -> "$sourceName@$sourceVersion"
+                sourceName != name -> sourceName
+                else -> null
+            }
+            return LibraryEntry("deb", null, name, version, source = source)
+        }
         val match = DEB_LINE.matchEntire(line.trim()) ?: return null
         return LibraryEntry("deb", null, match.groupValues[1], match.groupValues[2])
+    }
+
+    /**
+     * The packages of a list with the lines of `/etc/os-release` in it (`cat /etc/os-release; dpkg-query …`): the
+     * distribution (`ID`) and its release (`VERSION_ID`, or else `VERSION_CODENAME`) as namespace and `distro`, as an
+     * SBOM gives them. Without them the release is unknown.
+     */
+    private fun withOsRelease(entries: List<LibraryEntry>, lines: List<String>): List<LibraryEntry> {
+        val values = lines.mapNotNull { OS_RELEASE_LINE.matchEntire(it.trim())?.destructured }
+            .associate { (key, value) -> key to value.lowercase() }.filterValues { it.isNotEmpty() }
+        val id = values["ID"] ?: return entries
+        val release = values["VERSION_ID"] ?: values["VERSION_CODENAME"]
+        return entries.map { it.copy(group = id, distro = release?.let { r -> "$id-$r" }) }.distinct()
     }
 
     /**

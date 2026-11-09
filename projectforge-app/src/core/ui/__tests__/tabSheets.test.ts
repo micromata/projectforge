@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { tabSheets } from '../tabSheets';
+import { buttonOf, tabSheets } from '../tabSheets';
 
 describe('tab sheets', () => {
   afterEach(() => tabSheets.close());
@@ -37,6 +37,17 @@ describe('tab sheets', () => {
     expect(tabSheets.get()).toBeNull();
     expect(listener).toHaveBeenCalledTimes(3);
     unsubscribe();
+  });
+
+  it('closes a sheet of the "more" menu by its button, the bell replaces it', () => {
+    tabSheets.open('settings');
+    expect(buttonOf(tabSheets.get())).toBe('more');
+    tabSheets.toggle('more');
+    expect(tabSheets.get()).toBeNull();
+    tabSheets.open('servers');
+    tabSheets.toggle('notifications');
+    expect(tabSheets.get()).toBe('notifications');
+    expect(buttonOf(tabSheets.get())).toBe('notifications');
   });
 
   it('opens a shown sheet again without a change, closes any', () => {

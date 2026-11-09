@@ -67,6 +67,8 @@ open class CveRadarConfig {
 
     var euvd = Euvd()
 
+    var deptrack = DependencyTrack()
+
     /** Log server Graylog with the messages of the client agents (EXT-04, EXT-05). */
     class Graylog {
         /** Base url, e.g. `https://graylog.example.org`; empty: inactive. */
@@ -142,8 +144,12 @@ open class CveRadarConfig {
 
         var url: String = "https://osv-vulnerabilities.storage.googleapis.com"
 
-        /** The OSV keys of the ecosystems imported, comma separated; see [OsvPackages.ECOSYSTEMS]. */
-        var ecosystems: String = "Maven,npm,PyPI,NuGet,Packagist,Go,crates.io"
+        /**
+         * The OSV keys of the ecosystems and distributions imported, comma separated; see [OsvPackages.ECOSYSTEMS] and
+         * [OsvPackages.DISTROS]. The distributions decide on their packages instead of the CPE of the upstream project,
+         * which doesn't know their backported fixes.
+         */
+        var ecosystems: String = "Maven,npm,PyPI,NuGet,Packagist,Go,crates.io,Debian,Ubuntu"
 
         /**
          * Also the malicious packages (OSV ids `MAL-…`): some hundred thousand advisories, almost all of npm and PyPI;
@@ -153,9 +159,29 @@ open class CveRadarConfig {
 
         /** The known ecosystems of [ecosystems]. */
         val ecosystemKeys: List<String>
-            get() = ecosystems.split(',').map { it.trim() }.filter { OsvPackages.ecosystem(it) != null }.distinct()
+            get() = ecosystems.split(',').map { it.trim() }.filter { OsvPackages.isImportable(it) }.distinct()
 
         override fun toString(): String = "Osv(enabled=$enabled, url=$url, ecosystems=$ecosystems, malicious=$malicious)"
+    }
+
+    /**
+     * Dependency-Track (PF-CVR-DT-MIG), optional: a second detection of the findings in parallel to the own matching
+     * (decision D2). Without url and API key inactive, everything else works as without it.
+     */
+    class DependencyTrack {
+        /** Base url of the API server, e.g. `https://dtrack.example.org`; empty: inactive. */
+        var url: String = ""
+
+        /** API key of the team of ProjectForge in Dependency-Track. Never logged and never sent to the frontend. */
+        var apiKey: String = ""
+
+        /** Secret of the webhook of Dependency-Track (phase 3), optional. Never logged. */
+        var webhookSecret: String = ""
+
+        fun isConfigured(): Boolean = url.isNotBlank() && apiKey.isNotBlank()
+
+        override fun toString(): String =
+            "DependencyTrack(url=$url, apiKey=${if (apiKey.isBlank()) "<none>" else "***"}, webhookSecret=${if (webhookSecret.isBlank()) "<none>" else "***"})"
     }
 
     /**

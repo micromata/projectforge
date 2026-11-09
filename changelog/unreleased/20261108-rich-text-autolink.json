@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Chat messages and all rich texts (descriptions, notes, alerts) show their urls (with http(s):// or www.) as clickable links, also older texts and a url typed as the last word.",
+  "de": "Chatnachrichten und alle Rich-Texte (Beschreibungen, Notizen, Hinweise) zeigen ihre URLs (mit http(s):// oder www.) als anklickbare Links, auch in älteren Texten und wenn die URL das letzte Wort ist."
+}

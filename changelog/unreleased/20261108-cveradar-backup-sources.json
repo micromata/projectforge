@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "CVE-Radar: the imported data of the vulnerabilities is stored in a table of its own; the backup script writes it with the OSV advisories and the state of the imports into a dump of its own (projectforge_cveradar_…), restorable from the sources. Cases, team checks, answers and findings stay in the main dump, which is complete without it. Adapt an existing backup script (adminguide, “Backup script”).",
+  "de": "CVE-Radar: Die importierten Daten der Schwachstellen liegen in einer eigenen Tabelle; das Backup-Skript schreibt sie mit den OSV-Advisories und dem Stand der Importe in einen eigenen Dump (projectforge_cveradar_…), aus den Quellen wiederherstellbar. Fälle, Team-Checks, Antworten und Befunde bleiben im Haupt-Dump, der auch ohne ihn vollständig ist. Ein bestehendes Backup-Skript ist anzupassen (Adminguide, „Backup-Skript“)."
+}

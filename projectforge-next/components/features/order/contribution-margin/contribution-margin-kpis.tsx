@@ -1,8 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Card } from "@/components/ui/card";
+import { KpiTile } from "@/components/shared/kpi-tile";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { ContributionMarginData } from "@/lib/rs/order";
@@ -44,51 +43,55 @@ export function ContributionMarginKpis({
   const prevPrevYearUntil = untilText(data.prevPrevYearValuesEnd);
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-      <Kpi until={until} label={t("revenue")} note={preliminary}>
+      <KpiTile noteRight={until} label={t("revenue")} note={preliminary}>
         {amount(total.revenue)}
-      </Kpi>
-      <Kpi until={until} label={t("costs")} note={preliminary}>
+      </KpiTile>
+      <KpiTile noteRight={until} label={t("costs")} note={preliminary}>
         {formatCurrency(total.costs, ctx, 0)}
-      </Kpi>
-      <Kpi until={until} label={t("profit")} note={preliminary}>
+      </KpiTile>
+      <KpiTile noteRight={until} label={t("profit")} note={preliminary}>
         {amount(total.profit)}
-      </Kpi>
-      <Kpi until={until} label={t("percentage")} note={target}>
+      </KpiTile>
+      <KpiTile noteRight={until} label={t("percentage")} note={target}>
         <ContributionMarginPercentage
           percentage={total.percentage}
           costs={total.costs}
           limits={data}
           large
         />
-      </Kpi>
-      <Kpi until={prevYearUntil} label={t("prevYearRevenue")}>
+      </KpiTile>
+      <KpiTile noteRight={prevYearUntil} label={t("prevYearRevenue")}>
         {amount(total.prevYearRevenue)}
-      </Kpi>
-      <Kpi until={prevYearUntil} label={t("prevYearCosts")}>
+      </KpiTile>
+      <KpiTile noteRight={prevYearUntil} label={t("prevYearCosts")}>
         {formatCurrency(prevYearCosts, ctx, 0)}
-      </Kpi>
-      <Kpi until={prevYearUntil} label={t("prevYear")}>
+      </KpiTile>
+      <KpiTile noteRight={prevYearUntil} label={t("prevYear")}>
         {amount(total.prevYearProfit)}
-      </Kpi>
-      <Kpi until={prevYearUntil} label={t("prevYearPercentage")} note={target}>
+      </KpiTile>
+      <KpiTile
+        noteRight={prevYearUntil}
+        label={t("prevYearPercentage")}
+        note={target}
+      >
         <ContributionMarginPercentage
           percentage={total.prevYearPercentage}
           costs={Math.max(0, prevYearCosts)}
           limits={data}
           large
         />
-      </Kpi>
-      <Kpi until={prevPrevYearUntil} label={t("prevPrevYearRevenue")}>
+      </KpiTile>
+      <KpiTile noteRight={prevPrevYearUntil} label={t("prevPrevYearRevenue")}>
         {amount(total.prevPrevYearRevenue)}
-      </Kpi>
-      <Kpi until={prevPrevYearUntil} label={t("prevPrevYearCosts")}>
+      </KpiTile>
+      <KpiTile noteRight={prevPrevYearUntil} label={t("prevPrevYearCosts")}>
         {formatCurrency(prevPrevYearCosts, ctx, 0)}
-      </Kpi>
-      <Kpi until={prevPrevYearUntil} label={t("prevPrevYear")}>
+      </KpiTile>
+      <KpiTile noteRight={prevPrevYearUntil} label={t("prevPrevYear")}>
         {amount(total.prevPrevYearProfit)}
-      </Kpi>
-      <Kpi
-        until={prevPrevYearUntil}
+      </KpiTile>
+      <KpiTile
+        noteRight={prevPrevYearUntil}
         label={t("prevPrevYearPercentage")}
         note={target}
       >
@@ -98,42 +101,7 @@ export function ContributionMarginKpis({
           limits={data}
           large
         />
-      </Kpi>
+      </KpiTile>
     </div>
-  );
-}
-
-function Kpi({
-  label,
-  note,
-  until,
-  className,
-  children,
-}: {
-  label: string;
-  note?: string;
-  /** The last day the value covers, shown at the bottom right. */
-  until?: string;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <Card
-      size="sm"
-      className={cn("gap-1 border px-4 py-3 shadow-sm", className)}
-    >
-      <span className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      <span className="text-right text-xl font-semibold tabular-nums">
-        {children}
-      </span>
-      {(note || until) && (
-        <span className="mt-auto flex justify-between gap-2 text-xs text-muted-foreground">
-          <span>{note}</span>
-          <span className="tabular-nums">{until}</span>
-        </span>
-      )}
-    </Card>
   );
 }

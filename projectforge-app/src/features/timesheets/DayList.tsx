@@ -26,7 +26,6 @@ import {
   formatDuration,
   formatTime,
   isoWeekday,
-  TARGET_MINUTES_PER_DAY,
 } from '@projectforge/shared/booking-time';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -44,6 +43,7 @@ import {
   gapsOf,
   nextStartOf,
   shortPath,
+  targetOf,
   Timesheet,
   totalOf,
 } from './timesheet';
@@ -111,7 +111,7 @@ export function DayList({
         <View
           style={[
             styles.progressValue,
-            { backgroundColor: colors.primary, width: `${Math.min(100, (total / TARGET_MINUTES_PER_DAY) * 100)}%` },
+            { backgroundColor: colors.primary, width: `${Math.min(100, (total / targetOf(data, day)) * 100)}%` },
           ]}
         />
       </View>

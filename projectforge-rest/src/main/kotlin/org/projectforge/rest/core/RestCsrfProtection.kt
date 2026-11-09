@@ -26,6 +26,8 @@ package org.projectforge.rest.core
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.configuration.PFSpringConfiguration
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
@@ -66,6 +68,14 @@ open class RestCsrfProtection {
     @Autowired
     private lateinit var sessionCsrfService: SessionCsrfService
 
+    @Autowired
+    private lateinit var domainService: DomainService
+
+    @PostConstruct
+    private fun init() {
+        configuredAuthority = domainService.domain?.let { authorityOf(it) }?.let { normalizeAuthority(it) }
+    }
+
     /**
      * @return true, if the request may proceed. If false is returned, the error response has already been
      * written and the caller must not call the filter chain.
@@ -93,7 +103,8 @@ open class RestCsrfProtection {
      * Barrier 1: rejects requests a foreign site initiated.
      *
      * `Sec-Fetch-Site` is absent for clients that are not modern browsers (curl, the DAV clients, older
-     * browsers) - those fall through to the token check, which is why this must not be the only barrier.
+     * browsers). For those `Origin`/`Referer` decide; without them they fall through to the token check, which
+     * is why this must not be the only barrier.
      *
      * A browser too old to send the header is stopped by the token for POST/PUT/DELETE. A GET carries no token,
      * which is why a state changing endpoint must not accept GET.
@@ -154,19 +165,25 @@ open class RestCsrfProtection {
          * filter and therefore no [checkRequest] around them (see
          * [org.projectforge.rest.pub.next.LoginNextRest.getStatus]).
          *
-         * Not a barrier on its own: the header is absent for everything that isn't a modern browser (curl, DAV
-         * clients), and those cases return true here.
+         * Without `Sec-Fetch-Site` (browsers older than the ones projectforge-next supports, curl, DAV clients),
+         * `Origin` or else `Referer` decides: a foreign host is denied. Without any of them the request isn't
+         * detectable as cross-site and true is returned, so this is not a barrier on its own.
          */
         fun isSameSiteRequest(request: HttpServletRequest): Boolean {
-            val site = request.getHeader(SEC_FETCH_SITE_HEADER) ?: return true
-            if (site == "same-origin" || site == "none") {
+            val site = request.getHeader(SEC_FETCH_SITE_HEADER)
+            val sameSite = if (site != null) {
                 // "none" is a user-initiated navigation (bookmark, typed url), not a request of a foreign page.
+                // "same-site" is denied on purpose, although the session cookie would be sent (SameSite=Lax):
+                // every rest call originates from a page of this very app, so it is always "same-origin". Allowing
+                // "same-site" would let a compromised sibling subdomain past this barrier, leaving the token as the
+                // only one (and a GET with none at all).
+                site == "same-origin" || site == "none"
+            } else {
+                isOwnOrigin(request)
+            }
+            if (sameSite) {
                 return true
             }
-            // "same-site" is denied on purpose, although the session cookie would be sent (SameSite=Lax):
-            // every rest call originates from a page of this very app, so it is always "same-origin". Allowing
-            // "same-site" would let a compromised sibling subdomain past this barrier, leaving the token as the only
-            // one (and a GET with none at all).
             if (PFSpringConfiguration.getInstance()?.corsFilterEnabled == true) {
                 // Development only: the frontend may be served by its own dev server on another origin.
                 // Never enabled in production (see PFSpringConfiguration.logCorsFilterWarning).
@@ -174,6 +191,47 @@ open class RestCsrfProtection {
                 return true
             }
             return false
+        }
+
+        /**
+         * Fallback of [isSameSiteRequest] for requests without `Sec-Fetch-Site`. Old browsers send `Origin` at least
+         * for POST and a `Referer` for the requests of a page of this app (Referrer-Policy
+         * strict-origin-when-cross-origin, see SecurityHeaderFilter); a foreign page can suppress the `Referer`, but
+         * not fake it.
+         *
+         * Own hosts: the `Host` header, `X-Forwarded-Host` (reverse proxy), the server name and the configured
+         * `projectforge.domain`. The latter matters for plain http, where browsers send no `Sec-Fetch-Site` at all
+         * (secure contexts only), behind a proxy that rewrites `Host` without `X-Forwarded-Host` (nginx without
+         * `proxy_set_header Host`): every POST would be refused otherwise. The scheme is ignored, TLS may end at the
+         * proxy. `Origin: null` (sandboxed frame, opaque origin) is foreign.
+         */
+        private fun isOwnOrigin(request: HttpServletRequest): Boolean {
+            val source = request.getHeader("Origin") ?: request.getHeader("Referer") ?: return true
+            val sourceAuthority = authorityOf(source) ?: return false
+            val ownAuthorities = listOfNotNull(
+                request.getHeader("Host"),
+                request.getHeader("X-Forwarded-Host")?.substringBefore(',')?.trim(),
+                request.serverName?.let { if (request.serverPort > 0) "$it:${request.serverPort}" else it },
+            ).map { normalizeAuthority(it) } + listOfNotNull(configuredAuthority)
+            return normalizeAuthority(sourceAuthority) in ownAuthorities
+        }
+
+        /** Authority of `projectforge.domain`, normalized; set at startup. */
+        @Volatile
+        internal var configuredAuthority: String? = null
+
+        /** The `host[:port]` of an absolute url, or null (e.g. for `null`). */
+        private fun authorityOf(url: String): String? {
+            return try {
+                java.net.URI(url.trim()).rawAuthority?.substringAfterLast('@')
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        /** Lower case, without the default ports 80/443, which browsers omit in `Origin` and `Host`. */
+        private fun normalizeAuthority(authority: String): String {
+            return authority.lowercase().removeSuffix(":80").removeSuffix(":443")
         }
 
         /**

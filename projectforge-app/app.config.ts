@@ -55,7 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   runtimeVersion: { policy: 'fingerprint' },
   ios: {
     bundleIdentifier: BUNDLE_ID,
-    buildNumber: '6',
+    buildNumber: '8',
     appleTeamId: 'E4Q65AC7LP',
     supportsTablet: true,
     infoPlist: {
@@ -67,7 +67,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: BUNDLE_ID,
-    versionCode: 6,
+    versionCode: 8,
+    // The launcher masks the icon (circle, squircle, ...): the flames inside the safe zone, on the plate of the icon
+    // (dev-docs/logo/render-logos.py).
+    adaptiveIcon: { foregroundImage: './assets/adaptive-icon.png', backgroundColor: '#111d30' },
     allowBackup: false,
     predictiveBackGestureEnabled: false,
   },

@@ -86,6 +86,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDateTime
 import java.util.*
 
@@ -124,6 +126,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
 
     @Autowired
     private lateinit var timesheetRecentService: TimesheetRecentService
+
+    @Autowired
+    private lateinit var dayBookingService: TimesheetDayBookingService
 
     @Autowired
     private lateinit var taskBookingGrantDao: TaskBookingGrantDao
@@ -518,8 +523,14 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
      * @param timesheets Ordered by start, in the shape of a row of the next list (task with its path, cost unit with
      * project and customer, no AI fields). To edit one, the app loads the whole sheet (`GET {id}`).
      * @param tags The configured tags, null where none is configured.
+     * @param targetMinutes The daily target of each day of the period (key `yyyy-MM-dd`, the user's time zone): a fifth
+     * of the weekly working hours valid on that day, 8 hours without (see [TimesheetDayBookingService.hoursPerDay]).
      */
-    class AppTimesheetList(val timesheets: List<Timesheet>, val tags: List<String>?)
+    class AppTimesheetList(
+        val timesheets: List<Timesheet>,
+        val tags: List<String>?,
+        val targetMinutes: Map<String, Int>? = null,
+    )
 
     /**
      * The own, not deleted time sheets of the logged-in user that overlap [from, to) (epoch millis), for the
@@ -541,7 +552,14 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             val stop = it.stopTime?.time ?: return@filter false
             start < to && stop > from
         }.sortedBy { it.startTime }
-        return AppTimesheetList(list.map { createListRow(it) }, timesheetDao.getTags())
+        val targetMinutes = dayBookingService.hoursPerDay(
+            null,
+            PFDateTime.from(from).localDate,
+            PFDateTime.from(to - 1).localDate,
+        ).entries.associate { (day, hours) ->
+            day.toString() to hours.multiply(BigDecimal(60)).setScale(0, RoundingMode.HALF_UP).toInt()
+        }
+        return AppTimesheetList(list.map { createListRow(it) }, timesheetDao.getTags(), targetMinutes)
     }
 
     /**

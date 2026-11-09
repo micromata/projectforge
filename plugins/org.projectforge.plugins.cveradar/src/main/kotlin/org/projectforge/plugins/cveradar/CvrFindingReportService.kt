@@ -31,15 +31,19 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
+import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.FindingReport
 import org.projectforge.plugins.cveradar.rest.FindingReportScope
 import org.projectforge.plugins.cveradar.rest.InventoryLevel
+import org.projectforge.plugins.cveradar.rest.NodeFinding
+import org.projectforge.plugins.cveradar.rest.NodeFindingList
 import org.projectforge.plugins.cveradar.rest.ReferenceLinkView
 import org.projectforge.plugins.cveradar.rest.ReportCase
 import org.projectforge.plugins.cveradar.rest.ReportFinding
+import org.projectforge.plugins.cveradar.rest.ReportLibrary
 import org.projectforge.plugins.cveradar.rest.ReportTechnology
 import org.projectforge.plugins.cveradar.rest.ReportVulnerability
 import org.springframework.beans.factory.annotation.Autowired
@@ -74,13 +78,58 @@ class CvrFindingReportService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean): FindingReport {
+    /** The open findings below a node the user may read, of vulnerabilities not deleted. */
+    private class Scoped(
+        val scope: CvrInventoryService.ReportScope,
+        val findings: List<CvrFindingDO>,
+        val vulnerabilities: Map<Long, CvrVulnerabilityDO>,
+    )
+
+    private fun scoped(user: PFUserDO, level: InventoryLevel, id: Long): Scoped {
         access.checkReader(user)
         val scope = inventoryService.reportScope(user, level, id)
-        val findings = findingDao.selectOpenByInstances(scope.instances.keys)
+        val open = findingDao.selectOpenByInstances(scope.instances.keys)
             .filter { scope.componentId == null || it.componentId == scope.componentId }
-        val vulnerabilities = byId(CvrVulnerabilityDO::class.java, findings.mapNotNull { it.vulnerabilityId })
+        val vulnerabilities = byId(CvrVulnerabilityDO::class.java, open.mapNotNull { it.vulnerabilityId })
             .filterValues { !it.deleted }
+        return Scoped(scope, open.filter { it.vulnerabilityId in vulnerabilities }, vulnerabilities)
+    }
+
+    /**
+     * The open findings below a node one by one, for the tab "Findings" of its dialog: with the case of the security
+     * team, the names as they are (the user sees these instances anyway). Same access as [report].
+     */
+    fun nodeFindings(user: PFUserDO, level: InventoryLevel, id: Long): NodeFindingList {
+        val scoped = scoped(user, level, id)
+        val cases = caseDao.selectByVulnerabilityIds(scoped.vulnerabilities.keys)
+        val components = byId(CvrComponentDO::class.java, scoped.findings.mapNotNull { it.componentId })
+        val technologies = byId(CvrTechnologyDO::class.java, scoped.findings.mapNotNull { it.technologyId })
+        val findings = scoped.findings.map { finding ->
+            val vulnerability = scoped.vulnerabilities.getValue(finding.vulnerabilityId!!)
+            val case = cases[vulnerability.id]
+            val instance = scoped.scope.instances.getValue(finding.instanceId!!)
+            NodeFinding(
+                id = finding.id!!, vulnerabilityId = vulnerability.id!!, cveId = vulnerability.cveId,
+                severity = vulnerability.severity, cvssScore = vulnerability.cvssScore, kev = vulnerability.kevAdded != null,
+                caseCode = case?.code, caseStatus = case?.status, casePriority = case?.priority,
+                certainty = finding.certainty, matched = finding.matched, area = instance.area, system = instance.system,
+                instance = instance.instance, component = components[finding.componentId]?.let { "${it.code} ${it.name}" },
+                technology = technologies[finding.technologyId]?.let(::technologyLabel),
+                source = technologies[finding.technologyId]?.source,
+            )
+        }.sortedWith(
+            compareBy<NodeFinding> { !it.kev }.thenBy { it.casePriority?.ordinal ?: Int.MAX_VALUE }
+                .thenByDescending { it.cvssScore }.thenBy { it.cveId }.thenBy { it.system }.thenBy { it.instance ?: "" },
+        )
+        val libraries = librariesOf(scoped.findings, scoped.vulnerabilities, technologies) { components[it]?.let { c -> "${c.code} ${c.name}" } }
+        return NodeFindingList(findings, libraries)
+    }
+
+    fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean): FindingReport {
+        val scoped = scoped(user, level, id)
+        val scope = scoped.scope
+        val findings = scoped.findings
+        val vulnerabilities = scoped.vulnerabilities
         val cases = caseDao.selectByVulnerabilityIds(vulnerabilities.keys)
         val components = byId(CvrComponentDO::class.java, findings.mapNotNull { it.componentId })
         val technologies = byId(CvrTechnologyDO::class.java, findings.mapNotNull { it.technologyId })
@@ -105,7 +154,8 @@ class CvrFindingReportService {
             ),
             anonymized = anonymize,
             vulnerabilityCount = reported.size,
-            findingCount = findings.count { it.vulnerabilityId in vulnerabilities },
+            findingCount = findings.size,
+            libraries = librariesOf(findings, vulnerabilities, technologies) { components[it]?.let(names::component) },
             vulnerabilities = reported,
         )
     }
@@ -140,6 +190,8 @@ class CvrFindingReportService {
             anonymized = anonymize,
             vulnerabilityCount = reported.size,
             findingCount = reported.sumOf { it.findings.size },
+            // The files of an ad-hoc check are no inventory: one row per library would repeat the vulnerabilities.
+            libraries = emptyList(),
             vulnerabilities = reported,
         )
     }
@@ -166,6 +218,42 @@ class CvrFindingReportService {
             .thenBy { it.first.cveId },
     ).map { it.first }
 
+    /**
+     * The findings per library, product, version and purl alike in all components (MAT-15): the most urgent first (in
+     * the KEV catalogue, then the highest severity, then the number of vulnerabilities). Findings without a technology
+     * (entered by hand) are left out.
+     */
+    private fun librariesOf(
+        findings: List<CvrFindingDO>,
+        vulnerabilities: Map<Long, CvrVulnerabilityDO>,
+        technologies: Map<Long, CvrTechnologyDO>,
+        componentName: (Long) -> String?,
+    ): List<ReportLibrary> = findings.filter { it.technologyId in technologies && it.vulnerabilityId in vulnerabilities }
+        .groupBy { technologies.getValue(it.technologyId!!).let { t -> Triple(t.product, t.version, t.purl) } }
+        .values.map { group ->
+            val technology = technologies.getValue(group.first().technologyId!!)
+            val byVulnerability = group.groupBy { it.vulnerabilityId!! }
+            // Per vulnerability the fix of its matched ranges (the highest, if its instances matched differently).
+            val fixes = byVulnerability.mapValues { (_, list) ->
+                list.mapNotNull { CvrMatchingService.fixedVersionOf(it.matched) }.maxWithOrNull(VersionComparator)
+            }
+            ReportLibrary(
+                technology = technologyLabel(technology), product = technology.product, version = technology.version,
+                ecosystem = technology.ecosystem, purl = technology.purl,
+                components = group.mapNotNull { it.componentId }.distinct().mapNotNull(componentName).sorted(),
+                sources = group.mapNotNull { technologies[it.technologyId]?.source }.distinct().sorted(),
+                vulnerabilityCount = byVulnerability.size,
+                affectedCount = byVulnerability.values.count { list -> list.any { it.certainty == CvrFindingCertainty.AFFECTED } },
+                severity = byVulnerability.keys.mapNotNull { vulnerabilities[it]?.severity }.maxByOrNull { SEVERITIES.indexOf(it) },
+                kev = byVulnerability.keys.any { vulnerabilities[it]?.kevAdded != null },
+                fixVersion = fixes.values.filterNotNull().maxWithOrNull(VersionComparator),
+                withoutFixCount = fixes.values.count { it == null },
+            )
+        }.sortedWith(
+            compareBy<ReportLibrary> { !it.kev }.thenByDescending { SEVERITIES.indexOf(it.severity) }
+                .thenByDescending { it.vulnerabilityCount }.thenBy { it.technology },
+        )
+
     /** One entry per system, component, technology and kind of match, with the instances it matched in. */
     private fun findingsOf(
         findings: List<CvrFindingDO>,
@@ -188,7 +276,7 @@ class CvrFindingReportService {
                     certainty = first.certainty,
                     matched = first.matched,
                     technology = technology?.let {
-                        ReportTechnology(it.kind, it.vendor, it.product, it.version, it.ecosystem, it.purl, it.cpe, it.origin)
+                        ReportTechnology(it.kind, it.vendor, it.product, it.version, it.ecosystem, it.purl, it.cpe, it.origin, it.source)
                     },
                 )
             }.sortedWith(compareBy({ it.certainty }, { it.system }, { it.component }))
@@ -235,6 +323,12 @@ class CvrFindingReportService {
         const val SCHEMA_VERSION = "1"
         private const val ANONYMIZED_SCOPE = "PROJECT"
         private const val MAX_REFERENCES = 10
+
+        /** The severities from the lowest to the highest. */
+        private val SEVERITIES = listOf("NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
+
+        /** Product and version of a technology, as the findings show it. */
+        private fun technologyLabel(technology: CvrTechnologyDO) = listOfNotNull(technology.product, technology.version).joinToString(" ")
 
         /** The measures and the workaround are stored as html: as text, with lists and paragraphs on lines of their own. */
         internal fun plainText(html: String?): String? {

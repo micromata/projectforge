@@ -57,8 +57,9 @@ import kotlin.system.exitProcess
  * major: the 8.2 snapshots to 8).
  *
  * All texts use a small markdown subset that both targets can render (see [validateText]):
- * `**bold**`, `*italic*`, `` `code` ``, `[text](url)`, `- ` list lines, paragraphs via a blank line and
- * `{red}text{/red}` for red text.
+ * `**bold**`, `*italic*`, `` `code` ``, `[text](url)`, `- ` list lines, paragraphs via a blank line,
+ * `{red}text{/red}` for red text and a leading `{app} ` for a change of the mobile app, shown as a badge "App"
+ * (instead of a text "App: …", which is refused).
  *
  * Output:
  * 1. `site/_changelogs/changelog-major-<major>.adoc`, one per major version, the levels as collapsible blocks
@@ -188,6 +189,9 @@ object GenerateChangelogMain {
   private val BOLD_REGEX = Regex("""\*\*(.+?)\*\*""")
   private val ITALIC_REGEX = Regex("""(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])""")
   private val RED_REGEX = Regex("""\{red}(.*?)\{/red}""")
+  internal const val APP_MARKER = "{app} "
+  /** A change of the app written out instead of marked: "App: …", "App time sheets: …", "App-Zeitberichte: …". */
+  private val APP_PREFIX_REGEX = Regex("""^App\b[^:\n]{0,30}:""")
 
   /**
    * Generates all files. With `--check-release X.Y.Z` (used by `bin/pfDev.sh release`) it only checks that the
@@ -561,9 +565,13 @@ object GenerateChangelogMain {
   /** A release is published (jar, docker images) unless it says `"published": false`; both have a GitHub release. */
   internal fun isPublished(release: JsonNode): Boolean = release["published"]?.asBoolean() != false
 
-  /** The markdown subset is GitHub Markdown already, except red text: a bold warning there. */
+  /** The markdown subset is GitHub Markdown already, except red text (a bold warning there) and the badge "App" (code). */
   internal fun textToMarkdown(text: String): String =
-    RED_REGEX.replace(text) { "**⚠️ ${it.groupValues[1].replace("**", "")}**" }
+    RED_REGEX.replace(appToText(text, "`App` ")) { "**⚠️ ${it.groupValues[1].replace("**", "")}**" }
+
+  /** [text] with its leading {app} (if any) replaced by [badge]. */
+  private fun appToText(text: String, badge: String): String =
+    if (text.startsWith(APP_MARKER)) badge + text.removePrefix(APP_MARKER) else text
 
   /**
    * All generated files, relative path to content. Throws [IllegalArgumentException] listing every
@@ -1030,6 +1038,7 @@ object GenerateChangelogMain {
               if (item.asText().split('\n').size != originalItem.asText().split('\n').size) {
                 errors.add("$itemWhere: the number of sub list lines differs from $SOURCE.")
               }
+              requireSameApp(originalItem, item, itemWhere, errors)
               validateText(item.asText(), itemWhere, errors, item = true)
             }
 
@@ -1038,6 +1047,7 @@ object GenerateChangelogMain {
               if (requireSameSize(originalItem["items"], item["items"], "$itemWhere.items", errors)) {
                 item["items"].forEachIndexed { c, child ->
                   if (!child.isTextual) errors.add("$itemWhere.items[$c]: must be a string.")
+                  requireSameApp(originalItem["items"][c], child, "$itemWhere.items[$c]", errors)
                   validateText(child.asText(), "$itemWhere.items[$c]", errors, inline = true)
                 }
               }
@@ -1058,6 +1068,13 @@ object GenerateChangelogMain {
       (it as ObjectNode).setAll<JsonNode>(translation["releases"][it["id"].asText()] as ObjectNode)
     }
     return copy
+  }
+
+  /** The badge "App" of a change is the same in both languages: [translated] starts with {app} if [original] does. */
+  private fun requireSameApp(original: JsonNode, translated: JsonNode, where: String, errors: MutableList<String>) {
+    if (original.asText().startsWith(APP_MARKER) != translated.asText().startsWith(APP_MARKER)) {
+      errors.add("$where: starts with {app} in only one of $SOURCE and $SOURCE_DE.")
+    }
   }
 
   private fun validateFields(node: JsonNode, allowed: Set<String>, where: String, errors: MutableList<String>) {
@@ -1111,8 +1128,14 @@ object GenerateChangelogMain {
   ) {
     if (text.isBlank()) errors.add("$where: empty text.")
     if (HTML_REGEX.containsMatchIn(text)) errors.add("$where: raw HTML is not supported.")
-    MARKER_REGEX.findAll(text).map { it.groupValues[1] }.filter { it != "red" }.toSet().forEach {
-      errors.add("$where: unknown marker {$it}, only {red}…{/red} is supported.")
+    MARKER_REGEX.findAll(text).map { it.groupValues[1] }.filter { it != "red" && it != "app" }.toSet().forEach {
+      errors.add("$where: unknown marker {$it}, only {red}…{/red} and a leading {app} are supported.")
+    }
+    if (MARKER_REGEX.findAll(text).count { it.groupValues[1] == "app" } != (if (text.startsWith(APP_MARKER)) 1 else 0)) {
+      errors.add("$where: {app} is only supported at the start, followed by a space.")
+    }
+    if (APP_PREFIX_REGEX.containsMatchIn(text.removePrefix(APP_MARKER))) {
+      errors.add("$where: mark a change of the app with a leading {app} (a badge) instead of 'App…:'.")
     }
     val withoutRed = RED_REGEX.replace(text) { it.groupValues[1] }
     if (withoutRed.contains("{red}") || withoutRed.contains("{/red}")) {
@@ -1327,7 +1350,8 @@ object GenerateChangelogMain {
       protected.add(value)
       return "\u0000${protected.size - 1}\u0000"
     }
-    var result = CODE_REGEX.replace(text) { protect("`+${it.groupValues[1]}+`") }
+    var result = appToText(text, protect("[changelog-app]##App##") + " ")
+    result = CODE_REGEX.replace(result) { protect("`+${it.groupValues[1]}+`") }
     result = LINK_REGEX.replace(result) { protect("${it.groupValues[2]}[") + it.groupValues[1] + protect("]") }
     result = BOLD_REGEX.replace(result) { protect("**") + it.groupValues[1] + protect("**") }
     result = ITALIC_REGEX.replace(result) { "__${it.groupValues[1]}__" }

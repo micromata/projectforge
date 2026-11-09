@@ -24,6 +24,7 @@
 package org.projectforge.framework.integration
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.apache.hc.client5.http.DnsResolver
 import org.apache.hc.client5.http.config.ConnectionConfig
 import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
@@ -51,12 +52,23 @@ object PooledHttpClients {
     /**
      * @param id Id of the integration point, e.g. [IntegrationConfig.ICAL].
      * @param disableContentCompression For servers sending a Content-Length of the compressed body (Authentik).
+     * @param disableRedirects For requests with a secret header: a redirect would send it to the redirect target
+     *   (another host or plain http); the 3xx answer is returned instead.
      */
     @JvmStatic
     @JvmOverloads
-    fun get(id: String, disableContentCompression: Boolean = false): CloseableHttpClient {
-        val key = if (disableContentCompression) "$id(no-compression)" else id
-        return clients.computeIfAbsent(key) { create(id, disableContentCompression) }
+    fun get(id: String, disableContentCompression: Boolean = false, disableRedirects: Boolean = false): CloseableHttpClient {
+        val key = id + (if (disableContentCompression) "(no-compression)" else "") + (if (disableRedirects) "(no-redirects)" else "")
+        return clients.computeIfAbsent(key) { create(id, disableContentCompression, disableRedirects) }
+    }
+
+    /**
+     * A client of the id connecting to public addresses only ([PublicAddressResolver]) and following no redirects,
+     * for urls given by users (see [PublicUrlFetcher]).
+     */
+    @JvmStatic
+    fun getPublicOnly(id: String): CloseableHttpClient {
+        return clients.computeIfAbsent("$id(public-only)") { create(id, false, dnsResolver = PublicAddressResolver) }
     }
 
     /**
@@ -79,7 +91,12 @@ object PooledHttpClients {
         clients.clear()
     }
 
-    private fun create(id: String, disableContentCompression: Boolean): CloseableHttpClient {
+    private fun create(
+        id: String,
+        disableContentCompression: Boolean,
+        disableRedirects: Boolean = false,
+        dnsResolver: DnsResolver? = null,
+    ): CloseableHttpClient {
         val timeouts = IntegrationConfig.get(id)
         log.info { "Creating pooled http client for '$id': $timeouts" }
         val connectionConfig = ConnectionConfig.custom()
@@ -91,6 +108,7 @@ object PooledHttpClients {
             .setDefaultConnectionConfig(connectionConfig)
             .setMaxConnTotal(timeouts.maxConnections)
             .setMaxConnPerRoute(timeouts.maxConnectionsPerRoute)
+            .also { if (dnsResolver != null) it.setDnsResolver(dnsResolver) }
             .build()
         val requestConfig = RequestConfig.custom()
             .setConnectionRequestTimeout(Timeout.ofMilliseconds(timeouts.connectionRequestTimeoutMs))
@@ -103,6 +121,10 @@ object PooledHttpClients {
             .evictIdleConnections(IDLE_TIMEOUT)
         if (disableContentCompression) {
             builder.disableContentCompression()
+        }
+        // With a resolver for public addresses, every hop is checked by the caller.
+        if (disableRedirects || dnsResolver != null) {
+            builder.disableRedirectHandling()
         }
         return builder.build()
     }

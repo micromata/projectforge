@@ -94,6 +94,17 @@ class OsvParserTest {
     }
 
     @Test
+    fun `the operating systems of a Go advisory only if every vulnerable package names some`() {
+        fun goos(json: String) = OsvParser.goosOf(ObjectMapper().readTree(json))
+        assertEquals(setOf("windows"), goos("""[{"path":"os","goos":["windows"]},{"path":"syscall","goos":["Windows"]}]"""))
+        assertEquals(setOf("linux", "windows"), goos("""[{"path":"os","goos":["linux"]},{"path":"syscall","goos":["windows"]}]"""))
+        assertNull(goos("""[{"path":"os","goos":["windows"]},{"path":"net/http"}]"""), "net/http is vulnerable everywhere")
+        assertNull(goos("""[{"path":"net/http","goos":[]}]"""))
+        assertNull(goos("""[]"""))
+        assertNull(goos("""{}"""))
+    }
+
+    @Test
     fun `the events become ranges, an advisory without ranges lists its versions`() {
         fun ranges(json: String) = OsvParser.ranges(ObjectMapper().readTree(json))
         assertEquals(listOf(OsvRange(null, "1.2", null)), ranges("""[{"introduced":"0"},{"fixed":"1.2"}]"""))
@@ -129,8 +140,75 @@ class OsvParserTest {
         assertEquals(OsvPackages.PurlPackage("Go", "github.com/gin-gonic/gin", false), OsvPackages.ofPurl("pkg:golang/github.com/gin-gonic/gin@v1.9.0"))
         assertEquals(OsvPackages.PurlPackage("Packagist", "symfony/http-kernel", false), OsvPackages.ofPurl("pkg:composer/symfony/http-kernel@6.0.0"))
         assertEquals(OsvPackages.PurlPackage("Maven", "org.apache:x", false), OsvPackages.of("maven", "org.apache", "x"), "of a catalogue node")
-        assertNull(OsvPackages.ofPurl("pkg:deb/debian/openssl@3.0.11"), "operating system packages aren't imported")
+        assertNull(OsvPackages.ofPurl("pkg:deb/debian/openssl@3.0.11"), "a package of a distribution without its release")
+        assertNull(OsvPackages.ofPurl("pkg:rpm/redhat/openssl@3.0.7?distro=rhel-9"), "a distribution not imported")
+        assertEquals(OsvPackages.PurlPackage("Debian:12", "openssl", false), OsvPackages.ofPurl("pkg:deb/debian/openssl@3.0.11?arch=amd64&distro=debian-12.9"))
+        assertEquals(OsvPackages.PurlPackage("Debian:13", "curl", false), OsvPackages.ofPurl("pkg:deb/debian/curl@8.14.1-2?distro=trixie"))
+        assertEquals(OsvPackages.PurlPackage("Ubuntu:22.04:LTS", "curl", false), OsvPackages.ofPurl("pkg:deb/ubuntu/curl@7.81.0-1ubuntu1.30?distro=ubuntu-22.04"))
+        assertEquals(
+            OsvPackages.PurlPackage("Debian:12", "openssl", false),
+            OsvPackages.ofPurl("pkg:deb/debian/libssl3@3.0.15-1~deb12u1?distro=debian-12&upstream=openssl"),
+            "the advisories name the source package",
+        )
+        assertEquals(
+            OsvPackages.PurlPackage("Debian:12", "bash", false, "5.2.15-2"),
+            OsvPackages.ofPurl("pkg:deb/debian/bash@5.2.15-2+b2?distro=debian-12&upstream=bash%405.2.15-2"),
+            "and its version",
+        )
+        assertEquals("Ubuntu:25.10", OsvPackages.release("ubuntu", "ubuntu-25.10"), "not LTS")
+        assertEquals("Ubuntu:24.04:LTS", OsvPackages.release("ubuntu", "noble"))
+        assertNull(OsvPackages.release("ubuntu", "unknown"))
         assertNull(OsvPackages.ofPurl("cpe:2.3:a:apache:tomcat"))
+    }
+
+    @Test
+    fun `an advisory of a distribution with its CVE of upstream, the releases only, no impact as not affected`() {
+        val json = """{"id":"UBUNTU-CVE-2026-1234","modified":"2026-10-31T10:00:00Z","upstream":["CVE-2026-1234"],"details":"Text.",
+            "severity":[{"type":"Ubuntu","score":"medium"}],
+            "affected":[
+              {"package":{"ecosystem":"Ubuntu:22.04:LTS","name":"curl"},"ranges":[{"type":"ECOSYSTEM","events":[{"introduced":"0"},{"fixed":"7.81.0-1ubuntu1.3"}]}],
+               "versions":["7.81.0-1","7.81.0-1ubuntu1.1"]},
+              {"package":{"ecosystem":"Ubuntu:Pro:16.04:LTS","name":"curl"},"ranges":[{"type":"ECOSYSTEM","events":[{"introduced":"0"}]}]},
+              {"package":{"ecosystem":"Ubuntu:22.04:LTS","name":"linux-aws"},"ranges":[{"type":"ECOSYSTEM","events":[{"introduced":"0"}]}]},
+              {"package":{"ecosystem":"Ubuntu:22.04:LTS","name":"linux-firmware"},"ranges":[{"type":"ECOSYSTEM","events":[{"introduced":"0"}]}]},
+              {"package":{"ecosystem":"Debian:12","name":"curl"},"ranges":[{"type":"ECOSYSTEM","events":[{"introduced":"0"}]}],
+               "ecosystem_specific":{"urgency":"unimportant"}}]}"""
+        val advisory = OsvParser.parse(json, setOf("Ubuntu", "Debian"))!!
+        assertEquals("CVE-2026-1234", advisory.vulnerabilityKey)
+        assertTrue(advisory.distro)
+        assertEquals(
+            listOf("Ubuntu:22.04:LTS" to "curl", "Ubuntu:22.04:LTS" to "linux-firmware", "Debian:12" to "curl"),
+            advisory.affected.map { it.ecosystem to it.packageName }, "Ubuntu Pro isn't a release, a kernel is skipped",
+        )
+        assertEquals(listOf(OsvRange(null, "7.81.0-1ubuntu1.3", null)), advisory.affected[0].ranges)
+        assertEquals(listOf(OsvRange.NOT_AFFECTED), advisory.affected[2].ranges, "unimportant")
+        assertTrue(OsvParser.parse(json, setOf("Debian"))!!.affected.none { it.ecosystem.startsWith("Ubuntu") })
+
+        val negligible = OsvParser.parse(json.replace("\"medium\"", "\"negligible\""), setOf("Ubuntu"))!!
+        assertTrue(negligible.affected.all { it.ranges == listOf(OsvRange.NOT_AFFECTED) })
+
+        val notice = OsvParser.parse(json.replace("UBUNTU-CVE-2026-1234", "USN-7000-1").replace("[\"CVE-2026-1234\"]", "[\"CVE-2026-1\",\"CVE-2026-2\"]"), setOf("Ubuntu"))!!
+        assertEquals("USN-7000-1", notice.vulnerabilityKey, "a notice of many CVEs keeps its id")
+        assertTrue(OsvPackages.isImportedId("Ubuntu", "UBUNTU-CVE-2026-1234"))
+        assertFalse(OsvPackages.isImportedId("Ubuntu", "USN-7000-1"))
+        assertFalse(OsvPackages.isImportedId("Debian", "DSA-5197-1"))
+        assertTrue(OsvPackages.isImportedId("npm", "GHSA-aaaa-bbbb-cccc"))
+    }
+
+    @Test
+    fun `versions of a distribution against the ranges, as dpkg compares them`() {
+        fun match(version: String, ecosystem: String = "Debian:12", fixed: String? = null) =
+            CvrMatchingService.purlVersionMatch(version, CvrPurlMatchDO().also {
+                it.ecosystem = ecosystem
+                it.fixed = fixed
+            })
+        assertNull(match("7.81.0-1ubuntu1.30", "Ubuntu:22.04:LTS", fixed = "7.81.0-1ubuntu1.3"))
+        assertEquals(CvrFindingCertainty.AFFECTED, match("7.81.0-1ubuntu1.2", "Ubuntu:22.04:LTS", fixed = "7.81.0-1ubuntu1.3"))
+        assertEquals(CvrFindingCertainty.AFFECTED, match("2.9.14+dfsg-1.3~deb12u1", fixed = "2.9.14+dfsg-1.3~deb12u2"))
+        assertNull(match("2.9.14+dfsg-1.3~deb12u2", fixed = "2.9.14+dfsg-1.3~deb12u2"), "the build metadata of libraries isn't cut")
+        assertNull(match("1:2.0-1", fixed = "3.0-1"), "the epoch")
+        assertNull(match("7.84.0-1", fixed = OsvRange.NOT_AFFECTED.fixed), "not affected")
+        assertNull(match("0", fixed = OsvRange.NOT_AFFECTED.fixed))
     }
 
     @Test

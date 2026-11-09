@@ -87,4 +87,11 @@ open class CvrPurlMatchDO {
     /** A single affected version (advisories without ranges); the range fields are null then. */
     @get:Column(name = "exact_version", length = 100)
     open var exactVersion: String? = null
+
+    /**
+     * The operating systems the vulnerable code is built for, comma separated (Go advisories, e.g. `windows`); null for
+     * all. A component known to run on another one isn't affected (MAT-14).
+     */
+    @get:Column(length = 255)
+    open var goos: String? = null
 }

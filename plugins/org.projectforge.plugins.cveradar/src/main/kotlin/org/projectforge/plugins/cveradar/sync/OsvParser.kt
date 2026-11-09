@@ -30,11 +30,21 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
 
 /** Affected versions of a package: from [introduced] (null: all before) to [fixed] (excluded) or [lastAffected]. */
-data class OsvRange(val introduced: String?, val fixed: String?, val lastAffected: String?)
+data class OsvRange(val introduced: String?, val fixed: String?, val lastAffected: String?) {
+    companion object {
+        /**
+         * No version affected, but the package is known: a distribution rates the CVE without security impact for it
+         * (Debian `unimportant`, Ubuntu `negligible`). It matches nothing, but decides as the other ranges do: a
+         * possible match of the CVE by the name of the CPE is dropped.
+         */
+        val NOT_AFFECTED = OsvRange(null, "0", null)
+    }
+}
 
 /**
  * The affected versions of a package in an advisory: [packageName] in the spelling of [OsvPackages.key]. The [ranges]
- * count; only without ranges the listed [versions].
+ * count; only without ranges the listed [versions]. [goos]: the operating systems the vulnerable code is built for
+ * (Go: `ecosystem_specific.imports[].goos`, e.g. `windows`), null for all.
  */
 data class OsvAffected(
     val ecosystem: String,
@@ -42,6 +52,7 @@ data class OsvAffected(
     val shortName: String?,
     val ranges: List<OsvRange>,
     val versions: List<String>,
+    val goos: Set<String>? = null,
 )
 
 /** An advisory of OSV.dev, parsed by [OsvParser]. */
@@ -51,6 +62,8 @@ data class OsvAdvisory(
     val published: Instant?,
     val withdrawn: Instant?,
     val aliases: List<String>,
+    /** The CVE ids of the field `upstream`: distributions name the CVE of their advisory there, not as alias. */
+    val upstream: List<String> = emptyList(),
     val summary: String?,
     val details: String?,
     /** LOW, MEDIUM, HIGH or CRITICAL; null if the source doesn't rate it. */
@@ -65,14 +78,19 @@ data class OsvAdvisory(
     val malicious: Boolean
         get() = id.startsWith("MAL-")
 
+    /** An advisory of a distribution (`DEBIAN-CVE-…`, `UBUNTU-CVE-…`), see [OsvPackages.Distro]. */
+    val distro: Boolean
+        get() = OsvPackages.DISTROS.any { id.startsWith(it.idPrefix) }
+
     /**
      * The id of its vulnerability: the CVE id (the lowest, if it names several), otherwise the GHSA id, otherwise its
-     * own id; upper case. The advisories of one CVE (a GHSA and a PYSEC) agree on it. Never cut: two long ids alike in
+     * own id; upper case. The CVE of `upstream` counts as alias if it is the only one (`DEBIAN-CVE-…`; a notice of a
+     * distribution names many). The advisories of one CVE (a GHSA and a PYSEC) agree on it. Never cut: two long ids alike in
      * their beginning would become one vulnerability, so [OsvParser.parse] skips an advisory whose key is too long.
      */
     val vulnerabilityKey: String
         get() {
-            val ids = listOf(id) + aliases
+            val ids = listOf(id) + aliases + upstream.takeIf { it.size == 1 }.orEmpty()
             return (ids.filter { CVE_ID.matches(it) }.minWithOrNull(CVE_ORDER) ?: ids.firstOrNull { it.startsWith("GHSA-") } ?: id)
                 .uppercase()
         }
@@ -92,6 +110,10 @@ data class OsvAdvisory(
  * Parses the advisories of OSV.dev (schema https://ossf.github.io/osv-schema/). The document is untrusted input:
  * unknown or missing fields are ignored, values are cut to the lengths of the database, the number of versions is
  * limited. Ranges of type `GIT` (commits) are skipped, `limit` counts like `fixed`.
+ *
+ * Of a distribution, the kernels (`linux`, `linux-aws`, …) are skipped: an inventory names their binary packages
+ * (`linux-image-…`), never these; Ubuntu lists some hundred of them per CVE, a third of its advisories names kernels
+ * only (not stored then, see [CvrOsvAdvisoryService.store][org.projectforge.plugins.cveradar.CvrOsvAdvisoryService.store]).
  */
 object OsvParser {
     private val objectMapper = ObjectMapper()
@@ -100,8 +122,8 @@ object OsvParser {
     const val MAX_VERSIONS = 1000
 
     /**
-     * @param ecosystems The OSV keys of the ecosystems imported (e.g. `Maven`); the affected packages of others are
-     * dropped.
+     * @param ecosystems The OSV keys of the ecosystems and distributions imported (e.g. `Maven`, `Debian`); the affected
+     * packages of others are dropped.
      * @return null, if it has no id, no modification time or a vulnerability key longer than [MAX_KEY_LENGTH].
      */
     fun parse(json: String, ecosystems: Set<String>): OsvAdvisory? {
@@ -110,6 +132,7 @@ object OsvParser {
         val modified = parseTimestamp(root.textOrNull("modified")) ?: return null
         val severities = root.path("severity").filter { it.isObject }
         val ghsaSeverity = root.path("database_specific").textOrNull("severity")?.uppercase()
+        val negligible = negligible(severities)
         return OsvAdvisory(
             id = id,
             modified = modified,
@@ -117,6 +140,8 @@ object OsvParser {
             withdrawn = parseTimestamp(root.textOrNull("withdrawn")),
             aliases = root.path("aliases").mapNotNull { it.takeIf { a -> a.isTextual }?.asText()?.trim() }
                 .filter { ID.matches(it) }.distinct().take(MAX_ALIASES),
+            upstream = root.path("upstream").mapNotNull { it.takeIf { a -> a.isTextual }?.asText()?.trim() }
+                .filter { CVE_ID.matches(it) }.distinct().take(MAX_ALIASES),
             summary = root.textOrNull("summary")?.trim()?.take(1000),
             details = root.textOrNull("details")?.trim(),
             severity = if (ghsaSeverity == "MODERATE") "MEDIUM" else ghsaSeverity?.takeIf { it in SEVERITIES },
@@ -124,21 +149,49 @@ object OsvParser {
             cvss4Vector = severities.firstOrNull { it.textOrNull("type") == "CVSS_V4" }?.textOrNull("score")?.take(255),
             cwes = root.path("database_specific").path("cwe_ids").mapNotNull { it.takeIf { c -> c.isTextual }?.asText() }
                 .filter { CWE.matches(it) }.distinct(),
-            affected = root.path("affected").mapNotNull { parseAffected(it, ecosystems) },
+            affected = root.path("affected").mapNotNull { parseAffected(it, ecosystems, negligible) },
             rawJson = json,
         ).takeIf { it.vulnerabilityKey.length <= MAX_KEY_LENGTH }
     }
 
-    private fun parseAffected(node: JsonNode, ecosystems: Set<String>): OsvAffected? {
+    /**
+     * @param negligible Ubuntu rates the CVE `negligible` (severity of type `Ubuntu`): no version of its packages is
+     * affected ([OsvRange.NOT_AFFECTED]); Debian rates per package (`ecosystem_specific.urgency` `unimportant`).
+     */
+    private fun parseAffected(node: JsonNode, ecosystems: Set<String>, negligible: Boolean): OsvAffected? {
+        if (!isImported(node, ecosystems)) return null
         val pkg = node.path("package")
-        val ecosystem = pkg.textOrNull("ecosystem")?.takeIf { it in ecosystems } ?: return null
+        val ecosystem = pkg.textOrNull("ecosystem")!!
         val name = pkg.textOrNull("name")?.trim()?.takeIf { it.isNotEmpty() && it.length <= 500 } ?: return null
+        if (OsvPackages.isDistro(ecosystem) &&
+            (negligible || node.path("ecosystem_specific").textOrNull("urgency")?.trim()?.lowercase() == "unimportant")
+        ) {
+            return OsvAffected(ecosystem, OsvPackages.key(ecosystem, name), null, listOf(OsvRange.NOT_AFFECTED), emptyList())
+        }
         val ranges = node.path("ranges").filter { it.textOrNull("type") in VERSION_RANGES }.flatMap { ranges(it.path("events")) }
         val versions = if (ranges.isNotEmpty()) emptyList()
         else node.path("versions").mapNotNull { v -> v.takeIf { it.isTextual }?.asText()?.trim()?.takeIf { it.isNotEmpty() }?.take(100) }
             .distinct().take(MAX_VERSIONS)
         if (ranges.isEmpty() && versions.isEmpty()) return null
-        return OsvAffected(ecosystem, OsvPackages.key(ecosystem, name), OsvPackages.shortName(ecosystem, name), ranges, versions)
+        return OsvAffected(
+            ecosystem, OsvPackages.key(ecosystem, name), OsvPackages.shortName(ecosystem, name), ranges, versions,
+            goosOf(node.path("ecosystem_specific").path("imports")),
+        )
+    }
+
+    /**
+     * The operating systems of the vulnerable packages of the Go advisories: only if every import names some (an import
+     * without names is vulnerable everywhere); null for all.
+     */
+    internal fun goosOf(imports: JsonNode): Set<String>? {
+        if (!imports.isArray || imports.isEmpty) return null
+        val result = mutableSetOf<String>()
+        imports.forEach { import ->
+            val names = import.path("goos").mapNotNull { g -> g.takeIf { it.isTextual }?.asText()?.trim()?.lowercase()?.takeIf { GOOS.matches(it) } }
+            if (names.isEmpty()) return null
+            result.addAll(names)
+        }
+        return result
     }
 
     /** The events in their order: `introduced` opens a range, `fixed`, `last_affected` or `limit` closes it. */
@@ -165,6 +218,18 @@ object OsvParser {
         return result.distinct()
     }
 
+    /** An affected package of an ecosystem imported, not a kernel of a distribution. */
+    private fun isImported(node: JsonNode, ecosystems: Set<String>): Boolean {
+        val pkg = node.path("package")
+        val ecosystem = pkg.textOrNull("ecosystem") ?: return false
+        if (!OsvPackages.isImported(ecosystem, ecosystems)) return false
+        return !OsvPackages.isDistro(ecosystem) || pkg.textOrNull("name")?.trim()?.let { KERNEL.matches(it) } != true
+    }
+
+    private fun negligible(severities: List<JsonNode>): Boolean = severities.any {
+        it.textOrNull("type") == "Ubuntu" && it.textOrNull("score")?.trim()?.lowercase() == "negligible"
+    }
+
     /** OSV writes RFC 3339 timestamps in UTC (`2026-10-31T10:55:53.653622012Z`). */
     internal fun parseTimestamp(value: String?): Instant? {
         value ?: return null
@@ -184,4 +249,8 @@ object OsvParser {
     private val SEVERITIES = setOf("LOW", "MEDIUM", "HIGH", "CRITICAL")
     private val ID = Regex("""[A-Za-z][A-Za-z0-9]*-[A-Za-z0-9._:\-]{1,90}""")
     private val CWE = Regex("""CWE-\d+""")
+    private val CVE_ID = Regex("""CVE-\d{4}-\d{4,}""")
+    /** The kernels: `linux`, `linux-<variant>`, but not `linux-firmware`, `linux-atm`, `linux-ftpd` and the like. */
+    private val KERNEL = Regex("""linux(-(?!firmware|atm|ftpd|entra-sso).*)?""")
+    private val GOOS = Regex("""[a-z0-9]{1,20}""")
 }

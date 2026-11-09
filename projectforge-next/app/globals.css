@@ -137,6 +137,8 @@
   --changelog-security: #fb3434;
   --changelog-technology: #a037ff;
   --changelog-docker: #79433d;
+  /* The badge "App" of a change of the mobile app ({app} in changelog/changelog.json). */
+  --changelog-app: #00777e;
 
   /*
    * Something is questionable but allowed - a cost unit outside the invoice's project, say (see
@@ -1011,13 +1013,6 @@ span.row-inactive {
 }
 .dark .order-forecast [style*="color: red"] {
   color: var(--destructive) !important;
-}
-
-/* ProjectForge wordmark (see ProjectForgeLogo): Archivo Narrow, with Roboto Condensed as the
-   documented fallback. Both faces are loaded as bold italic via next/font in app/layout.tsx. */
-.wordmark-font {
-  font-family:
-    var(--font-condensed), var(--font-condensed-fallback), sans-serif;
 }
 
 /* The content of RichTextEditor (TipTap): the lists and links Tailwind's preflight resets, and the

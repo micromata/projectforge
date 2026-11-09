@@ -23,8 +23,16 @@
 
 import { useSyncExternalStore } from 'react';
 
-/** The sheets the tab bar moves up over the tabs: the notifications (the bell) and the "more" menu. */
-export type TabSheetName = 'notifications' | 'more';
+/**
+ * The sheets the tab bar moves up over the tabs: the notifications (the bell), the "more" menu and the sheets opened
+ * from that menu (the settings, the server switch).
+ */
+export type TabSheetName = 'notifications' | 'more' | 'settings' | 'servers';
+
+/** The button of the tab bar a sheet belongs to: the ones of the "more" menu to its button. */
+export function buttonOf(sheet: TabSheetName | null): TabSheetName | null {
+  return sheet === 'settings' || sheet === 'servers' ? 'more' : sheet;
+}
 
 /** Which sheet of the tab bar is shown over the tabs, at most one. */
 class TabSheets {
@@ -35,9 +43,9 @@ class TabSheets {
     this.set(sheet);
   }
 
-  /** Its button again: the sheet shown closes, another one takes its place. */
+  /** Its button again: the sheet shown closes (also one opened from its menu), another one takes its place. */
   toggle(sheet: TabSheetName) {
-    this.set(this.current === sheet ? null : sheet);
+    this.set(buttonOf(this.current) === sheet ? null : sheet);
   }
 
   close = () => this.set(null);

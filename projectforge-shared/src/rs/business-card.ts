@@ -41,7 +41,7 @@ export interface BusinessCardInfo {
 export interface BusinessCardPreview {
   /** The QR code with the vCard as data url (`data:image/png;base64,…`). */
   qrCodeUrl: string;
-  /** The vCard links the photo of the address (missing from servers before 9.2.6). */
+  /** The vCard links the photo of the address (missing from servers before 9.2.7). */
   withPhoto?: boolean;
 }
 

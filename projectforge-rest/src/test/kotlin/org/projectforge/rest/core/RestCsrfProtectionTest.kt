@@ -64,6 +64,72 @@ class RestCsrfProtectionTest {
     }
 
     /**
+     * Without `Sec-Fetch-Site` (older browsers), `Origin` and else `Referer` decide; only a request without any of
+     * them is not detectable.
+     */
+    @Test
+    fun isSameSiteRequestWithoutSecFetchSiteTest() {
+        Assertions.assertTrue(
+            RestCsrfProtection.isSameSiteRequest(mockRequest(null, origin = "https://pf.example.org")),
+            "Origin of the own host.",
+        )
+        Assertions.assertTrue(
+            RestCsrfProtection.isSameSiteRequest(mockRequest(null, origin = "https://PF.example.org:443")),
+            "Default port and case don't matter.",
+        )
+        Assertions.assertFalse(
+            RestCsrfProtection.isSameSiteRequest(mockRequest(null, origin = "https://evil.example.com")),
+            "Origin of a foreign host.",
+        )
+        Assertions.assertFalse(
+            RestCsrfProtection.isSameSiteRequest(mockRequest(null, origin = "https://pf.example.org.evil.com")),
+            "A foreign host with the own one as prefix.",
+        )
+        Assertions.assertFalse(
+            RestCsrfProtection.isSameSiteRequest(mockRequest(null, origin = "null")),
+            "Opaque origin (sandboxed frame).",
+        )
+        Assertions.assertTrue(
+            RestCsrfProtection.isSameSiteRequest(mockRequest(null, referer = "https://pf.example.org/next/task")),
+            "Referer of a page of this app.",
+        )
+        Assertions.assertFalse(
+            RestCsrfProtection.isSameSiteRequest(mockRequest(null, referer = "https://evil.example.com/a")),
+            "Referer of a foreign page.",
+        )
+        Assertions.assertTrue(
+            RestCsrfProtection.isSameSiteRequest(
+                mockRequest(null, origin = "https://pf.example.org", host = "localhost:8080", forwardedHost = "pf.example.org"),
+            ),
+            "Behind a reverse proxy, X-Forwarded-Host is the own host.",
+        )
+        Assertions.assertFalse(
+            RestCsrfProtection.isSameSiteRequest(mockRequest("cross-site", origin = "https://pf.example.org")),
+            "Sec-Fetch-Site wins over Origin.",
+        )
+    }
+
+    /**
+     * Plain http (no `Sec-Fetch-Site` at all) behind a proxy that rewrites `Host` and sends no `X-Forwarded-Host`:
+     * the configured `projectforge.domain` is the own host, or every POST of the app would be refused.
+     */
+    @Test
+    fun configuredDomainIsOwnHostTest() {
+        val request = mockRequest(null, origin = "http://pf.intranet", host = "localhost:8080")
+        Assertions.assertFalse(RestCsrfProtection.isSameSiteRequest(request), "Unknown without the configured domain.")
+        try {
+            RestCsrfProtection.configuredAuthority = "pf.intranet"
+            Assertions.assertTrue(RestCsrfProtection.isSameSiteRequest(request), "The configured domain is own.")
+            Assertions.assertFalse(
+                RestCsrfProtection.isSameSiteRequest(mockRequest(null, origin = "http://evil.intranet", host = "localhost:8080")),
+                "Any other host is still foreign.",
+            )
+        } finally {
+            RestCsrfProtection.configuredAuthority = null
+        }
+    }
+
+    /**
      * The token is checked for every state changing call of a session, whatever the client claims to be: a
      * request without the `X-PF-Frontend` header used to skip the check.
      */
@@ -125,10 +191,20 @@ class RestCsrfProtectionTest {
         return RestAuthenticationInfo(Mockito.mock(HttpServletRequest::class.java), mockResponse())
     }
 
-    private fun mockRequest(secFetchSite: String?): HttpServletRequest {
+    private fun mockRequest(
+        secFetchSite: String?,
+        origin: String? = null,
+        referer: String? = null,
+        host: String = "pf.example.org",
+        forwardedHost: String? = null,
+    ): HttpServletRequest {
         val request = Mockito.mock(HttpServletRequest::class.java)
         Mockito.`when`(request.getHeader(Mockito.eq(RestCsrfProtection.SEC_FETCH_SITE_HEADER)))
             .thenReturn(secFetchSite)
+        Mockito.`when`(request.getHeader(Mockito.eq("Origin"))).thenReturn(origin)
+        Mockito.`when`(request.getHeader(Mockito.eq("Referer"))).thenReturn(referer)
+        Mockito.`when`(request.getHeader(Mockito.eq("Host"))).thenReturn(host)
+        Mockito.`when`(request.getHeader(Mockito.eq("X-Forwarded-Host"))).thenReturn(forwardedHost)
         return request
     }
 
