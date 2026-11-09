@@ -71,7 +71,7 @@ Commands:
                    (gitignored), e.g. eas build --platform ios --profile preview
   publish [production|preview]
                    iOS store build (default production): from a clean tree, check, eas build,
-                   tag app-<version>+<build> on the built commit, eas submit. The tag must not
+                   tag app-<version>+<build> on the built commit (asks, Enter = yes), eas submit. The tag must not
                    exist yet (raise ios.buildNumber first); push it afterwards
   logs             The log of the app in the booted iOS simulator
   help             Show this help
@@ -108,6 +108,13 @@ confirm() {
   local answer
   read -r -p "$1 [y/N] " answer
   [[ "$answer" == [yY] ]]
+}
+
+# Like confirm, but Enter means yes.
+confirm_yes() {
+  local answer
+  read -r -p "$1 [Y/n] " answer
+  [[ -z "$answer" || "$answer" == [yY] ]]
 }
 
 # The Expo account and project for eas-cli (not in the repository, see app.config.ts), and the store app.
@@ -150,10 +157,18 @@ cmd_publish() {
   confirm "Publish $version (build $build) from $(git -C "$ROOT" branch --show-current)@$(git -C "$ROOT" rev-parse --short HEAD) with profile $profile?" || exit 1
   npx --yes eas-cli@latest build --platform ios --profile "$profile" --wait
   # Tagged only after a successful build, as bin/pfDev.sh release does.
-  git -C "$ROOT" tag -a "$tag" -m "ProjectForge app $version (build $build)"
+  local tagged=false
+  if confirm_yes "Tag the built commit $tag?"; then
+    git -C "$ROOT" tag -a "$tag" -m "ProjectForge app $version (build $build)"
+    tagged=true
+  fi
   npx --yes eas-cli@latest submit --platform ios --profile "$profile" --latest
   echo
-  echo "Tagged $tag. Push it: git push origin $tag"
+  if $tagged; then
+    echo "Tagged $tag. Push it: git push origin $tag"
+  else
+    echo "Not tagged. Later: git tag -a $tag -m \"ProjectForge app $version (build $build)\" <commit of the build>"
+  fi
   echo "App Store Connect: wait for the processing (TestFlight), then assign the build to the version and submit it" \
     "for review (APPLE-SETUP.md, 8)."
 }

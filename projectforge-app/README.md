@@ -70,7 +70,7 @@ git push origin app-<version>+<build>                        # the tag it create
 ```
 
 `publish [production|preview]` checks for a clean tree and an unused tag, runs `check`, builds in the cloud (~10 min),
-tags the built commit `app-<version>+<build>` (e.g. `app-1.1.0+8`) and submits the build. The tag marks what a
+tags the built commit `app-<version>+<build>` (e.g. `app-1.1.0+8`; it asks, Enter means yes) and submits the build. The tag marks what a
 published app reads (dev-docs/mobile-app.md). By hand: `bin/pfApp.sh eas build --platform ios --profile preview`, then
 `bin/pfApp.sh eas submit --platform ios --profile preview --latest`, and tag the commit of the build
 (`eas build:list` names it).
