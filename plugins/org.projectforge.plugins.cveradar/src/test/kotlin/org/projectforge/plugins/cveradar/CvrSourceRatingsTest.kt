@@ -47,6 +47,9 @@ class CvrSourceRatingsTest {
         val vulnerability = CvrVulnerabilityDO().also {
             it.cveId = "CVE-2026-116804"
             it.nvdLastModified = Date()
+            it.euvdId = "EUVD-2026-110512"
+            it.euvdScore = BigDecimal("5.1")
+            it.euvdVector = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
             it.rawDocument = gzip(
                 """{"id":"CVE-2026-116804","metrics":{
                 "cvssMetricV40":[{"source":"disclosure@vulncheck.com","type":"Secondary","cvssData":{"version":"4.0",
@@ -73,23 +76,23 @@ class CvrSourceRatingsTest {
                 "OSV|GHSA-cg2g-xh64-v4q7|false|3.1|6.1|MEDIUM",
                 "OSV|GHSA-cg2g-xh64-v4q7|false|4.0|null|null",
                 "OSV|GHSA-cg2g-xh64-v4q7|false|null|null|CRITICAL",
+                "EUVD|EUVD-2026-110512|false|4.0|5.1|MEDIUM",
             ),
             CvrSourceRatings.of(vulnerability, listOf(ghsa, withdrawn)).map { row(it) },
-            "the NVD's own first, an invalid score and a withdrawn advisory left out",
+            "the NVD's own first, an invalid score and a withdrawn advisory left out, the EUVD's kept after the NVD took it over",
         )
     }
 
     @Test
-    fun `a vulnerability made of advisories has no NVD rating, one of the EUVD its own`() {
+    fun `a vulnerability made of advisories has no NVD rating, one made of an EUVD entry the EUVD's`() {
         val fromOsv = CvrVulnerabilityDO().also { it.rawDocument = gzip("""{"metrics":{"cvssMetricV31":[]}}""") }
         assertEquals(emptyList<SourceRatingView>(), CvrSourceRatings.of(fromOsv, emptyList()), "the document is the advisory's")
 
         val fromEuvd = CvrVulnerabilityDO().also {
             it.nvdStatus = EuvdImportService.STATUS_EUVD
             it.euvdId = "EUVD-2026-110512"
-            it.cvssScore = BigDecimal("5.1")
-            it.severity = "MEDIUM"
-            it.cvss40Vector = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
+            it.euvdScore = BigDecimal("5.1")
+            it.euvdVector = "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
         }
         assertEquals(
             listOf("EUVD|EUVD-2026-110512|false|4.0|5.1|MEDIUM"),

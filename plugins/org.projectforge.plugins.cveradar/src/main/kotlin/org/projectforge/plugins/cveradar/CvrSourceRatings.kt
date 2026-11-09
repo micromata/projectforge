@@ -30,7 +30,6 @@ import org.projectforge.plugins.cveradar.model.CvrOsvAdvisoryDO
 import org.projectforge.plugins.cveradar.model.CvrSource
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.SourceRatingView
-import org.projectforge.plugins.cveradar.sync.EuvdImportService
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -41,7 +40,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The ratings of the sources side by side: the vulnerability keeps one score and severity only (the NVD, before that
  * the advisories or the EUVD), the sources may disagree (e.g. GitHub CRITICAL, the CNA 6.1). Derived from what is
- * stored, nothing extra: the NVD document, the OSV advisories, the fields of a vulnerability made of an EUVD entry.
+ * stored: the NVD document, the OSV advisories, the rating of the EUVD ([CvrVulnerabilityDO.euvdScore]).
  */
 object CvrSourceRatings {
     /** The NVD and the CNA (NVD document), the advisories not withdrawn (preferred first), the EUVD. */
@@ -97,14 +96,14 @@ object CvrSourceRatings {
         return listOfNotNull(cvss3, cvss4, own)
     }
 
-    /** The rating of a vulnerability made of an EUVD entry (it isn't kept once the NVD took the vulnerability over). */
+    /** The rating of the EUVD, kept apart from the one of the NVD; its severity by the buckets of CVSS 3 (as the import). */
     internal fun ofEuvd(vulnerability: CvrVulnerabilityDO): List<SourceRatingView> {
-        if (!EuvdImportService.isFromEuvd(vulnerability) || vulnerability.cvssScore == null) return emptyList()
-        val vector = vulnerability.cvss40Vector ?: vulnerability.cvss31Vector
+        val score = vulnerability.euvdScore ?: return emptyList()
+        val vector = vulnerability.euvdVector
         return listOf(
             SourceRatingView(
                 source = CvrSource.EUVD, origin = vulnerability.euvdId, primary = false, version = versionOf(vector),
-                score = vulnerability.cvssScore, severity = vulnerability.severity, vector = vector,
+                score = score, severity = Cvss3.severity(score), vector = vector,
             ),
         )
     }

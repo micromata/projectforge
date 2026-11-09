@@ -196,6 +196,8 @@ class EuvdImportTest : CveRadarTestBase() {
         assertEquals(Date.from(Instant.parse("2026-11-02T10:00:00Z")), after.exploitedSince)
         assertEquals(description, after.description, "the NVD stays the source of the details")
         assertEquals(BigDecimal("9.8"), after.cvssScore)
+        assertEquals(BigDecimal("5.0"), after.euvdScore, "the rating of the EUVD kept apart")
+        assertEquals("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N", after.euvdVector)
         assertEquals("Analyzed", after.nvdStatus)
         assertNotNull(after.nvdLastModified)
         assertTrue(indexOf(after.id!!).none { it.approximate }, "precise by CPE, no entry of the EUVD")

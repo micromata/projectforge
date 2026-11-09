@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "CVE-Radar findings export and ad-hoc check: single vulnerabilities can be left out of the report and the AI prompt (\"Select vulnerabilities\"), e.g. to handle an update with big changes in a branch of its own. The prompt now asks first for a newer release of the direct dependency that brings in the fixed version, and forcing the version only if there is none.", "CVE-Radar: the file of a vulnerability shows the ratings of its sources side by side (NVD, the CNA, the OSV advisories with GitHub's own rating, the EUVD), so a differing severity can be traced." ]
+      "items" : [ "CVE-Radar findings export and ad-hoc check: single vulnerabilities can be left out of the report and the AI prompt (\"Select vulnerabilities\"), e.g. to handle an update with big changes in a branch of its own. The prompt now asks first for a newer release of the direct dependency that brings in the fixed version, and forcing the version only if there is none.", "CVE-Radar: the file of a vulnerability shows the ratings of its sources side by side (NVD, the CNA, the OSV advisories with GitHub's own rating, the EUVD, kept also once the NVD rated the vulnerability), so a differing severity can be traced." ]
     }, {
       "type" : "improved",
       "items" : [ "{app} Pages menu: on a tablet the categories of the main menu are open, opened or closed ones stay so; the main menu tab comes second.", {
