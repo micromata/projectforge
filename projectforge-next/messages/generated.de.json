@@ -4613,6 +4613,7 @@
         "hidden": "+{arg0} weitere betroffene Installationen, für dich nicht sichtbar.",
         "matched": "Treffer",
         "restore": "Zurücknehmen",
+        "source": "Fundort",
         "status": {
           "DISCARDED": "Verworfen",
           "NEW": "Neu"
@@ -4638,7 +4639,7 @@
         "empty": "Hier gibt es keine offenen Findings.",
         "privacy": "Nur ein freigegebenes KI-System verwenden. Der Report enthält die Produkte, Versionen und Bibliotheken des Projekts.",
         "prompt": {
-          "instruction": "Du bist Expertin oder Experte für Software-Sicherheit. Unten steht ein Report bekannter Schwachstellen (CVEs), die in einem Softwareprojekt gefunden wurden, als JSON. Erarbeite für jede Schwachstelle, wie sie in diesem Projekt am besten behoben wird:\n1. Betroffenheit prüfen: Vergleiche die Version der Technologie (technology.version) mit den betroffenen Versionen. certainty AFFECTED: über CPE oder Paket-URL mit Versionsbereich gefunden; POSSIBLE: nur über den Namen oder ohne Version gefunden, also zuerst prüfen.\n2. Behebung: die Zielversion (die niedrigste Version mit dem Fix, ohne Breaking Changes, falls es die Wahl gibt) und der Weg dorthin. Bei einer transitiven Abhängigkeit (siehe purl und ecosystem): welche direkte Abhängigkeit zu aktualisieren ist oder wie die Version erzwungen wird (z. B. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), mit dem konkreten Ausschnitt der Build-Datei.\n3. Gibt es noch keinen Fix: ein Workaround oder eine Maßnahme zur Eindämmung.\n4. Prüfung: wie sich zeigen lässt, dass es behoben ist (Befehl, Test, erneuter Export der Lockfile).\nDie Bewertung des Security-Teams im Feld case (fixVersion, workaround, techMeasures) hat Vorrang. Reihenfolge: zuerst die im KEV-Katalog (kevAdded), dann nach der Priorität des Falls (P1 zuerst), dann nach CVSS. Erfinde keine Versionen; nenne die Quellen und kennzeichne, was unsicher ist. Antworte auf Deutsch in Markdown, ohne Anrede mit „Sie“: zuerst eine Tabelle (CVE, Technologie, aktuelle Version, Zielversion, Aufwand), dann ein Abschnitt je Schwachstelle; fasse CVEs zusammen, die dieselbe Aktualisierung behebt."
+          "instruction": "Du bist Expertin oder Experte für Software-Sicherheit. Unten steht ein Report bekannter Schwachstellen (CVEs), die in einem Softwareprojekt gefunden wurden, als JSON. Erarbeite für jede Schwachstelle, wie sie in diesem Projekt am besten behoben wird:\n1. Betroffenheit prüfen: Vergleiche die Version der Technologie (technology.version) mit den betroffenen Versionen. certainty AFFECTED: über CPE oder Paket-URL mit Versionsbereich gefunden; POSSIBLE: nur über den Namen oder ohne Version gefunden, also zuerst prüfen.\n2. Behebung: die Zielversion (die niedrigste Version mit dem Fix, ohne Breaking Changes, falls es die Wahl gibt) und der Weg dorthin. Bei einer transitiven Abhängigkeit (siehe purl und ecosystem): welche direkte Abhängigkeit zu aktualisieren ist oder wie die Version erzwungen wird (z. B. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), mit dem konkreten Ausschnitt der Build-Datei.\n3. Gibt es noch keinen Fix: ein Workaround oder eine Maßnahme zur Eindämmung.\n4. Prüfung: wie sich zeigen lässt, dass es behoben ist (Befehl, Test, erneuter Export der Lockfile).\nDie Bewertung des Security-Teams im Feld case (fixVersion, workaround, techMeasures) hat Vorrang. Reihenfolge: zuerst die im KEV-Katalog (kevAdded), dann nach der Priorität des Falls (P1 zuerst), dann nach CVSS. Das Feld libraries fasst die Schwachstellen je Bibliothek zusammen (fixVersion: ab dieser Version trifft keiner der gefundenen Bereiche mehr zu; withoutFixCount: die ohne bekannten Fix; sources: wo die Bibliothek gefunden wurde); plane die Aktualisierungen danach. Erfinde keine Versionen; nenne die Quellen und kennzeichne, was unsicher ist. Antworte auf Deutsch in Markdown, ohne Anrede mit „Sie“: zuerst eine Tabelle (CVE, Technologie, aktuelle Version, Zielversion, Aufwand), dann ein Abschnitt je Schwachstelle; fasse CVEs zusammen, die dieselbe Aktualisierung behebt."
         },
         "summary": "{arg0} Schwachstellen, {arg1} Findings",
         "title": "Findings exportieren: {arg0}"
@@ -4805,6 +4806,13 @@
         "more": "… und {arg0} weitere",
         "noMatch": "Nichts passt.",
         "notRecognised": "Nicht erkannt, ignoriert: {arg0}",
+        "progress": {
+          "matching": "Abgleich der Komponente mit den Schwachstellen",
+          "reading": "Dateien werden gelesen",
+          "removed": "Entfernt: {arg0} von {arg1}",
+          "stored": "Neu: {arg0} von {arg1} gespeichert",
+          "unchanged": "Nichts zu speichern oder zu entfernen"
+        },
         "removeAll": "Alle hochgeladenen Bibliotheken entfernen",
         "removeAllQuestion": "Alle {arg0} für diese Komponente hochgeladenen Bibliotheken entfernen? Von Hand eingetragene Technologien bleiben.",
         "removeFile": "{arg0} entfernen",
@@ -4930,11 +4938,32 @@
           "mediumLow": "Mittel/niedrig",
           "unscored": "{arg0} ohne Bewertung"
         },
+        "libraryFilter": {
+          "remove": "Wieder alle Findings zeigen, nicht nur die von {arg0}"
+        },
         "none": "Keine offenen Findings.",
         "stats": {
           "findings": "Findings"
         },
-        "title": "Findings: {arg0}"
+        "title": "Findings: {arg0}",
+        "view": {
+          "findings": "Findings ({arg0})",
+          "libraries": "Bibliotheken ({arg0})"
+        }
+      },
+      "nodeLibraries": {
+        "cves": "CVEs",
+        "fix": "Aktualisierung",
+        "fixVersion": "auf {arg0} oder neuer",
+        "highestSeverity": "Höchster Schweregrad",
+        "noFix": "kein Fix bekannt",
+        "severity": {
+          "CRITICAL": "Kritisch",
+          "HIGH": "Hoch",
+          "LOW": "Niedrig",
+          "MEDIUM": "Mittel"
+        },
+        "withoutFix": "{arg0} ohne bekannten Fix"
       },
       "none": "Keine.",
       "notFound": "Nicht gefunden oder für diese Rolle nicht sichtbar.",
@@ -5007,6 +5036,12 @@
         "save": "Bewertung speichern"
       },
       "reason": "Begründung",
+      "rematch": {
+        "button": "Erneut prüfen",
+        "hint": "Gleicht die Bibliotheken und Technologien unterhalb dieses Knotens erneut mit allen Schwachstellen ab. Das geschieht nach jedem Import und jeder Änderung von selbst; von Hand z. B. nach einer Änderung des Katalogs.",
+        "result": "Erneut geprüft: {arg0} neu, {arg1} geändert, {arg2} entfernt",
+        "running": "Abgleich mit den Schwachstellen"
+      },
       "rights": {
         "adhoc": "{arg0} prüfen eigene Dateien gegen alle Schwachstellen. Es wird nichts gespeichert; das Ergebnis sieht nur, wer die Prüfung gestartet hat.",
         "cases": "{arg0} sehen die Fälle. {arg1} legen sie an und bearbeiten sie.",

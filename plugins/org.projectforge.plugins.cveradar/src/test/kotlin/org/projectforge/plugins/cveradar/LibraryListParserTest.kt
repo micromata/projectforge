@@ -200,6 +200,26 @@ class LibraryListParserTest {
     }
 
     @Test
+    fun `a CycloneDX SBOM of an image tells where a library was found, the places of one found twice together`() {
+        val json = """
+            {"bomFormat":"CycloneDX","specVersion":"1.6","components":[
+              {"type":"library","name":"stdlib","purl":"pkg:golang/stdlib@1.18.2",
+               "properties":[{"name":"syft:package:language","value":"go"},{"name":"syft:location:0:path","value":"/usr/local/bin/gosu"}]},
+              {"type":"library","name":"stdlib","purl":"pkg:golang/stdlib@1.18.2",
+               "properties":[{"name":"syft:location:0:path","value":"/usr/bin/other"}]},
+              {"type":"library","name":"curl","purl":"pkg:deb/debian/curl@8.14.1-2?distro=debian-13",
+               "evidence":{"occurrences":[{"location":"/var/lib/dpkg/status"}]}},
+              {"type":"library","name":"left-pad","purl":"pkg:npm/left-pad@1.3.0"}
+            ]}
+        """.trimIndent()
+        val entries = LibraryListParser.parse("image.cdx.json", json).entries
+        assertEquals(3, entries.size, "the stdlib once")
+        assertEquals("/usr/local/bin/gosu, /usr/bin/other", entries[0].location)
+        assertEquals("/var/lib/dpkg/status", entries[1].location, "the evidence of CycloneDX 1.5")
+        assertNull(entries[2].location)
+    }
+
+    @Test
     fun `an SPDX document reads the packages by their purl reference`() {
         val json = """
             {"spdxVersion":"SPDX-2.3","SPDXID":"SPDXRef-DOCUMENT","packages":[

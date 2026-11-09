@@ -43,7 +43,8 @@ data class OsvRange(val introduced: String?, val fixed: String?, val lastAffecte
 
 /**
  * The affected versions of a package in an advisory: [packageName] in the spelling of [OsvPackages.key]. The [ranges]
- * count; only without ranges the listed [versions].
+ * count; only without ranges the listed [versions]. [goos]: the operating systems the vulnerable code is built for
+ * (Go: `ecosystem_specific.imports[].goos`, e.g. `windows`), null for all.
  */
 data class OsvAffected(
     val ecosystem: String,
@@ -51,6 +52,7 @@ data class OsvAffected(
     val shortName: String?,
     val ranges: List<OsvRange>,
     val versions: List<String>,
+    val goos: Set<String>? = null,
 )
 
 /** An advisory of OSV.dev, parsed by [OsvParser]. */
@@ -171,7 +173,25 @@ object OsvParser {
         else node.path("versions").mapNotNull { v -> v.takeIf { it.isTextual }?.asText()?.trim()?.takeIf { it.isNotEmpty() }?.take(100) }
             .distinct().take(MAX_VERSIONS)
         if (ranges.isEmpty() && versions.isEmpty()) return null
-        return OsvAffected(ecosystem, OsvPackages.key(ecosystem, name), OsvPackages.shortName(ecosystem, name), ranges, versions)
+        return OsvAffected(
+            ecosystem, OsvPackages.key(ecosystem, name), OsvPackages.shortName(ecosystem, name), ranges, versions,
+            goosOf(node.path("ecosystem_specific").path("imports")),
+        )
+    }
+
+    /**
+     * The operating systems of the vulnerable packages of the Go advisories: only if every import names some (an import
+     * without names is vulnerable everywhere); null for all.
+     */
+    internal fun goosOf(imports: JsonNode): Set<String>? {
+        if (!imports.isArray || imports.isEmpty) return null
+        val result = mutableSetOf<String>()
+        imports.forEach { import ->
+            val names = import.path("goos").mapNotNull { g -> g.takeIf { it.isTextual }?.asText()?.trim()?.lowercase()?.takeIf { GOOS.matches(it) } }
+            if (names.isEmpty()) return null
+            result.addAll(names)
+        }
+        return result
     }
 
     /** The events in their order: `introduced` opens a range, `fixed`, `last_affected` or `limit` closes it. */
@@ -232,4 +252,5 @@ object OsvParser {
     private val CVE_ID = Regex("""CVE-\d{4}-\d{4,}""")
     /** The kernels: `linux`, `linux-<variant>`, but not `linux-firmware`, `linux-atm`, `linux-ftpd` and the like. */
     private val KERNEL = Regex("""linux(-(?!firmware|atm|ftpd|entra-sso).*)?""")
+    private val GOOS = Regex("""[a-z0-9]{1,20}""")
 }

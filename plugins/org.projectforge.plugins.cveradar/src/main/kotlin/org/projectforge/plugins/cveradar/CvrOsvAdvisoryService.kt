@@ -169,6 +169,7 @@ class CvrOsvAdvisoryService {
             it.ecosystem = affected.ecosystem
             it.packageName = affected.packageName.take(500)
             it.shortName = affected.shortName?.take(255)
+            it.goos = affected.goos?.sorted()?.joinToString(",")?.take(255)
         }
         osv.affected.forEach { affected ->
             affected.ranges.forEach { range ->

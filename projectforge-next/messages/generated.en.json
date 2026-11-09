@@ -4613,6 +4613,7 @@
         "hidden": "+{arg0} more affected installations, not visible to you.",
         "matched": "Match",
         "restore": "Take back",
+        "source": "Found in",
         "status": {
           "DISCARDED": "Discarded",
           "NEW": "New"
@@ -4638,7 +4639,7 @@
         "empty": "There are no open findings here.",
         "privacy": "Use an approved AI system only. The report contains the products, versions and libraries of the project.",
         "prompt": {
-          "instruction": "You are an expert in software security. Below is a report of known vulnerabilities (CVEs) found in a software project, as JSON. For every vulnerability, work out the best way to fix it in this project:\n1. Check whether the project is really affected: compare the version of the technology (technology.version) with the affected versions. certainty AFFECTED: matched by CPE or package URL with a version range; POSSIBLE: matched by the name only or without a version, so check it first.\n2. The fix: the target version (the lowest version with the fix, without breaking changes if there is a choice) and the way there. For a transitive dependency (see purl and ecosystem): which direct dependency to update, or how to force the version (e.g. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), with the concrete snippet of the build file.\n3. If there is no fix yet: a workaround or a mitigation.\n4. Verification: how to show that it is fixed (command, test, exporting the lockfile again).\nThe assessment of the security team in the field case (fixVersion, workaround, techMeasures) takes precedence. Order: first those in the KEV catalogue (kevAdded), then by the priority of the case (P1 first), then by CVSS. Don't invent versions; name your sources and mark what is uncertain. Answer in English, in Markdown: first a table (CVE, technology, current version, target version, effort), then one section per vulnerability; combine CVEs fixed by the same update."
+          "instruction": "You are an expert in software security. Below is a report of known vulnerabilities (CVEs) found in a software project, as JSON. For every vulnerability, work out the best way to fix it in this project:\n1. Check whether the project is really affected: compare the version of the technology (technology.version) with the affected versions. certainty AFFECTED: matched by CPE or package URL with a version range; POSSIBLE: matched by the name only or without a version, so check it first.\n2. The fix: the target version (the lowest version with the fix, without breaking changes if there is a choice) and the way there. For a transitive dependency (see purl and ecosystem): which direct dependency to update, or how to force the version (e.g. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), with the concrete snippet of the build file.\n3. If there is no fix yet: a workaround or a mitigation.\n4. Verification: how to show that it is fixed (command, test, exporting the lockfile again).\nThe assessment of the security team in the field case (fixVersion, workaround, techMeasures) takes precedence. Order: first those in the KEV catalogue (kevAdded), then by the priority of the case (P1 first), then by CVSS. The field libraries groups the vulnerabilities per library (fixVersion: from this version on none of the matched ranges applies; withoutFixCount: those without a known fix, sources: where the library was found); plan the updates by it. Don't invent versions; name your sources and mark what is uncertain. Answer in English, in Markdown: first a table (CVE, technology, current version, target version, effort), then one section per vulnerability; combine CVEs fixed by the same update."
         },
         "summary": "{arg0} vulnerabilities, {arg1} findings",
         "title": "Export findings: {arg0}"
@@ -4805,6 +4806,13 @@
         "more": "… and {arg0} more",
         "noMatch": "Nothing matches.",
         "notRecognised": "Not recognised, ignored: {arg0}",
+        "progress": {
+          "matching": "Matching the component against the vulnerabilities",
+          "reading": "Reading the files",
+          "removed": "Removed: {arg0} of {arg1}",
+          "stored": "New: {arg0} of {arg1} stored",
+          "unchanged": "Nothing to store or remove"
+        },
         "removeAll": "Remove all uploaded libraries",
         "removeAllQuestion": "Remove all {arg0} libraries uploaded for this component? Technologies entered by hand stay.",
         "removeFile": "Remove {arg0}",
@@ -4930,11 +4938,32 @@
           "mediumLow": "Medium/low",
           "unscored": "{arg0} without score"
         },
+        "libraryFilter": {
+          "remove": "Show all findings again, not only those of {arg0}"
+        },
         "none": "No open findings.",
         "stats": {
           "findings": "Findings"
         },
-        "title": "Findings: {arg0}"
+        "title": "Findings: {arg0}",
+        "view": {
+          "findings": "Findings ({arg0})",
+          "libraries": "Libraries ({arg0})"
+        }
+      },
+      "nodeLibraries": {
+        "cves": "CVEs",
+        "fix": "Update",
+        "fixVersion": "to {arg0} or later",
+        "highestSeverity": "Highest severity",
+        "noFix": "no fix known",
+        "severity": {
+          "CRITICAL": "Critical",
+          "HIGH": "High",
+          "LOW": "Low",
+          "MEDIUM": "Medium"
+        },
+        "withoutFix": "{arg0} without a known fix"
       },
       "none": "None.",
       "notFound": "Not found or not visible for this role.",
@@ -5007,6 +5036,12 @@
         "save": "Save rating"
       },
       "reason": "Reason",
+      "rematch": {
+        "button": "Check again",
+        "hint": "Matches the libraries and technologies below this node against all vulnerabilities again. This happens by itself after every import and every change; by hand, e.g. after the catalogue was changed.",
+        "result": "Checked again: {arg0} new, {arg1} changed, {arg2} removed",
+        "running": "Matching against the vulnerabilities"
+      },
       "rights": {
         "adhoc": "{arg0} check files of their own against all vulnerabilities. Nothing is stored; the result is seen only by the person who started the check.",
         "cases": "{arg0} see the cases. {arg1} create and edit them.",

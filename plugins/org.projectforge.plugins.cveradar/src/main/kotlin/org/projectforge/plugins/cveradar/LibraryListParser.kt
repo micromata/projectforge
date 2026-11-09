@@ -43,6 +43,8 @@ data class LibraryEntry(
     val name: String,
     val version: String,
     val distro: String? = null,
+    /** Where it was found inside the listed thing, e.g. the path of a binary in a container image (SBOM). */
+    val location: String? = null,
 ) {
     /** The package URL with the version; it identifies the entry (npm: `@` of a scope as `%40`). */
     val purl: String
@@ -94,6 +96,8 @@ object LibraryListParser {
     private val RPM_LINE = Regex("""^(?:\d+:)?([A-Za-z0-9][A-Za-z0-9._+\-]*)-(\d[^\s-]*-[^\s-]+)\.(x86_64|aarch64|noarch|i[3-6]86|armv\d\w*|ppc64le|s390x|src)$""")
     private val DEB_LINE = Regex("""^(?:ii\s+)?((?=[a-z0-9+.\-]*[a-z])[a-z0-9][a-z0-9+.\-]*)(?::[a-z0-9]+)?\s+((?:\d+:)?\d[A-Za-z0-9.+~:\-]*)(?:\s+.*)?$""")
     private val PNPM_RUNTIME = setOf("dependencies", "optionalDependencies")
+    private val SYFT_LOCATION = Regex("""syft:location:\d+:path""")
+    private const val MAX_LOCATIONS = 3
     private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(.+?)@([^?#]+)(?:\?([^#]*))?(?:#.*)?$""")
 
     /**
@@ -183,13 +187,39 @@ object LibraryListParser {
             components.forEach { component ->
                 val scope = component.path("scope").asText("")
                 if (scope != "excluded" && scope != "optional") {
-                    fromPurl(component.path("purl").asText(null))?.let { entries.add(it) }
+                    fromPurl(component.path("purl").asText(null))?.let { entries.add(it.copy(location = locationOf(component))) }
                 }
                 walk(component.path("components"), depth + 1)
             }
         }
         walk(root.path("components"), 0)
-        return entries.distinct()
+        // One entry per library; the places of a library found several times (a Go binary each) together.
+        return entries.groupBy { it.copy(location = null) }.map { (entry, list) ->
+            entry.copy(location = joinLocations(list.mapNotNull { it.location }))
+        }
+    }
+
+    /**
+     * Where a component of a CycloneDX SBOM was found: the occurrences of its evidence (CycloneDX 1.5), otherwise the
+     * locations syft writes as properties (`syft:location:0:path`).
+     */
+    private fun locationOf(component: JsonNode): String? {
+        val occurrences = component.path("evidence").path("occurrences").mapNotNull { it.path("location").textOrNull() }
+        val paths = occurrences.ifEmpty {
+            component.path("properties").filter { SYFT_LOCATION.matches(it.path("name").asText("")) }
+                .mapNotNull { it.path("value").textOrNull() }
+        }
+        return joinLocations(paths)
+    }
+
+    private fun JsonNode.textOrNull(): String? = takeIf { it.isTextual }?.asText()?.trim()?.takeIf { it.isNotEmpty() }
+
+    /** At most [MAX_LOCATIONS] places, the rest counted. */
+    private fun joinLocations(locations: List<String>): String? {
+        val distinct = locations.distinct()
+        if (distinct.isEmpty()) return null
+        val shown = distinct.take(MAX_LOCATIONS).joinToString(", ")
+        return if (distinct.size > MAX_LOCATIONS) "$shown, +${distinct.size - MAX_LOCATIONS}" else shown
     }
 
     /** The packages of an SPDX document by their purl (external reference of the type `purl`). */

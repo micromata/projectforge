@@ -48,6 +48,8 @@ class TechnologyView(
     /** The node of the technology catalogue (INV-28); none: "not in catalogue". */
     val catalogNodeId: Long? = null,
     val catalogName: String? = null,
+    /** Where the library was found: the uploaded file, with the place inside an SBOM (see CvrTechnologyDO.source). */
+    val source: String? = null,
 )
 
 /**
@@ -171,6 +173,9 @@ class LibraryFile(val name: String? = null, val text: String? = null, val data: 
 
 /** [replace]: libraries read from lists earlier and missing in these files are removed; otherwise the files only add. */
 class LibraryRequest(val files: List<LibraryFile> = emptyList(), val replace: Boolean = false)
+
+/** A job started for the inventory (libraries, matching), polled via the job monitor. */
+class JobStarted(val jobId: Int)
 
 class LibraryLine(val ecosystem: String, val group: String?, val name: String, val version: String)
 

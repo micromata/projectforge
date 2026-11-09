@@ -94,6 +94,17 @@ class OsvParserTest {
     }
 
     @Test
+    fun `the operating systems of a Go advisory only if every vulnerable package names some`() {
+        fun goos(json: String) = OsvParser.goosOf(ObjectMapper().readTree(json))
+        assertEquals(setOf("windows"), goos("""[{"path":"os","goos":["windows"]},{"path":"syscall","goos":["Windows"]}]"""))
+        assertEquals(setOf("linux", "windows"), goos("""[{"path":"os","goos":["linux"]},{"path":"syscall","goos":["windows"]}]"""))
+        assertNull(goos("""[{"path":"os","goos":["windows"]},{"path":"net/http"}]"""), "net/http is vulnerable everywhere")
+        assertNull(goos("""[{"path":"net/http","goos":[]}]"""))
+        assertNull(goos("""[]"""))
+        assertNull(goos("""{}"""))
+    }
+
+    @Test
     fun `the events become ranges, an advisory without ranges lists its versions`() {
         fun ranges(json: String) = OsvParser.ranges(ObjectMapper().readTree(json))
         assertEquals(listOf(OsvRange(null, "1.2", null)), ranges("""[{"introduced":"0"},{"fixed":"1.2"}]"""))

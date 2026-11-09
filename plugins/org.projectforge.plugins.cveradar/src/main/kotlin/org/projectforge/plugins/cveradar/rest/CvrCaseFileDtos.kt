@@ -238,6 +238,8 @@ class FindingView(
     val component: String?,
     /** The technology that matched, with its version. */
     val technology: String?,
+    /** Where the library was found: the uploaded file, with the place inside an SBOM (see CvrTechnologyDO.source). */
+    val source: String? = null,
 )
 
 /** The findings of a vulnerability; those in instances the user may not see are only counted (VIS-04). */

@@ -44,8 +44,37 @@ class FindingReport(
     val anonymized: Boolean,
     val vulnerabilityCount: Int,
     val findingCount: Int,
+    /** The vulnerabilities per library: what one update fixes at once, the most urgent first (MAT-15). */
+    val libraries: List<ReportLibrary>,
     /** The most urgent first: in the KEV catalogue, then by the priority of the case, then by the CVSS score. */
     val vulnerabilities: List<ReportVulnerability>,
+)
+
+/**
+ * A library (product and version) with its open vulnerabilities, in all components it is part of: one update fixes all
+ * of them, if its matched ranges name a fix (MAT-15).
+ */
+class ReportLibrary(
+    /** Product and version, as [NodeFinding.technology]. */
+    val technology: String,
+    val product: String?,
+    val version: String?,
+    val ecosystem: String?,
+    val purl: String?,
+    val components: List<String>,
+    /** Where it was found, per technology of the components (see CvrTechnologyDO.source). */
+    val sources: List<String>,
+    val vulnerabilityCount: Int,
+    /** The vulnerabilities matched as affected, the others only possibly. */
+    val affectedCount: Int,
+    /** The highest severity of its vulnerabilities. */
+    val severity: String?,
+    /** One of them is in the catalogue of known exploited vulnerabilities (CISA KEV). */
+    val kev: Boolean,
+    /** The highest of the fixed versions of the matched ranges: from it on none of them matches; null if none names one. */
+    val fixVersion: String?,
+    /** The vulnerabilities whose matched ranges name no fix (an update to [fixVersion] doesn't cover them). */
+    val withoutFixCount: Int,
 )
 
 /** A node of the inventory ([level], [code], [name]), or the files of an ad-hoc check ([adHoc], no level). */
@@ -105,10 +134,15 @@ class ReportTechnology(
     val cpe: String?,
     /** Where it came from: entered by hand, an SBOM, a lockfile, … */
     val origin: CvrOrigin?,
+    /** Where the library was found: the uploaded file, with the place inside an SBOM (see CvrTechnologyDO.source). */
+    val source: String? = null,
 )
 
-/** The open findings below a node one by one (see `CvrFindingReportService.nodeFindings`), the most urgent first. */
-class NodeFindingList(val findings: List<NodeFinding>)
+/**
+ * The open findings below a node one by one (see `CvrFindingReportService.nodeFindings`), the most urgent first, and
+ * per library ([ReportLibrary]).
+ */
+class NodeFindingList(val findings: List<NodeFinding>, val libraries: List<ReportLibrary>)
 
 class NodeFinding(
     val id: Long,
@@ -131,4 +165,6 @@ class NodeFinding(
     val component: String?,
     /** The technology that matched, with its version. */
     val technology: String?,
+    /** Where the library was found: the uploaded file, with the place inside an SBOM (see CvrTechnologyDO.source). */
+    val source: String? = null,
 )

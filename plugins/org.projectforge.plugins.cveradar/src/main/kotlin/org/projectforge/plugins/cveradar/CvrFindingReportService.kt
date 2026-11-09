@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.cveradar.model.CvrCaseDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
+import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
@@ -42,6 +43,7 @@ import org.projectforge.plugins.cveradar.rest.NodeFindingList
 import org.projectforge.plugins.cveradar.rest.ReferenceLinkView
 import org.projectforge.plugins.cveradar.rest.ReportCase
 import org.projectforge.plugins.cveradar.rest.ReportFinding
+import org.projectforge.plugins.cveradar.rest.ReportLibrary
 import org.projectforge.plugins.cveradar.rest.ReportTechnology
 import org.projectforge.plugins.cveradar.rest.ReportVulnerability
 import org.springframework.beans.factory.annotation.Autowired
@@ -112,13 +114,15 @@ class CvrFindingReportService {
                 caseCode = case?.code, caseStatus = case?.status, casePriority = case?.priority,
                 certainty = finding.certainty, matched = finding.matched, area = instance.area, system = instance.system,
                 instance = instance.instance, component = components[finding.componentId]?.let { "${it.code} ${it.name}" },
-                technology = technologies[finding.technologyId]?.let { listOfNotNull(it.product, it.version).joinToString(" ") },
+                technology = technologies[finding.technologyId]?.let(::technologyLabel),
+                source = technologies[finding.technologyId]?.source,
             )
         }.sortedWith(
             compareBy<NodeFinding> { !it.kev }.thenBy { it.casePriority?.ordinal ?: Int.MAX_VALUE }
                 .thenByDescending { it.cvssScore }.thenBy { it.cveId }.thenBy { it.system }.thenBy { it.instance ?: "" },
         )
-        return NodeFindingList(findings)
+        val libraries = librariesOf(scoped.findings, scoped.vulnerabilities, technologies) { components[it]?.let { c -> "${c.code} ${c.name}" } }
+        return NodeFindingList(findings, libraries)
     }
 
     fun report(user: PFUserDO, level: InventoryLevel, id: Long, anonymize: Boolean): FindingReport {
@@ -151,6 +155,7 @@ class CvrFindingReportService {
             anonymized = anonymize,
             vulnerabilityCount = reported.size,
             findingCount = findings.size,
+            libraries = librariesOf(findings, vulnerabilities, technologies) { components[it]?.let(names::component) },
             vulnerabilities = reported,
         )
     }
@@ -185,6 +190,8 @@ class CvrFindingReportService {
             anonymized = anonymize,
             vulnerabilityCount = reported.size,
             findingCount = reported.sumOf { it.findings.size },
+            // The files of an ad-hoc check are no inventory: one row per library would repeat the vulnerabilities.
+            libraries = emptyList(),
             vulnerabilities = reported,
         )
     }
@@ -211,6 +218,42 @@ class CvrFindingReportService {
             .thenBy { it.first.cveId },
     ).map { it.first }
 
+    /**
+     * The findings per library, product, version and purl alike in all components (MAT-15): the most urgent first (in
+     * the KEV catalogue, then the highest severity, then the number of vulnerabilities). Findings without a technology
+     * (entered by hand) are left out.
+     */
+    private fun librariesOf(
+        findings: List<CvrFindingDO>,
+        vulnerabilities: Map<Long, CvrVulnerabilityDO>,
+        technologies: Map<Long, CvrTechnologyDO>,
+        componentName: (Long) -> String?,
+    ): List<ReportLibrary> = findings.filter { it.technologyId in technologies && it.vulnerabilityId in vulnerabilities }
+        .groupBy { technologies.getValue(it.technologyId!!).let { t -> Triple(t.product, t.version, t.purl) } }
+        .values.map { group ->
+            val technology = technologies.getValue(group.first().technologyId!!)
+            val byVulnerability = group.groupBy { it.vulnerabilityId!! }
+            // Per vulnerability the fix of its matched ranges (the highest, if its instances matched differently).
+            val fixes = byVulnerability.mapValues { (_, list) ->
+                list.mapNotNull { CvrMatchingService.fixedVersionOf(it.matched) }.maxWithOrNull(VersionComparator)
+            }
+            ReportLibrary(
+                technology = technologyLabel(technology), product = technology.product, version = technology.version,
+                ecosystem = technology.ecosystem, purl = technology.purl,
+                components = group.mapNotNull { it.componentId }.distinct().mapNotNull(componentName).sorted(),
+                sources = group.mapNotNull { technologies[it.technologyId]?.source }.distinct().sorted(),
+                vulnerabilityCount = byVulnerability.size,
+                affectedCount = byVulnerability.values.count { list -> list.any { it.certainty == CvrFindingCertainty.AFFECTED } },
+                severity = byVulnerability.keys.mapNotNull { vulnerabilities[it]?.severity }.maxByOrNull { SEVERITIES.indexOf(it) },
+                kev = byVulnerability.keys.any { vulnerabilities[it]?.kevAdded != null },
+                fixVersion = fixes.values.filterNotNull().maxWithOrNull(VersionComparator),
+                withoutFixCount = fixes.values.count { it == null },
+            )
+        }.sortedWith(
+            compareBy<ReportLibrary> { !it.kev }.thenByDescending { SEVERITIES.indexOf(it.severity) }
+                .thenByDescending { it.vulnerabilityCount }.thenBy { it.technology },
+        )
+
     /** One entry per system, component, technology and kind of match, with the instances it matched in. */
     private fun findingsOf(
         findings: List<CvrFindingDO>,
@@ -233,7 +276,7 @@ class CvrFindingReportService {
                     certainty = first.certainty,
                     matched = first.matched,
                     technology = technology?.let {
-                        ReportTechnology(it.kind, it.vendor, it.product, it.version, it.ecosystem, it.purl, it.cpe, it.origin)
+                        ReportTechnology(it.kind, it.vendor, it.product, it.version, it.ecosystem, it.purl, it.cpe, it.origin, it.source)
                     },
                 )
             }.sortedWith(compareBy({ it.certainty }, { it.system }, { it.component }))
@@ -280,6 +323,12 @@ class CvrFindingReportService {
         const val SCHEMA_VERSION = "1"
         private const val ANONYMIZED_SCOPE = "PROJECT"
         private const val MAX_REFERENCES = 10
+
+        /** The severities from the lowest to the highest. */
+        private val SEVERITIES = listOf("NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
+
+        /** Product and version of a technology, as the findings show it. */
+        private fun technologyLabel(technology: CvrTechnologyDO) = listOfNotNull(technology.product, technology.version).joinToString(" ")
 
         /** The measures and the workaround are stored as html: as text, with lists and paragraphs on lines of their own. */
         internal fun plainText(html: String?): String? {
