@@ -1526,13 +1526,12 @@ If the data transfer files are encrypted, the key mustn't be part of this backup
 [[postgresql_dumps]]
 ==== PostgreSQL dumps
 
-The files of the file store (attachments of contracts, orders, invoices etc.) are stored in the own schema `pf_files`. This schema may become large, so the files get a dump of their own; the same goes for the sources of the CVE-Radar:
+The files of the file store (attachments of contracts, orders, invoices etc.) are stored in the own schema `pf_files`. This schema may become large, so the files get a dump of their own. The data of the CVE-Radar sources isn't backed up:
 
-* The main dump without the files and without the data of the CVE-Radar sources: `pg_dump -N pf_files --exclude-table-data=... ...` (excludes the schema `pf_files`, the tables of the sources stay, empty).
+* The main dump without the files and without the data of the CVE-Radar sources: `pg_dump -N pf_files --exclude-table-data=... ...` (excludes the schema `pf_files`, the tables of the sources stay, empty). The data of the sources (the imported details of the vulnerabilities, the OSV advisories, their indexes for the matching and the state of the imports) is imported again from the sources (NVD, EUVD, OSV) after restoring, see <<data_base>>. The cases, team checks, answers, the inventory and the findings are part of the main dump, and so are the vulnerabilities themselves (id and CVE id), which they refer to.
 * The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
-* The dump of the CVE-Radar sources only: `pg_dump --data-only -Fc -t ... ...` (the imported details of the vulnerabilities, the OSV advisories, their indexes for the matching and the state of the imports). They can be imported again from the sources (NVD, EUVD, OSV), so they don't enlarge the main dump. The cases, team checks, answers, the inventory and the findings are part of the main dump, and so are the vulnerabilities themselves (id and CVE id), which they refer to.
 
-The dump of the files is independent of the main dump: there are no foreign keys between `pf_files` and the other tables. The main dump is complete without the dump of the CVE-Radar sources; the CVE-Radar dump refers to the vulnerabilities of the main dump, so it's made first: the main dump then contains every vulnerability it refers to. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
+The dump of the files is independent of the main dump: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
 (`projectforge.cron.sanityChecks`) and on demand via _Administration_ -> _System_ -> _Check system integrity_.
 
 Data transfer files (`<home>/datatransfer`) are not part of the dumps: their metadata is in `pf_files`, but the content is stored in the file system. The backup script archives them as `projectforge_datatransfer_...tar` (uncompressed, the files are already stored compressed). If they are encrypted, the key isn't part of this archive, see <<encryption_of_the_data_transfer_files>>.
@@ -1549,14 +1548,7 @@ gunzip projectforge_2026-10-06_02-00.sql.gz
 psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
 
-Restoring the CVE-Radar sources afterwards (data only, into the tables of the main dump):
-
-[source,shell,linenums]
-----
-pg_restore -U postgres -d projectforge --data-only projectforge_cveradar_2026-10-06_02-00.dump
-----
-
-Without this dump, the cases, team checks, answers and findings are complete anyway, but the vulnerabilities have no details (description, CVSS, ...) and the OSV advisories are missing until the imports fill them again. The imports start over as after the installation: the NVD imports only the vulnerabilities modified in the last `initialDays` (see <<cve_radar_nvd>>), so set e.g. `projectforge.plugin.cveradar.nvd.initialDays=10000` for the first start to fill all of them (takes about an hour).
+The cases, team checks, answers and findings are complete, but the vulnerabilities have no details (description, CVSS, ...) and the OSV advisories are missing until the imports fill them again, by themselves: the OSV import reads all advisories again, the NVD import the vulnerabilities modified in the last `initialDays` and then the NVD since 1999 for the stored vulnerabilities without details (see <<cve_radar_nvd>>). Until an import filled a vulnerability, its findings stay as they are.
 
 Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain it):
 
@@ -1625,33 +1617,24 @@ TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
 echo Starting backup of ProjectForge ...
 
-# Main dump: all data except the files (schema pf_files).
+# Main dump: all data except the files (schema pf_files) and the data of the CVE-Radar sources.
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump of the files only (schema pf_files, attachments of contracts, orders, invoices etc.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
-# Dump of the CVE-Radar sources only (data of the tables below, restorable from the sources by the imports).
-CVERADAR_BACKUPFILE=$BACKUPDIR/${BASENAME}_cveradar_${TIMESTAMP}.dump
-CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
-  t_plugin_cveradar_purl_match t_plugin_cveradar_import_state"
 # Archive of the data transfer files (content in the file system, metadata in pf_files).
 DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
+# The data of the CVE-Radar sources isn't backed up (the tables stay, empty): the imports fill them again after
+# restoring. The vulnerabilities themselves (id and CVE id), which cases and findings refer to, are part of the main dump.
+CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
+  t_plugin_cveradar_purl_match t_plugin_cveradar_import_state"
 
-echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE, $CVERADAR_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
+echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
 
-CVERADAR_TABLES=
+# Also without the CVE-Radar plugin: --exclude-table-data doesn't fail on missing tables.
 CVERADAR_EXCLUDE=
 for TABLE in $CVERADAR_SOURCES; do
-  CVERADAR_TABLES="$CVERADAR_TABLES -t $TABLE"
   CVERADAR_EXCLUDE="$CVERADAR_EXCLUDE --exclude-table-data=$TABLE"
 done
-
-# Only with the CVE-Radar plugin (pg_dump -t fails if no table matches). Before the main dump: it then contains every
-# vulnerability the sources refer to.
-if [ -n "`$PGSQL_DIR/psql -U projectforge -tAc "select to_regclass('t_plugin_cveradar_vulnerability_detail')"`" ]; then
-  echo Exporting CVE-Radar sources ...
-  # Custom format, compressed (-Z 1): the gzipped documents (bytea) are written hex encoded.
-  $PGSQL_DIR/pg_dump -U projectforge --data-only -Fc -Z 1 $CVERADAR_TABLES -f $CVERADAR_BACKUPFILE || { echo "Error: export of CVE-Radar sources failed."; exit 1; }
-fi
 
 echo Exporting data ...
 $PGSQL_DIR/pg_dump -U projectforge -N pf_files $CVERADAR_EXCLUDE -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
@@ -1673,7 +1656,7 @@ if [ -d $PF_HOME/datatransfer ]; then
 fi
 
 # For using scp for remote backup:
-#scp $BACKUPFILE.gz $FILES_BACKUPFILE $CVERADAR_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
 
 # Deleting of daily backups is done by ProjectForge (projectforge.cron.purgeBackupDir, see below). Monthly backups
 # are kept forever, because they're needed for financial, yearly comparisons.
@@ -1687,12 +1670,12 @@ ProjectForge purges the daily backups (keeping weekly and monthly ones), if the 
 ----
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # Optional: comma-separated prefixes of the backup series. If not given, all files containing a date are processed.
-# Each series (text in front of the date, here projectforge_, projectforge_files_, projectforge_cveradar_ and
-# projectforge_datatransfer_) is purged on its own.
+# Each series (text in front of the date, here projectforge_, projectforge_files_ and projectforge_datatransfer_) is
+# purged on its own.
 #projectforge.cron.purgeBackupFilesPrefix=projectforge_
 ----
 
-The files dump `projectforge_files_...`, the CVE-Radar dump `projectforge_cveradar_...` and the archive `projectforge_datatransfer_...` are series of their own, so they are purged like the main dump (also with the prefix `projectforge_`, because they start with it).
+The files dump `projectforge_files_...` and the archive `projectforge_datatransfer_...` are series of their own, so they are purged like the main dump (also with the prefix `projectforge_`, because they start with it).
 
 For allowing `pg_dump` without prompting a password, run the script as the Unix user `projectforge` and add
 the following line to `pg_hba.conf` (peer authentication: the Unix user name must match the database user name):
@@ -2017,6 +2000,9 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 * The first run imports the vulnerabilities modified in the last `initialDays`, every run after that the ones modified
   since the last complete run (in pieces of at most 120 days, as the NVD allows). A run aborted by an error continues
   there.
+* After restoring the main dump of a backup (without the data of the sources, see <<data_base>>), the first run finds
+  stored vulnerabilities without details: after the last `initialDays`, it reads the NVD since 1999 once more and
+  fills them, without adding new ones (about an hour, quicker with an API key; an aborted run continues there).
 * The score is the one of the NVD; as long as the NVD hasn't rated a vulnerability, the score of the assigning
   authority (CNA) counts. A vulnerability without any score is imported as soon as it is rated.
 * A stored vulnerability is always updated, also when the NVD rejects it (shown struck through) or rates it lower.

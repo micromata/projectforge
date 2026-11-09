@@ -54,7 +54,11 @@ private val log = KotlinLogging.logger {}
  * - new vulnerabilities only from [CveRadarConfig.Nvd.minCvss] on (IMP-10); one not rated yet is skipped, it is
  *   modified when the NVD rates it and imported by the run after; a stored one is always updated, also when
  *   rejected (IMP-15) or rated lower. That includes the vulnerabilities made of OSV advisories, whatever their score
- *   ([CvrOsvAdvisoryService]): the NVD takes them over.
+ *   ([CvrOsvAdvisoryService]): the NVD takes them over,
+ * - after restoring the main dump of a backup only (no import state, vulnerabilities without data), the vulnerabilities
+ *   modified before the first run's range are read again since [RESTORE_START] with an import state of their own
+ *   ([RESTORE_SOURCE]): only the stored ones are filled, none is added. Resumed after an abort like the import,
+ *   the state is removed when done.
  */
 @Service
 class NvdImportService {
@@ -90,28 +94,40 @@ class NvdImportService {
         /** The new and modified vulnerabilities, to be matched against the inventory (MAT-01). */
         internal val changedIds = mutableSetOf<Long>()
 
-        override fun toString() = "created=$created, updated=$updated, unchanged=$unchanged, skipped=$skipped"
+        /** Stored ones filled again after a restore ([RESTORE_SOURCE]). */
+        var restored = 0
+
+        override fun toString() = "created=$created, updated=$updated, unchanged=$unchanged, skipped=$skipped" +
+                if (restored > 0) ", restored=$restored" else ""
     }
 
     fun import(): Result = import(nvdApiClient)
 
     @Synchronized
     internal fun import(source: NvdCveSource, now: Instant = Instant.now()): Result {
-        val state = loadState()
+        val state = loadState(SOURCE)
         val result = Result()
         try {
-            val start = state.lastModWatermark?.toInstant() ?: now.minus(Duration.ofDays(config.nvd.initialDays.toLong()))
+            val firstStart = now.minus(Duration.ofDays(config.nvd.initialDays.toLong()))
+            if (state.lastModWatermark == null && findState(RESTORE_SOURCE) == null && vulnerabilityDao.anyLackingDetails()) {
+                log.info { "NVD import: vulnerabilities without data (backup restored?), reading the NVD since $RESTORE_START again." }
+                saveState(CvrImportStateDO().also { it.source = RESTORE_SOURCE })
+            }
+            val start = state.lastModWatermark?.toInstant() ?: firstStart
             splitRange(start, now).forEach { (pieceStart, pieceEnd) ->
                 importRange(source, pieceStart, pieceEnd, result)
                 state.lastModWatermark = Date.from(pieceEnd)
                 saveState(state)
             }
+            // After the current range: the recent vulnerabilities are complete first.
+            restore(source, firstStart, now, result)
             state.lastError = null
             log.info { "NVD import finished: $result" }
             match(result)
             return result
         } catch (ex: Exception) {
             state.lastError = (ex.message ?: ex.javaClass.simpleName).take(4000)
+            match(result) // The pieces imported completely, e.g. of a long restore.
             throw ex
         } finally {
             state.lastRun = Date.from(now)
@@ -119,12 +135,39 @@ class NvdImportService {
         }
     }
 
-    private fun importRange(source: NvdCveSource, start: Instant, end: Instant, result: Result) {
+    /**
+     * Fills the stored vulnerabilities modified from [RESTORE_START] until [end] (the start of the first run's range),
+     * if a restore was detected; [end] moves with the runs, the overlap with the ranges imported meanwhile is unchanged.
+     */
+    private fun restore(source: NvdCveSource, end: Instant, now: Instant, result: Result) {
+        val state = findState(RESTORE_SOURCE) ?: return
+        try {
+            splitRange(state.lastModWatermark?.toInstant() ?: RESTORE_START, end).forEach { (pieceStart, pieceEnd) ->
+                importRange(source, pieceStart, pieceEnd, result, restoring = true)
+                state.lastModWatermark = Date.from(pieceEnd)
+                saveState(state)
+            }
+        } catch (ex: Exception) {
+            state.lastError = (ex.message ?: ex.javaClass.simpleName).take(4000)
+            state.lastRun = Date.from(now)
+            saveState(state)
+            throw ex
+        }
+        persistenceService.runInTransaction { context ->
+            context.em.find(CvrImportStateDO::class.java, RESTORE_SOURCE)?.let { context.em.remove(it) }
+        }
+        log.info { "NVD import: vulnerabilities after the restore filled (${result.restored})." }
+    }
+
+    private fun importRange(source: NvdCveSource, start: Instant, end: Instant, result: Result, restoring: Boolean = false) {
         var startIndex = 0
         while (true) {
             val page = source.fetch(start, end, startIndex)
             val stored = vulnerabilityDao.findByCveIds(page.cves.map { it.cveId }) // One query, not one per CVE.
-            page.cves.forEach { store(it, stored[it.cveId], result) }
+            page.cves.forEach { cve ->
+                val existing = stored[cve.cveId]
+                if (!restoring || existing != null) store(cve, existing, result, restoring)
+            }
             startIndex += page.cves.size
             if (page.cves.isEmpty() || startIndex >= page.totalResults) {
                 return
@@ -132,7 +175,7 @@ class NvdImportService {
         }
     }
 
-    private fun store(cve: NvdCve, existing: CvrVulnerabilityDO?, result: Result) {
+    private fun store(cve: NvdCve, existing: CvrVulnerabilityDO?, result: Result, restoring: Boolean = false) {
         if (existing == null) {
             val score = cve.rating?.score
             if (score == null || score < BigDecimal.valueOf(config.nvd.minCvss)) {
@@ -163,7 +206,7 @@ class NvdImportService {
         } else {
             vulnerabilityDao.reindex(existing)
             indexAndRemember(existing, cve, result)
-            result.updated++
+            if (restoring) result.restored++ else result.updated++
         }
     }
 
@@ -182,10 +225,11 @@ class NvdImportService {
         }
     }
 
-    private fun loadState(): CvrImportStateDO {
-        return persistenceService.find(CvrImportStateDO::class.java, SOURCE)
-            ?: CvrImportStateDO().also { it.source = SOURCE }
+    private fun loadState(source: String): CvrImportStateDO {
+        return findState(source) ?: CvrImportStateDO().also { it.source = source }
     }
+
+    private fun findState(source: String): CvrImportStateDO? = persistenceService.find(CvrImportStateDO::class.java, source)
 
     private fun saveState(state: CvrImportStateDO) {
         persistenceService.runInTransaction { context -> context.em.merge(state) }
@@ -193,6 +237,12 @@ class NvdImportService {
 
     companion object {
         const val SOURCE = "NVD"
+
+        /** The import state of reading the NVD again after a restore. */
+        const val RESTORE_SOURCE = "NVD-RESTORE"
+
+        /** Before the oldest modification in the NVD: the CVE list started in 1999. */
+        internal val RESTORE_START: Instant = Instant.parse("1999-01-01T00:00:00Z")
 
         /** The NVD answers at most 120 days per request. */
         internal val MAX_RANGE: Duration = Duration.ofDays(120)

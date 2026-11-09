@@ -100,6 +100,9 @@ class CvrMatchingService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
+    @Autowired
+    private lateinit var vulnerabilityDao: CvrVulnerabilityDao
+
     class Result {
         var created = 0
         var updated = 0
@@ -159,6 +162,9 @@ class CvrMatchingService {
         val hits = if (model.keys.isEmpty() && model.packages.isEmpty()) emptyMap() else findHits(model, vulnerabilityIds)
         val existing = findingDao.selectInScope(vulnerabilityIds, componentIds)
             .groupBy { Triple(it.vulnerabilityId!!, it.componentId!!, it.instanceId!!) }
+        // Without data of any import (main dump of a backup restored only), a vulnerability has no index yet: its
+        // findings stay as they are until an import filled it.
+        val lackingDetails = vulnerabilityDao.selectLackingDetails(existing.keys.map { it.first }.toSet())
         existing.forEach { (key, findings) ->
             val hit = hits[key]
             // A duplicate (should not exist) is removed.
@@ -170,6 +176,7 @@ class CvrMatchingService {
                 hit == null && finding.status == CvrFindingStatus.DISCARDED &&
                         finding.componentId in model.components && finding.instanceId in model.instances -> result.unchanged++
 
+                hit == null && key.first in lackingDetails -> result.unchanged++
                 hit == null -> remove(finding, result)
                 finding.certainty != hit.certainty || finding.technologyId != hit.technologyId || finding.matched != hit.matched -> {
                     finding.certainty = hit.certainty

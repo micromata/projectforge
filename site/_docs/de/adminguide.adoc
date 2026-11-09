@@ -1562,13 +1562,12 @@ Sind die Datentransfer-Dateien verschlüsselt, darf der Schlüssel nicht Teil di
 [[postgresql_dumps]]
 ==== PostgreSQL-Dumps
 
-Die Dateien des Dateispeichers (Anhänge von Verträgen, Aufträgen, Rechnungen usw.) liegen im eigenen Schema `pf_files`. Dieses Schema kann groß werden, daher bekommen die Dateien einen eigenen Dump; ebenso die Quellen des CVE-Radars:
+Die Dateien des Dateispeichers (Anhänge von Verträgen, Aufträgen, Rechnungen usw.) liegen im eigenen Schema `pf_files`. Dieses Schema kann groß werden, daher bekommen die Dateien einen eigenen Dump. Die Daten der CVE-Radar-Quellen werden nicht gesichert:
 
-* Der Haupt-Dump ohne die Dateien und ohne die Daten der CVE-Radar-Quellen: `pg_dump -N pf_files --exclude-table-data=... ...` (schließt das Schema `pf_files` aus, die Tabellen der Quellen bleiben leer erhalten).
+* Der Haupt-Dump ohne die Dateien und ohne die Daten der CVE-Radar-Quellen: `pg_dump -N pf_files --exclude-table-data=... ...` (schließt das Schema `pf_files` aus, die Tabellen der Quellen bleiben leer erhalten). Die Daten der Quellen (die importierten Details der Schwachstellen, die OSV-Advisories, ihre Indizes für das Matching und der Stand der Importe) werden nach dem Wiederherstellen erneut aus den Quellen (NVD, EUVD, OSV) importiert, siehe <<data_base>>. Die Fälle, Team-Checks, Antworten, das Inventar und die Befunde gehören zum Haupt-Dump, ebenso die Schwachstellen selbst (Id und CVE-Id), auf die sie verweisen.
 * Der Dump nur der Dateien: `pg_dump -n pf_files -Fc ...` (Custom-Format, mit `pg_restore -j` parallel wiederherstellbar).
-* Der Dump nur der CVE-Radar-Quellen: `pg_dump --data-only -Fc -t ... ...` (die importierten Details der Schwachstellen, die OSV-Advisories, ihre Indizes für das Matching und der Stand der Importe). Sie lassen sich aus den Quellen (NVD, EUVD, OSV) erneut importieren und vergrößern daher den Haupt-Dump nicht. Die Fälle, Team-Checks, Antworten, das Inventar und die Befunde gehören zum Haupt-Dump, ebenso die Schwachstellen selbst (Id und CVE-Id), auf die sie verweisen.
 
-Der Dump der Dateien ist vom Haupt-Dump unabhängig: Zwischen `pf_files` und den übrigen Tabellen gibt es keine Fremdschlüssel. Der Haupt-Dump ist auch ohne den Dump der CVE-Radar-Quellen vollständig; der CVE-Radar-Dump verweist auf die Schwachstellen des Haupt-Dumps und wird daher zuerst erstellt: Der Haupt-Dump enthält dann jede Schwachstelle, auf die er verweist. Abweichungen nach dem Einspielen von Dumps verschiedener Tage melden die Integritätsprüfungen, die nachts laufen
+Der Dump der Dateien ist vom Haupt-Dump unabhängig: Zwischen `pf_files` und den übrigen Tabellen gibt es keine Fremdschlüssel. Abweichungen nach dem Einspielen von Dumps verschiedener Tage melden die Integritätsprüfungen, die nachts laufen
 (`projectforge.cron.sanityChecks`) und bei Bedarf über _Administration_ -> _System_ -> _Check system integrity_ gestartet werden.
 
 Datentransfer-Dateien (`<home>/datatransfer`) sind nicht Teil der Dumps: Ihre Metadaten liegen in `pf_files`, der Inhalt aber im Dateisystem. Das Backup-Skript archiviert sie als `projectforge_datatransfer_...tar` (unkomprimiert, die Dateien sind bereits komprimiert gespeichert). Sind sie verschlüsselt, ist der Schlüssel nicht Teil dieses Archivs, siehe <<encryption_of_the_data_transfer_files,Verschlüsselung der Datentransfer-Dateien>>.
@@ -1585,14 +1584,7 @@ gunzip projectforge_2026-10-06_02-00.sql.gz
 psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
 
-Anschließend die CVE-Radar-Quellen wiederherstellen (nur Daten, in die Tabellen des Haupt-Dumps):
-
-[source,shell,linenums]
-----
-pg_restore -U postgres -d projectforge --data-only projectforge_cveradar_2026-10-06_02-00.dump
-----
-
-Ohne diesen Dump sind die Fälle, Team-Checks, Antworten und Befunde trotzdem vollständig, aber den Schwachstellen fehlen die Details (Beschreibung, CVSS, ...) und die OSV-Advisories, bis die Importe sie wieder füllen. Die Importe beginnen von vorn wie nach der Installation: Der NVD-Import holt nur die in den letzten `initialDays` geänderten Schwachstellen (siehe <<cve_radar_nvd>>), daher für den ersten Start z. B. `projectforge.plugin.cveradar.nvd.initialDays=10000` setzen, um alle zu füllen (dauert etwa eine Stunde).
+Die Fälle, Team-Checks, Antworten und Befunde sind vollständig, aber den Schwachstellen fehlen die Details (Beschreibung, CVSS, ...) und die OSV-Advisories, bis die Importe sie von selbst wieder füllen: Der OSV-Import liest alle Advisories erneut, der NVD-Import die in den letzten `initialDays` geänderten Schwachstellen und danach die NVD seit 1999 für die gespeicherten Schwachstellen ohne Details (siehe <<cve_radar_nvd>>). Bis ein Import eine Schwachstelle gefüllt hat, bleiben ihre Befunde unverändert.
 
 Anschließend die Dateien wiederherstellen (Schema `pf_files`, der Haupt-Dump enthält es nicht):
 
@@ -1664,33 +1656,25 @@ TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
 echo Starting backup of ProjectForge ...
 
-# Haupt-Dump: alle Daten außer den Dateien (Schema pf_files).
+# Haupt-Dump: alle Daten außer den Dateien (Schema pf_files) und den Daten der CVE-Radar-Quellen.
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump nur der Dateien (Schema pf_files, Anhänge von Verträgen, Aufträgen, Rechnungen usw.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
-# Dump nur der CVE-Radar-Quellen (Daten der folgenden Tabellen, aus den Quellen durch die Importe wiederherstellbar).
-CVERADAR_BACKUPFILE=$BACKUPDIR/${BASENAME}_cveradar_${TIMESTAMP}.dump
-CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
-  t_plugin_cveradar_purl_match t_plugin_cveradar_import_state"
 # Archiv der Datentransfer-Dateien (Inhalt im Dateisystem, Metadaten in pf_files).
 DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
+# Die Daten der CVE-Radar-Quellen werden nicht gesichert (die Tabellen bleiben leer erhalten): Die Importe füllen sie
+# nach dem Wiederherstellen wieder. Die Schwachstellen selbst (Id und CVE-Id), auf die Fälle und Befunde verweisen,
+# gehören zum Haupt-Dump.
+CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
+  t_plugin_cveradar_purl_match t_plugin_cveradar_import_state"
 
-echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE, $CVERADAR_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
+echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
 
-CVERADAR_TABLES=
+# Auch ohne das CVE-Radar-Plugin: --exclude-table-data schlägt bei fehlenden Tabellen nicht fehl.
 CVERADAR_EXCLUDE=
 for TABLE in $CVERADAR_SOURCES; do
-  CVERADAR_TABLES="$CVERADAR_TABLES -t $TABLE"
   CVERADAR_EXCLUDE="$CVERADAR_EXCLUDE --exclude-table-data=$TABLE"
 done
-
-# Nur mit dem CVE-Radar-Plugin (pg_dump -t schlägt fehl, wenn keine Tabelle passt). Vor dem Haupt-Dump: Dieser enthält
-# dann jede Schwachstelle, auf die die Quellen verweisen.
-if [ -n "`$PGSQL_DIR/psql -U projectforge -tAc "select to_regclass('t_plugin_cveradar_vulnerability_detail')"`" ]; then
-  echo Exporting CVE-Radar sources ...
-  # Custom-Format, komprimiert (-Z 1): Die gezippten Dokumente (bytea) werden hex-kodiert geschrieben.
-  $PGSQL_DIR/pg_dump -U projectforge --data-only -Fc -Z 1 $CVERADAR_TABLES -f $CVERADAR_BACKUPFILE || { echo "Error: export of CVE-Radar sources failed."; exit 1; }
-fi
 
 echo Exporting data ...
 $PGSQL_DIR/pg_dump -U projectforge -N pf_files $CVERADAR_EXCLUDE -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
@@ -1712,7 +1696,7 @@ if [ -d $PF_HOME/datatransfer ]; then
 fi
 
 # Für ein Remote-Backup per scp:
-#scp $BACKUPFILE.gz $FILES_BACKUPFILE $CVERADAR_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
 
 # Das Löschen der täglichen Backups übernimmt ProjectForge (projectforge.cron.purgeBackupDir, siehe unten). Monatliche
 # Backups werden dauerhaft aufbewahrt, da sie für finanzielle Jahresvergleiche benötigt werden.
@@ -1726,12 +1710,12 @@ ProjectForge bereinigt die täglichen Backups (wöchentliche und monatliche blei
 ----
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # Optional: kommagetrennte Präfixe der Backup-Serien. Ohne Angabe werden alle Dateien verarbeitet, die ein Datum enthalten.
-# Jede Serie (Text vor dem Datum, hier projectforge_, projectforge_files_, projectforge_cveradar_ und
-# projectforge_datatransfer_) wird für sich bereinigt.
+# Jede Serie (Text vor dem Datum, hier projectforge_, projectforge_files_ und projectforge_datatransfer_) wird für
+# sich bereinigt.
 #projectforge.cron.purgeBackupFilesPrefix=projectforge_
 ----
 
-Der Datei-Dump `projectforge_files_...`, der CVE-Radar-Dump `projectforge_cveradar_...` und das Archiv `projectforge_datatransfer_...` sind eigene Serien und werden daher wie der Haupt-Dump bereinigt (auch mit dem Präfix `projectforge_`, da sie damit beginnen).
+Der Datei-Dump `projectforge_files_...` und das Archiv `projectforge_datatransfer_...` sind eigene Serien und werden daher wie der Haupt-Dump bereinigt (auch mit dem Präfix `projectforge_`, da sie damit beginnen).
 
 Damit `pg_dump` ohne Passwortabfrage läuft, wird das Skript als Unix-Benutzer `projectforge` ausgeführt und
 folgende Zeile in `pg_hba.conf` ergänzt (Peer-Authentifizierung: Der Unix-Benutzername muss dem Datenbankbenutzernamen
@@ -2068,6 +2052,10 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
 * Der erste Lauf importiert die in den letzten `initialDays` geänderten Schwachstellen, jeder weitere die seit dem letzten
   vollständigen Lauf geänderten (in Abschnitten von höchstens 120 Tagen, wie es die NVD erlaubt). Ein durch einen Fehler
   abgebrochener Lauf setzt dort wieder an.
+* Nach dem Wiederherstellen des Haupt-Dumps eines Backups (ohne die Daten der Quellen, siehe <<data_base>>) findet der
+  erste Lauf gespeicherte Schwachstellen ohne Details: Nach den letzten `initialDays` liest er die NVD seit 1999 noch
+  einmal und füllt sie, ohne neue hinzuzufügen (etwa eine Stunde, mit API-Key schneller; ein abgebrochener Lauf setzt
+  dort wieder an).
 * Es zählt der Wert der NVD; solange die NVD eine Schwachstelle nicht bewertet hat, gilt der Wert der vergebenden Stelle
   (CNA). Eine Schwachstelle ohne jeden Wert wird importiert, sobald sie bewertet ist.
 * Eine gespeicherte Schwachstelle wird immer aktualisiert, auch wenn die NVD sie zurückweist (durchgestrichen
