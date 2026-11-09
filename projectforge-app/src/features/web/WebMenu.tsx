@@ -50,6 +50,7 @@ import { useColors } from "../../core/ui/colors";
 import { ErrorView } from "../../core/ui/ErrorView";
 import { KeyboardAvoidingFill } from "../../core/ui/KeyboardAvoidingFill";
 import { SheetPull, TabSheet } from "../../core/ui/TabSheet";
+import { GroupStates, menuGroups } from "./menuGroups";
 import { MenuRepository } from "./menuRepository";
 import {
   defaultTab,
@@ -71,23 +72,27 @@ const rememberTab = (tab: MenuTab) => {
   chosenTab = tab;
 };
 
+/** The categories the user toggled (see MenuGroups), read once per login. */
+let restoredGroups: { api: ApiClient; states: GroupStates } | null = null;
+
 const MIN_COLUMN_WIDTH = 300;
 const MAX_COLUMNS = 4;
 
 const TABS: { tab: MenuTab; label: () => string }[] = [
   { tab: "favorites", label: () => t("favorites") },
-  { tab: "recent", label: () => t("app.web.menu.recent") },
   { tab: "main", label: () => t("menu.main.title") },
+  { tab: "recent", label: () => t("app.web.menu.recent") },
   { tab: "account", label: () => t("menu.myAccount") },
 ];
 
 /**
- * The menu of the pages tab, a sheet moved up over its page: tabs for the favorites, the entries opened last, the main
- * menu and the user menu (at the right on the web pages), and a search in all of them. On a phone this is easier to
- * reach than the small navigation of the web pages; on a wide screen (landscape, tablet) the rows are in columns. The page stays visible above it, dimmed: a tap there, pulling the
- * sheet down by its top or the globe again closes it ([onClose]) and shows the page as it was. [open]: shown (moved in
- * and out); [onOpen] gets the path (or url) of the chosen entry; [active]: the tab is shown (the back button of Android
- * closes the menu then).
+ * The menu of the pages tab, a sheet moved up over its page: tabs for the favorites, the main menu, the entries opened
+ * last and the user menu (at the right on the web pages), and a search in all of them. On a phone this is easier to
+ * reach than the small navigation of the web pages; on a wide screen (landscape, tablet) the rows are in columns and
+ * the categories of the main menu open (unless the user closed them). The page stays visible above it, dimmed: a tap
+ * there, pulling the sheet down by its top or the globe again closes it ([onClose]) and shows the page as it was.
+ * [open]: shown (moved in and out); [onOpen] gets the path (or url) of the chosen entry; [active]: the tab is shown (the
+ * back button of Android closes the menu then).
  */
 export function WebMenu({
   open,
@@ -131,7 +136,11 @@ function MenuContent({
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [term, setTerm] = useState("");
-  const [openGroups, setOpenGroups] = useState<ReadonlySet<string>>(new Set());
+  const [groupStates, setGroupStates] = useState<GroupStates>(() => {
+    if (restoredGroups == null || restoredGroups.api !== api)
+      restoredGroups = api ? { api, states: menuGroups.restore() } : null;
+    return restoredGroups?.states ?? {};
+  });
   const [tabChosen, setTabChosen] = useState<MenuTab | null>(chosenTab);
   // Wide (landscape, tablet): the rows in columns.
   const [width, setWidth] = useState(0);
@@ -139,6 +148,8 @@ function MenuContent({
     MAX_COLUMNS,
     Math.max(1, Math.floor(width / MIN_COLUMN_WIDTH)),
   );
+  // Before the first layout (width 0) the default of a phone: on a wide screen the categories open with the columns.
+  const groupsOpenByDefault = columns > 1;
   const tab = tabChosen ?? (menus ? defaultTab(menus) : "favorites");
   const choose = (next: MenuTab) => {
     rememberTab(next);
@@ -174,9 +185,9 @@ function MenuContent({
               myAccount: t("menu.myAccount"),
               recent: t("menu.quickAccess.recent"),
             },
-            { term, openGroups, tab },
+            { term, groupStates, groupsOpenByDefault, tab },
           ),
-    [menus, term, openGroups, tab],
+    [menus, term, groupStates, groupsOpenByDefault, tab],
   );
 
   const open = (entry: MenuEntry) => {
@@ -184,12 +195,15 @@ function MenuContent({
     onOpen(menuPath(entry.url));
   };
 
-  const toggleGroup = (key: string) =>
-    setOpenGroups((groups) => {
-      const result = new Set(groups);
-      if (!result.delete(key)) result.add(key);
-      return result;
-    });
+  const toggleGroup = (key: string) => {
+    const states = {
+      ...groupStates,
+      [key]: !(groupStates[key] ?? groupsOpenByDefault),
+    };
+    if (api) restoredGroups = { api, states };
+    menuGroups.remember(states);
+    setGroupStates(states);
+  };
 
   const pullToRefresh = async () => {
     setRefreshing(true);
