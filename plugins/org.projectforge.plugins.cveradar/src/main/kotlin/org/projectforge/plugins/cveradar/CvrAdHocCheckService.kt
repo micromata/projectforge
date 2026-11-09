@@ -86,7 +86,7 @@ class CvrAdHocCheckService {
     fun cancel(user: PFUserDO, jobId: Int) = jobHandler.cancelJob(job(user, jobId))
 
     /** The report of a finished check; [anonymize]: the file names are replaced by `F1`, `F2`, … (AI-03). */
-    fun report(user: PFUserDO, jobId: Int, anonymize: Boolean): FindingReport {
+    fun report(user: PFUserDO, jobId: Int, anonymize: Boolean, exclude: Set<String> = emptySet()): FindingReport {
         val job = job(user, jobId)
         if (job.status != AbstractJob.Status.FINISHED) {
             throw UserException(ERROR_NOT_FINISHED)
@@ -111,6 +111,7 @@ class CvrAdHocCheckService {
             findings.filterKeys { it is Long }.mapKeys { it.key as Long },
             findings.filterKeys { it is String }.mapKeys { it.key as String },
             anonymize,
+            exclude,
         )
     }
 

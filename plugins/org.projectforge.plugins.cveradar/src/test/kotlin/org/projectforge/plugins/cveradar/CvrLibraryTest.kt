@@ -33,8 +33,10 @@ import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.jobs.AbstractJob
 import org.projectforge.framework.jobs.JobHandler
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.plugins.cveradar.model.CvrCatalogKind
 import org.projectforge.plugins.cveradar.model.CvrOrigin
+import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.rest.AreaRequest
 import org.projectforge.plugins.cveradar.rest.CatalogNodeRequest
@@ -139,6 +141,19 @@ class CvrLibraryTest : CveRadarTestBase() {
         val replaced = applyLibraries(component, request(mavenB, true))
         assertEquals(1, replaced.removedCount)
         assertEquals(setOf("slf4j-api", "netty-codec"), libraries("LIB1-S-APP").map { it.product }.toSet())
+        // Marked as deleted (findings keep referring to it), and no technology leaves a history.
+        val removed = persistenceService.executeQuery(
+            "from CvrTechnologyDO t where t.component.id = :component and t.product = 'jackson-databind'",
+            CvrTechnologyDO::class.java,
+            Pair("component", component),
+        )
+        assertEquals(listOf(true), removed.map { it.deleted })
+        val history = persistenceService.executeQuery(
+            "from HistoryEntryDO h where h.entityName = :name",
+            HistoryEntryDO::class.java,
+            Pair("name", CvrTechnologyDO::class.java.name),
+        )
+        assertEquals(0, history.size)
 
         // The same library in another version is a change, shown as such before it is applied.
         val bumped = request("    org.slf4j:slf4j-api:jar:2.0.13:compile\n    io.netty:netty-codec:jar:4.1.100.Final:runtime\n", true)

@@ -47,6 +47,7 @@ import org.projectforge.plugins.cveradar.model.CvrTechnologyDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.rest.AreaRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
+import org.projectforge.plugins.cveradar.rest.CveCounts
 import org.projectforge.plugins.cveradar.rest.InstanceRequest
 import org.projectforge.plugins.cveradar.rest.JobStarted
 import org.projectforge.plugins.cveradar.rest.LibraryDiff
@@ -116,7 +117,7 @@ class CvrInventoryService {
     /** The nodes the user may see, flat and in tree order. */
     fun tree(user: PFUserDO): InventoryTree {
         val view = View(user, load())
-        return view.tree(findingDao.selectAllOpen())
+        return view.tree(findingDao.selectAllOpen(), findingDao.selectOpenSeverities())
     }
 
     /** Where an instance is, for the findings (VIS-02). */
@@ -768,12 +769,23 @@ class CvrInventoryService {
                             (instance.confidentiality ?: system.confidentiality) == CvrConfidentiality.INTERNAL)
         }
 
-        fun tree(findings: List<CvrFindingDO>): InventoryTree {
+        /** [severities]: of the vulnerabilities by their id ([CvrFindingDao.selectOpenSeverities]). */
+        fun tree(findings: List<CvrFindingDO>, severities: Map<Long, String>): InventoryTree {
             // Findings count only in the instances the user may see (VIS-04).
             val readableInstanceIds = model.instances.values.filter { canReadInstance(it) }.map { it.id!! }.toSet()
             val open = findings.filter { it.instanceId in readableInstanceIds }
-            fun counts(list: List<CvrFindingDO>) =
-                list.count { it.certainty == CvrFindingCertainty.AFFECTED }.let { it to list.size - it }
+            fun counts(list: List<CvrFindingDO>): Found {
+                if (list.isEmpty()) return Found(0, 0, null)
+                val affected = list.count { it.certainty == CvrFindingCertainty.AFFECTED }
+                // A CVE is sure if any of its findings is, otherwise only possible.
+                val (sure, possible) = list.groupBy { it.vulnerabilityId }.entries
+                    .partition { (_, f) -> f.any { it.certainty == CvrFindingCertainty.AFFECTED } }
+                val sureSeverities = sure.map { severities[it.key] }
+                val critical = sureSeverities.count { it == "CRITICAL" }
+                val high = sureSeverities.count { it == "HIGH" }
+                val cves = CveCounts(critical, high, sure.size - critical - high, possible.size)
+                return Found(affected, list.size - affected, cves)
+            }
             val byInstance = open.groupBy { it.instanceId }
             val byComponent = open.groupBy { it.componentId }
             val bySystem = open.groupBy { model.instances[it.instanceId]?.systemId }
@@ -839,7 +851,7 @@ class CvrInventoryService {
 
         private fun groupName(id: Long?): String? = userGroupCache.getGroup(id)?.name
 
-        private fun areaRow(area: CvrAreaDO, parentKey: String?, readable: Boolean, canEdit: Boolean, found: Pair<Int, Int>): InventoryRow {
+        private fun areaRow(area: CvrAreaDO, parentKey: String?, readable: Boolean, canEdit: Boolean, found: Found): InventoryRow {
             if (!readable) {
                 return InventoryRow("A${area.id}", area.id!!, InventoryLevel.AREA, parentKey, area.code, area.code, area.name, true)
             }
@@ -848,11 +860,11 @@ class CvrInventoryService {
                 "A${area.id}", area.id!!, InventoryLevel.AREA, parentKey, area.code, area.code, area.name, false, canEdit,
                 description = area.description, groupId = area.groupId, groupName = groupName(area.groupId),
                 effectiveGroupName = effective, effectiveGroupFrom = from, lastUpdate = area.lastUpdate,
-                findingCount = found.first, possibleCount = found.second,
+                findingCount = found.affected, possibleCount = found.possible, cveCounts = found.cves,
             )
         }
 
-        private fun systemRow(system: CvrSystemDO, parentKey: String, canEdit: Boolean, found: Pair<Int, Int>): InventoryRow {
+        private fun systemRow(system: CvrSystemDO, parentKey: String, canEdit: Boolean, found: Found): InventoryRow {
             val area = model.areas[system.areaId]
             val (effective, from) = effectiveGroup(system.group, area, system.code)
             return InventoryRow(
@@ -860,7 +872,7 @@ class CvrInventoryService {
                 canEdit, description = system.description, groupId = system.groupId, groupName = groupName(system.groupId),
                 effectiveGroupName = effective, effectiveGroupFrom = from, systemType = system.type,
                 criticality = system.criticality, confidentiality = system.confidentiality, lastUpdate = system.lastUpdate,
-                findingCount = found.first, possibleCount = found.second,
+                findingCount = found.affected, possibleCount = found.possible, cveCounts = found.cves,
             )
         }
 
@@ -869,7 +881,7 @@ class CvrInventoryService {
             system: CvrSystemDO,
             parentKey: String,
             canEdit: Boolean,
-            found: Pair<Int, Int>,
+            found: Found,
         ): InventoryRow {
             val contact = userGroupCache.getUser(instance.contact?.id)
             return InventoryRow(
@@ -880,7 +892,7 @@ class CvrInventoryService {
                 confidentiality = instance.confidentiality ?: system.confidentiality,
                 site = instance.site, stage = instance.stage, tenant = instance.tenant, exposed = instance.exposed,
                 contactId = contact?.id, contactName = contact?.displayName, defaultInstance = instance.code == null,
-                lastUpdate = instance.lastUpdate, findingCount = found.first, possibleCount = found.second,
+                lastUpdate = instance.lastUpdate, findingCount = found.affected, possibleCount = found.possible, cveCounts = found.cves,
             )
         }
 
@@ -891,7 +903,7 @@ class CvrInventoryService {
             parentKey: String,
             canEdit: Boolean,
             techByComponent: Map<Long?, List<CvrTechnologyDO>>,
-            found: Pair<Int, Int>,
+            found: Found,
         ): InventoryRow {
             val base = system.code + (instance?.code?.let { "-$it" } ?: "")
             return InventoryRow(
@@ -902,10 +914,13 @@ class CvrInventoryService {
                         it.catalogNodeId, it.catalogNodeId?.let { id -> model.catalogNames[id] }, it.source)
                 },
                 lastUpdate = component.lastUpdate, technologiesUpdated = techByComponent[component.id].orEmpty().mapNotNull { it.lastUpdate }.maxOrNull(),
-                findingCount = found.first, possibleCount = found.second,
+                findingCount = found.affected, possibleCount = found.possible, cveCounts = found.cves,
             )
         }
     }
+
+    /** The open findings of a node: the numbers of sure and possible ones, and their CVEs. */
+    private class Found(val affected: Int, val possible: Int, val cves: CveCounts?)
 
     companion object {
         private const val MAX_DEPTH = 100

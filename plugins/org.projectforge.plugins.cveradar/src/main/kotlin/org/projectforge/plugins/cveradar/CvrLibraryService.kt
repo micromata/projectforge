@@ -95,7 +95,7 @@ class CvrLibraryService {
             stored++
             report()
         }
-        // Where the known ones were found this time; derived from the upload like the date below, so without history.
+        // Where the known ones were found this time; derived from the upload like the date below, written directly.
         plan.unchanged.forEach { technology ->
             val purl = plan.refined[technology.id] ?: technology.purl
             if (purl != technology.purl) {

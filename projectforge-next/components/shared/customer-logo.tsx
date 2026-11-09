@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useSystemStatus } from "@/hooks/use-system-status";
+import { type TrimmedImage, useTrimmedImage } from "@/hooks/use-trimmed-image";
+
+/** max-h-9: the logo row is h-12, see LogoRow. */
+const MAX_HEIGHT = 36;
 
 /**
  * The customer's own logo, where one is configured (`SystemStatus.logoUrl`, a bare file name such as
@@ -16,6 +20,10 @@ import { useSystemStatus } from "@/hooks/use-system-status";
  *
  * The url is root-relative and deliberately carries no BASE_PATH: Spring serves /rsPublic at the
  * origin root, not under /next (see lib/config.ts). In dev next.config.ts proxies it to :8080.
+ *
+ * A transparent margin around the image is cut off (useTrimmedImage): an admin's export often has one,
+ * and the logo would then sit indented against the menu below. The visible part keeps the size it had in
+ * the whole image, the row centres it vertically.
  */
 export function CustomerLogo() {
   const t = useTranslations("logo");
@@ -28,29 +36,46 @@ export function CustomerLogo() {
   const [failed, setFailed] = useState(false);
   // A broken dark variant falls back to showing the light logo on both themes rather than a torn image.
   const [failedDark, setFailedDark] = useState(false);
+  const src = (url: string | undefined) =>
+    url && `/rsPublic/${url.replace(/^\/+/, "")}`;
+  const light = useTrimmedImage(src(logoUrl), MAX_HEIGHT);
+  const dark = useTrimmedImage(src(logoUrlDark), MAX_HEIGHT);
 
-  if (!logoUrl || failed) return null;
-  const src = (url: string) => `/rsPublic/${url.replace(/^\/+/, "")}`;
-  const hasDark = !!logoUrlDark && !failedDark;
+  if (!light || failed) return null;
+  const hasDark = !!dark && !failedDark;
+  // A crop is shown at the height its pixels had in the whole image, not stretched to max-h-9.
+  const height = (image: TrimmedImage) =>
+    image.height === undefined
+      ? undefined
+      : ({ "--logo-height": `${image.height}px` } as React.CSSProperties);
 
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- a runtime backend url of unknown size, and
           next/image cannot be used with output: "export" here (see LogoRow). */}
       <img
-        src={src(logoUrl)}
+        src={light.src}
         alt={t("customer")}
+        style={height(light)}
         // Bounds an arbitrary customer image inside the row's fixed height - without it a tall logo
         // would push the row open and the collapse arithmetic with it. w-auto keeps the aspect ratio.
-        className={cn("max-h-9 w-auto", hasDark && "dark:hidden")}
+        className={cn(
+          "max-h-9 w-auto",
+          light.height !== undefined && "h-(--logo-height)",
+          hasDark && "dark:hidden"
+        )}
         onError={() => setFailed(true)}
       />
       {hasDark && (
         // eslint-disable-next-line @next/next/no-img-element -- see above.
         <img
-          src={src(logoUrlDark!)}
+          src={dark.src}
           alt={t("customer")}
-          className="hidden max-h-9 w-auto dark:block"
+          style={height(dark)}
+          className={cn(
+            "hidden max-h-9 w-auto dark:block",
+            dark.height !== undefined && "h-(--logo-height)"
+          )}
           onError={() => setFailedDark(true)}
         />
       )}
