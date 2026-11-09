@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { test, expect, goto, loginWithOwnSession } from "./fixtures/auth";
 import { hasRole } from "./fixtures/credentials";
 import { userFormat } from "./fixtures/format";
@@ -10,6 +10,11 @@ async function userId(page: Page): Promise<number> {
   const status = await page.request.get("/rs/userStatus");
   return ((await status.json()) as { userData: { userId: number } }).userData
     .userId;
+}
+
+/** Shows the actions of a message by a click on its bubble (not on the menu of its author, also expandable). */
+async function showActions(message: Locator): Promise<void> {
+  await message.locator('div[role="button"][aria-expanded]').click();
 }
 
 /**
@@ -69,7 +74,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
       // Live at the other participant, marked as mentioning them.
       const received = other.locator("article").filter({ hasText: "welcome" });
       await expect(received).toBeVisible({ timeout: 10_000 });
-      await received.locator("[aria-expanded]").first().click();
+      await showActions(received);
       await received
         .getByRole("button", { name: otherT("chat.message.reply") })
         .click();
@@ -142,7 +147,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
       const message = page.locator("article").filter({ hasText: text });
       await expect(message).toBeVisible();
       // The actions appear on a click on the message.
-      await message.locator("[aria-expanded]").first().click();
+      await showActions(message);
       await message
         .getByRole("button", { name: `${t("chat.message.edit")} …` })
         .click();
@@ -552,8 +557,9 @@ test.describe("chat", { tag: "@parallel" }, () => {
       await page
         .getByRole("textbox", { name: t("chat.message.placeholder") })
         .press("Enter");
+      // Exact: while sending, the remove and cancel buttons of the composer carry the name too.
       await expect(
-        page.getByRole("button", { name: "e2e-pixel.png" })
+        page.getByRole("button", { name: "e2e-pixel.png", exact: true })
       ).toBeVisible();
       await expect(
         page.getByRole("link", {
@@ -759,7 +765,7 @@ test.describe("chat", { tag: "@parallel" }, () => {
         .first();
       await expect(first).toBeVisible();
 
-      await first.locator("[aria-expanded]").first().click();
+      await showActions(first);
       await first
         .getByRole("button", { name: t("chat.message.quote._") })
         .click();

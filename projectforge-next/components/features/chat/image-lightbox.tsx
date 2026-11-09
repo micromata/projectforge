@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -35,18 +36,22 @@ export function ImageLightbox({
   const t = useTranslations();
   const file = index != null ? (files[index] ?? null) : null;
   const paging = index != null && files.length > 1;
-  const onKeyDown = (event: React.KeyboardEvent) => {
-    if (!paging) return;
-    if (event.key === "ArrowLeft" && index > 0) onIndexChange(index - 1);
-    if (event.key === "ArrowRight" && index < files.length - 1)
-      onIndexChange(index + 1);
-  };
+  const count = files.length;
+  // On the window, not the dialog: paging to the first or last image disables the focused pager button, which
+  // drops the focus out of the dialog.
+  useEffect(() => {
+    if (index == null || count < 2) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft" && index > 0) onIndexChange(index - 1);
+      if (event.key === "ArrowRight" && index < count - 1)
+        onIndexChange(index + 1);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [index, count, onIndexChange]);
   return (
     <Dialog open={file != null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent
-        className="max-h-[95dvh] max-w-[95vw] gap-2 p-2 sm:max-w-[90vw]"
-        onKeyDown={onKeyDown}
-      >
+      <DialogContent className="max-h-[95dvh] max-w-[95vw] gap-2 p-2 sm:max-w-[90vw]">
         <DialogTitle className="sr-only">{file?.name}</DialogTitle>
         <DialogDescription className="sr-only">
           {t("chat.file.download")}

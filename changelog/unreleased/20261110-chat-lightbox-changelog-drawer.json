@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Chat: in the full size view of several images, the arrow keys keep paging after the first or last image was reached. Changelog: a link of the table of contents opened as a drawer (narrow screens, app) scrolls to its entry again instead of back to the top.",
+  "de": "Chat: In der Vollansicht mehrerer Bilder blättern die Pfeiltasten weiter, auch nachdem das erste oder letzte Bild erreicht wurde. Changelog: Ein Link des als Schublade geöffneten Inhaltsverzeichnisses (schmale Bildschirme, App) springt wieder zu seinem Eintrag statt zurück an den Anfang."
+}

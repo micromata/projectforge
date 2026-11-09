@@ -1,6 +1,11 @@
 "use client";
 
-import { type ComponentProps, useState, useSyncExternalStore } from "react";
+import {
+  type ComponentProps,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -98,6 +103,8 @@ export function ChangelogTocColumn(props: TocProps) {
 export function ChangelogTocSheet({ onNavigate, ...props }: TocProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  // The entry chosen in the drawer, scrolled to once it closed.
+  const target = useRef<string | null>(null);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -106,16 +113,26 @@ export function ChangelogTocSheet({ onNavigate, ...props }: TocProps) {
           {t("changelog.toc.title")}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-72">
+      <SheetContent
+        side="right"
+        className="w-72"
+        onCloseAutoFocus={(event) => {
+          const id = target.current;
+          if (id == null) return;
+          target.current = null;
+          // Without giving the focus back to the button, which would scroll the page back to it.
+          event.preventDefault();
+          onNavigate(id);
+        }}
+      >
         <SheetHeader className="pb-2">
           <SheetTitle>{t("changelog.toc.title")}</SheetTitle>
         </SheetHeader>
         <ChangelogToc
           {...props}
           onNavigate={(id) => {
+            target.current = id;
             setOpen(false);
-            // After the drawer gave the focus back, which would scroll to its button otherwise.
-            window.setTimeout(() => onNavigate(id), 0);
           }}
           className="min-h-0 flex-1 px-4 pb-6"
         />
