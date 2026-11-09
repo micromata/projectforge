@@ -69,6 +69,10 @@ Commands:
   doctor           expo-doctor
   eas [args…]      eas-cli (npx eas-cli@latest) with EXPO_OWNER and EAS_PROJECT_ID of .env.local
                    (gitignored), e.g. eas build --platform ios --profile preview
+  publish [production|preview]
+                   iOS store build (default production): from a clean tree, check, eas build,
+                   tag app-<version>+<build> on the built commit (asks, Enter = yes), eas submit. The tag must not
+                   exist yet (raise ios.buildNumber first); push it afterwards
   logs             The log of the app in the booted iOS simulator
   help             Show this help
 
@@ -98,6 +102,75 @@ parse_slot() {
 # Installs the npm dependencies if they are missing (postinstall applies the patches of patches/).
 ensure_deps() {
   [[ -d "$APP/node_modules" ]] || (cd "$APP" && npm install)
+}
+
+confirm() {
+  local answer
+  read -r -p "$1 [y/N] " answer
+  [[ "$answer" == [yY] ]]
+}
+
+# Like confirm, but Enter means yes.
+confirm_yes() {
+  local answer
+  read -r -p "$1 [Y/n] " answer
+  [[ -z "$answer" || "$answer" == [yY] ]]
+}
+
+# The Expo account and project for eas-cli (not in the repository, see app.config.ts), and the store app.
+eas_env() {
+  ensure_deps
+  if [[ -f "$APP/.env.local" ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source "$APP/.env.local"
+    set +a
+  fi
+  # A submit profile has no env: without this it would look up the dev app de.projectforge.mobileapp.dev.
+  export APP_VARIANT="${APP_VARIANT_GIVEN:-production}"
+}
+
+# Store build of iOS by EAS, its upload to App Store Connect and the git tag app-<version>+<build> of the built commit
+# (what the published app reads: dev-docs/mobile-app.md). Built from a clean tree only, so the tag names the build.
+cmd_publish() {
+  local profile="${1:-production}"
+  [[ "$profile" == production || "$profile" == preview ]] || {
+    echo "Unknown profile: $profile (production or preview)" >&2
+    exit 1
+  }
+  if [[ -n "$(git -C "$ROOT" status --porcelain)" ]]; then
+    echo "The working tree isn't clean: commit or discard the changes first." >&2
+    git -C "$ROOT" status --short >&2
+    exit 1
+  fi
+  eas_env
+  local config version build tag
+  config="$(APP_VARIANT=production npx expo config --type public --json)"
+  version="$(node -e 'const c = JSON.parse(process.argv[1]); console.log(c.version)' "$config")"
+  build="$(node -e 'const c = JSON.parse(process.argv[1]); console.log(c.ios.buildNumber)' "$config")"
+  tag="app-$version+$build"
+  if git -C "$ROOT" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+    echo "$tag exists already: raise ios.buildNumber (and android.versionCode) in app.config.ts and commit it." >&2
+    exit 1
+  fi
+  "$APP/bin/pfApp.sh" check
+  confirm "Publish $version (build $build) from $(git -C "$ROOT" branch --show-current)@$(git -C "$ROOT" rev-parse --short HEAD) with profile $profile?" || exit 1
+  npx --yes eas-cli@latest build --platform ios --profile "$profile" --wait
+  # Tagged only after a successful build, as bin/pfDev.sh release does.
+  local tagged=false
+  if confirm_yes "Tag the built commit $tag?"; then
+    git -C "$ROOT" tag -a "$tag" -m "ProjectForge app $version (build $build)"
+    tagged=true
+  fi
+  npx --yes eas-cli@latest submit --platform ios --profile "$profile" --latest
+  echo
+  if $tagged; then
+    echo "Tagged $tag. Push it: git push origin $tag"
+  else
+    echo "Not tagged. Later: git tag -a $tag -m \"ProjectForge app $version (build $build)\" <commit of the build>"
+  fi
+  echo "App Store Connect: wait for the processing (TestFlight), then assign the build to the version and submit it" \
+    "for review (APPLE-SETUP.md, 8)."
 }
 
 # Shows the booted simulator: Simulator.app up to Xcode 26, DeviceHub.app since Xcode 27. A window that doesn't open
@@ -355,17 +428,11 @@ case "$cmd" in
     exec npx expo-doctor
     ;;
   eas)
-    ensure_deps
-    # The Expo account and project aren't in the repository (app.config.ts).
-    if [[ -f "$APP/.env.local" ]]; then
-      set -a
-      # shellcheck disable=SC1091
-      source "$APP/.env.local"
-      set +a
-    fi
-    # A submit profile has no env: without this it would look up the dev app de.projectforge.mobileapp.dev.
-    export APP_VARIANT="${APP_VARIANT_GIVEN:-production}"
-    cd "$APP" && exec npx --yes eas-cli@latest "$@"
+    eas_env
+    exec npx --yes eas-cli@latest "$@"
+    ;;
+  publish)
+    cmd_publish "$@"
     ;;
   logs)
     exec xcrun simctl spawn booted log stream --level debug --predicate 'process == "ProjectForgeRN"'
