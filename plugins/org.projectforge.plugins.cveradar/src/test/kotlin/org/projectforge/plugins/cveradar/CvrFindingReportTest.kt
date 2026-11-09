@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.jobs.AbstractJob
+import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.plugins.cveradar.model.CvrCaseKind
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
@@ -64,6 +66,9 @@ class CvrFindingReportTest : CveRadarTestBase() {
 
     @Autowired
     private lateinit var inventory: CvrInventoryRest
+
+    @Autowired
+    private lateinit var jobHandler: JobHandler
 
     @BeforeEach
     fun resetImportState() {
@@ -167,13 +172,26 @@ class CvrFindingReportTest : CveRadarTestBase() {
         assertTrue(inventory.nodeFindings(InventoryLevel.COMPONENT, fixed).findings.isEmpty())
         assertEquals(2, inventory.nodeFindings(InventoryLevel.COMPONENT, app).findings.size)
 
+        // Checked again by hand: the same findings, nothing new.
+        val job = jobHandler.getJobById(inventory.rematch(InventoryLevel.SYSTEM, system).jobId)!!
+        val until = System.currentTimeMillis() + 30_000
+        while (!job.terminated && System.currentTimeMillis() < until) {
+            Thread.sleep(20)
+        }
+        assertEquals(AbstractJob.Status.FINISHED, job.status, job.errorMessage)
+        assertEquals(2, inventory.nodeFindings(InventoryLevel.SYSTEM, system).findings.size)
+
         // A reader outside the groups sees neither the system nor anything below the area.
         val outsider = user("report-outsider", CvrRole.READER)
         logon(outsider)
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true) }
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.AREA, area, anonymize = true) }
         assertThrows(AccessException::class.java) { inventory.nodeFindings(InventoryLevel.SYSTEM, system) }
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.SYSTEM, system) }
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.AREA, area) }
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.COMPONENT, app) }
         logon(TEST_USER)
+        assertThrows(AccessException::class.java) { inventory.rematch(InventoryLevel.SYSTEM, system) }
         assertThrows(AccessException::class.java) { inventory.findingReport(InventoryLevel.SYSTEM, system, anonymize = true) }
         assertThrows(AccessException::class.java) { inventory.nodeFindings(InventoryLevel.SYSTEM, system) }
     }

@@ -1641,7 +1641,10 @@ Ein Klick auf die Anzahl der Findings in der Zeile öffnet den Reiter _Findings_
 Findings einzeln (CVE, Fall, Instanz, Komponente, Technologie, Fundort, Treffer) mit ihren Anzahlen und einem Filter
 nach Sicherheit; ein Klick auf ein Finding öffnet die Akte der CVE. _Bibliotheken_ schaltet auf eine Zeile je
 Bibliothek um: ihre CVEs, wie viele davon betreffen, der höchste Schweregrad, die Aktualisierung, die sie behebt, und
-der Fundort; ein Klick auf eine Bibliothek zeigt ihre Findings. Darüber zeigen Kacheln die Anzahl der CVEs und ihren
+der Fundort; ein Klick auf eine Bibliothek zeigt ihre Findings. _Erneut prüfen_ unten gleicht die Komponenten
+unterhalb des Knotens erneut mit allen Schwachstellen ab, was sonst nach jedem Import und jeder Änderung von selbst
+geschieht (von Hand z. B. nach einer Änderung des Katalogs); die Meldung nennt, wie viele Findings neu, geändert oder
+entfernt sind. Darüber zeigen Kacheln die Anzahl der CVEs und ihren
 Schweregrad (kritisch, hoch, mittel/niedrig, aktiv ausgenutzt); dieselben Kacheln erscheinen beim Darüberfahren über die
 Anzahlen in der Zeile. Ein Klick auf eine Kachel filtert die Findings danach, ein Klick auf _CVEs_ zeigt wieder alle. Die Schaltfläche _Findings exportieren_ unten im Dialog exportiert sie.
 

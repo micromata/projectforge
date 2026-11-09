@@ -5031,6 +5031,12 @@
         "save": "Bewertung speichern"
       },
       "reason": "Begründung",
+      "rematch": {
+        "button": "Erneut prüfen",
+        "hint": "Gleicht die Bibliotheken und Technologien unterhalb dieses Knotens erneut mit allen Schwachstellen ab. Das geschieht nach jedem Import und jeder Änderung von selbst; von Hand z. B. nach einer Änderung des Katalogs.",
+        "result": "Erneut geprüft: {arg0} neu, {arg1} geändert, {arg2} entfernt",
+        "running": "Abgleich mit den Schwachstellen"
+      },
       "rights": {
         "adhoc": "{arg0} prüfen eigene Dateien gegen alle Schwachstellen. Es wird nichts gespeichert; das Ergebnis sieht nur, wer die Prüfung gestartet hat.",
         "cases": "{arg0} sehen die Fälle. {arg1} legen sie an und bearbeiten sie.",

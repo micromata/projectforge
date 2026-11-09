@@ -48,7 +48,7 @@ import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.rest.AreaRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
 import org.projectforge.plugins.cveradar.rest.InstanceRequest
-import org.projectforge.plugins.cveradar.rest.LibraryApplyStarted
+import org.projectforge.plugins.cveradar.rest.JobStarted
 import org.projectforge.plugins.cveradar.rest.LibraryDiff
 import org.projectforge.plugins.cveradar.rest.LibraryRequest
 import org.projectforge.plugins.cveradar.rest.InventoryLevel
@@ -482,7 +482,7 @@ class CvrInventoryService {
      * Like [applyLibraries], as a job ([CvrLibraryApplyJob]) the client polls for the progress: a big upload and the
      * matching after it outlast a request. The access is checked here, before the job starts.
      */
-    fun startApplyLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): LibraryApplyStarted {
+    fun startApplyLibraries(user: PFUserDO, componentId: Long, request: LibraryRequest): JobStarted {
         val component = writableComponent(user, componentId)
         if (request.files.size > LibraryListParser.MAX_FILES) {
             throw UserException(LibraryListParser.ERROR_TOO_MANY_FILES, LibraryListParser.MAX_FILES.toString())
@@ -493,7 +493,51 @@ class CvrInventoryService {
             title = "CVE-Radar: libraries of component ${component.code}",
         )
         jobHandler.addJob(job)
-        return LibraryApplyStarted(job.id)
+        return JobStarted(job.id)
+    }
+
+    /**
+     * Matches the components below a node again, as a job ([CvrRematchJob]): whoever sees the findings of the node may
+     * have them checked again (the result is the same as after an import, nothing is decided by the user). Only the
+     * components of systems the user may read; a component of the baseline counts for an instance below.
+     */
+    fun startRematch(user: PFUserDO, level: InventoryLevel, id: Long): JobStarted {
+        access.checkReader(user)
+        val view = View(user, load())
+        val model = view.model
+        fun refused(): Nothing = throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        fun readable(component: CvrComponentDO) = view.systemIdOf(component)?.let { model.systems[it] }?.let(view::canReadSystem) == true
+        val components = model.components.values
+        val ids = when (level) {
+            InventoryLevel.AREA -> {
+                val area = view.area(id)
+                val systems = model.systems.values.filter { system ->
+                    view.canReadSystem(system) && view.chain(model.areas[system.areaId]).any { it.id == id }
+                }.mapNotNull { it.id }.toSet()
+                if (systems.isEmpty() && !view.canWriteArea(area)) refused()
+                components.filter { view.systemIdOf(it) in systems }
+            }
+
+            InventoryLevel.SYSTEM -> {
+                if (!view.canReadSystem(view.system(id))) refused()
+                components.filter { view.systemIdOf(it) == id }
+            }
+
+            InventoryLevel.INSTANCE -> {
+                val instance = view.instance(id)
+                if (!view.canReadInstance(instance)) refused()
+                components.filter { it.instanceId == id || (it.instanceId == null && it.systemId == instance.systemId) }
+            }
+
+            InventoryLevel.COMPONENT -> {
+                val component = view.component(id)
+                if (!readable(component)) refused()
+                listOf(component)
+            }
+        }.mapNotNull { it.id }
+        val job = CvrRematchJob(ids, matchingService, "$level-$id", "CVE-Radar: matching of $level $id")
+        jobHandler.addJob(job)
+        return JobStarted(job.id)
     }
 
     /**

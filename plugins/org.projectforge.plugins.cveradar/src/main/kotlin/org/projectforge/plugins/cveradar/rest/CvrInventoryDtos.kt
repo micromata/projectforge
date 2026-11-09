@@ -174,8 +174,8 @@ class LibraryFile(val name: String? = null, val text: String? = null, val data: 
 /** [replace]: libraries read from lists earlier and missing in these files are removed; otherwise the files only add. */
 class LibraryRequest(val files: List<LibraryFile> = emptyList(), val replace: Boolean = false)
 
-/** The job taking over the libraries ([org.projectforge.plugins.cveradar.CvrLibraryApplyJob]), polled via the job monitor. */
-class LibraryApplyStarted(val jobId: Int)
+/** A job started for the inventory (libraries, matching), polled via the job monitor. */
+class JobStarted(val jobId: Int)
 
 class LibraryLine(val ecosystem: String, val group: String?, val name: String, val version: String)
 

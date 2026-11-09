@@ -8,6 +8,10 @@
       "de": "Findings je Bibliothek: Der Reiter „Findings“ schaltet auf eine Zeile je Bibliothek um, mit der Anzahl ihrer CVEs, dem höchsten Schweregrad und der Aktualisierung, die sie auf einmal behebt; der Export hat dieselbe Zusammenfassung."
     },
     {
+      "en": "The findings of a node can be checked again by hand (\"Check again\" in the dialog of its findings); the message tells how many are new, changed or removed.",
+      "de": "Die Findings eines Knotens lassen sich von Hand erneut prüfen („Erneut prüfen“ im Dialog seiner Findings); die Meldung nennt, wie viele neu, geändert oder entfernt sind."
+    },
+    {
       "en": "Every library uploaded for a component shows where it was found: the file of the upload and, in the SBOM of an image, the place inside it.",
       "de": "Jede für eine Komponente hochgeladene Bibliothek zeigt, wo sie gefunden wurde: die Datei des Uploads und in der SBOM eines Images die Stelle darin."
     },

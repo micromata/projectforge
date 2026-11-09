@@ -5031,6 +5031,12 @@
         "save": "Save rating"
       },
       "reason": "Reason",
+      "rematch": {
+        "button": "Check again",
+        "hint": "Matches the libraries and technologies below this node against all vulnerabilities again. This happens by itself after every import and every change; by hand, e.g. after the catalogue was changed.",
+        "result": "Checked again: {arg0} new, {arg1} changed, {arg2} removed",
+        "running": "Matching against the vulnerabilities"
+      },
       "rights": {
         "adhoc": "{arg0} check files of their own against all vulnerabilities. Nothing is stored; the result is seen only by the person who started the check.",
         "cases": "{arg0} see the cases. {arg1} create and edit them.",

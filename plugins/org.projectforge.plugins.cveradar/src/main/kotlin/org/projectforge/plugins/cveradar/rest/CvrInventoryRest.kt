@@ -116,8 +116,13 @@ class CvrInventoryRest {
     /** Starts a job; the client follows it via the job monitor (`/rs/jobsMonitor/jobs`). */
     @AccessChecked("CvrInventoryService.startApplyLibraries: write access to the stored component's system")
     @PostMapping("component/{id}/libraries/apply")
-    fun applyLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): LibraryApplyStarted =
+    fun applyLibraries(@PathVariable id: Long, @RequestBody request: LibraryRequest): JobStarted =
         service.startApplyLibraries(user, id, request)
+
+    /** Starts a job matching the components below the node again; followed via the job monitor. */
+    @AccessChecked("CvrInventoryService.startRematch: reader role, read access to the node, only systems the user may read")
+    @PostMapping("{level}/{id}/rematch")
+    fun rematch(@PathVariable level: InventoryLevel, @PathVariable id: Long): JobStarted = service.startRematch(user, level, id)
 
     @AccessChecked("CvrInventoryService.move: write access to the node and the target, the officer anywhere")
     @PostMapping("{level}/{id}/move")
