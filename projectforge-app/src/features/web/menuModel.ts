@@ -207,12 +207,18 @@ export function tabBadge(menus: Menus, tab: MenuTab): number {
 /**
  * The rows of the menu: while searching the hits of all tabs by category and the search in all data; otherwise the
  * rows of [tab]: the favorites (a folder as a sub heading), the entries opened last, the categories of the main menu
- * (those in [openGroups] with their entries) or the account menu below the user's name.
+ * (the open ones with their entries: as in [groupStates] if the user toggled them, else [groupsOpenByDefault]) or the
+ * account menu below the user's name.
  */
 export function menuRows(
   menus: Menus,
   labels: MenuLabels,
-  opts: { term: string; openGroups: ReadonlySet<string>; tab: MenuTab },
+  opts: {
+    term: string;
+    groupStates: Readonly<Record<string, boolean>>;
+    groupsOpenByDefault: boolean;
+    tab: MenuTab;
+  },
 ): MenuRow[] {
   const rows: MenuRow[] = [];
   const term = opts.term.trim();
@@ -292,7 +298,7 @@ export function menuRows(
     .filter((it) => it.subMenu?.length)
     .forEach((category) => {
       const id = category.key ?? category.title ?? "";
-      const open = opts.openGroups.has(id);
+      const open = opts.groupStates[id] ?? opts.groupsOpenByDefault;
       rows.push({
         kind: "group",
         key: id,

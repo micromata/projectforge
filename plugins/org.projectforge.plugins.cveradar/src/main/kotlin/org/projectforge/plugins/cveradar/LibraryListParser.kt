@@ -79,6 +79,7 @@ class ParsedLibraryFile(val name: String, val format: LibraryFormat?, val entrie
  */
 object LibraryListParser {
     const val MAX_FILES = 10
+    /** Checked in the browser too (`projectforge-next/components/features/cve-radar/read-library-files.ts`): change both. */
     const val MAX_FILE_BYTES = 5 * 1024 * 1024
     const val MAX_ENTRIES = 20_000
     private const val MAX_DEPTH = 20

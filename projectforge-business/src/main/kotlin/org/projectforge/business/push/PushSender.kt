@@ -25,7 +25,10 @@ package org.projectforge.business.push
 
 import org.projectforge.business.user.AppDeviceDO
 
-/** A push to one app. The text is generic: Apple sees the payload, so no content of the notification is in it. */
+/**
+ * A push to one app. Apple sees the payload: the text is the title and beginning of the notification only if the
+ * server and the user allow it ([PushContentPrefService]), a generic text otherwise.
+ */
 class PushMessage(
     val title: String,
     val body: String,

@@ -44,6 +44,14 @@
         {
           "call": "POST /rs/uiSettings/theme",
           "controller": "org.projectforge.rest.UISettingsRest"
+        },
+        {
+          "call": "GET /rs/pushSettings",
+          "controller": "org.projectforge.rest.PushSettingsRest"
+        },
+        {
+          "call": "POST /rs/pushSettings",
+          "controller": "org.projectforge.rest.PushSettingsRest"
         }
       ]
     },

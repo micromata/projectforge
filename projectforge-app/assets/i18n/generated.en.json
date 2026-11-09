@@ -101,6 +101,8 @@
   "notification.centerEmpty" : "No open notifications.",
   "notification.markDone" : "Mark as done",
   "notification.open" : "Open",
+  "notification.push.content" : "Show the content in push messages",
+  "notification.push.contentInfo" : "The title and the beginning of a notification appear on the lock screen. The push message is delivered by the push service of Apple.",
   "ok" : "OK",
   "refresh" : "refresh",
   "save" : "Save",

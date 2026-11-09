@@ -39,6 +39,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.UserException
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -107,6 +108,8 @@ class ChatDirectTest : AbstractTestBase() {
             .single()
         assertEquals(NotificationDisplay.BANNER, notification.display)
         assertTrue(notification.title!!.startsWith(getUser("chatDirect-1").getFullname()), notification.title)
+        assertFalse(notification.body.orEmpty().contains(getUser("chatDirect-1").getFullname()!!), "Not repeating the title.")
+        assertEquals("<p>${I18nHelper.getLocalizedMessage(getUser("chatDirect-2"), "chat.notification.read")}</p>", notification.body, "Without the content: the hint only.")
 
         assertEquals(0, chatDirectService.countUnread(user2), "own message")
         logon("chatDirect-3")

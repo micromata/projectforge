@@ -27,7 +27,7 @@ package org.projectforge.business.notification
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
- * Replaces the generic text of a notification by a preview of what it is about, when shown in the app to its
+ * Replaces the generic text of a notification by a preview of what it is about, when shown in the app or a push to its
  * recipient (e.g. the beginning of a chat message). Built when shown, not stored: the mail of the same notification
  * keeps the generic text, and a changed or deleted source is never shown out of date. A Spring bean.
  */

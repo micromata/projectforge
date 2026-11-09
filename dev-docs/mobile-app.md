@@ -303,9 +303,14 @@ FCM follows).
   of the `.p8` key, `projectforge.push.apns.*`). A token refused with 410/`BadDeviceToken` is forgotten. Without
   `keyFile` nothing is sent. The chat doesn't push for a conversation the recipient watches or has muted, as for the
   other channels (`ChatNotifier`).
-- **Payload:** no content, as Apple sees it: a generic text (`notification.push.*`, in the language of the recipient),
-  the link, the notification id and the badge (count of the visible notifications), a sound only for IMPORTANT and
-  URGENT. A Notification Service Extension for text on the lock screen isn't in the first version.
+- **Payload:** the title and the beginning of the notification (`PushNotifier`: the preview the bell shows,
+  `NotificationPreview`, e.g. the chat message; else the SMS text if the rule has one, else the html body as plain
+  text, one line per block, at most 240 characters; the chat bodies don't repeat their title, `ChatNotifier.body`), the link, the notification id and the
+  badge (count of the visible notifications), a sound only for IMPORTANT and URGENT. Apple sees it: the user may switch
+  the content off (`PushContentPrefService`, a user pref, `GET/POST /rs/pushSettings`, in "My account" → Apps and in
+  the app's settings, `UserStatusStore.choosePushContent`), the server for everybody (`projectforge.push.content=false`,
+  the switch is hidden then); a generic text (`notification.push.*`, in the language of the recipient) instead. Chat
+  content is in the notification only where mails may have it (`ChatHost.mailContentAllowed`).
 - **Tap:** the link is opened in the chat or web tab, also when the push started the app (`launchLink`).
 - **Several servers:** all stored logins push, not only the one shown. The payload names the device (`device`, the
   `AppDeviceDO` id = `Session.deviceId`) and the server (`server`, the host of `projectforge.domain`, also the banner's

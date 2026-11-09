@@ -156,7 +156,8 @@ describe("searchMenuEntries", () => {
 describe("menuRows", () => {
   const closed = {
     term: "",
-    openGroups: new Set<string>(),
+    groupStates: {},
+    groupsOpenByDefault: false,
     tab: "favorites" as MenuTab,
   };
 
@@ -181,7 +182,7 @@ describe("menuRows", () => {
     const rows = menuRows(menus, labels, {
       ...closed,
       tab: "main",
-      openGroups: new Set(["FIBU"]),
+      groupStates: { FIBU: true },
     });
     expect(titles(rows)).toEqual([
       "[Common]",
@@ -192,6 +193,27 @@ describe("menuRows", () => {
     expect(
       rows.find((it) => it.kind === "group" && it.key === "FIBU"),
     ).toMatchObject({ open: true, badgeCounter: 3 });
+  });
+
+  test("on a wide screen the categories are open, unless the user closed one", () => {
+    const wide = {
+      ...closed,
+      tab: "main" as MenuTab,
+      groupsOpenByDefault: true,
+    };
+    expect(titles(menuRows(menus, labels, wide))).toEqual([
+      "[Common]",
+      "Addresses",
+      "Calendar",
+      "[Fibu]",
+      "Kreditoren-Adressbuch",
+      "Buchungskonten",
+    ]);
+    expect(
+      titles(
+        menuRows(menus, labels, { ...wide, groupStates: { FIBU: false } }),
+      ),
+    ).toEqual(["[Common]", "Addresses", "Calendar", "[Fibu]"]);
   });
 
   test("the account menu below the user name, without the logout, and the theme", () => {
