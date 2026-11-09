@@ -258,7 +258,8 @@ The store version of the app is old the day after a server release, so the serve
    endpoint entry in the same commit.
    **Before removing or renaming a field, an endpoint or a value, ask what the published app reads:**
    `git grep -n <name> <tag or commit of the published app version> -- projectforge-app/src projectforge-shared/src/rs`
-   (the app version of `app.config.ts`). Search the name in the models and in the tests' fixtures.
+   (the app version of `app.config.ts`). Every store build is tagged `app-<version>+<build>` (`bin/pfApp.sh publish`):
+   `git tag -l 'app-*' --sort=-v:refname`. Search the name in the models and in the tests' fixtures.
 3. **Not read** (or only parsed, never used): remove it at once, as for any server-only change; the contract test
    then doesn't name it.
 4. **Read** (the contract names it, the test fails when it goes): the server keeps delivering it, marked `@Deprecated("app <= x.y.z reads it, remove with MIN_APP_VERSION > x.y.z")`

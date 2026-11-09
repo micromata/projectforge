@@ -48,7 +48,6 @@ export function NotificationLogPage() {
       <PageTitleRow
         category={t("notification.rule.title")}
         title={t("notification.log")}
-        experimental
       />
       <div className="flex flex-wrap items-end gap-4 px-4 pt-3">
         <div className="flex flex-col gap-1">
