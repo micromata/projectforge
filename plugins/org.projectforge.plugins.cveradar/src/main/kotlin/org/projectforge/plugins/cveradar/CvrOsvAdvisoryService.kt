@@ -35,6 +35,7 @@ import org.projectforge.plugins.cveradar.model.CvrSource
 import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.sync.OsvAdvisory
 import org.projectforge.plugins.cveradar.sync.OsvAffected
+import org.projectforge.plugins.cveradar.sync.OsvPackages
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
@@ -184,8 +185,8 @@ class CvrOsvAdvisoryService {
     /**
      * The vulnerabilities of the keys (matched by the inventory): a stored one gets the advisories of its key linked, a
      * missing one is created from them (unless all of them are withdrawn).
-     * @param possibleOnly The keys matched as possible only: a missing vulnerability is created only from the threshold
-     * of the NVD import on ([reachesThreshold]).
+     * @param possibleOnly The keys matched as possible only, or by the advisories of a distribution only: a missing
+     * vulnerability is created only from the threshold of the NVD import on ([reachesThreshold]).
      * @return The id of the vulnerability per key.
      */
     @Synchronized
@@ -320,9 +321,13 @@ class CvrOsvAdvisoryService {
             vulnerability.nvdLastModified == null &&
                 (vulnerability.nvdStatus == STATUS_OSV || vulnerability.nvdStatus == STATUS_REJECTED)
 
-        /** Not withdrawn, then GitHub (it rates the severity), then not a malicious package, then the latest. */
+        /**
+         * Not withdrawn, then GitHub (it rates the severity), then not a malicious package, then not of a distribution
+         * (it describes its packages), then the latest.
+         */
         private val PREFERRED = compareBy<CvrOsvAdvisoryDO>(
             { it.withdrawn != null }, { it.osvId?.startsWith("GHSA-") != true }, { it.malicious },
+            { advisory -> OsvPackages.DISTROS.any { advisory.osvId?.startsWith(it.idPrefix) == true } },
         ).thenByDescending { it.modified }
 
         internal fun copy(osv: OsvAdvisory, dest: CvrOsvAdvisoryDO) {
@@ -332,14 +337,17 @@ class CvrOsvAdvisoryService {
             dest.published = osv.published?.let { Date.from(it) }
             dest.withdrawn = osv.withdrawn?.let { Date.from(it) }
             dest.aliases = osv.aliases.joinToString(", ").take(1000).ifEmpty { null }
-            dest.summary = osv.summary
+            // A distribution names the CVE only: its description as summary, the document isn't kept (see below).
+            dest.summary = osv.summary?.takeIf { it.isNotEmpty() } ?: osv.details?.takeIf { osv.distro }?.take(1000)
             dest.severity = osv.severity
             dest.cvss31Vector = osv.cvss3Vector
             dest.cvss40Vector = osv.cvss4Vector
             dest.cwes = osv.cwes.joinToString(", ").take(1000).ifEmpty { null }
             dest.malicious = osv.malicious
-            // The document isn't kept for the many malicious packages: their summary says it all.
-            dest.rawDocument = if (osv.malicious) null else gzip(osv.rawJson)
+            // The document isn't kept for the many malicious packages (their summary says it all) and the advisories of the
+            // distributions (some ten thousand, large lists of versions and binaries): they decide on the packages, the
+            // NVD describes the CVE. Less in the dump of the sources of a backup, too.
+            dest.rawDocument = if (osv.malicious || osv.distro) null else gzip(osv.rawJson)
         }
 
         /** The fields of the vulnerability from its advisories: the preferred one, the earliest publication. */
