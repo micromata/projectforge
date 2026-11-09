@@ -62,9 +62,28 @@ class VulnerabilityView(
     val euvdOnly: Boolean,
     /** Where the data comes from: the NVD, OSV (advisories) and the EUVD. */
     val sources: List<CvrSource>,
+    /** The ratings of the sources side by side ([org.projectforge.plugins.cveradar.CvrSourceRatings]). */
+    val ratings: List<SourceRatingView>,
     /** References for remediation (tags Patch, Vendor Advisory, Mitigation, PRIO-04), shown apart from the others. */
     val remediationReferences: List<NvdReference>,
     val otherReferences: List<NvdReference>,
+)
+
+/**
+ * One rating of a source.
+ * @param origin Who rated: `nvd@nist.gov` or the CNA (NVD document), the advisory id (OSV), the EUVD id.
+ * @param primary The NVD's own rating (type *Primary* of the NVD document).
+ * @param version The CVSS version (3.0, 3.1, 4.0); null for the rating of the source of its own (GitHub), severity only.
+ * @param score null for a CVSS 4.0 vector of an advisory (not calculated).
+ */
+class SourceRatingView(
+    val source: CvrSource,
+    val origin: String?,
+    val primary: Boolean,
+    val version: String?,
+    val score: BigDecimal?,
+    val severity: String?,
+    val vector: String?,
 )
 
 class ReferenceLinkView(val url: String, val label: String?)

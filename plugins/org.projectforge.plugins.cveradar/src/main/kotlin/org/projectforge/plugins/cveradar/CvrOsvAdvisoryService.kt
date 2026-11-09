@@ -262,9 +262,7 @@ class CvrOsvAdvisoryService {
         persistenceService.executeQueryBatched(
             "from CvrVulnerabilityDO v where v.id in :ids and v.deleted = false", CvrVulnerabilityDO::class.java, "ids", vulnerabilityIds,
         ).filter { isFromOsv(it) || CvrVulnerabilityDO.lacksDetails(it) }.forEach { vulnerability ->
-            val advisories = persistenceService.executeQuery(
-                "from CvrOsvAdvisoryDO a where a.vulnerability.id = :id", CvrOsvAdvisoryDO::class.java, Pair("id", vulnerability.id),
-            )
+            val advisories = advisoriesOfVulnerability(vulnerability.id!!)
             if (advisories.isEmpty() || advisories.none { it.withdrawn == null }) {
                 vulnerability.nvdStatus = STATUS_REJECTED
             } else {
@@ -275,6 +273,11 @@ class CvrOsvAdvisoryService {
             }
         }
     }
+
+    /** The advisories linked to the vulnerability, the preferred one first (see [copy]). */
+    fun advisoriesOfVulnerability(vulnerabilityId: Long): List<CvrOsvAdvisoryDO> = persistenceService.executeQuery(
+        "from CvrOsvAdvisoryDO a where a.vulnerability.id = :id", CvrOsvAdvisoryDO::class.java, Pair("id", vulnerabilityId),
+    ).sortedWith(PREFERRED)
 
     /** The ids of the vulnerabilities (of [ids]) with at least one advisory. */
     fun idsWithAdvisories(ids: Collection<Long>): Set<Long> =

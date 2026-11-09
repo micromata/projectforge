@@ -329,6 +329,11 @@ class EuvdImportService {
             }
             item.epss?.let { dest.epss = it }
             item.exploitedSince?.let { dest.exploitedSince = Date.from(it) }
+            // The rating of the id kept, so that it belongs to the EUVD id shown with it.
+            item.score?.takeIf { dest.euvdId == item.id }?.let {
+                dest.euvdScore = it
+                dest.euvdVector = item.vector?.take(CvrVulnerabilityDO.VECTOR_LENGTH)
+            }
         }
 
         /** The details of a vulnerability only the EUVD knows. */
