@@ -54,7 +54,15 @@ class CvrLibraryService {
     private lateinit var technologyDao: CvrTechnologyDao
 
     fun preview(component: CvrComponentDO, request: LibraryRequest): LibraryDiff =
-        plan(component, request, Catalog(catalogNodes())).diff()
+        preview(component, parse(request), request.replace)
+
+    /** Like [preview], for lists already read (the SBOMs of a bulk import, [CvrSbomImportService]). */
+    internal fun preview(
+        component: CvrComponentDO,
+        files: List<ParsedLibraryFile>,
+        replace: Boolean,
+        catalog: Catalog = Catalog(catalogNodes()),
+    ): LibraryDiff = plan(component, files, replace, catalog).diff()
 
     /** How far [apply] is: the libraries stored and removed so far, of how many. */
     class Progress(val stored: Int, val toStore: Int, val removed: Int, val toRemove: Int)
@@ -67,9 +75,17 @@ class CvrLibraryService {
         component: CvrComponentDO,
         request: LibraryRequest,
         progress: (Progress) -> Unit = {},
+    ): LibraryDiff = apply(component, parse(request), request.replace, progress)
+
+    /** Like [apply], for lists already read (the SBOMs of a bulk import, [CvrSbomImportService]). */
+    fun apply(
+        component: CvrComponentDO,
+        files: List<ParsedLibraryFile>,
+        replace: Boolean,
+        progress: (Progress) -> Unit = {},
     ): LibraryDiff = persistenceService.runInTransaction { context ->
         val catalog = Catalog(catalogNodes())
-        val plan = plan(component, request, catalog)
+        val plan = plan(component, files, replace, catalog)
         var stored = 0
         var removed = 0
         fun report() = progress(Progress(stored, plan.added.size, removed, plan.removed.size))
@@ -165,12 +181,16 @@ class CvrLibraryService {
         private fun line(entry: LibraryEntry) = LibraryLine(entry.ecosystem, entry.group, entry.name, entry.version)
     }
 
-    private fun plan(component: CvrComponentDO, request: LibraryRequest, catalog: Catalog): Plan {
+    /** The files of an upload, read; their number and size are limited ([LibraryListParser], [LibraryArchive]). */
+    private fun parse(request: LibraryRequest): List<ParsedLibraryFile> {
         if (request.files.size > LibraryListParser.MAX_FILES) {
             throw UserException(LibraryListParser.ERROR_TOO_MANY_FILES, LibraryListParser.MAX_FILES.toString())
         }
         val files = LibraryArchive.expand(request.files.map { Triple((it.name ?: "").take(255), it.text, it.data) })
-        val parsed = LibraryListParser.parseAll(files.map { (name, text) -> name.take(255) to text })
+        return LibraryListParser.parseAll(files.map { (name, text) -> name.take(255) to text })
+    }
+
+    private fun plan(component: CvrComponentDO, parsed: List<ParsedLibraryFile>, replace: Boolean, catalog: Catalog): Plan {
         val wanted = LinkedHashMap<String, Pair<LibraryEntry, CvrOrigin>>()
         val sources = mutableMapOf<String, MutableList<String>>()
         parsed.forEach { file ->
@@ -195,7 +215,7 @@ class CvrLibraryService {
         return Plan(
             files = parsed.map { LibraryFileView(it.name, it.format, it.entries.size) },
             added = wanted.filterKeys { it !in known && it !in refinedPurls }.values.toList(),
-            removed = if (request.replace) existing.filter { it.purl !in wanted && it.id !in refinedIds } else emptyList(),
+            removed = if (replace) existing.filter { it.purl !in wanted && it.id !in refinedIds } else emptyList(),
             unchanged = existing.filter { it.purl in wanted || it.id in refinedIds },
             refined = refined.mapKeys { it.key.id!! },
             sources = sources.mapValues { (_, list) -> list.distinct().joinToString("; ").take(1000) },

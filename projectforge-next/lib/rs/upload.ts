@@ -36,6 +36,11 @@ export interface UploadOptions {
   onProgress?: (progress: UploadProgress) => void;
   /** Aborts the transfer — for the cancel button of a running upload. */
   signal?: AbortSignal;
+  /**
+   * The type of a plain body (a `Blob` sent as it is, e.g. `application/zip`); a FormData body sets its
+   * own, boundary included.
+   */
+  contentType?: string;
 }
 
 export interface UploadResponse {
@@ -57,7 +62,8 @@ export class UploadError extends Error {
 }
 
 /**
- * POSTs a multipart body and reports progress while it goes out.
+ * POSTs a multipart body (or a plain file, see [UploadOptions.contentType]) and reports progress while
+ * it goes out.
  *
  * Resolves for **every** HTTP status, error statuses included: the attachment protocol answers a
  * refusal with 200 and a TOAST, so the status is data for the caller rather than a reason to throw.
@@ -65,7 +71,7 @@ export class UploadError extends Error {
  */
 export async function uploadWithProgress(
   path: string,
-  body: FormData,
+  body: FormData | Blob,
   options: UploadOptions = {}
 ): Promise<UploadResponse> {
   // Stores the token itself (see the file comment). A failure is left to the upload, which then
@@ -76,8 +82,8 @@ export async function uploadWithProgress(
 
 function send(
   path: string,
-  body: FormData,
-  { onProgress, signal }: UploadOptions
+  body: FormData | Blob,
+  { onProgress, signal, contentType }: UploadOptions
 ): Promise<UploadResponse> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
@@ -88,7 +94,9 @@ function send(
     xhr.open("POST", path);
     // Same as fetch's `credentials: "include"` — the session lives in the JSESSIONID cookie.
     xhr.withCredentials = true;
-    // No Content-Type: the browser derives it from the FormData, boundary included.
+    // No Content-Type for FormData: the browser derives it, boundary included.
+    if (contentType && !(body instanceof FormData))
+      xhr.setRequestHeader("Content-Type", contentType);
     xhr.setRequestHeader("X-PF-Frontend", "next");
     const token = getCsrfToken();
     if (token) xhr.setRequestHeader("X-PF-CSRF-Token", token);

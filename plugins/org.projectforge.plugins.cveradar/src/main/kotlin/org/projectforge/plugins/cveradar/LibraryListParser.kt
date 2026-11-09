@@ -82,7 +82,6 @@ object LibraryListParser {
     /** Checked in the browser too (`projectforge-next/components/features/cve-radar/read-library-files.ts`): change both. */
     const val MAX_FILE_BYTES = 5 * 1024 * 1024
     const val MAX_ENTRIES = 20_000
-    private const val MAX_DEPTH = 20
 
     const val ERROR_TOO_LARGE = "plugins.cveradar.libraries.error.tooLarge"
     const val ERROR_TOO_MANY_FILES = "plugins.cveradar.libraries.error.tooManyFiles"
@@ -105,7 +104,6 @@ object LibraryListParser {
     private val OS_RELEASE_LINE = Regex("""^(ID|VERSION_ID|VERSION_CODENAME)=["']?([A-Za-z0-9._\-]*)["']?$""")
     private val DEB_LINE = Regex("""^(?:ii\s+)?((?=[a-z0-9+.\-]*[a-z])[a-z0-9][a-z0-9+.\-]*)(?::[a-z0-9]+)?\s+((?:\d+:)?\d[A-Za-z0-9.+~:\-]*)(?:\s+.*)?$""")
     private val PNPM_RUNTIME = setOf("dependencies", "optionalDependencies")
-    private val SYFT_LOCATION = Regex("""syft:location:\d+:path""")
     private const val MAX_LOCATIONS = 3
     private val PURL = Regex("""^pkg:/*([A-Za-z][A-Za-z0-9.+\-]*)/(.+?)@([^?#]+)(?:\?([^#]*))?(?:#.*)?$""")
 
@@ -124,12 +122,10 @@ object LibraryListParser {
         val trimmed = text.trimStart()
         if (trimmed.startsWith("{")) {
             val parsed = runCatching {
-                val root = objectMapper.readTree(trimmed)
-                when {
-                    root.path("bomFormat").asText() == "CycloneDX" -> LibraryFormat.CYCLONEDX to parseCycloneDx(root)
-                    root.has("spdxVersion") -> LibraryFormat.SPDX to parseSpdx(root)
-                    root.path("packages").isArray -> LibraryFormat.COMPOSER to parseComposer(root)
-                    else -> LibraryFormat.NPM to parseNpm(root)
+                // An SBOM is read as a stream (SbomStreamReader), the lockfiles as a tree.
+                SbomStreamReader.read(trimmed)?.let { it.format to it.entries } ?: objectMapper.readTree(trimmed).let { root ->
+                    if (root.path("packages").isArray) LibraryFormat.COMPOSER to parseComposer(root)
+                    else LibraryFormat.NPM to parseNpm(root)
                 }
             }.getOrNull()
             return if (parsed == null || parsed.second.isEmpty()) ParsedLibraryFile(name, null, emptyList())
@@ -189,58 +185,13 @@ object LibraryListParser {
         if (!text.contains('%')) text
         else runCatching { URLDecoder.decode(text.replace("+", "%2B"), Charsets.UTF_8) }.getOrDefault(text)
 
-    /**
-     * The components of a CycloneDX SBOM (nested ones too) by their purl. Components without a purl (files, the
-     * application itself) and those not needed at runtime (scope `excluded` or `optional`) are left out.
-     */
-    private fun parseCycloneDx(root: JsonNode): List<LibraryEntry> {
-        val entries = mutableListOf<LibraryEntry>()
-        fun walk(components: JsonNode, depth: Int) {
-            if (!components.isArray || depth > MAX_DEPTH) return
-            components.forEach { component ->
-                val scope = component.path("scope").asText("")
-                if (scope != "excluded" && scope != "optional") {
-                    fromPurl(component.path("purl").asText(null))?.let { entries.add(it.copy(location = locationOf(component))) }
-                }
-                walk(component.path("components"), depth + 1)
-            }
-        }
-        walk(root.path("components"), 0)
-        // One entry per library; the places of a library found several times (a Go binary each) together.
-        return entries.groupBy { it.copy(location = null) }.map { (entry, list) ->
-            entry.copy(location = joinLocations(list.mapNotNull { it.location }))
-        }
-    }
-
-    /**
-     * Where a component of a CycloneDX SBOM was found: the occurrences of its evidence (CycloneDX 1.5), otherwise the
-     * locations syft writes as properties (`syft:location:0:path`).
-     */
-    private fun locationOf(component: JsonNode): String? {
-        val occurrences = component.path("evidence").path("occurrences").mapNotNull { it.path("location").textOrNull() }
-        val paths = occurrences.ifEmpty {
-            component.path("properties").filter { SYFT_LOCATION.matches(it.path("name").asText("")) }
-                .mapNotNull { it.path("value").textOrNull() }
-        }
-        return joinLocations(paths)
-    }
-
-    private fun JsonNode.textOrNull(): String? = takeIf { it.isTextual }?.asText()?.trim()?.takeIf { it.isNotEmpty() }
-
     /** At most [MAX_LOCATIONS] places, the rest counted. */
-    private fun joinLocations(locations: List<String>): String? {
+    internal fun joinLocations(locations: List<String>): String? {
         val distinct = locations.distinct()
         if (distinct.isEmpty()) return null
         val shown = distinct.take(MAX_LOCATIONS).joinToString(", ")
         return if (distinct.size > MAX_LOCATIONS) "$shown, +${distinct.size - MAX_LOCATIONS}" else shown
     }
-
-    /** The packages of an SPDX document by their purl (external reference of the type `purl`). */
-    private fun parseSpdx(root: JsonNode): List<LibraryEntry> =
-        root.path("packages").flatMap { pkg ->
-            pkg.path("externalRefs").filter { it.path("referenceType").asText() == "purl" }
-                .mapNotNull { fromPurl(it.path("referenceLocator").asText(null)) }
-        }.distinct()
 
     private fun parseNpm(root: JsonNode): List<LibraryEntry> {
         val entries = mutableListOf<LibraryEntry>()

@@ -80,6 +80,13 @@ open class CvrAreaDO : DefaultBaseDO() {
     @JsonSerialize(using = IdOnlySerializer::class)
     open var group: GroupDO? = null
 
+    /**
+     * The largest zip of a bulk import of SBOMs into this area and below it, in MB (INV-35); null: as the area above,
+     * at the top the configured size. Set by the security officer only.
+     */
+    @get:Column(name = "sbom_import_max_mb")
+    open var sbomImportMaxMb: Int? = null
+
     val parentId: Long?
         @Transient
         get() = parent?.id

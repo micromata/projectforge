@@ -1991,7 +1991,15 @@ projectforge.plugin.cveradar.teamCheckActiveDays=90
 projectforge.plugin.cveradar.readGroup=cve-read
 projectforge.plugin.cveradar.writeGroup=cve-read-write
 projectforge.plugin.cveradar.securityOfficerGroup=security-officers
+# Sammelimport von SBOMs in einen Bereich: größtes Zip in MB, sofern der Security Officer für den Bereich keine andere
+# Größe festlegt, und die größte, die der Security Officer festlegen darf. Ein Reverse-Proxy muss eine Anfrage dieser
+# Größe durchlassen (nginx: client_max_body_size).
+projectforge.plugin.cveradar.sbomImport.maxSizeMb=20
+projectforge.plugin.cveradar.sbomImport.maxSizeLimitMb=1024
 ----
+
+Das Zip eines Sammelimports von SBOMs (siehe Benutzerhandbuch) liegt während des Lesens im temporären Verzeichnis der
+JVM und wird danach gelöscht; dort muss so viel Platz frei sein.
 
 Die veralteten Geräte löscht der Job der Anbindung (siehe <<cve_radar_jobs>>).
 

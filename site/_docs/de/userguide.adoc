@@ -1550,7 +1550,9 @@ rm -f libraries.zip
   `.mod` gelesen, in beliebigen Verzeichnissen; das Format wird am Inhalt erkannt. Dateien und Verzeichnisse mit
   einem Punkt am Anfang (`.npmrc`, `.env`), `gradle.properties`, `settings.xml` und alle anderen Dateien bleiben
   ungelesen, ein Zip im Zip wird nicht entpackt.
-* Grenzen: 10 MB je Zip, 5 MB je Datei, 50 MB und 100 Listen aus den Zips eines Uploads.
+* Grenzen: 10 Dateien auf einmal, 10 MB je Zip, 5 MB je Datei, 50 MB und 100 Listen aus den Zips eines Uploads,
+  20.000 Bibliotheken. Die SBOMs vieler Repositories und Images auf einmal gehen stattdessen in einen Bereich, siehe
+  <<cve_radar_sbom_import>>.
 * Die Vorschau zeigt jede Datei des Zips mit ihrem Format und der Zahl der Bibliotheken; eine nicht erkannte Datei
   ist markiert, so fällt ein Fehler des Scripts auf, bevor etwas übernommen wird.
 * Mit _Früher hochgeladene Bibliotheken ersetzen_ werden die Bibliotheken entfernt, die im Upload fehlen: immer das vollständige Zip der Komponente
@@ -1585,6 +1587,47 @@ darin mit der Go-Version, mit der es gebaut wurde. Ein altes Programm (z. B. `go
 alle seither behobenen Schwachstellen der Standardbibliothek mit; eine Aktualisierung des Images oder des Programms
 behebt sie alle auf einmal. Hinweise, die nur andere Betriebssysteme betreffen (z. B. Windows), treffen keine
 Komponente, die unter Linux läuft, also eine mit Paketen einer Linux-Distribution.
+
+[[cve_radar_sbom_import]]
+=== CVE-Radar: Sammelimport von SBOMs in einen Bereich
+
+Ein Projekt mit vielen Repositories und Container-Images scannen manche Werkzeuge als Ganzes: Ihre Ausgabe ist ein Zip
+mit einer SBOM je Repository (oft mit weiteren seiner Module) und je Image, daneben Logs, Rohberichte des Scanners und
+eine SBOM über alles zusammen. Ein solches Zip wird in einen *Bereich* importiert (_SBOMs importieren_ im Dialog des
+Bereichs; wer den Bereich ändern darf):
+
+. Zip wählen und _Einlesen_. Der Server liest es als Ganzes; behalten werden nur die Bibliotheken der SBOMs.
+. Die Vorschau listet eine Zeile je Repository und je Container-Image, mit vorgeschlagenem Code und Namen, der Zahl
+  der Bibliotheken und was geschieht: _Neu_, _Aktualisieren_ (schon im Bereich, seine Bibliotheken werden ersetzt),
+  _Code vergeben_ (durch einen Bereich oder ein System eines anderen Bereichs; mit einem anderen Code lässt es sich
+  importieren), _Sammel-SBOM_ (eine SBOM mit den Bibliotheken der anderen; bleibt außen vor, sonst stünden sie doppelt
+  da), _Keine Bibliotheken_. Code und Name lassen sich ändern, Zeilen abwählen.
+  Status und angezeigte Änderungen gelten für den vorgeschlagenen Code: Ein Code, der auf den eines Systems geändert
+  wird, das schon im Bereich ist, ersetzt die Bibliotheken von dessen Komponente `SBOM`.
+. _Importieren_ speichert die gewählten Zeilen, jede für sich: Eine fehlgeschlagene wird gemeldet, die anderen werden
+  gespeichert. Die Komponenten werden am Ende einmal mit den Schwachstellen abgeglichen.
+
+Wie die SBOMs zugeordnet werden, unabhängig vom Werkzeug, das sie geschrieben hat:
+
+* Eine SBOM eines Container-Images (`metadata.component.type` ist `container`) gehört zu ihrem Image (Name und Tag):
+  eine Komponente des Systems _Container-Images_ des Bereichs (Code `<Bereich>-IMAGES`, oder `<Bereich>-IMAGES-2` usw.,
+  wenn ein anderer Bereich ihn hat).
+* Jede andere SBOM gehört zum obersten Ordner auf ihrem Pfad, der selbst eine SBOM enthält, z. B. `repositories/app/`
+  für `repositories/app/bom.cdx.json` und `repositories/app/native/x/bom.cdx.json`: ein System des Bereichs mit dem
+  Namen des Ordners und der Komponente `SBOM`. Eine SBOM im obersten Ordner des Zips ist eine eigene. Eine SBOM aller
+  Repositories gehört deshalb dorthin, nicht neben sie: `repositories/all.cdx.json` ergäbe ein System für alle.
+* Gelesen werden nur CycloneDX und SPDX als JSON; Komponenten ohne purl mit Version (Dateien, Deklarationen mit nicht
+  aufgelöster Version) bleiben außen vor und werden gezählt.
+* Ein erneuter Import des Zips aktualisiert dieselben Systeme und Komponenten: Die aus Listen gelesenen Bibliotheken
+  werden ersetzt, von Hand eingetragene Technologien bleiben. Systeme des Bereichs, für die das Zip nichts hat, bleiben,
+  wie sie sind.
+* Grenzen: die Größe des Zips je Bereich, 20 MB, sofern der Security Officer für den Bereich keine andere festlegt
+  (Feld im Dialog des Bereichs, bis zur Obergrenze, die der Administrator konfiguriert); 20.000 Einträge; jede Datei
+  entpackt höchstens 1 GB, alle zusammen höchstens das 20-Fache des Zips; 20.000 Bibliotheken je Repository oder
+  Image. Ein Reverse-Proxy vor ProjectForge hat eine eigene Grenze für die Größe einer Anfrage (nginx:
+  `client_max_body_size`).
+* Das gelesene Zip wird nicht gespeichert; sein Plan bleibt eine Stunde erhalten, bis zum Import oder bis ein anderes
+  Zip gelesen wird. Je Benutzer wird ein Zip nach dem anderen hochgeladen und gelesen.
 
 [[cve_radar_case_ai]]
 === CVE-Radar: Fall mit KI recherchieren

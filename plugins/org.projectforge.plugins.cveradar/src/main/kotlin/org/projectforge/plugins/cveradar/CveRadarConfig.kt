@@ -69,6 +69,17 @@ open class CveRadarConfig {
 
     var deptrack = DependencyTrack()
 
+    var sbomImport = SbomImport()
+
+    /** The bulk import of the SBOMs of many repositories and container images into an area (INV-35). */
+    class SbomImport {
+        /** The largest zip an area takes, in MB, unless the security officer set another size for it. */
+        var maxSizeMb: Int = 20
+
+        /** The most the security officer may set for an area, in MB. */
+        var maxSizeLimitMb: Int = 1024
+    }
+
     /** Log server Graylog with the messages of the client agents (EXT-04, EXT-05). */
     class Graylog {
         /** Base url, e.g. `https://graylog.example.org`; empty: inactive. */

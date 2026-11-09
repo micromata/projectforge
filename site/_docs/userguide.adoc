@@ -1512,7 +1512,9 @@ rm -f libraries.zip
 * From a zip only files ending in `.json`, `.lock`, `.lockfile`, `.yaml`, `.yml`, `.txt` or `.mod` are read, in
   any directory; the format is told from the content. Files and directories starting with a dot (`.npmrc`, `.env`),
   `gradle.properties`, `settings.xml` and all other files are skipped unread, a zip in the zip isn't unpacked.
-* Limits: 10 MB per zip, 5 MB per file, 50 MB and 100 lists from the zips of an upload.
+* Limits: 10 files at once, 10 MB per zip, 5 MB per file, 50 MB and 100 lists from the zips of an upload, 20,000
+  libraries. The SBOMs of many repositories and images at once go into an area instead, see
+  <<cve_radar_sbom_import>>.
 * The preview lists every file of the zip with its format and the number of libraries; a file that isn't recognised
   is marked, so a mistake of the script is seen before anything is applied.
 * With _Replace the libraries uploaded earlier_, the libraries missing in the upload are removed: always upload the complete zip of the component.
@@ -1545,6 +1547,44 @@ version of Go it was built with. An old program (e.g. `gosu` in many database im
 the standard library fixed since; an update of the image or of the program fixes all of them at once. Advisories for
 other operating systems only (e.g. Windows) don't match a component that runs on Linux, i.e. one with packages of a
 Linux distribution.
+
+[[cve_radar_sbom_import]]
+=== CVE-Radar: bulk import of SBOMs into an area
+
+A project with many repositories and container images is scanned as a whole by some tools: their output is a zip with
+an SBOM per repository (often with further ones of its modules) and per image, besides logs, raw reports of the
+scanner and an SBOM of everything together. Such a zip is imported into an *area* (_Import SBOMs_ in the dialog of the
+area; whoever may change the area):
+
+. Choose the zip and _Read_ it. The server reads it as a whole; only the libraries of the SBOMs are kept.
+. The preview lists one row per repository and per container image, with the code and name proposed, the number of
+  libraries and what happens: _New_, _Update_ (already in the area, its libraries are replaced), _Code taken_ (by an
+  area or a system of another area; another code makes it importable), _Aggregate_ (an SBOM listing the libraries of
+  the others; left out, they would be there twice), _No libraries_. Code and name can be changed, rows ticked off.
+  The status and the changes shown are those of the code proposed: a code changed to the one of a system already in
+  the area replaces the libraries of its component `SBOM`.
+. _Import_ stores the ticked rows, each on its own: a failing one is reported, the others are stored. The components
+  are matched against the vulnerabilities once at the end.
+
+How the SBOMs are assigned, independent of the tool that wrote them:
+
+* An SBOM of a container image (`metadata.component.type` is `container`) belongs to its image (name and tag): a
+  component of the system _Container images_ of the area (code `<area>-IMAGES`, or `<area>-IMAGES-2` and so on if another
+  area has it).
+* Every other SBOM belongs to the uppermost folder on its path that holds an SBOM itself, e.g. `repositories/app/`
+  for `repositories/app/bom.cdx.json` and `repositories/app/native/x/bom.cdx.json`: a system of the area named after
+  the folder, with the component `SBOM`. An SBOM in the top folder of the zip is one of its own. An SBOM of all
+  repositories therefore belongs there, not next to them: `repositories/all.cdx.json` would make one system of all.
+* Only CycloneDX and SPDX as JSON are read; components without a purl with a version (files, declarations with an
+  unresolved version) are left out and counted.
+* Importing the zip again updates the same systems and components: the libraries read from lists are replaced,
+  technologies entered by hand stay. Systems of the area the zip has nothing for stay as they are.
+* Limits: the size of the zip per area, 20 MB unless the security officer sets another for the area (field in the
+  dialog of the area, up to the cap configured by the administrator); 20,000 entries; every file unpacked at most 1 GB,
+  all together at most 20 times the zip; 20,000 libraries per repository or image. A reverse proxy in front of
+  ProjectForge has a limit of its own for the size of a request (nginx: `client_max_body_size`).
+* The read zip is not stored; its plan is kept for an hour, until it is imported or another zip is read. One zip per
+  user is uploaded and read at a time.
 
 [[cve_radar_case_ai]]
 === CVE-Radar: research a case with AI

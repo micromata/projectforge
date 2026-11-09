@@ -96,6 +96,9 @@ class InventoryRow(
     val possibleCount: Int = 0,
     /** The same findings as CVEs, each counted once, by severity (the pills of the tree); null without findings. */
     val cveCounts: CveCounts? = null,
+    /** An area: the size set for a bulk import of SBOMs on it (INV-35), and the one that counts (inherited, configured). */
+    val sbomImportMaxMb: Int? = null,
+    val sbomImportLimitMb: Int? = null,
 )
 
 /**
@@ -124,6 +127,8 @@ class AreaRequest(
     val name: String? = null,
     val description: String? = null,
     val groupId: Long? = null,
+    /** The largest zip of a bulk import of SBOMs in MB (INV-35), null: as the area above; set by the security officer only. */
+    val sbomImportMaxMb: Int? = null,
 )
 
 class SystemRequest(

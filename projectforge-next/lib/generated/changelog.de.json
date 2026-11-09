@@ -3,9 +3,15 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.8",
-    "date" : "2026-11-09",
+    "date" : "2026-11-10",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "CVE-Radar, Findings exportieren und Ad-hoc-Prüfung: Einzelne Schwachstellen lassen sich aus dem Report und dem KI-Prompt herausnehmen („Schwachstellen auswählen“), z. B. um eine Aktualisierung mit großen Änderungen in einem eigenen Branch zu behandeln. Der Prompt fragt jetzt zuerst nach einem neueren Release der direkten Abhängigkeit, das die gefixte Version mitbringt, und erst wenn es keins gibt, nach dem Erzwingen der Version.", {
+        "title" : "CVE-Radar",
+        "items" : [ "Sammelimport von SBOMs in einen Bereich: Ein Zip mit den SBOMs vieler Repositories und Container-Images (etwa die Ausgabe eines Scans eines ganzen Projekts) wird zu einem System je Repository und einer Komponente je Image. Eine Vorschau zeigt, was angelegt oder aktualisiert wird, Codes und Namen lassen sich ändern; Logs, Rohberichte und eine SBOM über alles werden übersprungen. Das größte Zip legt der Security Officer je Bereich fest.", "SBOMs werden als Datenstrom gelesen und brauchen damit auch bei großen Dateien wenig Speicher." ]
+      } ]
+    }, {
       "type" : "improved",
       "items" : [ "{app} Seitenmenü: Auf dem Tablet sind die Kategorien des Hauptmenüs aufgeklappt, auf- oder zugeklappte bleiben so; der Tab Hauptmenü steht an zweiter Stelle.", {
         "title" : "Benachrichtigungen",
@@ -13,10 +19,10 @@
       } ]
     }, {
       "type" : "changed",
-      "items" : [ "CVE-Radar-Inventar: Die Findings eines Knotens erscheinen als CVEs nach Schweregrad (kritisch, hoch, mittel/niedrig) und nur möglicherweise betroffene, jede CVE einmal gezählt, passend zu den Kennzahlen des Tooltips.", "CVE-Radar: Die Technologien und Bibliotheken einer Komponente werden nicht mehr historisiert; vorhandene Einträge werden entfernt." ]
+      "items" : [ "Backup: Die Daten der CVE-Radar-Quellen (Details der Schwachstellen, OSV-Advisories, Indizes) werden nicht mehr gesichert, der eigene Dump projectforge_cveradar_… entfällt. Nach dem Wiederherstellen füllen die Importe sie von selbst wieder: Der NVD-Import liest die NVD seit 1999 noch einmal für die gespeicherten Schwachstellen ohne Details, deren Befunde bleiben bis dahin unverändert.", "CVE-Radar-Inventar: Die Findings eines Knotens erscheinen als CVEs nach Schweregrad (kritisch, hoch, mittel/niedrig) und nur möglicherweise betroffene, jede CVE einmal gezählt, passend zu den Kennzahlen des Tooltips.", "CVE-Radar: Die Technologien und Bibliotheken einer Komponente und die importierten Schwachstellen werden nicht mehr historisiert; vorhandene Einträge werden entfernt." ]
     }, {
       "type" : "fixed",
-      "items" : [ "CVE-Radar: Eine Maven-Version mit einem Zusatz, der keine Vorabversion kennzeichnet (bei Guava 33.7.2-jre oder 33.7.2-android, 1.0-jdk8, 5.3.18.RELEASE), gilt als das Release selbst und nicht mehr als dessen noch betroffene Vorabversion.", "CVE-Radar, Bibliotheken hochladen: Eine Datei über der Grenze (5 MB, ein zip 10 MB) wird sofort mit ihrer Meldung abgelehnt, statt im Browser zu scheitern, und der Fortschrittsbalken bleibt über den Buttons sichtbar." ]
+      "items" : [ "{app} Hinter einem SSO-Proxy öffnen sich die Seiten nach dem Ende seiner Session nicht mehr in Safari: Nach der neuen Anmeldung wird die angefragte Seite wieder in der App geladen, und der Seiten-Tab startet nicht mehr mit dem Login des Proxys.", "CVE-Radar: Eine Maven-Version mit einem Zusatz, der keine Vorabversion kennzeichnet (bei Guava 33.7.2-jre oder 33.7.2-android, 1.0-jdk8, 5.3.18.RELEASE), gilt als das Release selbst und nicht mehr als dessen noch betroffene Vorabversion.", "CVE-Radar, Bibliotheken hochladen: Eine Datei über der Grenze (5 MB, ein zip 10 MB) wird sofort mit ihrer Meldung abgelehnt, statt im Browser zu scheitern, und der Fortschrittsbalken bleibt über den Buttons sichtbar.", "CVE-Radar: Die Kritikalität einer nur aus OSV (noch nicht aus der NVD) bekannten Schwachstelle passt zu ihrem CVSS-Score, statt der Einstufung von GitHub zu folgen (z. B. kritisch bei Score 6,1); gespeicherte Einträge werden korrigiert." ]
     } ]
   },
   "groups" : [ {

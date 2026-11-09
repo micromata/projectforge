@@ -85,6 +85,9 @@ class CvrInventoryService {
     private lateinit var catalogService: CvrCatalogService
 
     @Autowired
+    private lateinit var config: CveRadarConfig
+
+    @Autowired
     private lateinit var jobHandler: JobHandler
 
     @Autowired
@@ -235,6 +238,7 @@ class CvrInventoryService {
             it.name = checkedName(request.name)
             it.description = request.description.clean(TEXT_LENGTH)
             it.group = group
+            if (view.officer) it.sbomImportMaxMb = checkedImportLimit(request.sbomImportMaxMb)
         }
         return areaDao.insert(area, checkAccess = false)
     }
@@ -258,6 +262,8 @@ class CvrInventoryService {
         stored.name = checkedName(request.name)
         stored.description = request.description.clean(TEXT_LENGTH)
         stored.group = group
+        // Only the officer sets the size of a bulk import (INV-35); the others keep it as it is.
+        if (view.officer) stored.sbomImportMaxMb = checkedImportLimit(request.sbomImportMaxMb)
         areaDao.update(stored, checkAccess = false)
     }
 
@@ -650,6 +656,94 @@ class CvrInventoryService {
         }
     }
 
+    // --- Bulk import of SBOMs (INV-35, CvrSbomImportService) ---
+
+    /** What a bulk import into an area needs of the inventory; refused without write access to the area. */
+    class ImportSnapshot(
+        val areaId: Long,
+        val areaCode: String,
+        /** The largest zip the area takes. */
+        val limitBytes: Long,
+        /** The systems of the area by code, with the components of their baseline by code. */
+        val systems: Map<String, Map<String, CvrComponentDO>>,
+        /** The codes of all areas and of the systems of the other areas: one name space with the systems (INV-06). */
+        val takenCodes: Set<String>,
+    )
+
+    fun importSnapshot(user: PFUserDO, areaId: Long): ImportSnapshot {
+        val view = View(user, load())
+        val area = view.area(areaId)
+        if (!view.canWriteArea(area)) {
+            throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        }
+        val model = view.model
+        val systems = model.systems.values.filter { it.areaId == areaId }
+        return ImportSnapshot(
+            areaId = areaId,
+            areaCode = area.code!!,
+            limitBytes = view.importLimitMb(area) * 1024L * 1024L,
+            systems = systems.associate { system ->
+                system.code!! to model.components.values.filter { it.systemId == system.id }.associateBy { it.code!! }
+            },
+            takenCodes = (model.areas.values.mapNotNull { it.code } +
+                    model.systems.values.filter { it.areaId != areaId }.mapNotNull { it.code }).toSet(),
+        )
+    }
+
+    /**
+     * The component [componentCode] of the baseline of the system [systemCode] in the area, both created if missing; a
+     * system of that code in another area is refused. The rights are checked again: the import runs as a job and the
+     * inventory may have changed since its plan. Not matched here: the import matches once at the end
+     * ([rematchImported]).
+     */
+    fun importTarget(
+        user: PFUserDO,
+        areaId: Long,
+        systemCode: String,
+        systemName: String,
+        componentCode: String,
+        componentName: String,
+    ): CvrComponentDO {
+        val view = View(user, load())
+        val area = view.area(areaId)
+        if (!view.canWriteArea(area)) {
+            throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        }
+        val code = systemCode.trim().uppercase()
+        val existing = view.model.systems.values.firstOrNull { it.code == code }
+        if (existing != null && existing.areaId != areaId) {
+            throw UserException(ERROR_CODE_EXISTS, code)
+        }
+        val systemId = existing?.id ?: createSystem(user, SystemRequest(areaId = areaId, code = code, name = systemName))
+        val componentCodeNormalized = componentCode.trim().uppercase()
+        val stored = view.model.components.values.firstOrNull { it.systemId == systemId && it.code == componentCodeNormalized }
+        if (stored != null) {
+            return componentDao.find(stored.id, checkAccess = false) ?: throw UserException(ERROR_NOT_FOUND)
+        }
+        val component = CvrComponentDO().also {
+            it.system = systemDao.find(systemId, checkAccess = false) ?: throw UserException(ERROR_NOT_FOUND)
+            // A new system has no components yet, so the model loaded before it was created is enough.
+            it.code = checkedComponentCode(componentCode, view.model, systemId, null)
+            it.name = checkedName(componentName)
+        }
+        componentDao.insert(component, checkAccess = false)
+        return component
+    }
+
+    /** Matches the components of a bulk import, once all are stored. */
+    fun rematchImported(componentIds: List<Long>) {
+        if (componentIds.isNotEmpty()) rematch { matchingService.rematchComponents(componentIds) }
+    }
+
+    private fun checkedImportLimit(mb: Int?): Int? {
+        if (mb == null) return null
+        val max = config.sbomImport.maxSizeLimitMb
+        if (mb < 1 || mb > max) {
+            throw UserException(ERROR_IMPORT_LIMIT, max.toString())
+        }
+        return mb
+    }
+
     // --- Helpers ---
 
     private fun findGroup(id: Long): GroupDO {
@@ -752,6 +846,11 @@ class CvrInventoryService {
             officer || groupIds.any { access.isMemberOf(user, it) }
 
         fun canWriteArea(area: CvrAreaDO): Boolean = isMember(chain(area).map { it.groupId })
+
+        /** The largest zip of a bulk import into the area (INV-35): set on it or above, else configured; never above the cap. */
+        fun importLimitMb(area: CvrAreaDO): Int =
+            (chain(area).firstNotNullOfOrNull { it.sbomImportMaxMb } ?: config.sbomImport.maxSizeMb)
+                .coerceAtMost(config.sbomImport.maxSizeLimitMb)
 
         /** Whether the user still may change a node below [area] with the group [groupId]: a change never locks out its author. */
         fun keepsAccess(area: CvrAreaDO?, groupId: Long?): Boolean = isMember(chain(area).map { it.groupId } + groupId)
@@ -861,6 +960,7 @@ class CvrInventoryService {
                 description = area.description, groupId = area.groupId, groupName = groupName(area.groupId),
                 effectiveGroupName = effective, effectiveGroupFrom = from, lastUpdate = area.lastUpdate,
                 findingCount = found.affected, possibleCount = found.possible, cveCounts = found.cves,
+                sbomImportMaxMb = area.sbomImportMaxMb, sbomImportLimitMb = importLimitMb(area),
             )
         }
 
@@ -939,5 +1039,6 @@ class CvrInventoryService {
         const val ERROR_NOT_EMPTY = "plugins.cveradar.inventory.error.notEmpty"
         const val ERROR_LAST_INSTANCE = "plugins.cveradar.inventory.error.lastInstance"
         const val ERROR_TECHNOLOGY = "plugins.cveradar.inventory.error.technology"
+        const val ERROR_IMPORT_LIMIT = "plugins.cveradar.inventory.error.sbomImportLimit"
     }
 }

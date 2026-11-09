@@ -11,7 +11,9 @@ const WEB_HOME_PAGE_LINK = "https://projectforge.org";
  * English ones, see `site/README.adoc`), every other language gets the English docs.
  */
 function webDocsLink(locale: string): string {
-  return locale === "de" ? `${WEB_HOME_PAGE_LINK}/de/docs` : `${WEB_HOME_PAGE_LINK}/docs`;
+  return locale === "de"
+    ? `${WEB_HOME_PAGE_LINK}/de/docs`
+    : `${WEB_HOME_PAGE_LINK}/docs`;
 }
 
 /**
@@ -27,4 +29,9 @@ export function luceneQueryDocsUrl(locale: string): string {
 /** The user guide's chapter on the libraries of a CVE-Radar component: the formats, a script collecting them in a zip. */
 export function cveRadarLibrariesDocsUrl(locale: string): string {
   return `${webDocsLink(locale)}/userguide/#cve_radar_libraries`;
+}
+
+/** The user guide on the bulk import of SBOMs into an area (`[[cve_radar_sbom_import]]`). */
+export function cveRadarSbomImportDocsUrl(locale: string): string {
+  return `${webDocsLink(locale)}/userguide/#cve_radar_sbom_import`;
 }

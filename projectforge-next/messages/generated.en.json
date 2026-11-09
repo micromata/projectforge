@@ -4640,9 +4640,15 @@
         "description": "The open findings of this node and below as JSON, and a prompt for an AI system that suggests how to fix them.",
         "download": "Download JSON",
         "empty": "There are no open findings here.",
+        "excludedCount": "{arg0} left out",
         "privacy": "Use an approved AI system only. The report contains the products, versions and libraries of the project.",
         "prompt": {
-          "instruction": "You are an expert in software security. Below is a report of known vulnerabilities (CVEs) found in a software project, as JSON. For every vulnerability, work out the best way to fix it in this project:\n1. Check whether the project is really affected: compare the version of the technology (technology.version) with the affected versions. certainty AFFECTED: matched by CPE or package URL with a version range; POSSIBLE: matched by the name only or without a version, so check it first.\n2. The fix: the target version (the lowest version with the fix, without breaking changes if there is a choice) and the way there. For a transitive dependency (see purl and ecosystem): which direct dependency to update, or how to force the version (e.g. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), with the concrete snippet of the build file.\n3. If there is no fix yet: a workaround or a mitigation.\n4. Verification: how to show that it is fixed (command, test, exporting the lockfile again).\nThe assessment of the security team in the field case (fixVersion, workaround, techMeasures) takes precedence. Order: first those in the KEV catalogue (kevAdded), then by the priority of the case (P1 first), then by CVSS. The field libraries groups the vulnerabilities per library (fixVersion: from this version on none of the matched ranges applies; withoutFixCount: those without a known fix, sources: where the library was found); plan the updates by it. Don't invent versions; name your sources and mark what is uncertain. Answer in English, in Markdown: first a table (CVE, technology, current version, target version, effort), then one section per vulnerability; combine CVEs fixed by the same update."
+          "instruction": "You are an expert in software security. Below is a report of known vulnerabilities (CVEs) found in a software project, as JSON. For every vulnerability, work out the best way to fix it in this project:\n1. Check whether the project is really affected: compare the version of the technology (technology.version) with the affected versions. certainty AFFECTED: matched by CPE or package URL with a version range; POSSIBLE: matched by the name only or without a version, so check it first.\n2. The fix: the target version (the lowest version with the fix, without breaking changes if there is a choice) and the way there. For a transitive dependency (see purl and ecosystem): first look for a newer release of the direct dependency that brings it in and already pulls in the fixed version (preferably a patch release, else a minor one, without breaking changes), and name it with the concrete snippet of the build file. Only if there is no such release: force the version (e.g. overrides in npm/pnpm, resolutions in Yarn, constraints in Gradle, dependencyManagement in Maven), with the snippet, and say why. Check the versions already forced in the build file: name those the update makes obsolete, to remove them.\n3. If there is no fix yet: a workaround or a mitigation.\n4. Verification: how to show that it is fixed (command, test, exporting the lockfile again).\nThe assessment of the security team in the field case (fixVersion, workaround, techMeasures) takes precedence. Order: first those in the KEV catalogue (kevAdded), then by the priority of the case (P1 first), then by CVSS. The field libraries groups the vulnerabilities per library (fixVersion: from this version on none of the matched ranges applies; withoutFixCount: those without a known fix, sources: where the library was found); plan the updates by it. The vulnerabilities in excludedCveIds are handled separately: leave them out and don't plan their updates. Don't invent versions; name your sources and mark what is uncertain. Answer in English, in Markdown: first a table (CVE, technology, current version, target version, effort), then one section per vulnerability; combine CVEs fixed by the same update."
+        },
+        "selection": {
+          "_": "Select vulnerabilities",
+          "count": "{arg0} of {arg1} selected",
+          "hint": "Unchecked vulnerabilities are left out of the report and the prompt, e.g. to handle an update with big changes in a branch of its own."
         },
         "summary": "{arg0} vulnerabilities, {arg1} findings",
         "title": "Export findings: {arg0}"
@@ -4718,6 +4724,7 @@
           "name": "A name is needed.",
           "notEmpty": "There are entries below it. Delete or move them first.",
           "notFound": "The entry doesn't exist (any more).",
+          "sbomImportLimit": "The size of a bulk import of SBOMs must be between 1 and {arg0} MB.",
           "target": "This can't be moved there.",
           "technology": "A technology needs a product."
         },
@@ -4743,6 +4750,8 @@
         "raiseInfo": "An instance may only raise the confidentiality and criticality of its system, not lower them.",
         "removeTechnology": "Remove",
         "save": "Save",
+        "sbomImportMaxMb": "Largest zip of a bulk import of SBOMs (MB)",
+        "sbomImportMaxMbInfo": "For this area and the ones below it. Empty: as the area above, at the top the size configured. Only the security officer sets it.",
         "site": "Site",
         "stage": "Stage",
         "tab": {
@@ -5096,6 +5105,78 @@
           },
           "label": "Into"
         }
+      },
+      "sbomImport": {
+        "aggregateOf": "Lists the libraries of {arg0} others",
+        "apply": "Import {arg0}",
+        "areaInfo": "Bulk import of SBOMs: a zip with the SBOMs of many repositories and container images, at most {arg0} MB.",
+        "column": {
+          "code": "Code",
+          "include": "Import",
+          "kind": "Kind",
+          "libraries": "Libraries",
+          "name": "Name",
+          "sources": "SBOMs in the zip",
+          "status": "Status"
+        },
+        "diff": "+{arg0} new, {arg1} removed, {arg2} changed, {arg3} unchanged",
+        "drop": "Drop the zip here or click to choose it",
+        "error": {
+          "busy": "Another zip is being uploaded or read. Please wait until it is done.",
+          "entryTooLarge": "{arg0} unpacks to more than {arg1} MB.",
+          "expired": "The read zip is no longer available (once imported, after reading another one, an hour after reading or after a restart). Please upload it again.",
+          "invalid": "The file is not a readable zip.",
+          "ratio": "{arg0} unpacks to far more than its packed size; the zip is refused.",
+          "target": "Choose at least one repository or image with libraries.",
+          "tooLarge": "The zip is larger than {arg0} MB.",
+          "tooManyEntries": "The zip has more than {arg0} entries.",
+          "tooManyLibraries": "The SBOMs of the zip list more than {arg0} libraries.",
+          "twice": "{arg0} is chosen twice: two repositories or images would replace the libraries of each other."
+        },
+        "guide": "User guide: bulk import of SBOMs",
+        "hint": "A zip with the SBOMs (CycloneDX or SPDX, JSON) of many repositories and container images, e.g. the output of a scan of all repositories of a project, at most {arg0} MB. Every repository becomes a system of this area with its libraries, every container image a component of the system of the images. The preview shows what is created and changed before anything is stored. Only the libraries are read: logs, raw reports of the scanners and other files are skipped, an SBOM listing those of all the others is left out.",
+        "imagesSystem": "Container images",
+        "include": "Import {arg0}",
+        "intro": "SBOMs of many repositories and container images into the area {arg0}.",
+        "kind": {
+          "CONTAINER": "Image",
+          "REPOSITORY": "Repository"
+        },
+        "notInImport": "Systems of the area not in the zip (they stay as they are): {arg0}",
+        "open": "Import SBOMs",
+        "progress": {
+          "analyzed": "{arg0} SBOMs read, {arg1} repositories and images found",
+          "failed": "{arg0} failed: {arg1}",
+          "matching": "Matching against the vulnerabilities",
+          "planning": "Comparing with the inventory",
+          "reading": "Reading the zip: {arg0} of {arg1} MB",
+          "stored": "{arg0} repositories and images stored."
+        },
+        "read": "Read",
+        "selectAll": "All",
+        "selectNone": "None",
+        "selectProposed": "As proposed",
+        "skipped": "Skipped: {arg0} other files, {arg1} JSON files that are no SBOM, {arg2} unreadable.",
+        "status": {
+          "AGGREGATE": "Aggregate",
+          "CONFLICT": "Code taken",
+          "EMPTY": "No libraries",
+          "NEW": "New",
+          "TOO_LARGE": "Too many libraries",
+          "UPDATE": "Update"
+        },
+        "statusHint": {
+          "AGGREGATE": "An SBOM listing the libraries of the other repositories and images of the zip: left out by default, they would be in the inventory twice.",
+          "CONFLICT": "The code is taken by an area or by a system of another area. Another code makes it importable.",
+          "EMPTY": "None of its components has a purl with a version (files, declarations without a resolved version).",
+          "NEW": "Created: a system with the component SBOM, for an image a component of the system of the images.",
+          "TOO_LARGE": "More libraries than one component takes.",
+          "UPDATE": "Already in the area: its libraries read from lists are replaced, technologies entered by hand stay."
+        },
+        "summary": "{arg0} SBOMs read: {arg1} repositories and images, {arg2} files skipped.",
+        "title": "Bulk import of SBOMs",
+        "uploading": "Uploading the zip",
+        "withoutPurl": "{arg0} components without a purl with a version left out"
       },
       "selected": "Selected: {arg0}",
       "source": {
