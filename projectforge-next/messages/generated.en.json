@@ -5353,6 +5353,13 @@
         "kev": "Known exploited (KEV) since",
         "modified": "Modified",
         "nvdStatus": "NVD status",
+        "ratings": {
+          "cna": "CNA",
+          "info": "The severity of the vulnerability follows the score of the NVD (without one, the one of the CNA); before the NVD rated it, the CVSS 3.x score of the advisories or the EUVD.",
+          "notScored": "not calculated",
+          "own": "Own rating",
+          "title": "Ratings of the sources"
+        },
         "references": "Other references",
         "remediationHints": "Remediation hints",
         "severity": "Severity",

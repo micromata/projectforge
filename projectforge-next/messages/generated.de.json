@@ -5353,6 +5353,13 @@
         "kev": "Aktiv ausgenutzt (KEV) seit",
         "modified": "Geändert",
         "nvdStatus": "NVD-Status",
+        "ratings": {
+          "cna": "CNA",
+          "info": "Der Schweregrad der Schwachstelle folgt dem Score der NVD (ohne einen dem der CNA); bevor die NVD sie bewertet hat, dem CVSS-3.x-Score der Advisories oder der EUVD.",
+          "notScored": "nicht berechnet",
+          "own": "Eigene Einstufung",
+          "title": "Bewertungen der Quellen"
+        },
         "references": "Weitere Referenzen",
         "remediationHints": "Hinweise zur Behebung",
         "severity": "Schweregrad",
