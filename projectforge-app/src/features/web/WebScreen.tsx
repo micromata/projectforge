@@ -165,11 +165,13 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
 
   const startServerPageLoad = useCallback(
     (url: string) => {
-      requestedUrl.current = url;
+      // Not a path of an SSO proxy on the server's origin (Authentik's /outpost.goauthentik.io/start): loaded again
+      // after a renewal, it would start the proxy's login once more, which then opens outside the app.
+      if (navigation.isNextPage(url)) requestedUrl.current = url;
       serverPageLoadStart.current = Date.now();
       if (!pageShownRef.current) watchStall();
     },
-    [watchStall],
+    [navigation, watchStall],
   );
 
   /** Removes the WebView (the next one starts empty, on its own start url). */
@@ -451,7 +453,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     const url = state.url;
     if (navigation.isLoginPage(url)) {
       onLoginPage(url);
-    } else if (navigation.isSameOrigin(url)) {
+    } else if (navigation.isNextPage(url)) {
       if (shownUrl.current != null && parseUrl(url)?.pathname !== parseUrl(shownUrl.current)?.pathname) closeFind();
       shownUrl.current = url;
     }
@@ -467,8 +469,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       }
     }
     canGoBack.current = state.canGoBack;
-    // Not the login page (new web session) and not a page shown in a tab of its own.
-    if (navigation.isSameOrigin(url) && !navigation.isLoginPage(url) && navigation.nativePage(url) == null) {
+    // Not the login page (new web session), not a path of an SSO proxy and not a page shown in a tab of its own.
+    if (navigation.isNextPage(url) && !navigation.isLoginPage(url) && navigation.nativePage(url) == null) {
       const page = parseUrl(url);
       if (page) onPage?.(`${page.pathname}${page.search}${page.hash}`);
     }
@@ -598,7 +600,10 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       if (shownUrl.current) void Share.share({ url: shownUrl.current, message: shownUrl.current });
     },
     openInBrowser: () => {
-      if (shownUrl.current) void Linking.openURL(shownUrl.current);
+      const url = shownUrl.current;
+      if (!url) return;
+      appLog.info('web', `Page ${LogSanitizer.url(url)} opened in the browser`);
+      void Linking.openURL(url).catch((e) => appLog.warn('web', `Not opened outside the app: ${String(e)}`));
     },
     restart: () => restart(true),
   }));

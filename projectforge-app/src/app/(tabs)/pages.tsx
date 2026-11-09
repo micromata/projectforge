@@ -26,7 +26,7 @@ import { Linking, StyleSheet, View } from 'react-native';
 
 import { useIsFocused, useRouter } from 'expo-router';
 import { authController } from '../../core/auth/authController';
-import { appLog } from '../../core/log/appLog';
+import { appLog, LogSanitizer } from '../../core/log/appLog';
 import { appSettings, opensInApp } from '../../core/settings/appSettings';
 import { chatEnabled, userStatus } from '../../core/status/userStatus';
 import { tabSheets } from '../../core/ui/tabSheets';
@@ -88,6 +88,7 @@ export default function PagesTab() {
     const url = navigation.pageUrl(path);
     if (url == null) {
       if (navigation.decide(path) === 'external') {
+        appLog.info('web', `Menu entry ${LogSanitizer.url(path)}: opened outside the app`);
         void Linking.openURL(path).catch((e) => appLog.warn('web', `Not opened outside the app: ${String(e)}`));
       }
       return;

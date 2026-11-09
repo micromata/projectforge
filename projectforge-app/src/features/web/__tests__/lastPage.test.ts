@@ -61,6 +61,19 @@ describe('the page shown last in the pages tab', () => {
     expect(pages.restore()).toBeNull();
   });
 
+  test('only a page of next, not a path of an SSO proxy', () => {
+    const cache = memoryCache();
+    const pages = new LastPage(cache);
+    pages.remember('/outpost.goauthentik.io/start?rd=%2Fnext%2Ftask');
+    pages.remember('/nextcloud/');
+    expect(cache.writes).toBe(0);
+    cache.files.set('webLastPage', { path: '/outpost.goauthentik.io/start?rd=%2Fnext%2Ftask' });
+    expect(pages.restore()).toBeNull();
+    pages.remember('/next');
+    pages.remember('/next?x=1');
+    expect(cache.writes).toBe(2);
+  });
+
   test('written again after the cache was deleted (a new login)', () => {
     const cache = memoryCache();
     const pages = new LastPage(cache);

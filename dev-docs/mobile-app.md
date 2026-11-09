@@ -171,6 +171,10 @@ app has only its token:
     (`renewLogin: false`). The `ApiClient` doesn't start a new browser login while it has the proxy cookies a login
     brought without satisfying the proxy (only once others arrive), which would otherwise leave the retry without a
     login. The proxy's login never happens in the WebView, which never shows another site.
+  - Paths of the proxy on the server's origin (Authentik's `/outpost.goauthentik.io/start`) aren't pages: only a
+    page of next is the page loaded again after a renewal, the page shown and the start page of the tab
+    (`lastPage`). Loaded again, the start of the proxy's login would redirect to its login although the app is let
+    through, and the probe would open it outside the app.
 - **Only pages of the server in the WebView:** the app loads only urls of the server's origin (`WebNavigation.pageUrl`;
   its own loads don't pass `shouldOverrideUrlLoading` on Android, this includes the `startUrl` of the server). As a
   last guard, a page of another site that is committed anyway (`onPageCommitVisible`, e.g. a back navigation on

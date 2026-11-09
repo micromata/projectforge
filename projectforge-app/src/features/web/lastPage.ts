@@ -25,9 +25,11 @@ import { JsonCache } from '../../core/cache/jsonCache';
 
 const NAME = 'webLastPage';
 
-/** A path of the own server (not `//host`, a url of another site). */
-const isServerPath = (path: unknown): path is string =>
-  typeof path === 'string' && path.startsWith('/') && !path.startsWith('//');
+/**
+ * A page of next on the own server: not `//host` (another site) and not a path of an SSO proxy in front of it
+ * (e.g. Authentik's `/outpost.goauthentik.io/start`, which would start the proxy's login again).
+ */
+const isServerPath = (path: unknown): path is string => typeof path === 'string' && /^\/next([/?#]|$)/.test(path);
 
 /** The part of JsonCache used here. */
 export interface PageCache {

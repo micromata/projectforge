@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "{app} Behind an SSO proxy, the pages no longer open in Safari after the proxy's session ended: after the new login the page asked for is loaded in the app again, and the pages tab no longer starts with the proxy's login.",
+  "de": "{app} Hinter einem SSO-Proxy öffnen sich die Seiten nach dem Ende seiner Session nicht mehr in Safari: Nach der neuen Anmeldung wird die angefragte Seite wieder in der App geladen, und der Seiten-Tab startet nicht mehr mit dem Login des Proxys."
+}
