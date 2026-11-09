@@ -1603,7 +1603,7 @@ one (CVE, case, instance, component, technology, where it was found, what matche
 certainty; a click on a finding opens the file of the CVE. _Libraries_ switches to one row per library: its CVEs, how
 many of them affected, the highest severity, the update that fixes them and where it was found; a click on a library
 shows its findings. With uploads from more than one file, a select above narrows both views to the findings of one
-file (or those without a location). _Check again_ at the bottom matches the components below the node against all vulnerabilities
+file (or those without a location), the key figures and counts included. _Check again_ at the bottom matches the components below the node against all vulnerabilities
 again, which otherwise happens by itself after every import and every change (by hand e.g. after the catalogue was
 changed); the message tells how many findings are new, changed or removed. Above them, tiles show the number of CVEs and their severity (critical, high,
 medium/low, actively exploited); hovering over the counts in the row shows the same tiles.

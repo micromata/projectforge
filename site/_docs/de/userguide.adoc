@@ -1646,7 +1646,7 @@ Findings einzeln (CVE, Fall, Instanz, Komponente, Technologie, Fundort, Treffer)
 nach Sicherheit; ein Klick auf ein Finding öffnet die Akte der CVE. _Bibliotheken_ schaltet auf eine Zeile je
 Bibliothek um: ihre CVEs, wie viele davon betreffen, der höchste Schweregrad, die Aktualisierung, die sie behebt, und
 der Fundort; ein Klick auf eine Bibliothek zeigt ihre Findings. Stammen die Bibliotheken aus mehr als einer Datei,
-beschränkt eine Auswahl darüber beide Ansichten auf die Findings einer Datei (oder die ohne Fundort). _Erneut prüfen_ unten gleicht die Komponenten
+beschränkt eine Auswahl darüber beide Ansichten auf die Findings einer Datei (oder die ohne Fundort), die Kennzahlen und Anzahlen eingeschlossen. _Erneut prüfen_ unten gleicht die Komponenten
 unterhalb des Knotens erneut mit allen Schwachstellen ab, was sonst nach jedem Import und jeder Änderung von selbst
 geschieht (von Hand z. B. nach einer Änderung des Katalogs); die Meldung nennt, wie viele Findings neu, geändert oder
 entfernt sind. Darüber zeigen Kacheln die Anzahl der CVEs und ihren

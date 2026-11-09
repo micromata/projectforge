@@ -16,8 +16,8 @@
       "de": "Jede für eine Komponente hochgeladene Bibliothek zeigt, wo sie gefunden wurde: die Datei des Uploads und in der SBOM eines Images die Stelle darin."
     },
     {
-      "en": "The findings of a node can be filtered by the uploaded file they were found in.",
-      "de": "Die Findings eines Knotens lassen sich nach der hochgeladenen Datei filtern, in der sie gefunden wurden."
+      "en": "The findings of a node can be filtered by the uploaded file they were found in; the key figures and counts then show that file only.",
+      "de": "Die Findings eines Knotens lassen sich nach der hochgeladenen Datei filtern, in der sie gefunden wurden; die Kennzahlen und Anzahlen zeigen dann nur diese Datei."
     },
     {
       "en": "Advisories for other operating systems only (e.g. Windows) no longer match a component running on Linux.",
