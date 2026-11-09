@@ -4942,6 +4942,10 @@
           "remove": "Wieder alle Findings zeigen, nicht nur die von {arg0}"
         },
         "none": "Keine offenen Findings.",
+        "sourceFilter": "Fundort (hochgeladene Datei) der Findings",
+        "sourceFilterAll": "Alle Fundorte",
+        "sourceFilterFile": "{arg0} ({arg1})",
+        "sourceFilterNone": "Ohne Fundort",
         "stats": {
           "findings": "Findings"
         },

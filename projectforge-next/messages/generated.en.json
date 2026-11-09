@@ -4942,6 +4942,10 @@
           "remove": "Show all findings again, not only those of {arg0}"
         },
         "none": "No open findings.",
+        "sourceFilter": "Location (upload file) of the findings",
+        "sourceFilterAll": "All locations",
+        "sourceFilterFile": "{arg0} ({arg1})",
+        "sourceFilterNone": "Without location",
         "stats": {
           "findings": "Findings"
         },
