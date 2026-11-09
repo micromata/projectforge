@@ -34,6 +34,7 @@ import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrImportStateDO
 import org.projectforge.plugins.cveradar.model.CvrOsvAdvisoryDO
 import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
+import org.projectforge.plugins.cveradar.model.CvrVulnerabilityDO
 import org.projectforge.plugins.cveradar.rest.AreaRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
 import org.projectforge.plugins.cveradar.rest.CvrCaseFileRest
@@ -51,6 +52,7 @@ import org.projectforge.plugins.cveradar.sync.OsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.Instant
+import java.util.Date
 
 /**
  * The advisories of OSV.dev against the libraries of the inventory (IMP-13): the import, an advisory becoming a
@@ -202,6 +204,30 @@ class CvrOsvMatchingTest : CveRadarTestBase() {
         val late = vulnerabilityDao.findByCveId("CVE-2026-98002")
         assertNotNull(late)
         assertEquals(listOf("LATE"), findings(owner, late!!.id!!).map { it.component!!.substringBefore(" ") })
+    }
+
+    @Test
+    fun `the severity belongs to the score, the one of GitHub only without a score`() {
+        fun advisory(osvId: String, severity: String?, cvss31: String? = null, cvss40: String? = null) =
+            CvrOsvAdvisoryDO().also {
+                it.osvId = osvId
+                it.vulnerabilityKey = "CVE-2026-98301"
+                it.modified = Date()
+                it.severity = severity
+                it.cvss31Vector = cvss31
+                it.cvss40Vector = cvss40
+            }
+        fun vulnerabilityOf(advisory: CvrOsvAdvisoryDO) =
+            CvrVulnerabilityDO().also { CvrOsvAdvisoryService.copy(listOf(advisory), it) }
+        val rated = vulnerabilityOf(advisory("GHSA-osv5-aaaa-bbbb", "CRITICAL", cvss31 = "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"))
+        assertEquals(BigDecimal("6.1"), rated.cvssScore)
+        assertEquals("MEDIUM", rated.severity, "not the CRITICAL of GitHub")
+
+        val cvss4Only = vulnerabilityOf(
+            advisory("GHSA-osv5-cccc-dddd", "CRITICAL", cvss40 = "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:H/VA:L/SC:N/SI:N/SA:N"),
+        )
+        assertNull(cvss4Only.cvssScore)
+        assertEquals("CRITICAL", cvss4Only.severity, "no score: the one of GitHub")
     }
 
     @Test
