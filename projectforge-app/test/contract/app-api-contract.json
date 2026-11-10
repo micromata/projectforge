@@ -105,6 +105,10 @@
           "controller": "org.projectforge.rest.AddressEntityRest"
         },
         {
+          "call": "POST /rs/address/favorite/{id}",
+          "controller": "org.projectforge.rest.AddressEntityRest"
+        },
+        {
           "call": "GET /rs/address/image/{id}",
           "controller": "org.projectforge.rest.AddressImageServicesRest"
         },

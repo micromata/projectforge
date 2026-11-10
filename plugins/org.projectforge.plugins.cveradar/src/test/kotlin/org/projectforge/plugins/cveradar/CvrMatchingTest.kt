@@ -248,6 +248,25 @@ class CvrMatchingTest : CveRadarTestBase() {
     }
 
     @Test
+    fun `matching components tells its progress, the findings counted up to the last one`() {
+        val P = "tomcat9"
+        importTomcat("CVE-2026-94009", P)
+        val (system, owner) = system("MT9", "cveradar-match-g9")
+        logon(owner)
+        val component = inventory.createComponent(
+            ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))),
+        )
+        val reports = mutableListOf<CvrMatchingService.Progress>()
+        val result = matching.rematchComponents(listOf(component)) { reports += it }
+        assertEquals(CvrMatchingService.Progress.Phase.LOADING, reports.first().phase)
+        val findingReports = reports.filter { it.phase == CvrMatchingService.Progress.Phase.FINDINGS }
+        assertEquals(2, findingReports.last().total, "a finding per instance, both checked again")
+        assertEquals(findingReports.last().total, findingReports.last().done)
+        assertEquals(result.created + result.updated + result.removed + result.unchanged, findingReports.last().total)
+        assertEquals((0..2).toList(), findingReports.map { it.done }, "counted up one by one")
+    }
+
+    @Test
     fun `after restoring the main dump only, the findings stay until an import filled their vulnerability`() {
         val P = "tomcat6"
         val (system, _) = system("MT6", "cveradar-match-g6")

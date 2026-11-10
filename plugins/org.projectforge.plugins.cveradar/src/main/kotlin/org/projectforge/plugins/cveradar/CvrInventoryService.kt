@@ -496,7 +496,7 @@ class CvrInventoryService {
         }
         val job = CvrLibraryApplyJob(
             component, request, libraryService,
-            rematch = { rematch { matchingService.rematchComponents(listOf(componentId)) } },
+            rematch = { progress -> rematch { matchingService.rematchComponents(listOf(componentId), progress) } },
             title = "CVE-Radar: libraries of component ${component.code}",
         )
         jobHandler.addJob(job)
@@ -730,9 +730,9 @@ class CvrInventoryService {
         return component
     }
 
-    /** Matches the components of a bulk import, once all are stored. */
-    fun rematchImported(componentIds: List<Long>) {
-        if (componentIds.isNotEmpty()) rematch { matchingService.rematchComponents(componentIds) }
+    /** Matches the components of a bulk import, once all are stored; [progress] see [CvrMatchingService.Progress]. */
+    fun rematchImported(componentIds: List<Long>, progress: (CvrMatchingService.Progress) -> Unit = {}) {
+        if (componentIds.isNotEmpty()) rematch { matchingService.rematchComponents(componentIds, progress) }
     }
 
     private fun checkedImportLimit(mb: Int?): Int? {

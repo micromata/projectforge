@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Invoices: the contact person of the customer (BT-56) is no longer printed in the invoice address of the invoice document, below the company name; the e-invoice still states it, and an invoice template may print it via the variable Ansprechpartner (with the condition isAnsprechpartner).",
+  "de": "Rechnungen: Der Ansprechpartner des Kunden (BT-56) wird im Rechnungsdokument nicht mehr in der Rechnungsanschrift unter dem Firmennamen gedruckt; die E-Rechnung enthält ihn weiterhin, und eine Rechnungsvorlage kann ihn über die Variable Ansprechpartner (mit der Bedingung isAnsprechpartner) ausgeben."
+}

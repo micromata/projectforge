@@ -37,8 +37,9 @@ private val log = KotlinLogging.logger {}
 /**
  * Imports the chosen targets of a bulk import of SBOMs one after the other ([CvrSbomImportService.applyTarget]): each in
  * a transaction of its own, so a failing one is reported and the others are stored. Cancelling stops after the target
- * being stored; the ones stored so far stay. The components are matched once at the end. [progressDetails] names the
- * target being stored, at the end what was stored and what failed; with a failed target the job fails with that text.
+ * being stored; the ones stored so far stay. The components are matched once at the end, the counters then start again
+ * with the matching ([CvrMatchingService.Progress]). [progressDetails] names the target being stored, the step of the
+ * matching, at the end what was stored and what failed; with a failed target the job fails with that text.
  * The caller checks the access to the area.
  */
 internal class CvrSbomImportApplyJob(
@@ -78,8 +79,9 @@ internal class CvrSbomImportApplyJob(
     @Volatile
     private var libraries: CvrLibraryService.Progress? = null
 
+    /** Set while the components are matched. */
     @Volatile
-    private var matching = false
+    private var matching: CvrMatchingService.Progress? = null
 
     @Volatile
     private var summary: String? = null
@@ -87,7 +89,7 @@ internal class CvrSbomImportApplyJob(
     override val progressDetails: String?
         get() {
             summary?.let { return it }
-            if (matching) return translate("plugins.cveradar.sbomImport.progress.matching")
+            matching?.let { return it.describe(translate("plugins.cveradar.sbomImport.progress.matching")) }
             val item = current ?: return null
             val p = libraries
             return if (p == null || p.toStore == 0) item.label
@@ -119,9 +121,12 @@ internal class CvrSbomImportApplyJob(
             processedNumber++
         }
         current = null
-        matching = true
-        service.rematch(stored)
-        matching = false
+        service.rematch(stored) { p ->
+            matching = p
+            totalNumber = p.total
+            processedNumber = p.done
+        }
+        matching = null
         summary = listOfNotNull(
             translateMsg("plugins.cveradar.sbomImport.progress.stored", NumberFormatter.format(stored.size)),
             failed.takeIf { it.isNotEmpty() }?.let {

@@ -12,6 +12,7 @@ permalink: /de/download/
 
 ++++
 {% include boxes.html data="download_options" columns="3" title="ProjectForge holen" %}
+{% include text-section.html data="download_sections" key="app" background="muted" %}
 {% include text-section.html data="download_sections" key="next_steps" %}
 {% include text-section.html data="download_sections" key="updates" background="muted" %}
 {% include text-section.html data="download_sections" key="translations" %}

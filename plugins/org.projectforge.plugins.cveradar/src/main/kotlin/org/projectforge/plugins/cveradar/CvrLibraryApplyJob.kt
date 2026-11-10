@@ -38,13 +38,15 @@ import org.projectforge.plugins.cveradar.rest.LibraryRequest
  * Takes over the libraries of an upload for a component ([CvrLibraryService.apply]) and matches the component against
  * the vulnerabilities afterwards. Runs as a job, so the client shows the progress instead of waiting for a request
  * that may outlast a proxy's timeout. The counters are the libraries stored and removed together, [progressDetails]
- * names them apart (an upload with "replace" does both) and the phases before and after: reading, matching. The caller checks the access to the component (see [CvrInventoryService]).
+ * names them apart (an upload with "replace" does both) and the phases before and after: reading, matching (the
+ * counters then start again with the matching, [CvrMatchingService.Progress]). The caller checks the access to the
+ * component (see [CvrInventoryService]).
  */
 internal class CvrLibraryApplyJob(
     private val component: CvrComponentDO,
     request: LibraryRequest,
     private val libraryService: CvrLibraryService,
-    private val rematch: () -> Unit,
+    private val rematch: (progress: (CvrMatchingService.Progress) -> Unit) -> Unit,
     title: String,
 ) : AbstractJob(
     title,
@@ -58,8 +60,9 @@ internal class CvrLibraryApplyJob(
     @Volatile
     private var request: LibraryRequest? = request
 
+    /** Set while the component is matched. */
     @Volatile
-    private var matching = false
+    private var matching: CvrMatchingService.Progress? = null
 
     /** Null while the files are read. */
     @Volatile
@@ -72,7 +75,7 @@ internal class CvrLibraryApplyJob(
 
     override val progressDetails: String
         get() {
-            if (matching) return translate("plugins.cveradar.libraries.progress.matching")
+            matching?.let { return it.describe(translate("plugins.cveradar.libraries.progress.matching")) }
             val p = progress ?: return translate("plugins.cveradar.libraries.progress.reading")
             fun count(key: String, done: Int, of: Int) =
                 translateMsg(key, NumberFormatter.format(done), NumberFormatter.format(of)).takeIf { of > 0 }
@@ -92,8 +95,11 @@ internal class CvrLibraryApplyJob(
             processedNumber = p.stored + p.removed
         }
         this.request = null
-        matching = true
-        rematch()
+        rematch { p ->
+            matching = p
+            totalNumber = p.total
+            processedNumber = p.done
+        }
     }
 
     /** Only the person who started it sees it. */

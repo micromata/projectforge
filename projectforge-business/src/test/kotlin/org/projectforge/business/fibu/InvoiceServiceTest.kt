@@ -275,6 +275,56 @@ class InvoiceServiceTest : AbstractTestBase() {
     Assertions.assertTrue(pdf.size > 4 && String(pdf, 0, 4, Charsets.US_ASCII) == "%PDF", "A PDF is produced.")
   }
 
+  /**
+   * The customer reference consists of lines "label: value": the template prints the label bold, the value
+   * after the colon not, as for the order number. A line without colon keeps the format of the template.
+   */
+  @Test
+  fun invoiceWordDocumentCustomerReferenceValuesNotBoldTest() {
+    val invoice = discountInvoice()
+    invoice.customerref1 = "Lieferantennummer: 1140300\r\nAnsprechpartnerin: Max Muster\nProjekt X"
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val document = invoiceService.getInvoiceWordDocument(invoice, null)
+    Assertions.assertNotNull(document)
+    java.io.ByteArrayInputStream(document!!.toByteArray()).use { istream ->
+      XWPFDocument(istream).use { word ->
+        val paragraph = word.paragraphs.first { it.text.contains("Lieferantennummer") }
+        val runs = paragraph.runs.filter { !it.getText(0).isNullOrEmpty() }.associate { it.getText(0) to it.isBold }
+        Assertions.assertEquals(true, runs["Lieferantennummer:"], "The label is bold.")
+        Assertions.assertEquals(false, runs[" 1140300"], "The value is not bold.")
+        Assertions.assertEquals(true, runs["Ansprechpartnerin:"])
+        Assertions.assertEquals(false, runs[" Max Muster"])
+        Assertions.assertEquals(true, runs["Projekt X"], "A line without colon keeps the template's format.")
+        Assertions.assertFalse(paragraph.text.contains("Kundenreferenz") || paragraph.text.contains("@@"))
+      }
+    }
+  }
+
+  @Test
+  fun invoiceWordDocumentWithoutCustomerReferenceTest() {
+    val invoice = discountInvoice()
+    invoice.customerref1 = null
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val text = documentText(invoiceService.getInvoiceWordDocument(invoice, null))
+    Assertions.assertFalse(text.contains("Kundenreferenz") || text.contains("@@"), text)
+  }
+
+  /**
+   * The contact person (BT-56) is no line of the invoice address, the department is.
+   */
+  @Test
+  fun invoiceWordDocumentAddressWithoutContactPersonTest() {
+    val invoice = discountInvoice()
+    invoice.kundeText = "ACME GmbH"
+    invoice.customerContactPerson = "Erika Muster"
+    invoice.customerContactDepartment = "Einkauf"
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val text = documentText(invoiceService.getInvoiceWordDocument(invoice, null))
+    Assertions.assertTrue(text.contains("ACME GmbH"), text)
+    Assertions.assertTrue(text.contains("Einkauf"), text)
+    Assertions.assertFalse(text.contains("Erika Muster"), text)
+  }
+
   private fun discountInvoice(): RechnungDO {
     return RechnungDO().also { invoice ->
       invoice.nummer = 12345
