@@ -31,9 +31,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
 import org.apache.poi.xwpf.usermodel.XWPFDocument
+import org.apache.poi.xwpf.usermodel.XWPFParagraph
+import org.apache.poi.xwpf.usermodel.XWPFRun
 import org.apache.poi.xwpf.usermodel.XWPFTable
 import org.apache.poi.xwpf.usermodel.XWPFTableRow
 import org.apache.xmlbeans.XmlException
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.i18n.I18nHelper
@@ -145,6 +148,11 @@ open class InvoiceService {
             variables.put("isBestellnummer", orderNumber.isNotEmpty())
             variables.put("Kostenstelle", costCenter)
             variables.put("isKostenstelle", costCenter.isNotEmpty())
+            // The contact person of the buyer (BT-56), from the same source as the e-invoice.
+            val contactPerson = (data.customerContactPerson ?: (data.konto ?: data.kunde?.konto)?.contactPerson)
+                ?.trim().orEmpty()
+            variables.put("Ansprechpartner", contactPerson)
+            variables.put("isAnsprechpartner", contactPerson.isNotEmpty())
             variables.put(
                 "Auftragsnummer", data.positionenExcludingDeleted.stream()
                 .filter { pos: RechnungsPositionDO -> pos.auftragsPosition != null && pos.auftragsPosition!!.auftrag != null }
@@ -186,12 +194,73 @@ open class InvoiceService {
             // resource inside a jar for its file throws.
             WordDocument(invoiceTemplate.inputStream, invoiceTemplate.filename).use { document ->
                 generatePosTableRows(document.document, data)
+                replaceLabelValueLines(document.document, "Kundenreferenz", data.customerref1)
                 document.process(variables)
                 document.asByteArrayOutputStream
             }
         } catch (e: IOException) {
             log.error(e) { "Could not read invoice template" }
             null
+        }
+    }
+
+    /**
+     * Replaces `${variable}` by the given lines of the form "label: value" (e.g. the customer reference
+     * "Lieferantennummer: 1140300\nProjekt: NORA"): the label up to and including the first colon keeps the
+     * format of the placeholder, the rest of the line is not bold. merlin would write the whole value into the
+     * run of the placeholder, so every value inherited the bold of the template's labels. A line without colon
+     * keeps the format of the placeholder completely.
+     */
+    internal fun replaceLabelValueLines(document: XWPFDocument, variable: String, value: String?) {
+        val placeholder = Regex("\\$\\{\\s*${Regex.escape(variable)}\\s*}")
+        val paragraphs = document.paragraphs +
+                document.tables.flatMap { tbl -> tbl.rows.flatMap { row -> row.tableCells.flatMap { it.paragraphs } } }
+        paragraphs.filter { placeholder.containsMatchIn(RunsProcessor(it).text) }.forEach { paragraph ->
+            // Lets merlin join the runs the placeholder is split into ("$", "{Kundenreferenz}") to one marker.
+            RunsProcessor(paragraph).replace(Variables().also { it.put(variable, LABEL_VALUE_MARKER) })
+            while (true) {
+                val runIndex = paragraph.runs.indexOfFirst { it.getText(0)?.contains(LABEL_VALUE_MARKER) == true }
+                if (runIndex < 0) {
+                    break
+                }
+                insertLabelValueRuns(paragraph, runIndex, value)
+            }
+        }
+    }
+
+    private fun insertLabelValueRuns(paragraph: XWPFParagraph, runIndex: Int, value: String?) {
+        val run = paragraph.runs[runIndex]
+        val text = run.getText(0)
+        val pos = text.indexOf(LABEL_VALUE_MARKER)
+        run.setText(text.substring(0, pos), 0)
+        var insertAt = runIndex + 1
+        fun newRun(text: String?, bold: Boolean = true): XWPFRun {
+            val newRun = paragraph.insertNewRun(insertAt++)
+            run.ctr.rPr?.let { newRun.ctr.rPr = it.copy() as CTRPr }
+            if (!bold) {
+                newRun.ctr.rPr?.let { rPr -> repeat(rPr.sizeOfBCsArray()) { rPr.removeBCs(0) } }
+                newRun.isBold = false
+            }
+            text?.let { newRun.setText(it, 0) }
+            return newRun
+        }
+        value?.replace("\r\n", "\n")?.split('\n')?.forEachIndexed { index, line ->
+            if (index > 0) {
+                newRun(null).addBreak()
+            }
+            val colon = line.indexOf(':')
+            if (colon < 0) {
+                newRun(line)
+            } else {
+                newRun(line.substring(0, colon + 1))
+                if (colon + 1 < line.length) {
+                    newRun(line.substring(colon + 1), bold = false)
+                }
+            }
+        }
+        val tail = text.substring(pos + LABEL_VALUE_MARKER.length)
+        if (tail.isNotEmpty()) {
+            newRun(tail)
         }
     }
 
@@ -222,7 +291,8 @@ open class InvoiceService {
     private fun buildFullCustomerAddress(data: RechnungDO): String {
         val lines = listOfNotNull(
             (data.konto?.bezeichnung ?: data.kunde?.konto?.bezeichnung ?: data.kunde?.name ?: data.kundeText)?.takeIf { it.isNotBlank() },
-            data.customerContactPerson?.takeIf { it.isNotBlank() },
+            // Not the contact person: the buyer contact (BT-56) is no part of the postal address, it is stated by
+            // the e-invoice, and a template may print it via `${Ansprechpartner}`.
             data.customerContactDepartment?.takeIf { it.isNotBlank() },
             data.customerAddress?.takeIf { it.isNotBlank() },
             listOfNotNull(
@@ -364,5 +434,8 @@ open class InvoiceService {
 
         /** The template shipped in `resources/officeTemplates`, used where the installation configured none. */
         private const val DEFAULT_TEMPLATE_NAME = "InvoiceTemplate"
+
+        /** Temporary text of a placeholder replaced by [replaceLabelValueLines]. */
+        private const val LABEL_VALUE_MARKER = "@@pf-label-value@@"
     }
 }
