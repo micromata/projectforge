@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "CVE-Radar: the progress bar of an SBOM import (also of a zip with many SBOMs), of an uploaded library list and of matching again also runs while the components are matched against the vulnerabilities, with the OSV advisories checked and the findings stored.",
+  "de": "CVE-Radar: Der Fortschrittsbalken eines SBOM-Imports (auch eines Zips mit vielen SBOMs), einer hochgeladenen Bibliotheksliste und des erneuten Abgleichs läuft auch während des Abgleichs der Komponenten mit den Schwachstellen weiter, mit den geprüften OSV-Advisories und den gespeicherten Befunden."
+}

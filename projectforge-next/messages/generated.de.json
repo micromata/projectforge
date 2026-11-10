@@ -4887,6 +4887,12 @@
         "info": "Für diese Rolle sind nur die Stammdaten dieses Systems sichtbar (Kürzel, Name, Gruppe, Stufe). Komponenten und Befunde erfordern eine Freigabe.",
         "short": "nur Stammdaten"
       },
+      "matching": {
+        "progress": {
+          "findings": "Abgleich mit den Schwachstellen: {arg0} von {arg1} Befunden gespeichert",
+          "vulnerabilities": "Abgleich mit den Schwachstellen: {arg0} von {arg1} OSV-Advisories geprüft"
+        }
+      },
       "matrix": {
         "actions": "Abweichung von {arg0}",
         "apply": "In Baseline übernehmen",

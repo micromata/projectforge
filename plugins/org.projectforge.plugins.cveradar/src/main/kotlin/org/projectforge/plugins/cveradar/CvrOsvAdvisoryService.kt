@@ -191,14 +191,20 @@ class CvrOsvAdvisoryService {
      * @return The id of the vulnerability per key.
      */
     @Synchronized
-    fun materialize(keys: Collection<String>, possibleOnly: Set<String> = emptySet()): Map<String, Long> {
+    fun materialize(
+        keys: Collection<String>,
+        possibleOnly: Set<String> = emptySet(),
+        progress: (done: Int, total: Int) -> Unit = { _, _ -> },
+    ): Map<String, Long> {
         val result = mutableMapOf<String, Long>()
         val keySet = keys.toSet()
+        var done = 0
         // In one query each (the first import of a large inventory has thousands of keys); the advisories only of the
         // keys without a vulnerability.
         val existingByKey = vulnerabilityDao.findByCveIds(keySet)
         val advisoriesByKey = advisoriesOf(keySet - existingByKey.keys)
         keySet.forEach { key ->
+            progress(done++, keySet.size)
             val existing = existingByKey[key]
             val vulnerability = if (existing != null) {
                 if (existing.deleted) return@forEach
@@ -217,6 +223,7 @@ class CvrOsvAdvisoryService {
             link(key, vulnerability.id!!)
             result[key] = vulnerability.id!!
         }
+        progress(done, keySet.size)
         return result
     }
 

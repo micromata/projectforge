@@ -32,8 +32,8 @@ import org.projectforge.framework.utils.NumberFormatter
 
 /**
  * Matches the components below a node against all vulnerabilities again, started by hand from its findings (MAT-01
- * otherwise runs after every import and every change of the inventory). The matching tells no progress: the bar runs
- * without counters, the result follows as [progressDetails]. The caller checks the access to the node (see
+ * otherwise runs after every import and every change of the inventory). The counters follow the steps of the matching
+ * ([CvrMatchingService.Progress]), the result follows as [progressDetails]. The caller checks the access to the node (see
  * [CvrInventoryService.startRematch]).
  */
 internal class CvrRematchJob(
@@ -52,16 +52,23 @@ internal class CvrRematchJob(
     @Volatile
     private var result: CvrMatchingService.Result? = null
 
+    @Volatile
+    private var progress: CvrMatchingService.Progress? = null
+
     override val progressDetails: String
         get() = result?.let {
             translateMsg(
                 "plugins.cveradar.rematch.result",
                 NumberFormatter.format(it.created), NumberFormatter.format(it.updated), NumberFormatter.format(it.removed),
             )
-        } ?: translate("plugins.cveradar.rematch.running")
+        } ?: translate("plugins.cveradar.rematch.running").let { running -> progress?.describe(running) ?: running }
 
     override suspend fun run() {
-        result = matchingService.rematchComponents(componentIds)
+        result = matchingService.rematchComponents(componentIds) { p ->
+            progress = p
+            totalNumber = p.total
+            processedNumber = p.done
+        }
     }
 
     /** Only the person who started it sees it. */
