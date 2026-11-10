@@ -134,6 +134,9 @@ paginate_path:      "/blog/:num/"
 # Path to post content assets directory i.e post images, pdfs etc
 uploads:            /uploads/
 
+# The ProjectForge app in Apple's App Store (_includes/app-store-badge.html)
+app_store_url:      https://apps.apple.com/de/app/projectforge-app/id1536572990
+
 # Build settings
 markdown:           kramdown
 highlighter:        rouge

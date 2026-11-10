@@ -31,7 +31,7 @@ tags: [features]
 ++++
 
 ProjectForge verbindet Aufträge, Projekte, Zeitberichte, Personal, Rechnungen und Liquidität. Alle Funktionen arbeiten auf denselben Daten: Was das Team heute bucht, steht morgen im Forecast – ohne Exporte, Importe oder Tabellen dazwischen.
-Alle Funktionen sind Teil der kostenlosen Open-Source-Edition. Die Benutzer brauchen nur einen Webbrowser.
+Alle Funktionen sind Teil der kostenlosen Open-Source-Edition. Die Benutzer brauchen nur einen Webbrowser – oder die App für iPhone und iPad.
 
 [[projects_orders]]
 == Projekte & Aufträge
@@ -141,12 +141,32 @@ image::2026-Calendar.png[Teamkalender mit Urlauben und Feiertagen,link=/uploads/
 image::2026-DataTransfer.png[Datentransfer,link=/uploads/screenshots/2026-DataTransfer.png]
 --
 
+[[mobile_app]]
+== Mobile App
+
+_ProjectForge auf iPhone und iPad – was unterwegs gebraucht wird, nur einen Tipp entfernt._
+
+Zeitberichte:: Eine Tagesansicht mit der Woche darüber: Die Lücken zwischen den Buchungen werden angezeigt, ein Tipp bucht genau diese Lücke. Buchungen per Wischen duplizieren oder löschen, oder den Timer mitlaufen lassen.
+Chat:: Alle Räume und Direktnachrichten des Webs, mit Dateien und Fotos. Erwähnungen, Direktnachrichten und Antworten kommen als Push-Nachricht.
+Adressen und Visitenkarten:: Das Adressbuch durchsuchen, mit einem Tipp anrufen, schreiben oder navigieren. Die eigene digitale Visitenkarte als QR-Code zeigen.
+Ganz ProjectForge:: Jede Seite der Weboberfläche öffnet sich in der App – Kalender, Strukturbaum, Urlaub, Mein Zugang und mehr.
+Sichere Anmeldung:: Die Anmeldung läuft im Browser mit dem zweiten Faktor; die App behält nur ihr eigenes Zugangstoken, im Schlüsselbund. Unter _Mein Zugang_ ist jedes Gerät zu sehen und abzumelden.
+Nur der eigene Server:: Die App verbindet sich nur mit dem ProjectForge-Server der eigenen Organisation – kein Tracking, keine Analyse (link:/de/misc/privacy-policy.html[Datenschutzerklärung]).
+
+++++
+<div class="paragraph pf-app-store">{% include app-store-badge.html note=true %}</div>
+<div class="pf-screenshots">
+{% include screenshot-gallery.html key="app_phone" variant="phone" %}
+{% include screenshot-gallery.html key="app_tablet" variant="tablet" %}
+</div>
+++++
+
 [[easy_to_use]]
 == Einfache Bedienung
 
 _Ein Werkzeug, das man gern öffnet._
 
-Moderne Oberfläche:: Schnell und responsiv – auf Desktop, Tablet und Telefon. Im hellen oder dunklen Design.
+Moderne Oberfläche:: Schnell und responsiv – auf Desktop, Tablet und Telefon, und als <<mobile_app,App für iPhone und iPad>>. Im hellen oder dunklen Design.
 Globale Suche:: Jeden Kunden, jedes Projekt, jede Rechnung und jede Adresse in Sekunden finden.
 Das eigene Menü:: Favoritenleiste, zuletzt genutzte Seiten und ein anpassbares Menü.
 Excel überall:: Jede Liste nach Excel exportieren.

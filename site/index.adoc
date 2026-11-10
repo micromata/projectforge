@@ -4,9 +4,9 @@ width: expand
 permalink: /
 hero:
     announcement:
-      label: "Release 9.2.0"
-      text: "Java 21, CVE-Radar and digital business cards"
-      url: /changelog-posts/#release-9-2-0
+      label: "New"
+      text: "The ProjectForge app for iPhone and iPad – now in the App Store"
+      url: /#app
     title: From order to invoice – one place for projects, time, people and money.
     subtitle: ProjectForge is the open-source back office for project-driven companies. Self-hosted, made for DACH and the EU, free without limits.
     images:
@@ -29,6 +29,10 @@ hero:
 
 ++++
 {% include boxes.html columns="3" title="Why ProjectForge?" subtitle="Plan projects and orders, let your team book time in seconds, handle leave, write e-invoices and keep an eye on forecast and liquidity – all in one web app that runs on your own server." %}
+++++
+
+++++
+{% include text-section.html key="app" background="muted" %}
 ++++
 
 ++++

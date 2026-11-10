@@ -31,7 +31,7 @@ tags: [features]
 ++++
 
 ProjectForge connects orders, projects, timesheets, people, invoices and liquidity. Every feature works on the same data, so what your team books today shows up in tomorrow's forecast – without exports, imports or spreadsheets in between.
-All features are part of the free open-source edition. Your users only need a web browser.
+All features are part of the free open-source edition. Your users only need a web browser – or the app for iPhone and iPad.
 
 [[projects_orders]]
 == Projects & Orders
@@ -141,12 +141,32 @@ image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/scr
 image::2026-DataTransfer.png[Data transfer,link=/uploads/screenshots/2026-DataTransfer.png]
 --
 
+[[mobile_app]]
+== Mobile App
+
+_ProjectForge on the iPhone and iPad – the things you need on the way, a tap away._
+
+Time sheets:: A day view with the week on top: the gaps between your bookings are shown, a tap books exactly that gap. Duplicate or delete a booking with a swipe, or let the timer run.
+Chat:: All rooms and direct messages of the web, with files and photos. Mentions, direct messages and replies arrive as push notifications.
+Addresses and business cards:: Search the address book, call, write or navigate in one tap. Show your digital business card as a QR code.
+All of ProjectForge:: Every page of the web interface opens in the app – calendar, structure tree, leave, my account and more.
+Secure login:: Login in the browser with your second factor; the app keeps only its own access token, in the keychain. Every device can be seen and logged out under _My account_.
+Your server only:: The app connects only to your organization's ProjectForge server – no tracking, no analytics (link:/misc/privacy-policy.html[privacy policy]).
+
+++++
+<div class="paragraph pf-app-store">{% include app-store-badge.html note=true %}</div>
+<div class="pf-screenshots">
+{% include screenshot-gallery.html key="app_phone" variant="phone" %}
+{% include screenshot-gallery.html key="app_tablet" variant="tablet" %}
+</div>
+++++
+
 [[easy_to_use]]
 == Easy to Use
 
 _A tool people actually like to open._
 
-Modern interface:: Fast and responsive – on the desktop, tablet and phone. In a light or dark theme.
+Modern interface:: Fast and responsive – on the desktop, tablet and phone, and as an <<mobile_app,app for iPhone and iPad>>. In a light or dark theme.
 Global search:: Find any customer, project, invoice or address in seconds.
 Your menu:: Favorites bar, recently used pages and a menu you can customize.
 Excel everywhere:: Export every list to Excel.

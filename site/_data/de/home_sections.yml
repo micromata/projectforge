@@ -1,5 +1,24 @@
 # Text sections of the German home page, rendered by _includes/text-section.html (fields: see there)
 
+app:
+  title: ProjectForge für die Hosentasche.
+  subtitle: Die ProjectForge-App für iPhone und iPad – jetzt kostenlos im App Store.
+  text: >-
+    Die Zeit auf dem Heimweg buchen, im Zug auf eine Chatnachricht antworten, vor dem Termin noch schnell eine
+    Telefonnummer nachschlagen. Die App verbindet sich mit dem eigenen ProjectForge-Server – mit nichts sonst.
+  bullets:
+    - "**Zeitberichte mit wenigen Fingertipps** – eine Tagesansicht zeigt die Lücken zwischen den Buchungen; ein Tipp auf eine Lücke bucht genau diese Zeit, oder der Timer läuft mit."
+    - "**Chat mit Push-Nachrichten** – Erwähnungen, Direktnachrichten und Antworten kommen aufs Telefon, die Zahl der ungelesenen steht am Chat-Tab."
+    - "**Adressen und digitale Visitenkarten** – anrufen, schreiben oder navigieren mit einem Tipp, die eigene Karte per QR-Code weitergeben."
+    - "**Jede Seite von ProjectForge** – Kalender, Strukturbaum, Urlaub und alles andere der Weboberfläche direkt in der App."
+    - "**Sicher und privat** – Anmeldung im Browser mit dem zweiten Faktor, das Zugangstoken im Schlüsselbund, kein Tracking, keine Analyse."
+  gallery: app_phone
+  gallery_variant: phone
+  app_store: true
+  app_store_note: true
+  button_text: Alle Funktionen der App
+  button_url: /de/features/#mobile_app
+
 dach:
   title: Spricht DATEV. Kennt XRechnung.
   subtitle: Gemacht für Unternehmen in Deutschland, Österreich, der Schweiz und der EU.

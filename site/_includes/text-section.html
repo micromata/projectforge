@@ -3,8 +3,10 @@
     Parameters: key (entry of the data file), data (data file in _data, default: home_sections),
     background (muted for a grey band).
     Entry fields: title, subtitle, text (markdown), bullets (list, markdown), img, img_caption, reverse (screenshot
-    left), gallery (key of _data/feature_galleries.yml: a grid of screenshots instead of img), button_text (default:
-    "Learn more"), button_url, button_style (default: outline).
+    left), gallery (key of _data/feature_galleries.yml: a grid of screenshots instead of img), gallery_variant (phone
+    or tablet: narrower columns for portrait screenshots), app_store (true: the badge of the App Store before the
+    button; app_store_note: true adds "Android version coming soon"), button_text (default: "Learn more"),
+    button_url, button_style (default: outline).
     German pages use the data file of the same name in _data/de/. Renders nothing if the key is missing.
 {% endcomment %}
 {%- assign source = include.data | default: 'home_sections' -%}
@@ -30,17 +32,22 @@
                 {%- endfor %}
             </ul>
             {%- endif %}
-            {%- if section.button_url %}
-            {%- assign button_text = section.button_text | default: site.data.translation[page.lang].learn_more -%}
-            {%- assign button_style = section.button_style | default: 'outline' %}
-            <div class="mt-8 flex flex-wrap gap-3">
+            {%- if section.button_url or section.app_store %}
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+                {%- if section.app_store %}
+                {% include app-store-badge.html note=section.app_store_note %}
+                {%- endif %}
+                {%- if section.button_url %}
+                {%- assign button_text = section.button_text | default: site.data.translation[page.lang].learn_more -%}
+                {%- assign button_style = section.button_style | default: 'outline' %}
                 {% include button.html url=section.button_url text=button_text style=button_style %}
+                {%- endif %}
             </div>
             {%- endif %}
         </div>
         {%- if section.gallery %}
         <div>
-            {% include screenshot-gallery.html key=section.gallery %}
+            {% include screenshot-gallery.html key=section.gallery variant=section.gallery_variant %}
         </div>
         {%- elsif section.img %}
         <div>

@@ -21,6 +21,9 @@
 - title: Zusammenarbeit
   icon: calendar-days
   url: /de/features/#collaboration
+- title: Mobile App
+  icon: smartphone
+  url: /de/features/#mobile_app
 - title: Einfache Bedienung
   icon: mouse-pointer-click
   url: /de/features/#easy_to_use
