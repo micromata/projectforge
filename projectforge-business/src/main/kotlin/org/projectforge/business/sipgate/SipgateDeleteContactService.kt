@@ -36,10 +36,16 @@ class SipgateDeleteContactService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
+    /**
+     * Detaches the sync entry from the address to delete and marks it as [SipgateContactSyncDO.RemoteStatus.DELETED_BY_LOCAL].
+     * Deleting the entry would let the next sync import the remote contact again as a new address; the tombstone lets
+     * it delete the remote contact instead.
+     */
     fun deleteContact(addressId: Long) {
         persistenceService.runInTransaction { ctx ->
             ctx.executeNamedUpdate(
-                SipgateContactSyncDO.DELETE_BY_ADDRESS_ID,
+                SipgateContactSyncDO.MARK_DELETED_BY_ADDRESS_ID,
+                Pair("remoteStatus", SipgateContactSyncDO.RemoteStatus.DELETED_BY_LOCAL),
                 Pair("addressId", addressId),
             )
         }
