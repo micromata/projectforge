@@ -228,7 +228,8 @@ class CvrSbomImportService {
         component.id!!
     }
 
-    internal fun rematch(componentIds: List<Long>) = inventoryService.rematchImported(componentIds)
+    internal fun rematch(componentIds: List<Long>, progress: (CvrMatchingService.Progress) -> Unit = {}) =
+        inventoryService.rematchImported(componentIds, progress)
 
     /** The zips left by a restart during an upload or analysis (the job deletes them otherwise). */
     @PostConstruct

@@ -27,7 +27,9 @@ package org.projectforge.plugins.cveradar
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.Session
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.plugins.cveradar.model.CvrCatalogNodeDO
 import org.projectforge.plugins.cveradar.model.CvrComponentDO
 import org.projectforge.plugins.cveradar.model.CvrCpeMatchDO
@@ -112,6 +114,25 @@ class CvrMatchingService {
         override fun toString() = "created=$created, updated=$updated, removed=$removed, unchanged=$unchanged"
     }
 
+    /**
+     * How far a run is, for the bar of a job: [Phase.LOADING] without counters, then the advisories made vulnerabilities
+     * ([Phase.VULNERABILITIES]) and the findings written ([Phase.FINDINGS]), each [done] of [total].
+     */
+    class Progress(val phase: Phase, val done: Int, val total: Int) {
+        enum class Phase { LOADING, VULNERABILITIES, FINDINGS }
+
+        /** The text of a job for this progress, translated; [loading] while there are no counters yet. */
+        fun describe(loading: String): String = when (phase) {
+            Phase.LOADING -> loading
+            Phase.VULNERABILITIES -> translateMsg(
+                "plugins.cveradar.matching.progress.vulnerabilities", NumberFormatter.format(done), NumberFormatter.format(total),
+            )
+            Phase.FINDINGS -> translateMsg(
+                "plugins.cveradar.matching.progress.findings", NumberFormatter.format(done), NumberFormatter.format(total),
+            )
+        }
+    }
+
     /** What a technology looks for: a product, the vendor if known, and whether the source is sure. */
     private class Key(val vendor: String?, val product: String, val sure: Boolean)
 
@@ -141,9 +162,12 @@ class CvrMatchingService {
     fun rematchVulnerabilities(vulnerabilityIds: Collection<Long>): Result =
         if (vulnerabilityIds.isEmpty()) Result() else rematch(vulnerabilityIds, null)
 
-    /** After a change of the inventory: the technologies of the components against all vulnerabilities. */
-    fun rematchComponents(componentIds: Collection<Long>): Result =
-        if (componentIds.isEmpty()) Result() else rematch(null, componentIds)
+    /**
+     * After a change of the inventory: the technologies of the components against all vulnerabilities. [progress] is
+     * told how far the run is (see [Progress]).
+     */
+    fun rematchComponents(componentIds: Collection<Long>, progress: (Progress) -> Unit = {}): Result =
+        if (componentIds.isEmpty()) Result() else rematch(null, componentIds, progress)
 
     /** After an instance or a system was added or deleted: every component of the system, the ones of its instances included. */
     fun rematchSystem(systemId: Long): Result {
@@ -156,12 +180,22 @@ class CvrMatchingService {
     }
 
     @Synchronized
-    fun rematch(vulnerabilityIds: Collection<Long>? = null, componentIds: Collection<Long>? = null): Result {
+    fun rematch(
+        vulnerabilityIds: Collection<Long>? = null,
+        componentIds: Collection<Long>? = null,
+        progress: (Progress) -> Unit = {},
+    ): Result {
         val result = Result()
+        progress(Progress(Progress.Phase.LOADING, 0, 0))
         val model = loadModel(componentIds)
-        val hits = if (model.keys.isEmpty() && model.packages.isEmpty()) emptyMap() else findHits(model, vulnerabilityIds)
+        val hits = if (model.keys.isEmpty() && model.packages.isEmpty()) emptyMap() else findHits(model, vulnerabilityIds, progress)
         val existing = findingDao.selectInScope(vulnerabilityIds, componentIds)
             .groupBy { Triple(it.vulnerabilityId!!, it.componentId!!, it.instanceId!!) }
+        val created = hits.filterKeys { it !in existing }
+        val toWrite = existing.size + created.size
+        var written = 0
+        fun step() = progress(Progress(Progress.Phase.FINDINGS, ++written, toWrite))
+        progress(Progress(Progress.Phase.FINDINGS, 0, toWrite))
         // Without data of any import (main dump of a backup restored only), a vulnerability has no index yet: its
         // findings stay as they are until an import filled it.
         val lackingDetails = vulnerabilityDao.selectLackingDetails(existing.keys.map { it.first }.toSet())
@@ -188,8 +222,9 @@ class CvrMatchingService {
 
                 else -> result.unchanged++
             }
+            step()
         }
-        hits.filterKeys { it !in existing }.forEach { (key, hit) ->
+        created.forEach { (key, hit) ->
             findingDao.insert(
                 CvrFindingDO().also {
                     it.vulnerability = persistenceService.getReference(CvrVulnerabilityDO::class.java, key.first)
@@ -202,6 +237,7 @@ class CvrMatchingService {
                 checkAccess = false,
             )
             result.created++
+            step()
         }
         if (result.created + result.updated + result.removed > 0) {
             log.info { "Matching finished: $result" }
@@ -333,7 +369,11 @@ class CvrMatchingService {
      * The best hit per vulnerability, component and instance. Advisories that match but aren't linked to a vulnerability
      * yet become one (only without [vulnerabilityIds]: in that scope every advisory is linked).
      */
-    private fun findHits(model: Model, vulnerabilityIds: Collection<Long>?): Map<Triple<Long, Long, Long>, Hit> {
+    private fun findHits(
+        model: Model,
+        vulnerabilityIds: Collection<Long>?,
+        progress: (Progress) -> Unit,
+    ): Map<Triple<Long, Long, Long>, Hit> {
         val byProduct = model.keys.values.flatten().groupBy { it.product }
         val candidates: Map<String?, List<CvrCpeMatchDO>> = if (byProduct.isEmpty()) {
             emptyMap()
@@ -370,7 +410,11 @@ class CvrMatchingService {
         val vulnerabilityOfKey = perTechnology.flatMap { it.purl.vulnerabilityIds.entries }.associate { it.key to it.value }.toMutableMap()
         val unlinked = perTechnology.flatMap { it.purl.hits.entries }.filter { it.key !in vulnerabilityOfKey }
         if (unlinked.isNotEmpty() && vulnerabilityIds == null) {
-            vulnerabilityOfKey.putAll(osvService.materialize(unlinked.map { it.key }, belowSure(unlinked)))
+            vulnerabilityOfKey.putAll(
+                osvService.materialize(unlinked.map { it.key }, belowSure(unlinked)) { done, total ->
+                    progress(Progress(Progress.Phase.VULNERABILITIES, done, total))
+                }
+            )
         }
         val hits = mutableMapOf<Triple<Long, Long, Long>, Hit>()
         perTechnology.forEach { technology ->
