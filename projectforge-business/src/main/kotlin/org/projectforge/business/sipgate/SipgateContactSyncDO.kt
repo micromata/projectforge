@@ -48,8 +48,8 @@ import org.projectforge.framework.json.IdOnlySerializer
 )
 @NamedQueries(
   NamedQuery(
-    name = SipgateContactSyncDO.DELETE_BY_ADDRESS_ID,
-    query = "delete from SipgateContactSyncDO where address.id = :addressId"
+    name = SipgateContactSyncDO.MARK_DELETED_BY_ADDRESS_ID,
+    query = "update SipgateContactSyncDO set address = null, remoteStatus = :remoteStatus where address.id = :addressId"
   ),
   NamedQuery(
     name = SipgateContactSyncDO.FIND_BY_ADDRESS_ID,
@@ -136,7 +136,8 @@ open class SipgateContactSyncDO {
     CREATED_BY_REMOTE,
 
     /**
-     * Deleted by local system.
+     * The local address was deleted finally (force delete), the address is null. The entry is kept as tombstone, so
+     * the remote contact isn't imported again as new address, but deleted by the next sync (and the entry with it).
      */
     DELETED_BY_LOCAL,
   }
@@ -150,7 +151,8 @@ open class SipgateContactSyncDO {
   open var sipgateContactId: String? = null
 
   /**
-   * Id of the local address connected to this remote contact of Sipgate.
+   * Id of the local address connected to this remote contact of Sipgate. Null, if the address was deleted finally
+   * (remote status [RemoteStatus.DELETED_BY_LOCAL]).
    * Lazy: the sync only needs its id (the addresses are loaded on their own), an eager reference loaded all
    * addresses of all sync entries again in batches of 128.
    */
@@ -241,7 +243,7 @@ open class SipgateContactSyncDO {
       return sb.toString().trim()
     }
 
-    const val DELETE_BY_ADDRESS_ID = "SipgateContactSyncDO_deleteByAddressId"
+    const val MARK_DELETED_BY_ADDRESS_ID = "SipgateContactSyncDO_markDeletedByAddressId"
     const val FIND_BY_CONTACT_AND_ADDRESS_ID = "SipgateContactSyncDO_findByContactAndAddressId"
     const val FIND_BY_ADDRESS_ID = "SipgateContactSyncDO_findByAddressId"
     const val LOAD_ALL = "SipgateContactSyncDO_loadAll"

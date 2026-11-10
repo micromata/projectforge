@@ -42,79 +42,105 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
     private var addressCounter = 0L
     var contactIdCounter = 0
 
+    private inner class Mocks {
+        val addressDao = MockAddressDao()
+        val syncService = MockSyncService()
+        val contactService = MockContactService()
+
+        init {
+            syncService.configuration = SipgateConfiguration()
+            syncService.configuration.updateLocalAddresses = true
+            syncService.persistenceService = persistenceService
+            syncService.addressDao = addressDao
+            syncService.sipgateContactService = contactService
+        }
+
+        /**
+         * Simulates AddressDao.forceDelete: the address is gone, its sync entry is kept as tombstone
+         * (see SipgateDeleteContactService).
+         */
+        fun forceDelete(address: AddressDO): String {
+            addressDao.addressList.remove(address)
+            val syncDO = syncService.syncDOList.first { it.address?.id == address.id }
+            syncDO.address = null
+            syncDO.remoteStatus = SipgateContactSyncDO.RemoteStatus.DELETED_BY_LOCAL
+            return syncDO.sipgateContactId!!
+        }
+    }
+
+    private inner class MockAddressDao : AddressDao() {
+        val addressList = createAddressList()
+        override fun selectAll(checkAccess: Boolean): MutableList<AddressDO> {
+            return addressList
+        }
+
+        override fun insert(obj: AddressDO, checkAccess: Boolean): Long {
+            obj.id = ++addressCounter
+            addressList.add(obj)
+            return obj.id!!
+        }
+
+        override fun update(obj: AddressDO, checkAccess: Boolean): EntityCopyStatus {
+            // Nothing to do, address values are already updated.
+            return EntityCopyStatus.MAJOR
+        }
+    }
+
+    private class MockSyncService : SipgateContactSyncService() {
+        val syncDOList = mutableListOf<SipgateContactSyncDO>()
+        override fun loadAll(): List<SipgateContactSyncDO> {
+            return syncDOList
+        }
+
+        override fun upsert(entry: SipgateContactSyncDO) {
+            val dbObj =
+                syncDOList.find { it.sipgateContactId == entry.sipgateContactId || it.address?.id == entry.address!!.id }
+            if (dbObj != null) {
+                dbObj.syncInfoAsJson = entry.syncInfoAsJson
+                dbObj.lastSync = entry.lastSync
+            } else {
+                syncDOList.add(entry)
+            }
+        }
+
+        override fun delete(entry: SipgateContactSyncDO, em: EntityManager) {
+            syncDOList.remove(entry)
+        }
+    }
+
+    private inner class MockContactService : SipgateContactService() {
+        val contactList = createContactList()
+
+        override fun getList(offset: Int, limit: Int, maxNumberOfPages: Int): List<SipgateContact> {
+            return contactList
+        }
+
+        override fun create(entity: SipgateContact): Boolean {
+            contactList.add(entity)
+            entity.family = null // Will not returned by Sipgate
+            entity.given = null  // Will not returned by Sipgate
+            entity.id = "16CC5120-9AEF-11ED-976C-B9402C0419${++contactIdCounter}"
+            return true
+        }
+
+        override fun update(id: String, entity: SipgateContact): Boolean {
+            contactList.removeIf { it.id == id }
+            contactList.add(entity)
+            return true
+        }
+
+        override fun delete(id: String?, entity: SipgateContact): Boolean {
+            contactList.removeIf { it.id == id }
+            return true
+        }
+    }
+
     @Test
     fun syncTest() {
-        // val configurationService = Mockito.mock(ConfigurationService::class.java)
-        // Configuration(configurationService)
-        val addressDao = object : AddressDao() {
-            val addressList = createAddressList()
-            override fun selectAll(checkAccess: Boolean): MutableList<AddressDO> {
-                return addressList
-            }
-
-            override fun insert(obj: AddressDO, checkAccess: Boolean): Long {
-                obj.id = ++addressCounter
-                addressList.add(obj)
-                return obj.id!!
-            }
-
-            override fun update(obj: AddressDO, checkAccess: Boolean): EntityCopyStatus {
-                // Nothing to do, address values are already updated.
-                return EntityCopyStatus.MAJOR
-            }
-        }
-        val syncService = object : SipgateContactSyncService() {
-            val syncDOList = mutableListOf<SipgateContactSyncDO>()
-            override fun loadAll(): List<SipgateContactSyncDO> {
-                return syncDOList
-            }
-
-            override fun upsert(entry: SipgateContactSyncDO) {
-                val dbObj =
-                    syncDOList.find { it.sipgateContactId == entry.sipgateContactId || it.address!!.id == entry.address!!.id }
-                if (dbObj != null) {
-                    dbObj.syncInfoAsJson = entry.syncInfoAsJson
-                    dbObj.lastSync = entry.lastSync
-                } else {
-                    syncDOList.add(entry)
-                }
-            }
-
-            override fun delete(entry: SipgateContactSyncDO, em: EntityManager) {
-                syncDOList.remove(entry)
-            }
-        }
-        syncService.configuration = SipgateConfiguration()
-        syncService.configuration.updateLocalAddresses = true
-        val contactService = object : SipgateContactService() {
-            val contactList = createContactList()
-
-            override fun getList(offset: Int, limit: Int, maxNumberOfPages: Int): List<SipgateContact> {
-                return contactList
-            }
-
-            override fun create(entity: SipgateContact): Boolean {
-                contactList.add(entity)
-                entity.family = null // Will not returned by Sipgate
-                entity.given = null  // Will not returned by Sipgate
-                entity.id = "16CC5120-9AEF-11ED-976C-B9402C0419${++contactIdCounter}"
-                return true
-            }
-
-            override fun update(id: String, entity: SipgateContact): Boolean {
-                contactList.removeIf { it.id == id }
-                contactList.add(entity)
-                return true
-            }
-
-            override fun delete(id: String?, entity: SipgateContact): Boolean {
-                contactList.removeIf { it.id == id }
-                return true
-            }
-        }
-        syncService.persistenceService = persistenceService
-        syncService.addressDao = addressDao
-        syncService.sipgateContactService = contactService
+        val mocks = Mocks()
+        val addressDao = mocks.addressDao
+        val syncService = mocks.syncService
+        val contactService = mocks.contactService
         var syncContext = syncService.sync()
         assertSynContext(
             syncContext,
@@ -152,6 +178,38 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
             SipgateContactSyncService.Counter(total = 2, inserted = 1, updated = 1),
             2,
         )
+    }
+
+    @Test
+    fun forceDeletedAddressTest() {
+        val mocks = Mocks()
+        mocks.syncService.sync() // Kai and Berta pushed, Paul imported.
+        val address = mocks.addressDao.addressList.first()
+        val contactId = mocks.forceDelete(address)
+        val syncContext = mocks.syncService.sync()
+        assertSynContext(
+            syncContext,
+            SipgateContactSyncService.Counter(total = 2, deleted = 1),
+            SipgateContactSyncService.Counter(total = 2),
+            2,
+        )
+        Assertions.assertTrue(mocks.contactService.contactList.none { it.id == contactId }, "remote contact deleted")
+        Assertions.assertTrue(mocks.syncService.syncDOList.none { it.sipgateContactId == contactId }, "tombstone deleted")
+        Assertions.assertTrue(mocks.addressDao.addressList.none { it.fullName == address.fullName }, "not imported again")
+    }
+
+    @Test
+    fun forceDeletedAddressWithoutRemoteUpdatesTest() {
+        val mocks = Mocks()
+        mocks.syncService.sync()
+        mocks.syncService.configuration.updateSipgateContacts = false
+        val address = mocks.addressDao.addressList.first()
+        val contactId = mocks.forceDelete(address)
+        val syncContext = mocks.syncService.sync()
+        Assertions.assertEquals(0, syncContext.localCounter.inserted, "local inserted")
+        Assertions.assertTrue(mocks.contactService.contactList.any { it.id == contactId }, "remote contact kept")
+        Assertions.assertTrue(mocks.syncService.syncDOList.any { it.sipgateContactId == contactId }, "tombstone kept")
+        Assertions.assertTrue(mocks.addressDao.addressList.none { it.fullName == address.fullName }, "not imported again")
     }
 
     private fun assertSynContext(
