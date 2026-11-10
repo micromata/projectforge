@@ -37,6 +37,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  ScrollViewInstance,
   StyleSheet,
   Text,
   TextInput,
@@ -115,6 +116,9 @@ export function BookingForm({
   const [naming, setNaming] = useState(false);
   const [dateTime, setDateTime] = useState<DateTimeRequest | null>(null);
   const taskRef = useRef<TaskRef | null>(what0?.task ?? null);
+  const scroll = useRef<ScrollViewInstance>(null);
+  // Set when the user opens "more": its first layout scrolls it into view (later re-layouts don't).
+  const revealMore = useRef(false);
 
   const repository = () => timesheets.repository();
 
@@ -305,7 +309,7 @@ export function BookingForm({
           <Ionicons name="ellipsis-vertical" size={22} color={colors.text} />
         </Pressable>
       </View>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.labelRow}>
           <Text style={[styles.label, { color: colors.text }]}>{t('app.timesheet.what')}</Text>
           <Pressable style={styles.link} onPress={() => setTemplatesOpen(true)}>
@@ -417,7 +421,13 @@ export function BookingForm({
           multiline
           autoCapitalize="sentences"
         />
-        <Pressable style={styles.moreHeader} onPress={() => setMore(!more)}>
+        <Pressable
+          style={styles.moreHeader}
+          onPress={() => {
+            revealMore.current = !more;
+            setMore(!more);
+          }}
+        >
           <View style={styles.fill}>
             <Text style={{ color: colors.text, fontSize: 16 }}>{t('app.timesheet.more')}</Text>
             {moreSummary ? <Text style={{ color: colors.textMuted }}>{moreSummary}</Text> : null}
@@ -425,7 +435,15 @@ export function BookingForm({
           <Ionicons name={more ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textMuted} />
         </Pressable>
         {more && (
-          <View style={styles.moreBody}>
+          <View
+            style={styles.moreBody}
+            onLayout={() => {
+              if (!revealMore.current) return;
+              revealMore.current = false;
+              // The section is the last child, so the end shows all of it.
+              scroll.current?.scrollToEnd({ animated: true });
+            }}
+          >
             <TextInput
               style={[styles.input, field]}
               value={location}
