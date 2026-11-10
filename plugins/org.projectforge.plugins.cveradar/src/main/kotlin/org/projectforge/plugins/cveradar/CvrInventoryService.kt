@@ -48,6 +48,8 @@ import org.projectforge.plugins.cveradar.model.CvrTechnologyKind
 import org.projectforge.plugins.cveradar.rest.AreaRequest
 import org.projectforge.plugins.cveradar.rest.ComponentRequest
 import org.projectforge.plugins.cveradar.rest.CveCounts
+import org.projectforge.plugins.cveradar.rest.DeletePreview
+import org.projectforge.plugins.cveradar.rest.DeletePreviewNode
 import org.projectforge.plugins.cveradar.rest.InstanceRequest
 import org.projectforge.plugins.cveradar.rest.JobStarted
 import org.projectforge.plugins.cveradar.rest.LibraryDiff
@@ -107,6 +109,9 @@ class CvrInventoryService {
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var purge: CvrInventoryPurge
 
     @Autowired
     private lateinit var systemDao: CvrSystemDao
@@ -606,54 +611,153 @@ class CvrInventoryService {
 
     // --- Deleting ---
 
-    /** Only a node without children is deleted (INV-20); the default instance of a system and the technologies go with it. */
-    fun delete(user: PFUserDO, level: InventoryLevel, id: Long) {
+    /**
+     * What [delete] removes: the node and everything below it with the numbers of findings, libraries and technologies.
+     * Write access to the node is needed, as for deleting; it covers everything below.
+     */
+    fun deletePreview(user: PFUserDO, level: InventoryLevel, id: Long): DeletePreview {
         val view = View(user, load())
+        val nodes = deletableSubtree(view, level, id)
+        val componentIds = nodes.flatMap { it.componentIds }.toSet()
+        val instanceIds = nodes.flatMap { it.instanceIds }.toSet()
+        // Of every status: they are gone afterwards, the closed ones too. Those of an instance include the ones of the
+        // baseline components.
+        fun findings(where: String, ids: Set<Long>) = persistenceService.executeQueryBatched(
+            "select f.id, f.component.id, f.instance.id from CvrFindingDO f where f.deleted = false and $where in :ids",
+            Array<Any>::class.java,
+            "ids",
+            ids,
+        )
+        val findings = (findings("f.component.id", componentIds) + findings("f.instance.id", instanceIds))
+            .distinctBy { it[0] as Long }
+        val findingsByComponent = findings.groupingBy { it[1] as Long }.eachCount()
+        val findingsByInstance = findings.groupingBy { it[2] as Long }.eachCount()
+        val technologies = view.model.technologies.filter { it.componentId in componentIds }.groupBy { it.componentId }
+        return DeletePreview(nodes.map { node ->
+            val own = node.componentIds.flatMap { technologies[it].orEmpty() }
+            val libraries = own.count { it.origin in CvrOrigin.LIBRARY_LISTS }
+            val findingCount = if (node.level == InventoryLevel.COMPONENT) {
+                node.componentIds.sumOf { findingsByComponent[it] ?: 0 }
+            } else {
+                node.instanceIds.sumOf { findingsByInstance[it] ?: 0 }
+            }
+            DeletePreviewNode(
+                node.level, node.code, node.name, node.depth,
+                findings = findingCount,
+                libraries = libraries,
+                technologies = own.size - libraries,
+            )
+        })
+    }
+
+    /**
+     * Deletes the node and everything below it for good (INV-20), with their technologies, findings and history (see
+     * [CvrInventoryPurge]). The last instance of a system stays: every system has one (INV-04).
+     */
+    fun delete(user: PFUserDO, level: InventoryLevel, id: Long) {
+        deletableSubtree(View(user, load()), level, id)
+        purge.purge(level, id)
+    }
+
+    /** A node of what a deletion removes; [componentIds] and [instanceIds]: the ones of the node and below it. */
+    private class SubtreeNode(
+        val level: InventoryLevel,
+        val code: String?,
+        val name: String?,
+        val depth: Int,
+        val componentIds: Set<Long>,
+        val instanceIds: Set<Long>,
+    )
+
+    /** The node and everything below it in tree order, if the user may delete it; refused otherwise. */
+    private fun deletableSubtree(view: View, level: InventoryLevel, id: Long): List<SubtreeNode> {
         val model = view.model
+        val user = view.user
+        fun refused(): Nothing = throw AccessException(user, CveRadarAccess.NO_ACCESS)
+        val result = mutableListOf<SubtreeNode>()
+        fun componentCode(component: CvrComponentDO, system: CvrSystemDO, instance: CvrInstanceDO?) =
+            system.code + (instance?.code?.let { "-$it" } ?: "") + "-" + component.code
+
+        fun addComponent(component: CvrComponentDO, system: CvrSystemDO, instance: CvrInstanceDO?, depth: Int) {
+            result.add(
+                SubtreeNode(
+                    InventoryLevel.COMPONENT, componentCode(component, system, instance), component.name, depth,
+                    setOf(component.id!!), emptySet(),
+                )
+            )
+        }
+
+        fun addInstance(instance: CvrInstanceDO, system: CvrSystemDO, depth: Int) {
+            val components = model.components.values.filter { it.instanceId == instance.id }.sortedBy { it.code }
+            result.add(
+                SubtreeNode(
+                    InventoryLevel.INSTANCE, system.code + (instance.code?.let { "-$it" } ?: ""), instance.name ?: system.name,
+                    depth, components.map { it.id!! }.toSet(), setOf(instance.id!!),
+                )
+            )
+            components.forEach { addComponent(it, system, instance, depth + 1) }
+        }
+
+        fun addSystem(system: CvrSystemDO, depth: Int): SubtreeNode {
+            val instances = model.instances.values.filter { it.systemId == system.id }.sortedBy { it.code ?: "" }
+            val components = model.components.values.filter {
+                it.systemId == system.id || model.instances[it.instanceId]?.systemId == system.id
+            }
+            val node = SubtreeNode(
+                InventoryLevel.SYSTEM, system.code, system.name, depth,
+                components.map { it.id!! }.toSet(), instances.map { it.id!! }.toSet(),
+            )
+            result.add(node)
+            // As in the tree: the default instance alone isn't shown.
+            if (instances.any { it.code != null }) instances.forEach { addInstance(it, system, depth + 1) }
+            components.filter { it.systemId == system.id }.sortedBy { it.code }.forEach { addComponent(it, system, null, depth + 1) }
+            return node
+        }
+
+        // The ids below an area are known after its children: its row is replaced then.
+        fun addArea(area: CvrAreaDO, depth: Int): SubtreeNode {
+            val index = result.size
+            result.add(SubtreeNode(InventoryLevel.AREA, area.code, area.name, depth, emptySet(), emptySet()))
+            if (depth > MAX_DEPTH) return result[index]
+            val below = model.areas.values.filter { it.parentId == area.id }.sortedBy { it.name?.lowercase() }
+                .map { addArea(it, depth + 1) } +
+                    model.systems.values.filter { it.areaId == area.id }.sortedBy { it.name?.lowercase() }
+                        .map { addSystem(it, depth + 1) }
+            return SubtreeNode(
+                InventoryLevel.AREA, area.code, area.name, depth,
+                below.flatMap { it.componentIds }.toSet(), below.flatMap { it.instanceIds }.toSet(),
+            ).also { result[index] = it }
+        }
+
         when (level) {
             InventoryLevel.AREA -> {
                 val area = view.area(id)
-                if (!view.canWriteArea(area)) throw AccessException(user, CveRadarAccess.NO_ACCESS)
-                if (model.areas.values.any { it.parentId == id } || model.systems.values.any { it.areaId == id }) {
-                    throw UserException(ERROR_NOT_EMPTY)
-                }
-                areaDao.markAsDeleted(areaDao.find(id, checkAccess = false)!!, checkAccess = false)
+                if (!view.canWriteArea(area)) refused()
+                addArea(area, 0)
             }
 
             InventoryLevel.SYSTEM -> {
                 val system = view.system(id)
-                if (!view.canWriteSystem(system)) throw AccessException(user, CveRadarAccess.NO_ACCESS)
-                val instances = model.instances.values.filter { it.systemId == id }
-                val ownComponents = model.components.values.any { it.systemId == id || it.instanceId in instances.map { i -> i.id } }
-                if (ownComponents || instances.any { it.code != null }) {
-                    throw UserException(ERROR_NOT_EMPTY)
-                }
-                instances.forEach { instanceDao.markAsDeleted(instanceDao.find(it.id, checkAccess = false)!!, checkAccess = false) }
-                systemDao.markAsDeleted(systemDao.find(id, checkAccess = false)!!, checkAccess = false)
+                if (!view.canWriteSystem(system)) refused()
+                addSystem(system, 0)
             }
 
             InventoryLevel.INSTANCE -> {
                 val instance = view.instance(id)
                 val system = model.systems[instance.systemId] ?: throw UserException(ERROR_NOT_FOUND)
-                if (!view.canWriteSystem(system)) throw AccessException(user, CveRadarAccess.NO_ACCESS)
-                if (model.components.values.any { it.instanceId == id }) throw UserException(ERROR_NOT_EMPTY)
-                // The last instance stays: every system has at least one (INV-04).
+                if (!view.canWriteSystem(system)) refused()
                 if (model.instances.values.count { it.systemId == system.id } <= 1) throw UserException(ERROR_LAST_INSTANCE)
-                instanceDao.markAsDeleted(instanceDao.find(id, checkAccess = false)!!, checkAccess = false)
-                rematch { matchingService.rematchSystem(system.id!!) }
+                addInstance(instance, system, 0)
             }
 
             InventoryLevel.COMPONENT -> {
                 val component = view.component(id)
                 val system = model.systems[view.systemIdOf(component)] ?: throw UserException(ERROR_NOT_FOUND)
-                if (!view.canWriteSystem(system)) throw AccessException(user, CveRadarAccess.NO_ACCESS)
-                model.technologies.filter { it.componentId == id }.forEach {
-                    technologyDao.markAsDeleted(technologyDao.find(it.id, checkAccess = false)!!, checkAccess = false)
-                }
-                componentDao.markAsDeleted(componentDao.find(id, checkAccess = false)!!, checkAccess = false)
-                rematch { matchingService.rematchComponents(listOf(id)) }
+                if (!view.canWriteSystem(system)) refused()
+                addComponent(component, system, component.instanceId?.let { view.instance(it) }, 0)
             }
         }
+        return result
     }
 
     // --- Bulk import of SBOMs (INV-35, CvrSbomImportService) ---
@@ -1036,7 +1140,6 @@ class CvrInventoryService {
         const val ERROR_LOCKED_OUT = "plugins.cveradar.inventory.error.lockedOut"
         const val ERROR_CYCLE = "plugins.cveradar.inventory.error.cycle"
         const val ERROR_TARGET = "plugins.cveradar.inventory.error.target"
-        const val ERROR_NOT_EMPTY = "plugins.cveradar.inventory.error.notEmpty"
         const val ERROR_LAST_INSTANCE = "plugins.cveradar.inventory.error.lastInstance"
         const val ERROR_TECHNOLOGY = "plugins.cveradar.inventory.error.technology"
         const val ERROR_IMPORT_LIMIT = "plugins.cveradar.inventory.error.sbomImportLimit"

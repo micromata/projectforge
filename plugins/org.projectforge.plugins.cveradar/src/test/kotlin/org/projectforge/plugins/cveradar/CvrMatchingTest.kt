@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.plugins.cveradar.model.CvrAreaDO
 import org.projectforge.plugins.cveradar.model.CvrCatalogKind
 import org.projectforge.plugins.cveradar.model.CvrFindingCertainty
 import org.projectforge.plugins.cveradar.model.CvrFindingStatus
@@ -203,6 +204,66 @@ class CvrMatchingTest : CveRadarTestBase() {
         assertEquals(1, findings(owner, vulnerabilityId).findings.size, "a rollback brings it back")
         inventory.delete(InventoryLevel.COMPONENT, component)
         assertTrue(findings(owner, vulnerabilityId).findings.isEmpty())
+    }
+
+    @Test
+    fun `deleting an area removes everything below it for good, with the findings, technologies and history`() {
+        val P = "tomcatdel"
+        val vulnerabilityId = importTomcat("CVE-2026-94090", P)
+        val (system, owner) = system("MTD", "cveradar-match-gdel")
+        val area = inventory.tree().rows.single { it.code == "MTD" }.id
+        val sub = inventory.createArea(AreaRequest(parentId = area, code = "MTD-SUB", name = "Sub"))
+        inventory.createSystem(SystemRequest(areaId = sub, code = "MTD-S2", name = "Second"))
+        val app = inventory.createComponent(
+            ComponentRequest(systemId = system, code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.80", true))),
+        )
+        val instanceA = inventory.tree().rows.single { it.code == "MTD-S-A" }.id
+        inventory.createComponent(
+            ComponentRequest(instanceId = instanceA, code = "CACHE", name = "Cache", technologies = listOf(tomcat(P, "9.0.81", true))),
+        )
+        // A replaced technology stays as a row marked as deleted: it goes as well.
+        inventory.updateComponent(app, ComponentRequest(code = "APP", name = "App", technologies = listOf(tomcat(P, "9.0.82", true))))
+        assertEquals(3, findings(owner, vulnerabilityId).findings.size, "APP at A and B, CACHE at A")
+
+        logon(owner)
+        val preview = inventory.deletePreview(InventoryLevel.AREA, area).nodes
+        assertEquals(
+            listOf("MTD", "MTD-SUB", "MTD-S2", "MTD-S", "MTD-S-A", "MTD-S-A-CACHE", "MTD-S-B", "MTD-S-APP"),
+            preview.map { it.code },
+        )
+        assertEquals(listOf(0, 1, 2, 1, 2, 3, 2, 2), preview.map { it.depth })
+        val byCode = preview.associateBy { it.code }
+        assertEquals(3, byCode["MTD"]!!.findings)
+        assertEquals(2, byCode["MTD"]!!.technologies)
+        assertEquals(0, byCode["MTD"]!!.libraries)
+        assertEquals(2, byCode["MTD-S-A"]!!.findings, "the instance's own component and the baseline at it")
+        assertEquals(1, byCode["MTD-S-B"]!!.findings)
+        assertEquals(2, byCode["MTD-S-APP"]!!.findings)
+        assertEquals(0, byCode["MTD-SUB"]!!.findings)
+
+        logon(TEST_USER)
+        assertThrows(AccessException::class.java) { inventory.deletePreview(InventoryLevel.AREA, area) }
+        assertThrows(AccessException::class.java) { inventory.delete(InventoryLevel.AREA, area) }
+
+        logon(owner)
+        inventory.delete(InventoryLevel.AREA, area)
+        assertTrue(findings(owner, vulnerabilityId).findings.isEmpty())
+        fun count(hql: String, vararg params: Pair<String, Any?>) =
+            persistenceService.selectSingleResult(hql, Long::class.javaObjectType, *params)!!
+        assertEquals(0L, count("select count(f) from CvrFindingDO f where f.vulnerability.id = :id", "id" to vulnerabilityId))
+        assertEquals(0L, count("select count(t) from CvrTechnologyDO t where t.product = :p", "p" to "Tomcatdel"))
+        assertEquals(0L, count("select count(a) from CvrAreaDO a where a.code like 'MTD%'"))
+        assertEquals(0L, count("select count(s) from CvrSystemDO s where s.code like 'MTD%'"))
+        assertEquals(
+            0L,
+            count(
+                "select count(h) from HistoryEntryDO h where h.entityName = :name and h.entityId = :id",
+                "name" to CvrAreaDO::class.java.name, "id" to area,
+            ),
+        )
+        // Nothing holds the codes anymore.
+        logon(owner)
+        inventory.createArea(AreaRequest(code = "MTD", name = "Again", groupId = groupId("cveradar-match-gdel")))
     }
 
     @Test

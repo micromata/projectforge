@@ -163,7 +163,14 @@ class CvrInventoryRest {
     fun nodeFindings(@PathVariable level: InventoryLevel, @PathVariable id: Long): NodeFindingList =
         reportService.nodeFindings(user, level, id)
 
-    @AccessChecked("CvrInventoryService.delete: write access to the stored node, empty nodes only")
+    /** A GET: what [delete] would remove, for the question before; changes nothing. */
+    @AccessChecked("CvrInventoryService.deletePreview: write access to the stored node")
+    @GetMapping("{level}/{id}/delete/preview")
+    fun deletePreview(@PathVariable level: InventoryLevel, @PathVariable id: Long): DeletePreview =
+        service.deletePreview(user, level, id)
+
+    /** Removes the node and everything below it (findings, libraries) for good. */
+    @AccessChecked("CvrInventoryService.delete: write access to the stored node")
     @PostMapping("{level}/{id}/delete")
     fun delete(@PathVariable level: InventoryLevel, @PathVariable id: Long) = service.delete(user, level, id)
 

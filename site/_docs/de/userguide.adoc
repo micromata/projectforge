@@ -1629,6 +1629,20 @@ Wie die SBOMs zugeordnet werden, unabhängig vom Werkzeug, das sie geschrieben h
 * Das gelesene Zip wird nicht gespeichert; sein Plan bleibt eine Stunde erhalten, bis zum Import oder bis ein anderes
   Zip gelesen wird. Je Benutzer wird ein Zip nach dem anderen hochgeladen und gelesen.
 
+[[cve_radar_inventory_delete]]
+=== CVE-Radar: einen Teil des Inventars löschen
+
+_Löschen_ im Dialog eines Bereichs, Systems, einer Instanz oder Komponente entfernt sie mit allem, was darunter
+hängt: die Bereiche, Systeme, Instanzen und Komponenten, ihre Bibliotheken und Technologien und alle ihre Findings,
+gleich in welchem Status, samt ihrer Historie. Das lässt sich nicht rückgängig machen. Vorher zeigt eine Liste, was
+wegfällt, jeder Eintrag mit seiner Zahl an Findings, Bibliotheken und Technologien, die Summen unten; gelöscht wird
+erst nach der Bestätigung.
+
+* Zum Löschen wird Schreibzugriff auf den Eintrag gebraucht (Mitglied seiner Gruppe oder Security Officer); er gilt
+  für alles darunter.
+* Die letzte Instanz eines Systems bleibt: jedes System hat eine. Stattdessen das System löschen.
+* Die Schwachstellen selbst bleiben; nur ihre Findings im gelöschten Teil fallen weg.
+
 [[cve_radar_case_ai]]
 === CVE-Radar: Fall mit KI recherchieren
 

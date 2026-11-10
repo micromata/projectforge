@@ -167,7 +167,6 @@ class CvrInventoryTest : CveRadarTestBase() {
         )
         assertEquals(setOf("16.5", null), rows(owner)["IV3-PF-DB"]!!.technologies.map { it.version }.toSet())
         assertThrows(UserException::class.java) { rest.createComponent(ComponentRequest(systemId = internal, code = "DB", name = "Twice")) }
-        assertThrows(UserException::class.java) { rest.delete(InventoryLevel.SYSTEM, internal) }
 
         val seenByTeam = rows(team)
         assertNotNull(seenByTeam["IV3-PF"], "internal system")
@@ -179,11 +178,20 @@ class CvrInventoryTest : CveRadarTestBase() {
         assertThrows(AccessException::class.java) { rest.updateSystem(internal, SystemRequest(code = "IV3-PF", name = "x")) }
         assertThrows(AccessException::class.java) { rest.createComponent(ComponentRequest(systemId = internal, code = "X", name = "x")) }
 
+        assertThrows(AccessException::class.java, { rest.deletePreview(InventoryLevel.SYSTEM, internal) }, "reading isn't deleting")
+        assertThrows(AccessException::class.java) { rest.delete(InventoryLevel.SYSTEM, internal) }
+
         logon(owner)
         rest.delete(InventoryLevel.COMPONENT, own)
         rest.delete(InventoryLevel.SYSTEM, secret)
         assertNull(rows(owner)["IV3-SEC"])
-        assertThrows(UserException::class.java) { rest.delete(InventoryLevel.AREA, area) }
+        // The last instance of a system stays (INV-04): the default one went with the first explicit one.
+        val hqProd = rest.tree().rows.single { it.level == InventoryLevel.INSTANCE && it.code == "IV3-PF-HQ-PROD" }
+        assertThrows(UserException::class.java) { rest.delete(InventoryLevel.INSTANCE, hqProd.id) }
+        // With everything below it, also the rows marked as deleted (the default instance).
+        assertEquals(listOf("IV3", "IV3-PF", "IV3-PF-HQ-PROD", "IV3-PF-DB"), rest.deletePreview(InventoryLevel.AREA, area).nodes.map { it.code })
+        rest.delete(InventoryLevel.AREA, area)
+        assertTrue(rows(owner).keys.none { it.startsWith("IV3") })
     }
 
     @Test
