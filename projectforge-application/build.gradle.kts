@@ -58,6 +58,19 @@ val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
 
+// Plugins developed outside of this repository (see org.projectforge.plugins.core.ExternalPlugins), joining the
+// boot jar, bootRun and the generators as binaries: -Ppf.extraPlugins=<jar or directory of jars>[,...] (relative to
+// the root project) or the environment variable PF_EXTRA_PLUGINS. A plugin brings its own libraries, which aren't in
+// ProjectForge, as further jars.
+val extraPluginJars = (providers.gradleProperty("pf.extraPlugins").orNull
+    ?: providers.environmentVariable("PF_EXTRA_PLUGINS").orNull)
+    ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
+    ?.flatMap { path ->
+        val file = rootProject.file(path)
+        require(file.exists()) { "pf.extraPlugins: '$file' doesn't exist." }
+        if (file.isDirectory) file.listFiles { f -> f.extension == "jar" }.orEmpty().sortedBy { it.name } else listOf(file)
+    }.orEmpty()
+
 dependencies {
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
@@ -73,6 +86,9 @@ dependencies {
     implementation(project(":org.projectforge.plugins.banking"))
     implementation(project(":org.projectforge.plugins.skillmatrix"))
     implementation(project(":org.projectforge.plugins.todo"))
+    if (extraPluginJars.isNotEmpty()) {
+        runtimeOnly(files(extraPluginJars))
+    }
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
     testImplementation(libs.org.mockito.junit.jupiter)

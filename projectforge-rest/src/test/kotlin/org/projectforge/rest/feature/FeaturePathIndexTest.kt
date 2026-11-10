@@ -31,6 +31,8 @@ import org.mockito.Mockito
 import org.projectforge.feature.FeatureDefinition
 import org.projectforge.feature.FeatureDerivation
 import org.projectforge.feature.FeatureService
+import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.core.ExternalPlugins
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.rest.feature.testplugin.TestPlugin
@@ -56,7 +58,11 @@ class FeaturePathIndexTest {
         FeatureDerivation.derive("MENU_ENTRY", "next/menuEntry", restPaths = listOf("menu/customizer")),
     )
 
-    private fun index(vararg disabled: String, pluginActive: Boolean = true): FeaturePathIndex {
+    private fun index(
+        vararg disabled: String,
+        pluginActive: Boolean = true,
+        plugins: List<AbstractPlugin> = listOf(TestPlugin()),
+    ): FeaturePathIndex {
         val featureService = Mockito.mock(FeatureService::class.java)
         Mockito.`when`(featureService.definitions).thenReturn(definitions)
         Mockito.`when`(featureService.isEnabled(anyString())).thenAnswer { invocation ->
@@ -64,7 +70,7 @@ class FeaturePathIndexTest {
             id !in disabled && (pluginActive || id != TestPlugin.ID)
         }
         val pluginAdminService = Mockito.mock(PluginAdminService::class.java)
-        Mockito.`when`(pluginAdminService.availablePlugins).thenReturn(listOf(TestPlugin()))
+        Mockito.`when`(pluginAdminService.availablePlugins).thenReturn(plugins)
         val applicationContext = Mockito.mock(ApplicationContext::class.java)
         Mockito.`when`(applicationContext.getBean(FeatureService::class.java)).thenReturn(featureService)
         Mockito.`when`(applicationContext.getBean(PluginAdminService::class.java)).thenReturn(pluginAdminService)
@@ -135,6 +141,22 @@ class FeaturePathIndexTest {
         Assertions.assertFalse(personalBoxOff.isBlocked("/next/testplugin/42"))
         Assertions.assertTrue(personalBoxOff.isBlocked("/next/testplugin/-1/"))
         Assertions.assertTrue(personalBoxOff.isBlocked("/rs/testpluginpersonal/list"))
+    }
+
+    @Test
+    fun `next pages of a missing external plugin are blocked`() {
+        val missing = index()
+        Assertions.assertTrue(missing.isBlocked("/next/cveradar/"))
+        Assertions.assertTrue(missing.isBlocked("/next/cveradar/case/42/"))
+        Assertions.assertTrue(missing.isBlocked("/next/cvrcase/"))
+        Assertions.assertTrue("cveradar" in missing.nextRoutes().disabled)
+        val cveRadar = object : AbstractPlugin(ExternalPlugins.CVE_RADAR.id, "CVE-Radar", "External plugin.") {
+            override fun initialize() {}
+        }
+        val available = index(plugins = listOf(TestPlugin(), cveRadar))
+        Assertions.assertFalse(available.isBlocked("/next/cveradar/"))
+        Assertions.assertFalse(available.isBlocked("/next/cvrcase/"))
+        Assertions.assertFalse("cveradar" in available.nextRoutes().disabled)
     }
 
     @Test

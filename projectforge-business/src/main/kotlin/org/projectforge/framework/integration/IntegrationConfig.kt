@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Settings of one integration point (remote system). Every value may be null, so an override only has to
@@ -101,18 +102,6 @@ open class IntegrationConfig {
         const val GATEWAY = "gateway"
         const val LANES_AND_PLANES = "lanes-and-planes"
 
-        /** The import of the CVE-Radar (plugin cveradar) from the NVD API. */
-        const val CVERADAR_NVD = "cveradar-nvd"
-
-        /** The import of the CVE-Radar (plugin cveradar) from the bucket of OSV.dev. */
-        const val CVERADAR_OSV = "cveradar-osv"
-
-        /** The import of the CVE-Radar (plugin cveradar) from the EUVD of the ENISA. */
-        const val CVERADAR_EUVD = "cveradar-euvd"
-
-        /** The connection of the CVE-Radar (plugin cveradar) to Dependency-Track. */
-        const val CVERADAR_DEPTRACK = "cveradar-deptrack"
-
         /** The previews of links in the chat: pages and images of any website given by users. */
         const val LINK_PREVIEW = "link-preview"
 
@@ -129,22 +118,15 @@ open class IntegrationConfig {
         )
 
         /**
-         * Built-in defaults of single integration points, overriding the general default.
+         * Built-in defaults of single integration points, overriding the general default. Plugins add their own ones
+         * by [registerBuiltin].
          */
-        val BUILTIN = mapOf(
+        private val builtin = ConcurrentHashMap(mapOf(
             // Full syncs of thousands of addresses may take a while on the gateway.
             GATEWAY to IntegrationSettings(responseTimeoutMs = 120_000),
             // The full user import (all employees with their cost units) is one big request.
             LANES_AND_PLANES to IntegrationSettings(responseTimeoutMs = 60_000),
             ICAL to IntegrationSettings(maxResponseBytes = 10L * 1024 * 1024),
-            // A page of the NVD has up to 2000 vulnerabilities with their configurations, the NVD answers slowly.
-            CVERADAR_NVD to IntegrationSettings(responseTimeoutMs = 180_000, maxResponseBytes = 200L * 1024 * 1024),
-            // All advisories of an ecosystem in one zip, npm about 250 MB (most of them malicious packages).
-            CVERADAR_OSV to IntegrationSettings(responseTimeoutMs = 180_000, maxResponseBytes = 1024L * 1024 * 1024),
-            // A page of the EUVD has 50 entries.
-            CVERADAR_EUVD to IntegrationSettings(responseTimeoutMs = 60_000, maxResponseBytes = 20L * 1024 * 1024),
-            // A page of findings has up to 100 entries with component and vulnerability; uploads of large BOMs.
-            CVERADAR_DEPTRACK to IntegrationSettings(responseTimeoutMs = 60_000, maxResponseBytes = 50L * 1024 * 1024),
             // A preview is nice to have: given up soon, few connections per host.
             LINK_PREVIEW to IntegrationSettings(
                 connectTimeoutMs = 3_000,
@@ -153,7 +135,19 @@ open class IntegrationConfig {
                 maxConnections = 10,
                 maxConnectionsPerRoute = 2,
             ),
-        )
+        ))
+
+        val BUILTIN: Map<String, IntegrationSettings>
+            get() = builtin
+
+        /**
+         * The built-in defaults of an integration point of a plugin, e.g. a long timeout for a large download. To be
+         * called before the first call of [get] for the id (the http clients are pooled with the timeouts).
+         */
+        @JvmStatic
+        fun registerBuiltin(id: String, settings: IntegrationSettings) {
+            builtin[id] = settings
+        }
 
         private var instance: IntegrationConfig? = null
 
@@ -167,7 +161,7 @@ open class IntegrationConfig {
         }
 
         internal fun resolve(id: String, default: IntegrationSettings?, custom: IntegrationSettings?): IntegrationTimeouts {
-            val builtin = BUILTIN[id]
+            val builtin = builtin[id]
             fun <T> pick(fallback: T, getter: (IntegrationSettings) -> T?): T {
                 return custom?.let(getter) ?: builtin?.let(getter) ?: default?.let(getter) ?: fallback
             }

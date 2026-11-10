@@ -28,6 +28,7 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.io.entity.StringEntity
 import org.projectforge.framework.integration.IntegrationConfig
+import org.projectforge.framework.integration.IntegrationSettings
 import org.projectforge.framework.integration.PooledHttpClients
 import java.io.IOException
 import java.nio.file.Files
@@ -39,10 +40,29 @@ import java.nio.file.Path
  */
 internal object CveRadarHttp {
     const val GRAYLOG = "cveradar-graylog"
-    const val NVD = IntegrationConfig.CVERADAR_NVD
-    const val OSV = IntegrationConfig.CVERADAR_OSV
-    const val EUVD = IntegrationConfig.CVERADAR_EUVD
-    const val DEPTRACK = IntegrationConfig.CVERADAR_DEPTRACK
+    /** The import from the NVD API. */
+    const val NVD = "cveradar-nvd"
+
+    /** The import from the bucket of OSV.dev. */
+    const val OSV = "cveradar-osv"
+
+    /** The import from the EUVD of the ENISA. */
+    const val EUVD = "cveradar-euvd"
+
+    /** The connection to Dependency-Track. */
+    const val DEPTRACK = "cveradar-deptrack"
+
+    init {
+        // Before the first call of a connector, all of them go through this object.
+        // A page of the NVD has up to 2000 vulnerabilities with their configurations, the NVD answers slowly.
+        IntegrationConfig.registerBuiltin(NVD, IntegrationSettings(responseTimeoutMs = 180_000, maxResponseBytes = 200L * 1024 * 1024))
+        // All advisories of an ecosystem in one zip, npm about 250 MB (most of them malicious packages).
+        IntegrationConfig.registerBuiltin(OSV, IntegrationSettings(responseTimeoutMs = 180_000, maxResponseBytes = 1024L * 1024 * 1024))
+        // A page of the EUVD has 50 entries.
+        IntegrationConfig.registerBuiltin(EUVD, IntegrationSettings(responseTimeoutMs = 60_000, maxResponseBytes = 20L * 1024 * 1024))
+        // A page of findings has up to 100 entries with component and vulnerability; uploads of large BOMs.
+        IntegrationConfig.registerBuiltin(DEPTRACK, IntegrationSettings(responseTimeoutMs = 60_000, maxResponseBytes = 50L * 1024 * 1024))
+    }
 
     /** Used, if `projectforge.integration.clients.<id>.maxResponseBytes` isn't given. */
     private const val DEFAULT_MAX_RESPONSE_BYTES = 50L * 1024 * 1024
