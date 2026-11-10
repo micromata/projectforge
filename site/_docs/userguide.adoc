@@ -1586,6 +1586,19 @@ How the SBOMs are assigned, independent of the tool that wrote them:
 * The read zip is not stored; its plan is kept for an hour, until it is imported or another zip is read. One zip per
   user is uploaded and read at a time.
 
+[[cve_radar_inventory_delete]]
+=== CVE-Radar: delete a part of the inventory
+
+_Delete_ in the dialog of an area, a system, an instance or a component removes it with everything below it: the
+areas, systems, instances and components, their libraries and technologies and all their findings, whatever their
+status, with their history. This can't be undone. Before, a list shows what goes, each entry with its numbers of
+findings, libraries and technologies, the totals at the bottom; nothing is deleted until it is confirmed.
+
+* Deleting needs write access to the entry (a member of its group, or the security officer); it covers everything
+  below it.
+* The last instance of a system stays: every system has one. Delete the system instead.
+* The vulnerabilities themselves stay; only their findings in the deleted part go.
+
 [[cve_radar_case_ai]]
 === CVE-Radar: research a case with AI
 

@@ -1,0 +1,38 @@
+{
+  "summary": {
+    "en": [
+      "**CVE-Radar**: bulk import of SBOMs, report by package, ratings of all sources, fixes for severity and Maven versions",
+      "**Backup**: the CVE-Radar source data is no longer backed up",
+      "**Notifications**: push messages show their content",
+      "**App**: grouped pages menu, SSO renewal in Safari fixed, booking form improvements",
+      "**Invoices**: cleaner invoice address and customer reference"
+    ],
+    "de": [
+      "**CVE-Radar**: Massenimport von SBOMs, Bericht nach Paket, Bewertungen aller Quellen, Korrekturen bei Schweregrad und Maven-Versionen",
+      "**Backup**: Die Quelldaten des CVE-Radars werden nicht mehr gesichert",
+      "**Benachrichtigungen**: Push-Nachrichten zeigen ihren Inhalt",
+      "**App**: Seitenmenü mit Gruppen, SSO-Erneuerung in Safari behoben, Verbesserungen der Buchungsmaske",
+      "**Rechnungen**: übersichtlichere Rechnungsadresse und Kundenreferenz"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**CVE-Radar:** a zip with the SBOMs of many repositories and container images can be imported into an area in one go (preview, adaptable codes and names, largest zip set per area); \"Report by package\" downloads the vulnerabilities per package and version as PDF, Excel or JSON; single vulnerabilities can be left out of the report and the AI prompt; the file of a vulnerability shows the ratings of all its sources side by side; the inventory counts the findings of a node by severity, each CVE once; the progress bar of imports and matching runs until the findings are stored, SBOMs are read as a stream; the severity of a vulnerability known from OSV only follows its CVSS score, Maven versions with a qualifier like -jre or .RELEASE count as the release itself, and a file above the upload limit is refused at once; an area, system, instance or component can be deleted with everything below it for good, after a list shows what goes.",
+      "**Backup and history:** the data of the CVE-Radar sources isn't backed up any more (the separate dump projectforge_cveradar_… is gone, the imports fill it again after a restore); technologies, libraries and imported vulnerabilities are no longer kept in the history.",
+      "**Notifications:** push messages show the title and the beginning of the notification (switchable per user and for the whole server with `projectforge.push.content=false`); the text of chat notifications no longer repeats their title.",
+      "**Chat and changelog:** the arrow keys keep paging in the full size view of several images; a link of the table of contents opened as a drawer scrolls to its entry again.",
+      "**Invoices:** the contact person of the customer is no longer printed in the invoice address of the document (the e-invoice still states it, templates may print it), and the text after the colon in the customer reference is no longer bold.",
+      "**Sipgate:** a permanently deleted address no longer comes back through the contact sync, its Sipgate contact is deleted instead.",
+      "**Mobile app (in preparation):** the pages menu opens its categories on a tablet and remembers opened ones, behind an SSO proxy the pages no longer open in Safari after the session of the proxy ended, a favorite star in the address view, and the booking form scrolls the edited field and the optional fields into view above the keyboard."
+    ],
+    "de": [
+      "**CVE-Radar:** Eine Zip-Datei mit den SBOMs vieler Repositories und Container-Images lässt sich in einem Zug in einen Bereich importieren (Vorschau, anpassbare Kürzel und Namen, größte Zip-Datei je Bereich festgelegt); „Bericht nach Paket“ lädt die Schwachstellen je Paket und Version als PDF, Excel oder JSON herunter; einzelne Schwachstellen lassen sich aus Bericht und KI-Prompt ausnehmen; die Akte einer Schwachstelle zeigt die Bewertungen aller Quellen nebeneinander; das Inventar zählt die Findings eines Knotens nach Schweregrad, jede CVE einmal; der Fortschrittsbalken von Importen und Abgleich läuft, bis die Findings gespeichert sind, SBOMs werden als Stream gelesen; der Schweregrad einer nur aus OSV bekannten Schwachstelle folgt ihrem CVSS-Score, Maven-Versionen mit Qualifier wie -jre oder .RELEASE gelten als das Release selbst, und eine Datei über dem Upload-Limit wird sofort abgelehnt; ein Bereich, System, eine Instanz oder Komponente lässt sich mit allem darunter endgültig löschen, nachdem eine Liste zeigt, was wegfällt.",
+      "**Backup und Historie:** Die Daten der CVE-Radar-Quellen werden nicht mehr gesichert (der separate Dump projectforge_cveradar_… entfällt, die Importe füllen ihn nach einer Wiederherstellung neu); Technologien, Bibliotheken und importierte Schwachstellen werden nicht mehr in der Historie geführt.",
+      "**Benachrichtigungen:** Push-Nachrichten zeigen den Titel und den Anfang der Benachrichtigung (abschaltbar je Benutzer und für den ganzen Server mit `projectforge.push.content=false`); der Text von Chat-Benachrichtigungen wiederholt ihren Titel nicht mehr.",
+      "**Chat und Changelog:** In der Vollbildansicht mehrerer Bilder blättern die Pfeiltasten weiter; ein Link des Inhaltsverzeichnisses, das als Schublade geöffnet ist, scrollt wieder zu seinem Eintrag.",
+      "**Rechnungen:** Der Ansprechpartner des Kunden wird nicht mehr in der Rechnungsadresse des Dokuments gedruckt (die E-Rechnung führt ihn weiter, Vorlagen können ihn drucken), und der Text nach dem Doppelpunkt in der Kundenreferenz ist nicht mehr fett.",
+      "**Sipgate:** Eine unwiderruflich gelöschte Adresse kommt nicht mehr über den Kontakt-Abgleich zurück, stattdessen wird ihr Sipgate-Kontakt gelöscht.",
+      "**Mobile App (in Vorbereitung):** Das Seitenmenü öffnet auf dem Tablet seine Kategorien und merkt sich geöffnete, hinter einem SSO-Proxy öffnen sich die Seiten nach Ende der Proxy-Sitzung nicht mehr in Safari, ein Favoriten-Stern in der Adressansicht, und die Buchungsmaske scrollt das bearbeitete Feld und die optionalen Felder über der Tastatur in den Blick."
+    ]
+  }
+}

@@ -24,6 +24,10 @@ export interface ConfirmDialogProps {
   cancelLabel?: string;
   /** Destructive actions (delete) get the red button; anything else the default one. */
   destructive?: boolean;
+  /** E.g. while what the action affects is still loading. */
+  confirmDisabled?: boolean;
+  /** Classes of the dialog, e.g. a larger width for a list in the description. */
+  className?: string;
   onConfirm: () => void;
 }
 
@@ -39,12 +43,14 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   destructive,
+  confirmDisabled,
+  className,
   onConfirm,
 }: ConfirmDialogProps) {
   const t = useTranslations();
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className={className}>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {/* asChild so the description renders as a `div`: a caller may pass block content (e.g. the
@@ -57,6 +63,7 @@ export function ConfirmDialog({
           <AlertDialogCancel>{cancelLabel ?? t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             variant={destructive ? "destructive" : "default"}
+            disabled={confirmDisabled}
             onClick={onConfirm}
           >
             {confirmLabel}

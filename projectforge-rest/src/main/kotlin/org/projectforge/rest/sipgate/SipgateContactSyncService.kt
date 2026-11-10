@@ -596,6 +596,14 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 // Gelöschte Adressen in Sipgate?
 
                 syncContext.localCounter.total = syncContext.addressList.size
+                // Remote contacts of finally deleted addresses (tombstones, see SipgateDeleteContactService):
+                syncContext.syncDOList.filter { it.remoteStatus == SipgateContactSyncDO.RemoteStatus.DELETED_BY_LOCAL }
+                    .forEach { syncDO ->
+                        syncContext.remoteContacts.find { it.id == syncDO.sipgateContactId }?.let { contact ->
+                            log.info { "${getLogInfo(null, contact)}: Delete remote contact (address was deleted finally): $contact" }
+                            deleteRemoteContact(contact, syncDO, syncContext)
+                        }
+                    }
                 persistenceService.runInTransaction { _ ->
                     syncContext.addressList.forEach { address ->
                         val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
@@ -897,7 +905,10 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                     log.info { "Deleting syncDO (because contact id '${syncDO.sipgateContactId}' doesn't exist anymore." }
                     deleteIt = true
                 }
-                if (!deleteIt && syncContext.addressList.none { it.id == syncDO.address?.id }) {
+                if (!deleteIt && syncDO.remoteStatus != SipgateContactSyncDO.RemoteStatus.DELETED_BY_LOCAL &&
+                    syncContext.addressList.none { it.id == syncDO.address?.id }
+                ) {
+                    // A tombstone has no address: it's deleted with its remote contact by sync().
                     log.info { "Deleting syncDO (because address id '${syncDO.address?.id}' doesn't exist anymore." }
                     deleteIt = true
                 }

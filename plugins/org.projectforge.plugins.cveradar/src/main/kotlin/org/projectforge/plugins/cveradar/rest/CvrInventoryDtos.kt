@@ -184,6 +184,23 @@ class ComponentRequest(
 class MoveRequest(val targetAreaId: Long? = null)
 
 /**
+ * A node a deletion removes, with what is below it: [findings] of every status, [libraries] read from lists (INV-26),
+ * [technologies] the other ones (of the component dialog). [depth] 0 is the node to delete.
+ */
+class DeletePreviewNode(
+    val level: InventoryLevel,
+    val code: String?,
+    val name: String?,
+    val depth: Int,
+    val findings: Int,
+    val libraries: Int,
+    val technologies: Int,
+)
+
+/** What deleting a node removes for good, in tree order; the first node carries the totals. */
+class DeletePreview(val nodes: List<DeletePreviewNode>)
+
+/**
  * A list a component's libraries are read from (npm `package-lock.json`, output of Maven or Gradle): its [text], or
  * [data], a zip with several lists as base64url.
  */
