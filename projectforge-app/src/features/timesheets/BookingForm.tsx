@@ -34,6 +34,7 @@ import { ComponentProps, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  LayoutChangeEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -57,6 +58,9 @@ import { TaskLabel } from './TaskLabel';
 import { TemplateSheet } from './TemplateSheet';
 import { BookingDraft, BookingWhat, Kost2Ref, kost2Number, kost2Text, shortPath, TaskRef, whatKey } from './timesheet';
 import { BookingStart, timesheets, useTimesheets } from './timesheetsStore';
+
+/** The space kept around a field scrolled into view. */
+const FIELD_MARGIN = 8;
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 type Errors = Partial<Record<'task' | 'kost2' | 'time' | 'general', string>>;
@@ -119,8 +123,41 @@ export function BookingForm({
   const scroll = useRef<ScrollViewInstance>(null);
   // Set when the user opens "more": its first layout scrolls it into view (later re-layouts don't).
   const revealMore = useRef(false);
+  // The text fields by their layout in the content (those of "more" relative to its section), the one focused, and the
+  // visible part of the form: a focused field is scrolled into view, also when the keyboard shrinks the form.
+  const fields = useRef<Record<string, { y: number; height: number; inMore: boolean }>>({});
+  const moreY = useRef(0);
+  const focused = useRef<string | null>(null);
+  const scrollY = useRef(0);
+  const scrollHeight = useRef(0);
 
   const repository = () => timesheets.repository();
+
+  /** Scrolls the focused field into view, if it lies (partly) outside of the visible part of the form. */
+  const revealFocused = () => {
+    const it = focused.current == null ? undefined : fields.current[focused.current];
+    if (it == null || scrollHeight.current === 0) return;
+    const top = it.y + (it.inMore ? moreY.current : 0) - FIELD_MARGIN;
+    const bottom = top + it.height + 2 * FIELD_MARGIN;
+    const visible = scrollY.current;
+    if (bottom > visible + scrollHeight.current) {
+      scroll.current?.scrollTo({ y: Math.min(top, bottom - scrollHeight.current), animated: true });
+    } else if (top < visible) scroll.current?.scrollTo({ y: Math.max(0, top), animated: true });
+  };
+
+  /** Keeps the text field [key] visible while focused (also when a multiline one grows). */
+  const fieldLayout = (key: string, event: LayoutChangeEvent, inMore = false) => {
+    const { y, height } = event.nativeEvent.layout;
+    fields.current[key] = { y, height, inMore };
+    if (focused.current === key) revealFocused();
+  };
+  const fieldFocus = (key: string) => {
+    focused.current = key;
+    revealFocused();
+  };
+  const fieldBlur = (key: string) => {
+    if (focused.current === key) focused.current = null;
+  };
 
   const clearErrors = (...fields: (keyof Errors)[]) =>
     setErrors((it) => {
@@ -309,7 +346,20 @@ export function BookingForm({
           <Ionicons name="ellipsis-vertical" size={22} color={colors.text} />
         </Pressable>
       </View>
-      <ScrollView ref={scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={16}
+        onScroll={(event) => {
+          scrollY.current = event.nativeEvent.contentOffset.y;
+        }}
+        onLayout={(event) => {
+          // Shrunk by the keyboard coming up: the focused field may now lie below the visible part.
+          scrollHeight.current = event.nativeEvent.layout.height;
+          revealFocused();
+        }}
+      >
         <View style={styles.labelRow}>
           <Text style={[styles.label, { color: colors.text }]}>{t('app.timesheet.what')}</Text>
           <Pressable style={styles.link} onPress={() => setTemplatesOpen(true)}>
@@ -420,6 +470,9 @@ export function BookingForm({
           placeholderTextColor={colors.textMuted}
           multiline
           autoCapitalize="sentences"
+          onLayout={(event) => fieldLayout('description', event)}
+          onFocus={() => fieldFocus('description')}
+          onBlur={() => fieldBlur('description')}
         />
         <Pressable
           style={styles.moreHeader}
@@ -437,7 +490,8 @@ export function BookingForm({
         {more && (
           <View
             style={styles.moreBody}
-            onLayout={() => {
+            onLayout={(event) => {
+              moreY.current = event.nativeEvent.layout.y;
               if (!revealMore.current) return;
               revealMore.current = false;
               // The section is the last child, so the end shows all of it.
@@ -450,6 +504,9 @@ export function BookingForm({
               onChangeText={setLocation}
               placeholder={t('timesheet.location')}
               placeholderTextColor={colors.textMuted}
+              onLayout={(event) => fieldLayout('location', event, true)}
+              onFocus={() => fieldFocus('location')}
+              onBlur={() => fieldBlur('location')}
             />
             {locations.length > 0 && (
               <View style={styles.chips}>
@@ -464,6 +521,9 @@ export function BookingForm({
               onChangeText={setReference}
               placeholder={t('timesheet.reference')}
               placeholderTextColor={colors.textMuted}
+              onLayout={(event) => fieldLayout('reference', event, true)}
+              onFocus={() => fieldFocus('reference')}
+              onBlur={() => fieldBlur('reference')}
             />
             {allTags.length > 0 && (
               <View style={styles.chips}>
