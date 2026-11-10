@@ -4752,16 +4752,11 @@
         "save": "Save",
         "sbomImportMaxMb": "Largest zip of a bulk import of SBOMs (MB)",
         "sbomImportMaxMbInfo": "For this area and the ones below it. Empty: as the area above, at the top the size configured. Only the security officer sets it.",
-        "section": {
-          "access": "Access and place",
-          "general": "General"
-        },
         "site": "Site",
         "stage": "Stage",
         "tab": {
           "data": "Master data",
-          "findings": "Findings ({arg0})",
-          "sbomImport": "SBOM import"
+          "findings": "Findings ({arg0})"
         },
         "title": "Systems",
         "vendor": "Vendor",
@@ -4892,6 +4887,12 @@
         "info": "Only the master data of this system is visible for this role (code, name, group, level). Components and findings require a grant.",
         "short": "master data only"
       },
+      "matching": {
+        "progress": {
+          "findings": "Matching against the vulnerabilities: {arg0} of {arg1} findings stored",
+          "vulnerabilities": "Matching against the vulnerabilities: {arg0} of {arg1} OSV advisories checked"
+        }
+      },
       "matrix": {
         "actions": "Deviation of {arg0}",
         "apply": "Apply to the baseline",
@@ -4997,71 +4998,6 @@
         "MANUAL": "manual",
         "PACKAGE_LIST": "package list",
         "SBOM": "SBOM file"
-      },
-      "packageReport": {
-        "affected": "affected: {arg0}",
-        "anonymized": "names replaced",
-        "button": {
-          "json": "JSON",
-          "pdf": "PDF",
-          "xlsx": "Excel"
-        },
-        "case": {
-          "_": "Case {arg0}: {arg1}",
-          "fixVersion": "fix of the security team {arg0}"
-        },
-        "column": {
-          "affected": "Affected versions",
-          "case": "Case",
-          "count": "Count",
-          "description": "Description",
-          "fixVersion": "Fixed in",
-          "foundIn": "Found in",
-          "id": "CVE / Advisory",
-          "kev": "KEV",
-          "maxScore": "Highest score",
-          "package": "Package",
-          "possible": "Possible match",
-          "purl": "Package URL",
-          "score": "Score",
-          "severity": "Severity",
-          "source": "Source",
-          "type": "Type",
-          "version": "Version",
-          "withoutFix": "Without fix"
-        },
-        "counts": "{arg0} vulnerabilities in {arg1} packages",
-        "downloads": "Report by package",
-        "empty": "No vulnerability matches a package here.",
-        "excluded": "Left out (handled separately): {arg0}",
-        "footer": "CVE report by package · as of {arg0}",
-        "footnote": {
-          "fixVersion": "¹ The lowest version that closes all vulnerabilities of the package listed here, according to the matched version ranges (release lines maintained in parallel may have fixes of their own)."
-        },
-        "foundIn": "found in: {arg0}",
-        "generated": "created {arg0}",
-        "hint": "The vulnerabilities per package (library and version) as PDF, Excel or JSON, e.g. to pass them on: what an update of a package fixes at once. The selection and the replaced names apply.",
-        "kev": "Known to be exploited (CISA KEV) since {arg0}",
-        "legend": "Score: CVSS base score; „–“ = no score published, the severity as rated by the source. The links lead to the NVD, for advisories without a CVE id to the GitHub Advisory Database or OSV.dev. ² Matched by the name only or without a version: to be checked case by case.",
-        "page": "Page {arg0}",
-        "possible": "possible match",
-        "scope": {
-          "adHoc": "Ad-hoc check"
-        },
-        "severity": {
-          "CRITICAL": "Critical",
-          "HIGH": "High",
-          "LOW": "Low",
-          "MEDIUM": "Medium"
-        },
-        "sheet": {
-          "packages": "Packages",
-          "vulnerabilities": "Vulnerabilities"
-        },
-        "title": "CVE report by package",
-        "vulnerabilities": "{arg0} vulnerabilities",
-        "vulnerability": "1 vulnerability",
-        "withoutFix": "{arg0} without fix"
       },
       "persona": "Act as",
       "possiblyAffected": {
