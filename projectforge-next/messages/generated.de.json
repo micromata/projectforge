@@ -4752,11 +4752,16 @@
         "save": "Speichern",
         "sbomImportMaxMb": "Größtes Zip eines Sammelimports von SBOMs (MB)",
         "sbomImportMaxMbInfo": "Für diesen Bereich und die darunter. Leer: wie der Bereich darüber, ganz oben die konfigurierte Größe. Nur der Security Officer legt sie fest.",
+        "section": {
+          "access": "Zugriff und Einordnung",
+          "general": "Allgemein"
+        },
         "site": "Standort",
         "stage": "Stage",
         "tab": {
           "data": "Stammdaten",
-          "findings": "Findings ({arg0})"
+          "findings": "Findings ({arg0})",
+          "sbomImport": "SBOM-Import"
         },
         "title": "Systeme",
         "vendor": "Hersteller",
@@ -4992,6 +4997,71 @@
         "MANUAL": "manuell",
         "PACKAGE_LIST": "Paketliste",
         "SBOM": "SBOM-Datei"
+      },
+      "packageReport": {
+        "affected": "betroffen: {arg0}",
+        "anonymized": "Namen ersetzt",
+        "button": {
+          "json": "JSON",
+          "pdf": "PDF",
+          "xlsx": "Excel"
+        },
+        "case": {
+          "_": "Fall {arg0}: {arg1}",
+          "fixVersion": "Fix laut Security-Team {arg0}"
+        },
+        "column": {
+          "affected": "Betroffene Versionen",
+          "case": "Fall",
+          "count": "Anzahl",
+          "description": "Beschreibung",
+          "fixVersion": "Behoben ab",
+          "foundIn": "Fundstellen",
+          "id": "CVE / Advisory",
+          "kev": "KEV",
+          "maxScore": "Höchster Score",
+          "package": "Package",
+          "possible": "Möglicher Treffer",
+          "purl": "Package-URL",
+          "score": "Score",
+          "severity": "Schweregrad",
+          "source": "Quelle",
+          "type": "Typ",
+          "version": "Version",
+          "withoutFix": "Ohne Fix"
+        },
+        "counts": "{arg0} Schwachstellen in {arg1} Packages",
+        "downloads": "Report nach Package",
+        "empty": "Hier trifft keine Schwachstelle auf ein Package zu.",
+        "excluded": "Weggelassen (gesondert behandelt): {arg0}",
+        "footer": "CVE-Report nach Package · Stand {arg0}",
+        "footnote": {
+          "fixVersion": "¹ Kleinste Version, die laut den gefundenen Versionsbereichen alle hier gelisteten Lücken des Packages schließt (bei parallel gepflegten Release-Linien kann es je Linie eigene Fix-Versionen geben)."
+        },
+        "foundIn": "Fundstellen: {arg0}",
+        "generated": "erstellt am {arg0}",
+        "hint": "Die Schwachstellen je Package (Bibliothek und Version) als PDF, Excel oder JSON, z. B. zur Weitergabe: was die Aktualisierung eines Packages auf einmal behebt. Die Auswahl und das Ersetzen der Namen gelten auch hier.",
+        "kev": "Bekannt ausgenutzt (CISA KEV) seit {arg0}",
+        "legend": "Score: CVSS-Basisscore; „–“ = kein Score veröffentlicht, Einstufung laut Quelle. Die Links führen zur NVD bzw. für Advisories ohne CVE-Nummer zur GitHub Advisory Database oder zu OSV.dev. ² Treffer nur über den Namen oder ohne Version: im Einzelfall prüfen.",
+        "page": "Seite {arg0}",
+        "possible": "möglicher Treffer",
+        "scope": {
+          "adHoc": "Ad-hoc-Check"
+        },
+        "severity": {
+          "CRITICAL": "Kritisch",
+          "HIGH": "Hoch",
+          "LOW": "Niedrig",
+          "MEDIUM": "Mittel"
+        },
+        "sheet": {
+          "packages": "Packages",
+          "vulnerabilities": "Schwachstellen"
+        },
+        "title": "CVE-Report nach Package",
+        "vulnerabilities": "{arg0} Schwachstellen",
+        "vulnerability": "1 Schwachstelle",
+        "withoutFix": "{arg0} ohne Fix"
       },
       "persona": "Ansicht als",
       "possiblyAffected": {

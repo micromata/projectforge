@@ -29,6 +29,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.cveradar.CveRadarAccess
 import org.projectforge.plugins.cveradar.CvrAdHocCheckService
+import org.projectforge.plugins.cveradar.CvrPackageReportService
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.RestError
 import org.projectforge.rest.config.Rest
@@ -54,6 +55,9 @@ class CvrAdHocRest {
 
     @Autowired
     private lateinit var service: CvrAdHocCheckService
+
+    @Autowired
+    private lateinit var packageReportService: CvrPackageReportService
 
     /** Called by Spring before every endpoint of this controller. */
     @ModelAttribute
@@ -82,6 +86,18 @@ class CvrAdHocRest {
         @RequestParam(defaultValue = "true") anonymize: Boolean,
         @RequestParam(required = false) exclude: List<String>? = null,
     ): FindingReport = service.report(user, jobId, anonymize, exclude.orEmpty().toSet())
+
+    /** A GET: the report per package as JSON, PDF or Excel file (see [PackageReport]). */
+    @AccessChecked("CvrAdHocCheckService.report: reader role, the finished job of the caller only")
+    @GetMapping("{jobId}/report/packages")
+    fun packageReport(
+        @PathVariable jobId: Int,
+        @RequestParam(defaultValue = "PDF") format: PackageReportFormat,
+        @RequestParam(defaultValue = "true") anonymize: Boolean,
+        @RequestParam(required = false) exclude: List<String>? = null,
+    ): ResponseEntity<ByteArray> = packageReportService.download(
+        packageReportService.adHoc(user, jobId, anonymize, exclude.orEmpty().toSet()), format,
+    )
 
     @ExceptionHandler(AccessException::class)
     fun handleAccessException(ex: AccessException): ResponseEntity<RestError> {

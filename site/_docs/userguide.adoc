@@ -1651,6 +1651,10 @@ A click on a tile filters the findings by it, a click on _CVEs_ shows all again.
 
 * _Replace internal names_ (on by default) replaces the codes and names of areas, systems, instances and components
   by neutral ones (`S1`, `S1-I1`, `C1`). The names of libraries and products stay.
+* _Report by package_ downloads the vulnerabilities per package (library and version) as PDF, Excel or JSON, e.g. to
+  pass them on: tiles per severity, an overview with the highest score and the version that fixes all of them, then
+  per package its vulnerabilities with score, description, affected versions and a link to the NVD or the advisory.
+  The selection of vulnerabilities and the replaced names apply to it as well.
 * The dialog also has a prompt for an approved AI system, with the report attached: it asks how to fix every
   vulnerability in this project. Is the project really affected, which version fixes it and how is it forced for a
   transitive dependency (overrides, constraints, dependencyManagement), what helps until then, how is the fix
@@ -1676,7 +1680,8 @@ about an hour after the end).
   the security team (priority, fix version) is shown where there is one.
 * As with the findings of a project, the result can be downloaded as JSON and comes with a prompt for an approved AI
   system that asks how to fix every vulnerability. _Replace the names of the files_ (on by default) turns them into
-  `F1`, `F2`, … because their paths often carry project names.
+  `F1`, `F2`, … because their paths often carry project names. The _Report by package_ (PDF, Excel, JSON) is there
+  as well.
 
 [[cve_radar_notifications]]
 === CVE-Radar: notifications

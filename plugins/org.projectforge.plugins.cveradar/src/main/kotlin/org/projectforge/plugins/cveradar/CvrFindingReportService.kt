@@ -337,7 +337,7 @@ class CvrFindingReportService {
         private const val MAX_REFERENCES = 10
 
         /** The severities from the lowest to the highest. */
-        private val SEVERITIES = listOf("NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
+        internal val SEVERITIES = listOf("NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
 
         /** Product and version of a technology, as the findings show it. */
         private fun technologyLabel(technology: CvrTechnologyDO) = listOfNotNull(technology.product, technology.version).joinToString(" ")
