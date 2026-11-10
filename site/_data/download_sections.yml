@@ -9,6 +9,16 @@ next_steps:
   button_text: Installation guide
   button_url: /docs/installation/
 
+app:
+  title: The app for your users
+  subtitle: ProjectForge for iPhone and iPad, free in the App Store.
+  text: >-
+    Your users install the app and enter the address of your server – that's all. It logs in in the browser with the
+    second factor and connects only to your server. See the [features of the app](/features/#mobile_app) and the
+    [admin guide](/docs/adminguide/#mobile_app) for the server side (push notifications).
+  app_store: true
+  app_store_note: true
+
 updates:
   title: Updates
   text: >-

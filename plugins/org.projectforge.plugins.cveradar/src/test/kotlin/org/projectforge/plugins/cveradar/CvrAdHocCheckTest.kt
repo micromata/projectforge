@@ -41,6 +41,7 @@ import org.projectforge.plugins.cveradar.rest.CatalogNodeRequest
 import org.projectforge.plugins.cveradar.rest.CvrAdHocRest
 import org.projectforge.plugins.cveradar.rest.CvrCatalogRest
 import org.projectforge.plugins.cveradar.rest.LibraryFile
+import org.projectforge.plugins.cveradar.rest.PackageReportFormat
 import org.projectforge.plugins.cveradar.sync.NvdCveParser
 import org.projectforge.plugins.cveradar.sync.NvdCveParserTest
 import org.projectforge.plugins.cveradar.sync.NvdCveParserTest.Companion.cve
@@ -146,6 +147,28 @@ class CvrAdHocCheckTest : CveRadarTestBase() {
         assertTrue(anonymous.anonymized)
         assertEquals(listOf("F1", "F2"), anonymous.vulnerabilities.single().findings.map { it.component })
 
+        // The report per package: JSON, PDF and Excel of the same content.
+        val packages = rest.packageReport(status.jobId, PackageReportFormat.JSON, anonymize = true)
+        assertTrue(packages.headers.contentDisposition.filename!!.endsWith(".json"))
+        val json = com.fasterxml.jackson.databind.ObjectMapper().readTree(packages.body!!)
+        assertEquals(2, json["packageCount"].asInt())
+        val adhoclib = json["packages"].first { it["name"].asText() == "adhoclib" }
+        assertEquals(listOf("F1"), adhoclib["components"].map { it.asText() }, "the files are anonymized")
+        assertEquals("< 4.17.21", adhoclib["vulnerabilities"][0]["affectedRange"].asText())
+        val pdf = rest.packageReport(status.jobId, PackageReportFormat.PDF, anonymize = true)
+        assertEquals("application/pdf", pdf.headers.contentType.toString())
+        val text = com.lowagie.text.pdf.parser.PdfTextExtractor(com.lowagie.text.pdf.PdfReader(pdf.body!!)).getTextFromPage(1)
+        assertTrue(text.contains("adhoclib") && text.contains("CVE-2026-97501"), text)
+        val xlsx = rest.packageReport(status.jobId, PackageReportFormat.XLSX, anonymize = false)
+        org.apache.poi.xssf.usermodel.XSSFWorkbook(java.io.ByteArrayInputStream(xlsx.body!!)).use { workbook ->
+            val sheet = workbook.getSheetAt(1)
+            assertEquals(3, sheet.physicalNumberOfRows, "header and one row per package and vulnerability")
+            val row = sheet.getRow(1)
+            assertEquals("CVE-2026-97501", row.getCell(3).stringCellValue)
+            assertEquals("https://nvd.nist.gov/vuln/detail/CVE-2026-97501", row.getCell(3).hyperlink.address)
+            assertEquals(9.8, row.getCell(5).numericCellValue, 0.001)
+        }
+
         assertEquals(
             findingsBefore,
             persistenceService.executeQuery("from CvrFindingDO f", org.projectforge.plugins.cveradar.model.CvrFindingDO::class.java).size,
@@ -174,6 +197,7 @@ class CvrAdHocCheckTest : CveRadarTestBase() {
         logon(other)
         assertThrows(UserException::class.java) { rest.status(status.jobId) }
         assertThrows(UserException::class.java) { rest.report(status.jobId, true) }
+        assertThrows(UserException::class.java) { rest.packageReport(status.jobId, PackageReportFormat.PDF, true) }
         logon(TEST_USER)
         assertThrows(AccessException::class.java) { rest.status(status.jobId) }
     }

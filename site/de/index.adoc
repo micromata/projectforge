@@ -5,9 +5,9 @@ permalink: /de/
 description: "Das Open-Source-Backoffice für projektgetriebene Unternehmen: Projekte, Zeit, Personal und Geld an einem Ort. Selbst gehostet, gemacht für DACH und die EU."
 hero:
     announcement:
-      label: "Release 9.2.0"
-      text: "Java 21, CVE-Radar und digitale Visitenkarten"
-      url: /de/changelog-posts/#release-9-2-0
+      label: "Neu"
+      text: "Die ProjectForge-App für iPhone und iPad – jetzt im App Store"
+      url: /de/#app
     title: Vom Auftrag bis zur Rechnung – ein Ort für Projekte, Zeit, Personal und Geld.
     subtitle: ProjectForge ist das Open-Source-Backoffice für projektgetriebene Unternehmen. Selbst gehostet, gemacht für DACH und die EU, kostenlos und ohne Einschränkungen.
     images:
@@ -30,6 +30,10 @@ hero:
 
 ++++
 {% include boxes.html columns="3" title="Warum ProjectForge?" subtitle="Projekte und Aufträge planen, Zeiten in Sekunden buchen lassen, Urlaube verwalten, E-Rechnungen schreiben und Forecast und Liquidität im Blick behalten – alles in einer Web-App auf dem eigenen Server." %}
+++++
+
+++++
+{% include text-section.html key="app" background="muted" %}
 ++++
 
 ++++

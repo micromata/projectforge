@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.cveradar.CveRadarAccess
 import org.projectforge.plugins.cveradar.CvrFindingReportService
 import org.projectforge.plugins.cveradar.CvrInventoryService
+import org.projectforge.plugins.cveradar.CvrPackageReportService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.RestError
@@ -59,6 +60,9 @@ class CvrInventoryRest {
 
     @Autowired
     private lateinit var reportService: CvrFindingReportService
+
+    @Autowired
+    private lateinit var packageReportService: CvrPackageReportService
 
     @Autowired
     private lateinit var service: CvrInventoryService
@@ -139,6 +143,20 @@ class CvrInventoryRest {
         /** CVE ids to leave out (handled separately). */
         @RequestParam(required = false) exclude: List<String>? = null,
     ): FindingReport = reportService.report(user, level, id, anonymize, exclude.orEmpty().toSet())
+
+    /** A GET: the report per package as JSON, PDF or Excel file (see [PackageReport]). */
+    @AccessChecked("CvrFindingReportService.report: reader role, read access to the node, only the instances the user may read")
+    @GetMapping("{level}/{id}/findings/report/packages")
+    fun findingPackageReport(
+        @PathVariable level: InventoryLevel,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "PDF") format: PackageReportFormat,
+        @RequestParam(defaultValue = "true") anonymize: Boolean,
+        /** CVE ids to leave out (handled separately). */
+        @RequestParam(required = false) exclude: List<String>? = null,
+    ): ResponseEntity<ByteArray> = packageReportService.download(
+        packageReportService.node(user, level, id, anonymize, exclude.orEmpty().toSet()), format,
+    )
 
     @AccessChecked("CvrFindingReportService.nodeFindings: reader role, read access to the node, only the instances the user may read")
     @GetMapping("{level}/{id}/findings")

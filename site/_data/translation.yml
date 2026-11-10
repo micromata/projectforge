@@ -35,6 +35,9 @@ en:
   contact_subject:            "Subject"
   contact_message:            "Message"
   contact_send:               "Send"
+  # The badge of the App Store (_includes/app-store-badge.html).
+  app_store_badge:            "Download on the App Store"
+  app_android_soon:           "Android version coming soon"
   # The link to the page in the other language (Deutsch on English pages).
   language_switch:            "Deutsch"
   language_switch_title:      "Diese Seite auf Deutsch"
@@ -88,6 +91,8 @@ de:
   contact_subject:            "Betreff"
   contact_message:            "Nachricht"
   contact_send:               "Senden"
+  app_store_badge:            "Laden im App Store"
+  app_android_soon:           "Die Android-Version folgt"
   language_switch:            "English"
   language_switch_title:      "This page in English"
   language_switch_untranslated: "This page is only available in German – back to the English page"
