@@ -4892,6 +4892,12 @@
         "info": "Only the master data of this system is visible for this role (code, name, group, level). Components and findings require a grant.",
         "short": "master data only"
       },
+      "matching": {
+        "progress": {
+          "findings": "Matching against the vulnerabilities: {arg0} of {arg1} findings stored",
+          "vulnerabilities": "Matching against the vulnerabilities: {arg0} of {arg1} OSV advisories checked"
+        }
+      },
       "matrix": {
         "actions": "Deviation of {arg0}",
         "apply": "Apply to the baseline",
