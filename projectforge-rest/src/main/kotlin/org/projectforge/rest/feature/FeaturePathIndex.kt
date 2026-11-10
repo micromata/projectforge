@@ -226,6 +226,8 @@ class FeaturePathIndex {
             "menu",
             "next2FA",
             "notification",
+            // Push settings of the user ("My account" → Apps, settings of the mobile app).
+            "pushSettings",
             "timeZones",
             "uiSettings",
             "userEvents",
