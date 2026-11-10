@@ -22,6 +22,7 @@
       "**Notifications:** push messages show the title and the beginning of the notification (switchable per user and for the whole server with `projectforge.push.content=false`); the text of chat notifications no longer repeats their title.",
       "**Chat and changelog:** the arrow keys keep paging in the full size view of several images; a link of the table of contents opened as a drawer scrolls to its entry again.",
       "**Invoices:** the contact person of the customer is no longer printed in the invoice address of the document (the e-invoice still states it, templates may print it), and the text after the colon in the customer reference is no longer bold.",
+      "**Sipgate:** a permanently deleted address no longer comes back through the contact sync, its Sipgate contact is deleted instead.",
       "**Mobile app (in preparation):** the pages menu opens its categories on a tablet and remembers opened ones, behind an SSO proxy the pages no longer open in Safari after the session of the proxy ended, a favorite star in the address view, and the booking form scrolls the edited field and the optional fields into view above the keyboard."
     ],
     "de": [
@@ -30,6 +31,7 @@
       "**Benachrichtigungen:** Push-Nachrichten zeigen den Titel und den Anfang der Benachrichtigung (abschaltbar je Benutzer und für den ganzen Server mit `projectforge.push.content=false`); der Text von Chat-Benachrichtigungen wiederholt ihren Titel nicht mehr.",
       "**Chat und Changelog:** In der Vollbildansicht mehrerer Bilder blättern die Pfeiltasten weiter; ein Link des Inhaltsverzeichnisses, das als Schublade geöffnet ist, scrollt wieder zu seinem Eintrag.",
       "**Rechnungen:** Der Ansprechpartner des Kunden wird nicht mehr in der Rechnungsadresse des Dokuments gedruckt (die E-Rechnung führt ihn weiter, Vorlagen können ihn drucken), und der Text nach dem Doppelpunkt in der Kundenreferenz ist nicht mehr fett.",
+      "**Sipgate:** Eine unwiderruflich gelöschte Adresse kommt nicht mehr über den Kontakt-Abgleich zurück, stattdessen wird ihr Sipgate-Kontakt gelöscht.",
       "**Mobile App (in Vorbereitung):** Das Seitenmenü öffnet auf dem Tablet seine Kategorien und merkt sich geöffnete, hinter einem SSO-Proxy öffnen sich die Seiten nach Ende der Proxy-Sitzung nicht mehr in Safari, ein Favoriten-Stern in der Adressansicht, und die Buchungsmaske scrollt das bearbeitete Feld und die optionalen Felder über der Tastatur in den Blick."
     ]
   }
