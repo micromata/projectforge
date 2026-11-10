@@ -26,6 +26,7 @@ import type { AppAddressList } from '@projectforge/shared/rs/address';
 
 import type { ApiClient } from '../../core/api/apiClient';
 import { ApiException } from '../../core/api/apiException';
+import { withQuery } from '../../core/api/query';
 import { AddressBook, addressBook, AppAddress, mergeAddressBook } from './address';
 import { vCardWithPhoto } from './vCard';
 
@@ -62,7 +63,7 @@ export class AddressesRepository {
   private static readonly CACHE_NAME = 'addresses';
 
   constructor(
-    private readonly api: Pick<ApiClient, 'get' | 'download'>,
+    private readonly api: Pick<ApiClient, 'get' | 'post' | 'download'>,
     private readonly cache: BookCache,
     private readonly images: ImageFiles,
   ) {}
@@ -77,7 +78,7 @@ export class AddressesRepository {
   async sync(stored: AddressBook | null): Promise<AddressBook> {
     try {
       const book = (stored == null ? null : await this.syncChanges(stored)) ?? (await this.loadAll());
-      this.cache.write(AddressesRepository.CACHE_NAME, { ...book, fromCache: undefined });
+      this.store(book);
       this.deleteObsoleteImages(book);
       return book;
     } catch (e) {
@@ -99,6 +100,19 @@ export class AddressesRepository {
   private async loadAll(): Promise<AddressBook> {
     const list = await this.api.get<AppAddressList>(`${AddressesRepository.PATH}/appList`);
     return { ...addressBook(list.timestamp, list.addresses, list.favoriteIds ?? []), withVCards: list.withVCards === true };
+  }
+
+  /**
+   * Marks the address [id] as a favorite of the user ([favorite]) or removes the mark (`/rs/address/favorite`), without
+   * a change of the address. The book with the changed favorites is to be [store]d.
+   */
+  async setFavorite(id: number, favorite: boolean): Promise<void> {
+    await this.api.post(withQuery(`${AddressesRepository.PATH}/favorite/${id}`, { favorite }));
+  }
+
+  /** Keeps [book] on the device. */
+  store(book: AddressBook) {
+    this.cache.write(AddressesRepository.CACHE_NAME, { ...book, fromCache: undefined });
   }
 
   /**

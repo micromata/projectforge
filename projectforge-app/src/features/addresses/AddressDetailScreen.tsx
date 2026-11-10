@@ -85,6 +85,15 @@ async function withVCard(address: AppAddress, action: (name: string, vCard: Uint
   }
 }
 
+/** Marks the address as a favorite or removes the mark; a refusal is reported in an alert. */
+async function toggleFavorite(id: number, favorite: boolean) {
+  const error = await addresses.setFavorite(id, favorite);
+  if (error != null) {
+    appLog.warn('addresses', `Favorite of address ${id} not changed: ${String(error)}`);
+    Alert.alert(errorText(error));
+  }
+}
+
 function open(url: string) {
   Linking.openURL(url).catch((e) => appLog.warn('addresses', `Not opened: ${String(e)}`));
 }
@@ -92,7 +101,7 @@ function open(url: string) {
 /**
  * An address with its numbers, mail addresses and postal addresses. A number offers a call or a text message, a mail
  * address opens the mail app, a postal address the maps app. [onEdit] shows the form in the web pages; null (offline)
- * hides the button. Port of the Flutter app's AddressDetailScreen.
+ * hides the button. The star marks the address as a favorite of the user. Port of the Flutter app's AddressDetailScreen.
  */
 export function AddressDetailScreen({
   id,
@@ -108,6 +117,7 @@ export function AddressDetailScreen({
   const [shareSheet, setShareSheet] = useState(false);
   const address = state.status === 'data' ? state.book.addresses.find((it) => it.id === id) : undefined;
   const offline = state.status === 'data' && state.book.fromCache === true;
+  const favorite = state.status === 'data' && state.book.favoriteIds.includes(id);
   if (address == null) {
     return (
       <SafeAreaView style={[styles.screen, { backgroundColor: '#333' }]}>
@@ -175,9 +185,20 @@ export function AddressDetailScreen({
       <StatusBar style="light" />
       <SafeAreaView style={styles.screen}>
         <Bar onClose={onClose}>
+          {!offline && (
+            <Pressable
+              accessibilityLabel={favorite ? t('app.address.favorite.remove') : t('app.address.favorite.add')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: favorite }}
+              hitSlop={8}
+              onPress={() => void toggleFavorite(address.id, !favorite)}
+            >
+              <Ionicons name={favorite ? 'star' : 'star-outline'} size={24} color={favorite ? '#f59e0b' : '#fff'} style={styles.barIcon} />
+            </Pressable>
+          )}
           {shareable && (
             <Pressable accessibilityLabel={t('app.vCard.share')} hitSlop={8} onPress={() => setShareSheet(true)}>
-              <Ionicons name="share-outline" size={24} color="#fff" style={styles.share} />
+              <Ionicons name="share-outline" size={24} color="#fff" style={styles.barIcon} />
             </Pressable>
           )}
           {!offline && address.writeAccess && (
@@ -302,7 +323,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   bar: { height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 },
   edit: { color: '#fff', fontSize: 17, paddingHorizontal: 8 },
-  share: { paddingHorizontal: 8 },
+  barIcon: { paddingHorizontal: 8 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   missingText: { color: '#fff', fontSize: 16, textAlign: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 32 },
