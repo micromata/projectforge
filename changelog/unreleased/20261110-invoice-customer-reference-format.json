@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Invoices: in the customer reference of the invoice document, the text after the colon of each line (e.g. \"Supplier number: 1140300\") is no longer printed bold; the label stays bold, as for the order number.",
-  "de": "Rechnungen: In der Kundenreferenz des Rechnungsdokuments wird der Text nach dem Doppelpunkt jeder Zeile (z. B. „Lieferantennummer: 1140300“) nicht mehr fett gedruckt; die Bezeichnung bleibt fett, wie bei der Bestellnummer."
-}

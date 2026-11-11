@@ -43,12 +43,12 @@ class SipgateDeleteContactServiceTest : AbstractTestBase() {
         logon(ADMIN)
         val address = AddressDO()
         address.name = "Sipgate tombstone"
-        addressDao.insert(address)
+        addressDao.insert(address, checkAccess = false)
         val contactId = "sipgate-tombstone-test"
         persistenceService.runInTransaction { context ->
             context.em.persist(SipgateContactSyncDO.create(null, address).also { it.sipgateContactId = contactId })
         }
-        addressDao.forceDelete(address)
+        addressDao.forceDelete(address, checkAccess = false)
         Assertions.assertNull(addressDao.find(address.id, checkAccess = false))
         val syncDO = persistenceService.runReadOnly { context ->
             context.em.find(SipgateContactSyncDO::class.java, contactId)
