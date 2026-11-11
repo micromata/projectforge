@@ -2,6 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.projectforge.BuildPropertiesGenerator
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
+import java.net.URI
+import java.security.MessageDigest
+import java.util.Properties
 
 plugins {
     id("org.springframework.boot") version libs.versions.org.springframework.boot.get()
@@ -70,6 +73,52 @@ val extraPluginJars = (providers.gradleProperty("pf.extraPlugins").orNull
         require(file.exists()) { "pf.extraPlugins: '$file' doesn't exist." }
         if (file.isDirectory) file.listFiles { f -> f.extension == "jar" }.orEmpty().sortedBy { it.name } else listOf(file)
     }.orEmpty()
+
+// Plugins pinned in plugins-bin/*.properties (version, url, sha256 of a jar attached to a GitHub release, written by
+// "pfDev.sh release"): downloaded and verified for the boot jar only, so a community build from the sources has them as
+// well. Not for bootRun, tests and generators (a jar of the last release might not fit a newer snapshot); those use
+// pf.extraPlugins, which also wins over a pin of the same jar name.
+abstract class DownloadPinnedPlugins : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val pinFiles: ConfigurableFileCollection
+
+    /** Names of jars of pf.extraPlugins, they win over a pin of the same name. */
+    @get:Input
+    abstract val skipNames: ListProperty<String>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun download() {
+        val dir = outputDir.get().asFile
+        dir.deleteRecursively()
+        dir.mkdirs()
+        pinFiles.files.sortedBy { it.name }.forEach { pinFile ->
+            val pin = Properties().apply { pinFile.inputStream().use { load(it) } }
+            val url = requireNotNull(pin.getProperty("url")) { "${pinFile.name}: url is missing." }
+            val expected = requireNotNull(pin.getProperty("sha256")) { "${pinFile.name}: sha256 is missing." }.lowercase()
+            val name = url.substringAfterLast('/')
+            if (name in skipNames.get()) return@forEach
+            val target = File(dir, name)
+            URI(url).toURL().openStream().use { input -> target.outputStream().use { input.copyTo(it) } }
+            val actual = MessageDigest.getInstance("SHA-256").digest(target.readBytes()).joinToString("") { "%02x".format(it) }
+            if (actual != expected) {
+                target.delete()
+                throw GradleException("${pinFile.name}: $url has the sha256 $actual, expected $expected.")
+            }
+        }
+    }
+}
+
+val pinnedPluginsDir = layout.buildDirectory.dir("pinned-plugins")
+val pinFileList = rootProject.file("plugins-bin").listFiles { f -> f.extension == "properties" }.orEmpty().sortedBy { it.name }
+val downloadPinnedPlugins = tasks.register<DownloadPinnedPlugins>("downloadPinnedPlugins") {
+    pinFiles.from(pinFileList)
+    skipNames.set(extraPluginJars.map { it.name })
+    outputDir.set(pinnedPluginsDir)
+}
 
 dependencies {
     implementation(project(":projectforge-rest"))
@@ -333,6 +382,13 @@ tasks.named<BootJar>("bootJar") {
     val nextAppJarProvider = project(":projectforge-next").layout.buildDirectory.file("libs/projectforge-next-${project.version}.jar")
     from(nextAppJarProvider) {
         into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.
+    }
+    if (pinFileList.isNotEmpty()) {
+        dependsOn(downloadPinnedPlugins)
+        from(pinnedPluginsDir) {
+            include("*.jar")
+            into("BOOT-INF/lib") // Plugins of other repositories, pinned in plugins-bin.
+        }
     }
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
     // Gradle 9 sorts archive entries by default. Boot's sorting copy action then reads the zipTree entries of the

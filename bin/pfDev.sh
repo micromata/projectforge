@@ -48,9 +48,11 @@ Commands:
                    GitHub release); declined, nothing is pushed.
                    External plugins (checkouts in PF_EXTERNAL_PLUGINS, comma separated,
                    or one per line in ~/.config/projectforge/external-plugins; needed
-                   for a published release): tested, built against the release commit
-                   into the jar, their submodule pinned and tagged X.Y.Z-RELEASE as well;
-                   publish pushes them after this repository
+                   for a published release): tested, built into the jar, pinned in
+                   plugins-bin/ (url + sha256, in the release commit; the jar is attached by
+                   publish to the GitHub release plugin-<name>-X.Y.Z, so a build from the
+                   sources downloads it), their submodule pinned and tagged X.Y.Z-RELEASE
+                   as well; publish pushes them after this repository
   publish <X.Y.Z>  Pushes the release and its tag and creates its GitHub release (notes
                    generated from the changelog, the jar attached if wanted, e.g. not for
                    minor releases); asks before each step. The docker
@@ -388,6 +390,65 @@ check_release_jar_plugins() {
   done
 }
 
+# Name of the plugin of the jar <jar> built for <version>, e.g. cveradar (projectforge-plugin-cveradar-X.Y.Z.jar).
+plugin_name_of_jar() {
+  local name
+  name="$(basename "$1" .jar)"
+  name="${name%-$2}"
+  echo "${name#projectforge-plugin-}"
+}
+
+# Writes plugins-bin/<name>.properties (version, url of the GitHub release asset, sha256) for every jar <jars>
+# (comma separated), see downloadPinnedPlugins in projectforge-application/build.gradle.kts. publish uploads the jars.
+pin_external_plugins() {
+  local version="$1" jars="$2" jar name sha256 repo_url
+  [[ -z "$jars" ]] && return 0
+  repo_url="$(gh repo view --json url --jq .url)"
+  mkdir -p "$ROOT/plugins-bin"
+  IFS=',' read -r -a list <<< "$jars"
+  for jar in ${list[@]+"${list[@]}"}; do
+    name="$(plugin_name_of_jar "$jar" "$version")"
+    sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+    printf 'version=%s\nurl=%s/releases/download/plugin-%s-%s/%s\nsha256=%s\n' \
+      "$version" "$repo_url" "$name" "$version" "$(basename "$jar")" "$sha256" >"$ROOT/plugins-bin/$name.properties"
+  done
+}
+
+# Creates the GitHub releases plugin-<name>-<version> with the jars pinned for <version> in plugins-bin/ as assets
+# (not the latest release), after the push of the tag. Skipped if the release exists; the jar must be the pinned one.
+publish_external_plugin_assets() {
+  local version="$1" tag="$1-RELEASE" pin name jar pinned sha256 asset_tag dir found
+  for pin in "$ROOT"/plugins-bin/*.properties; do
+    [[ -f "$pin" ]] || continue
+    [[ "$(sed -n 's/^version=//p' "$pin")" == "$version" ]] || continue
+    name="$(basename "$pin" .properties)"
+    asset_tag="plugin-$name-$version"
+    if gh release view "$asset_tag" >/dev/null 2>&1; then
+      echo "The GitHub release $asset_tag exists already."
+      continue
+    fi
+    jar=""
+    while read -r dir; do
+      found=("$dir"/plugin/build/libs/projectforge-plugin-"$name"-"$version".jar)
+      [[ -f "${found[0]}" ]] && jar="${found[0]}"
+    done < <(external_plugins)
+    if [[ -z "$jar" ]]; then
+      echo "The jar of the plugin $name $version isn't built here (external plugin checkout missing), upload it to $asset_tag by hand." >&2
+      exit 1
+    fi
+    pinned="$(sed -n 's/^sha256=//p' "$pin")"
+    sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+    if [[ "$sha256" != "$pinned" ]]; then
+      echo "The SHA-256 $sha256 of $jar isn't the pinned one ($pinned), it was rebuilt after the release." >&2
+      exit 1
+    fi
+    confirm_yes "Create the GitHub release $asset_tag with $(basename "$jar") (the pinned plugin of $version)?" || continue
+    gh release create "$asset_tag" "$jar" --target "$(git rev-parse "$tag^{commit}")" --latest=false \
+      --title "Plugin $name $version" \
+      --notes "Binary of the plugin $name for ProjectForge $version, pinned in plugins-bin/$name.properties. Do not delete."
+  done
+}
+
 # Pins the submodule projectforge/ of every external plugin to the release tag (commit "release: X.Y.Z") and tags
 # the plugin with the same tag.
 tag_external_plugins() {
@@ -507,14 +568,17 @@ release() {
   fi
   set_version "$version"
   "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
+  # The external plugins are built before the release commit (the version is set already; they only need the sources
+  # of this checkout) to pin their jars in plugins-bin/, which belongs to the commit the tag points to.
+  local extra_jars
+  extra_jars="$(build_external_plugins "$version")"
+  [[ "$is_published" == true ]] && pin_external_plugins "$version" "$extra_jars"
   git add -A
   git commit -q -m "release: $version"
   # Built from the release commit, so the jar's build.properties show it (and not a dirty tree). A clean build,
   # so no leftovers of earlier builds end up in the release jar. Tagged only after a successful build. The tests
   # ran before the release commit, which only changes the changelog, the version and generated files.
-  # The external plugins are built against the release commit and go into the jar.
-  local extra_jars
-  extra_jars="$(build_external_plugins "$version")"
+  # The external plugins go into the jar as built above.
   "$GRADLEW" -p "$ROOT" clean build -x test ${extra_jars:+"-Ppf.extraPlugins=$extra_jars"}
   check_release_jar_plugins "$version" "$extra_jars"
   git tag -a "$tag" -m "ProjectForge $version"
@@ -576,6 +640,7 @@ publish() {
   confirm_yes "Push $(git branch --show-current) and the tag $tag?" || exit 1
   git push --follow-tags
   push_external_plugins "$version"
+  publish_external_plugin_assets "$version"
   github_release "$version"
   echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
   # The upload to SourceForge is done by hand; afterwards the jar is set as default download there (files/latest).

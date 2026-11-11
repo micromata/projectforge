@@ -60,9 +60,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## External plugins
 - The backend of the CVE-Clinic is developed in a repository of its own and joins the release jar as a binary
-  (`pf.extraPlugins`, `PF_EXTRA_PLUGINS`); here are only its next pages, its texts
+  (`pf.extraPlugins`, `PF_EXTRA_PLUGINS`; the release pins it in `plugins-bin/`, a GitHub release asset); here are only its next pages, its texts
   (`plugins/org.projectforge.plugins.cveradar`: `CveRadarI18nResources*`), the generated `lib/metadata/cvr-*` and its
-  changelog entries. Without the plugin its pages are switched off. Details: `dev-docs/external-plugins.md`.
+  changelog entries. Without the plugin (no pin) its pages are switched off. Details: `dev-docs/external-plugins.md`.
 - A core change can break such a plugin without any test here failing: keep the core api it uses
   (`org.projectforge.*`) compatible, or adapt the plugin in the same release.
 
