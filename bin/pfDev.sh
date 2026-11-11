@@ -28,6 +28,12 @@ Commands:
                    (keeps the own side of generated files, no conflicts); done by
                    every pfDev.sh call, once for all worktrees
   build            next build (projectforge-next)
+  bootjar [<plugin jar>[,<plugin jar>…]]
+                   Test build of the boot jar (tests skipped), prints its path. Without
+                   an argument the plugins pinned in plugins-bin/ are downloaded; a jar
+                   of a plugin given here (e.g. one built in the repository of an
+                   external plugin: bin/pf.sh bootjar there) replaces its pin and needs no
+                   GitHub release (also PF_EXTRA_PLUGINS)
   check            Next quality gates: typecheck → lint → format:check
   changelog-fold [id]
                    Moves the entries of changelog/unreleased/ (one file per change,
@@ -979,6 +985,24 @@ case "$cmd" in
     ;;
   build)
     cd "$NEXT" && exec npm run build "$@"
+    ;;
+  bootjar)
+    extra="${1:-${PF_EXTRA_PLUGINS:-}}"
+    if [[ -n "$extra" ]]; then
+      abs=()
+      IFS=',' read -r -a parts <<< "$extra"
+      for part in "${parts[@]}"; do
+        part="${part/#\~/$HOME}"
+        [[ -e "$part" ]] || { echo "Plugin jar $part doesn't exist." >&2; exit 1; }
+        abs+=("$(cd "$(dirname "$part")" && pwd)/$(basename "$part")")
+      done
+      extra="$(IFS=,; echo "${abs[*]}")"
+    elif ! compgen -G "$ROOT/plugins-bin/*.properties" >/dev/null; then
+      echo "Note: no plugin jar given and nothing pinned in plugins-bin/, the boot jar gets no external plugin."
+    fi
+    "$GRADLEW" -p "$ROOT" :projectforge-application:bootJar -x test ${extra:+"-Ppf.extraPlugins=$extra"}
+    version="$(sed -n 's/^version=//p' "$ROOT/gradle.properties")"
+    echo "Boot jar: $ROOT/projectforge-application/build/libs/projectforge-application-$version.jar"
     ;;
   app)
     ((SLOT == 0)) || set -- "$SLOT" "$@"

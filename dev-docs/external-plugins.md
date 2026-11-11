@@ -44,6 +44,9 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
 
 - Pages, texts and changelog entries (`changelog/unreleased/`, the feature is shipped) of a plugin change are made
   here, its backend in its repository; one change may need commits in both.
+- **Test build** with a jar of your own (not yet released, no GitHub asset): `bin/pfDev.sh bootjar <path>.jar` (or
+  `PF_EXTRA_PLUGINS`, or `bin/pf.sh bootjar` in the plugin repository, which builds the jar first). The boot jar is
+  built without tests and its path printed; the jar replaces the pin of the same plugin, whatever its version.
 - Without `PF_EXTRA_PLUGINS`, a dev slot of this repository runs without the plugin (its pages are switched off).
 - `bin/pfDev.sh release` needs the checkouts of the external plugins for a published release: comma separated in
   `PF_EXTERNAL_PLUGINS`, or one per line in `~/.config/projectforge/external-plugins`. It checks them first (clean,

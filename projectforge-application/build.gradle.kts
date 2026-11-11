@@ -83,7 +83,7 @@ abstract class DownloadPinnedPlugins : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val pinFiles: ConfigurableFileCollection
 
-    /** Names of jars of pf.extraPlugins, they win over a pin of the same name. */
+    /** Names of jars of pf.extraPlugins, they win over the pin of the same plugin (<name>.properties, projectforge-plugin-<name>-<version>.jar). */
     @get:Input
     abstract val skipNames: ListProperty<String>
 
@@ -100,7 +100,12 @@ abstract class DownloadPinnedPlugins : DefaultTask() {
             val url = requireNotNull(pin.getProperty("url")) { "${pinFile.name}: url is missing." }
             val expected = requireNotNull(pin.getProperty("sha256")) { "${pinFile.name}: sha256 is missing." }.lowercase()
             val name = url.substringAfterLast('/')
-            if (name in skipNames.get()) return@forEach
+            val plugin = pinFile.nameWithoutExtension
+            val replacedBy = skipNames.get().firstOrNull { it == name || it.startsWith("projectforge-plugin-$plugin-") }
+            if (replacedBy != null) {
+                logger.lifecycle("Pinned plugin $plugin ($name) replaced by pf.extraPlugins: $replacedBy")
+                return@forEach
+            }
             val target = File(dir, name)
             URI(url).toURL().openStream().use { input -> target.outputStream().use { input.copyTo(it) } }
             val actual = MessageDigest.getInstance("SHA-256").digest(target.readBytes()).joinToString("") { "%02x".format(it) }
