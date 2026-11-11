@@ -4,7 +4,7 @@ A rule type is one Spring bean implementing `NotificationRuleHandler` (`projectf
 `org.projectforge.business.notification`), in the core or in a plugin. Being a bean registers it
 (`NotificationRuleRegistry`); the service, the REST endpoint (`NotificationRuleEntityRest`) and the editor of next
 (`components/features/notification-rule`) know no single type. Examples: `PasswordNotChangedRuleHandler` (one number),
-`CvrTeamCheckUnansweredRuleHandler` (CVE-Radar plugin: a case to pick, only those concerned are notified).
+`CvrTeamCheckUnansweredRuleHandler` (CVE-Radar plugin, in its backend repository: a case to pick, only those concerned are notified).
 
 ## What the handler declares
 - `ruleType`: the key stored in `t_notification_rule.rule_type` (at most 50 characters, unique, never renamed: stored

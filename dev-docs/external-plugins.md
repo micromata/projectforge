@@ -21,37 +21,27 @@ release jar (and so the Docker image) contains it as a binary. First (and so far
 - **Flyway:** the plugin migrates with its own history table (`t_flyway_<id>_schema_version`), the scripts live in
   its repository; versioning as in CLAUDE.md.
 
-## Plan: moving the CVE-Radar backend
+## The plugin repository
 
-Status: preparation done (the items above), the code is still in `plugins/org.projectforge.plugins.cveradar`.
+- This repository as git submodule `projectforge/`, pinned by the release to its tag; composite build
+  (`includeBuild`, ProjectForge's `buildSrc` as plugin build `pf-build-logic`, because `buildSrc` is a reserved build
+  name; the version catalog from `projectforge/gradle/libs.versions.toml`). Core modules are used as
+  `org.projectforge:<module>`, the texts at test time as `org.projectforge:org.projectforge.plugins.cveradar`.
+- `-PpfCoreDir=<worktree>` builds against a local worktree instead of the submodule.
+- Artifact `plugin/build/libs/projectforge-plugin-cveradar-<version>.jar`, the version is the one of ProjectForge.
+- `bin/pf.sh <pfDev.sh command>` there builds the jar and runs this repository's `pfDev.sh` with it
+  (`PF_EXTRA_PLUGINS`), e.g. `run 1` or `gen` (regenerates `lib/metadata/cvr-*` here, commit them here).
 
-1. **Extract** the history of the plugin with `git filter-repo --paths-from-file` from a fresh clone of `develop`:
-   ```
-   plugins/org.projectforge.plugins.cveradar/
-   glob:doc/requirements/PF-CVR*
-   doc/requirements/images/cve-radar/
-   glob:dev-docs/requirements/PF-CVR*
-   dev-docs/requirements/images/cve-radar/
-   glob:dev-docs/cve-radar-*
-   docker/compose/dependency-track/
-   plugins/org.projectforge.plugins.cveradar/==>plugin/
-   doc/requirements/==>docs/requirements/
-   dev-docs/requirements/==>docs/requirements/
-   dev-docs/cve-radar-==>docs/cve-radar-
-   docker/compose/dependency-track/==>docker/dependency-track/
-   ```
-2. **Plugin repository:** this repository as git submodule `projectforge/` (pinned to the release tag),
-   composite build (`includeBuild`, `pluginManagement { includeBuild("projectforge/buildSrc") }`, version catalog
-   from `projectforge/gradle/libs.versions.toml`), core modules as `org.projectforge:<module>` coordinates. Artifact
-   `projectforge-plugin-cveradar-<version>.jar`, the version is the one of ProjectForge. CI: build and tests on
-   every push, nightly against `develop`.
-3. **Here:** reduce `plugins/org.projectforge.plugins.cveradar` to its resource bundle `CveRadarI18nResources*`;
-   remove `dev-docs/requirements/PF-CVR_*` and `docker/compose/dependency-track/` (`bin/collect-libraries.sh` and the
-   site docs stay).
-4. **Release** (`bin/pfDev.sh release`): build the external plugins (`PF_EXTERNAL_PLUGINS`, paths of their
-   checkouts) against the release commit, pass them as `pf.extraPlugins`, refuse a published release whose jar lacks
-   one of them; tag the plugin repository with the same `X.Y.Z-RELEASE`. Docker (`docker/push-release.sh`)
-   and the GitHub release need no change: they take the jar.
-5. Changes of the CVE-Radar keep their changelog entries here (`changelog/unreleased/`), the feature is shipped.
+## Development and release
 
-Remove this plan section once the move is done.
+- Pages, texts and changelog entries (`changelog/unreleased/`, the feature is shipped) of a plugin change are made
+  here, its backend in its repository; one change may need commits in both.
+- Without `PF_EXTRA_PLUGINS`, a dev slot of this repository runs without the plugin (its pages are switched off).
+- `bin/pfDev.sh release` needs the checkouts of the external plugins for a published release: comma separated in
+  `PF_EXTERNAL_PLUGINS`, or one per line in `~/.config/projectforge/external-plugins`. It checks them first (clean,
+  not behind, tag free), runs their tests with the ones here, builds them against the release commit into the
+  jar (refused if one is missing in it), pins their submodule to the tag and tags them as well; `publish` pushes
+  them after this repository. Docker (`docker/push-release.sh`) and the GitHub release take the jar, unchanged.
+- The history of the plugin was extracted with `git filter-repo --paths-from-file` (paths
+  `plugins/org.projectforge.plugins.cveradar/`, `dev-docs/requirements/PF-CVR*` with its images and
+  `docker/compose/dependency-track/`, moved to `plugin/`, `docs/` and `docker/`).

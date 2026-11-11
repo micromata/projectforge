@@ -31,6 +31,7 @@ import org.projectforge.PageRoutes
 import org.projectforge.feature.CoreFeatures
 import org.projectforge.feature.FeatureDefinition
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.core.ExternalPlugins
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.core.type.filter.AnnotationTypeFilter
 import org.springframework.web.bind.annotation.RestController
@@ -78,7 +79,9 @@ class FeatureCoverageTest {
                 routeDirs(File(app, "public")).map { "public/$it" }
         val owned = corePaths + plugins.flatMap { plugin ->
             plugin.featureNextRoutes.map { "${FeatureDefinition.NEXT_PREFIX}$it" }
-        } + pluginNextRoutes()
+        } + pluginNextRoutes() +
+            // Switched off, if the plugin is missing in the build, see FeaturePathIndex.
+            ExternalPlugins.ALL.flatMap { plugin -> plugin.nextRoutes.map { "${FeatureDefinition.NEXT_PREFIX}$it" } }
         val uncovered = routes.filter { route ->
             route !in CORE_NEXT && owned.none { it == "next/$route" || it.startsWith("next/$route/") }
         }

@@ -8,7 +8,7 @@
 | Owner | Kai Reinhard |
 | Date | 2026-11-02 |
 | Stage | R1 released (ProjectForge 9.0.16), R2 in progress |
-| Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); data transfer areas (PF-CHAT-DT); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
+| Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); data transfer areas (PF-CHAT-DT); PF-CVR – CVE-Radar (spec in its backend repository); later invoices, orders and others |
 
 ---
 
@@ -280,7 +280,7 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | Chat room | *main* | participants of the room (ROOM-02) | first host, built in |
 | Direct message | *main* | the two users (DM-04) | built in |
 | Data transfer area | *main* | the users with access to the area inside PF (DT-02) | data transfer plugin, files in the area |
-| CVE-Radar vulnerability | *internal*, *public* | internal: ST and affected groups; public: recipients of the client advisory | [PF-CVR-DISC](PF-CVR_CVE-Radar_Vulnerability_Management.md#511-pf-cvr-disc--discussion) |
+| CVE-Radar vulnerability | *internal*, *public* | internal: ST and affected groups; public: recipients of the client advisory | PF-CVR-DISC |
 | CVE-Radar finding | *internal* | visibility of the finding (PF-CVR VIS-09) | system-specific discussion |
 | Invoice (later) | *internal* | as the invoice (`RechnungDao`) | questions about an invoice |
 | Order (later) | *internal* | as the order (`AuftragDao`) | discussion about an order |

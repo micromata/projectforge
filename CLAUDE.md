@@ -58,6 +58,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `site/404.html` (one page with both languages). German pages link them in English, marked (EN). A new page
   needs its German version or this marker.
 
+## External plugins
+- The backend of the CVE-Radar is developed in a repository of its own and joins the release jar as a binary
+  (`pf.extraPlugins`, `PF_EXTRA_PLUGINS`); here are only its next pages, its texts
+  (`plugins/org.projectforge.plugins.cveradar`: `CveRadarI18nResources*`), the generated `lib/metadata/cvr-*` and its
+  changelog entries. Without the plugin its pages are switched off. Details: `dev-docs/external-plugins.md`.
+- A core change can break such a plugin without any test here failing: keep the core api it uses
+  (`org.projectforge.*`) compatible, or adapt the plugin in the same release.
+
 ## Flyway migrations
 - New migrations are versioned by the release that ships them: `V<release>.<n>__RELEASE-<Name>.sql`, always
   four segments, e.g. `V9.0.4.1__…`, `V9.0.4.2__…` for two scripts in release 9.0.4. The release is the
