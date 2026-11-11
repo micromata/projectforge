@@ -59,7 +59,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   needs its German version or this marker.
 
 ## External plugins
-- The backend of the CVE-Radar is developed in a repository of its own and joins the release jar as a binary
+- The backend of the CVE-Clinic is developed in a repository of its own and joins the release jar as a binary
   (`pf.extraPlugins`, `PF_EXTRA_PLUGINS`); here are only its next pages, its texts
   (`plugins/org.projectforge.plugins.cveradar`: `CveRadarI18nResources*`), the generated `lib/metadata/cvr-*` and its
   changelog entries. Without the plugin its pages are switched off. Details: `dev-docs/external-plugins.md`.

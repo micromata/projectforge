@@ -1562,9 +1562,9 @@ Sind die Datentransfer-Dateien verschlüsselt, darf der Schlüssel nicht Teil di
 [[postgresql_dumps]]
 ==== PostgreSQL-Dumps
 
-Die Dateien des Dateispeichers (Anhänge von Verträgen, Aufträgen, Rechnungen usw.) liegen im eigenen Schema `pf_files`. Dieses Schema kann groß werden, daher bekommen die Dateien einen eigenen Dump. Die Daten der CVE-Radar-Quellen werden nicht gesichert:
+Die Dateien des Dateispeichers (Anhänge von Verträgen, Aufträgen, Rechnungen usw.) liegen im eigenen Schema `pf_files`. Dieses Schema kann groß werden, daher bekommen die Dateien einen eigenen Dump. Die Daten der CVE-Clinic-Quellen werden nicht gesichert:
 
-* Der Haupt-Dump ohne die Dateien und ohne die Daten der CVE-Radar-Quellen: `pg_dump -N pf_files --exclude-table-data=... ...` (schließt das Schema `pf_files` aus, die Tabellen der Quellen bleiben leer erhalten). Die Daten der Quellen (die importierten Details der Schwachstellen, die OSV-Advisories, ihre Indizes für das Matching und der Stand der Importe) werden nach dem Wiederherstellen erneut aus den Quellen (NVD, EUVD, OSV) importiert, siehe <<data_base>>. Die Fälle, Team-Checks, Antworten, das Inventar und die Befunde gehören zum Haupt-Dump, ebenso die Schwachstellen selbst (Id und CVE-Id), auf die sie verweisen.
+* Der Haupt-Dump ohne die Dateien und ohne die Daten der CVE-Clinic-Quellen: `pg_dump -N pf_files --exclude-table-data=... ...` (schließt das Schema `pf_files` aus, die Tabellen der Quellen bleiben leer erhalten). Die Daten der Quellen (die importierten Details der Schwachstellen, die OSV-Advisories, ihre Indizes für das Matching und der Stand der Importe) werden nach dem Wiederherstellen erneut aus den Quellen (NVD, EUVD, OSV) importiert, siehe <<data_base>>. Die Fälle, Team-Checks, Antworten, das Inventar und die Befunde gehören zum Haupt-Dump, ebenso die Schwachstellen selbst (Id und CVE-Id), auf die sie verweisen.
 * Der Dump nur der Dateien: `pg_dump -n pf_files -Fc ...` (Custom-Format, mit `pg_restore -j` parallel wiederherstellbar).
 
 Der Dump der Dateien ist vom Haupt-Dump unabhängig: Zwischen `pf_files` und den übrigen Tabellen gibt es keine Fremdschlüssel. Abweichungen nach dem Einspielen von Dumps verschiedener Tage melden die Integritätsprüfungen, die nachts laufen
@@ -1584,7 +1584,7 @@ gunzip projectforge_2026-10-06_02-00.sql.gz
 psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
 
-Die Fälle, Team-Checks, Antworten und Befunde sind vollständig, aber den Schwachstellen fehlen die Details (Beschreibung, CVSS, ...) und die OSV-Advisories, bis die Importe sie von selbst wieder füllen: Der OSV-Import liest alle Advisories erneut, der NVD-Import die in den letzten `initialDays` geänderten Schwachstellen und danach die NVD seit 1999 für die gespeicherten Schwachstellen ohne Details (siehe <<cve_radar_nvd>>). Bis ein Import eine Schwachstelle gefüllt hat, bleiben ihre Befunde unverändert.
+Die Fälle, Team-Checks, Antworten und Befunde sind vollständig, aber den Schwachstellen fehlen die Details (Beschreibung, CVSS, ...) und die OSV-Advisories, bis die Importe sie von selbst wieder füllen: Der OSV-Import liest alle Advisories erneut, der NVD-Import die in den letzten `initialDays` geänderten Schwachstellen und danach die NVD seit 1999 für die gespeicherten Schwachstellen ohne Details (siehe <<cve_clinic_nvd>>). Bis ein Import eine Schwachstelle gefüllt hat, bleiben ihre Befunde unverändert.
 
 Anschließend die Dateien wiederherstellen (Schema `pf_files`, der Haupt-Dump enthält es nicht):
 
@@ -1656,13 +1656,13 @@ TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
 echo Starting backup of ProjectForge ...
 
-# Haupt-Dump: alle Daten außer den Dateien (Schema pf_files) und den Daten der CVE-Radar-Quellen.
+# Haupt-Dump: alle Daten außer den Dateien (Schema pf_files) und den Daten der CVE-Clinic-Quellen.
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump nur der Dateien (Schema pf_files, Anhänge von Verträgen, Aufträgen, Rechnungen usw.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
 # Archiv der Datentransfer-Dateien (Inhalt im Dateisystem, Metadaten in pf_files).
 DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
-# Die Daten der CVE-Radar-Quellen werden nicht gesichert (die Tabellen bleiben leer erhalten): Die Importe füllen sie
+# Die Daten der CVE-Clinic-Quellen werden nicht gesichert (die Tabellen bleiben leer erhalten): Die Importe füllen sie
 # nach dem Wiederherstellen wieder. Die Schwachstellen selbst (Id und CVE-Id), auf die Fälle und Befunde verweisen,
 # gehören zum Haupt-Dump.
 CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
@@ -1670,7 +1670,7 @@ CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_m
 
 echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
 
-# Auch ohne das CVE-Radar-Plugin: --exclude-table-data schlägt bei fehlenden Tabellen nicht fehl.
+# Auch ohne das CVE-Clinic-Plugin: --exclude-table-data schlägt bei fehlenden Tabellen nicht fehl.
 CVERADAR_EXCLUDE=
 for TABLE in $CVERADAR_SOURCES; do
   CVERADAR_EXCLUDE="$CVERADAR_EXCLUDE --exclude-table-data=$TABLE"
@@ -1908,33 +1908,33 @@ Verträge, Serienbriefe usw.
 
 Erfassung und Darstellung der Fähigkeiten der Mitarbeitenden, gepflegt von den Benutzern selbst.
 
-[[cve_radar]]
-=== CVE-Radar
+[[cve_clinic]]
+=== CVE-Clinic
 
 Schwachstellenmanagement für das Security-Team: Fälle (Schwachstellen mit CVE-ID und Vorfälle ohne), Team-Prüfungen
 von Projekten und Systemen, die Bestätigungen der Mitarbeitenden und eine Abschlussübersicht, die zeigt, ob ein Fall
 geschlossen werden kann. Als Nachweis auf den Client-Geräten lässt sich ein zentraler Log-Server (Graylog) mit den Meldungen eines
 Client-Agents anbinden; das ist optional.
 
-Das Plugin ist in Entwicklung. Die Seite _Verschiedenes_ -> _CVE-Radar_ listet die aus der NVD importierten
-Schwachstellen (siehe <<cve_radar_nvd>>); auch die Seiten _Fälle_, _Geräte_ und _Mein CVE-Radar_ arbeiten mit echten
+Das Plugin ist in Entwicklung. Die Seite _Verschiedenes_ -> _CVE-Clinic_ listet die aus der NVD importierten
+Schwachstellen (siehe <<cve_clinic_nvd>>); auch die Seiten _Fälle_, _Geräte_ und _Mein CVE-Clinic_ arbeiten mit echten
 Daten. Die übrigen Funktionen lassen sich als Prototyp mit fiktiven Demodaten ausprobieren, der auf der Startseite
 prominent verlinkt ist.
 
-[[cve_radar_activation]]
+[[cve_clinic_activation]]
 ==== Aktivierung
 
 Das Plugin `cveradar` unter _Administration_ -> _Plugins_ aktivieren (oder mit
 `projectforge.plugins.ensure-active=cveradar` in `projectforge.properties`) und ProjectForge neu starten, siehe
 <<plugins>>.
 
-[[cve_radar_rights]]
+[[cve_clinic_rights]]
 ==== Rechte und Rollen
 
-Die Rollen sind PF-Gruppen; ihre Namen werden konfiguriert (siehe <<cve_radar_settings>>), die Gruppen selbst legt und
+Die Rollen sind PF-Gruppen; ihre Namen werden konfiguriert (siehe <<cve_clinic_settings>>), die Gruppen selbst legt und
 pflegt man wie jede andere Gruppe unter _Administration_ -> _Gruppen_. Jede Rolle schließt die schwächeren ein, eine
 nicht konfigurierte oder nicht vorhandene Gruppe gibt niemandem die Rolle, und die PF-Admin-Rolle allein gibt keinen
-Zugang zum CVE-Radar.
+Zugang zum CVE-Clinic.
 
 [cols="1,1,3"]
 |===
@@ -1957,13 +1957,13 @@ Begründung).
 
 |alle
 |
-|Auf _Mein CVE-Radar_ die eigenen Geräte, die für Mitarbeitende freigegebenen Fälle (zum Bestätigen der Maßnahmen) und
+|Auf _Mein CVE-Clinic_ die eigenen Geräte, die für Mitarbeitende freigegebenen Fälle (zum Bestätigen der Maßnahmen) und
 die Team-Prüfungen der eigenen Gruppen.
 |===
 
 * Die verbindliche Priorität eines Falls setzt, mit Begründung, die bearbeitende Person oder ein Security Officer. Solange
   niemand zugewiesen ist, darf jedes Mitglied des Security-Teams; es wird dann die bearbeitende Person.
-* Eine Team-Prüfung beantworten die Mitglieder der angefragten Gruppe, dafür ist keine CVE-Radar-Gruppe nötig. Die Akte
+* Eine Team-Prüfung beantworten die Mitglieder der angefragten Gruppe, dafür ist keine CVE-Clinic-Gruppe nötig. Die Akte
   einer Team-Prüfung mit ihrer eigenen Diskussion sehen nur diese Gruppe, das Security-Team und die Security Officer.
 * Eine Team-Prüfung kann jedes Mitglied fragen (z. B. prüft jeder den eigenen Client): Jedes antwortet für sich, und
   die Prüfung bleibt offen, bis alle Mitglieder geantwortet haben, die sich innerhalb von `teamCheckActiveDays`
@@ -1971,7 +1971,7 @@ die Team-Prüfungen der eigenen Gruppen.
 * Die Diskussion eines Falls steht allen Lesenden offen. Details zu Projekten und Systemen gehören in die Akte einer
   Team-Prüfung, nicht dorthin.
 
-[[cve_radar_settings]]
+[[cve_clinic_settings]]
 ==== Allgemeine Einstellungen
 
 Alle Einstellungen stehen in `projectforge.properties` (oder im Properties-Editor, siehe <<properties_editor>>) und
@@ -2001,9 +2001,9 @@ projectforge.plugin.cveradar.sbomImport.maxSizeLimitMb=1024
 Das Zip eines Sammelimports von SBOMs (siehe Benutzerhandbuch) liegt während des Lesens im temporären Verzeichnis der
 JVM und wird danach gelöscht; dort muss so viel Platz frei sein.
 
-Die veralteten Geräte löscht der Job der Anbindung (siehe <<cve_radar_jobs>>).
+Die veralteten Geräte löscht der Job der Anbindung (siehe <<cve_clinic_jobs>>).
 
-[[cve_radar_log_server]]
+[[cve_clinic_log_server]]
 ==== Log-Server (Graylog)
 
 Der Client-Agent (z. B. des Client-Management-Tools) loggt seine Version und optional die Ergebnisse seiner Prüfungen an
@@ -2037,11 +2037,11 @@ projectforge.plugin.cveradar.graylog.cron=0 15 * * * *
 * Geräte werden über die Seriennummer zugeordnet, ohne Seriennummernfeld über Benutzer- und Hostnamen.
 * Ein Prüfergebnis `passed`, `true` oder `ok` gilt als bestanden, alles andere als nicht bestanden.
 
-[[cve_radar_nvd]]
+[[cve_clinic_nvd]]
 ==== Schwachstellen aus der NVD
 
 ProjectForge importiert die Schwachstellen (CVEs) aus der National Vulnerability Database (NVD API 2.0) und listet sie auf
-der Startseite _Verschiedenes_ -> _CVE-Radar_. Der Import ist standardmäßig aus, da er Internetzugriff braucht.
+der Startseite _Verschiedenes_ -> _CVE-Clinic_. Der Import ist standardmäßig aus, da er Internetzugriff braucht.
 
 [source,properties]
 ----
@@ -2068,10 +2068,10 @@ projectforge.plugin.cveradar.nvd.cron=0 17 */2 * * *
   (CNA). Eine Schwachstelle ohne jeden Wert wird importiert, sobald sie bewertet ist.
 * Eine gespeicherte Schwachstelle wird immer aktualisiert, auch wenn die NVD sie zurückweist (durchgestrichen
   dargestellt) oder niedriger bewertet.
-* Die Liste lesen darf, wer eine Rolle des CVE-Radars hat (siehe <<cve_radar_rights>>). Eine Zeile öffnet die Akte der Schwachstelle.
+* Die Liste lesen darf, wer eine Rolle der CVE-Clinic hat (siehe <<cve_clinic_rights>>). Eine Zeile öffnet die Akte der Schwachstelle.
 * Der API-Key wird nur als Header gesendet und weder geloggt noch vom Properties-Editor angezeigt.
 
-[[cve_radar_osv]]
+[[cve_clinic_osv]]
 ==== Advisories der Bibliotheken von OSV.dev
 
 Die NVD nennt Bibliotheken oft spät oder unter einem anderen Namen als dem des Pakets (oder wochenlang gar nicht). Deshalb
@@ -2127,7 +2127,7 @@ projectforge.plugin.cveradar.osv.cron=0 47 */6 * * *
   der zum Paket, seinem Scope oder seiner groupId passt (`adobe:connect` ist nicht das npm-Paket `connect`,
   `fasterxml:jackson-databind` ist `com.fasterxml.jackson.core:jackson-databind`).
 
-[[cve_radar_euvd]]
+[[cve_clinic_euvd]]
 ==== Schwachstellen aus der EUVD
 
 Die European Union Vulnerability Database (EUVD) der ENISA ergänzt die NVD. ProjectForge liest deren öffentliche API
@@ -2165,7 +2165,7 @@ projectforge.plugin.cveradar.euvd.cron=0 37 */2 * * *
 * Die EUVD dokumentiert kein Rate-Limit; ProjectForge pausiert zwischen den Anfragen und wiederholt mit wachsendem
   Abstand.
 
-[[cve_radar_deptrack]]
+[[cve_clinic_deptrack]]
 ==== Dependency-Track (optional)
 
 https://dependencytrack.org[Dependency-Track] kann die Befunde parallel zum eigenen Abgleich ermitteln. Die Anbindung
@@ -2188,18 +2188,18 @@ projectforge.plugin.cveradar.deptrack.probeCron=0 */15 * * * *
 * Die externen Analyzer (OSS Index, Snyk, VulnDB) bleiben aus, sie würden die Liste der Komponenten nach außen
   senden; die Schwachstellenquellen NVD, GitHub Advisories und OSV einschalten. Den Task _Telemetry Submission_
   abschalten.
-* Die Kachel _Dependency-Track (CVE-Radar)_ des <<system_dashboard_and_log_viewer,System-Dashboards>> zeigt Host,
+* Die Kachel _Dependency-Track (CVE-Clinic)_ des <<system_dashboard_and_log_viewer,System-Dashboards>> zeigt Host,
   Version und das Ergebnis der letzten Prüfung: ausgefallen, wenn Dependency-Track nicht erreichbar ist oder den
   Schlüssel ablehnt, gestört, wenn dem Team ein Recht fehlt (im Log und im Lauf des Jobs aufgeführt). Ein
   ausgefallenes Dependency-Track beeinträchtigt die übrigen Seiten nicht.
 * Eine `https`-URL verwenden: Der API-Schlüssel geht mit jeder Anfrage mit (eine `http`-URL außer localhost wird als
   Warnung geloggt). Weiterleitungen werden nicht verfolgt, daher die URL des API-Servers selbst angeben.
 
-[[cve_radar_jobs]]
+[[cve_clinic_jobs]]
 ==== Jobs und Verbindungen
 
-* Die Anbindung und die Importe laufen als Jobs, _CVE-Radar: Client-Agents_,
-  _CVE-Radar: NVD-Import_, _CVE-Radar: OSV-Import_, _CVE-Radar: EUVD-Import_ und _CVE-Radar: Dependency-Track-Prüfung_, aufgeführt
+* Die Anbindung und die Importe laufen als Jobs, _CVE-Clinic: Client-Agents_,
+  _CVE-Clinic: NVD-Import_, _CVE-Clinic: OSV-Import_, _CVE-Clinic: EUVD-Import_ und _CVE-Clinic: Dependency-Track-Prüfung_, aufgeführt
   unter _Administration_ -> _Jobmonitor_. Dort lassen sie sich sofort starten (_Jetzt starten_); solange ihre Quelle nicht
   konfiguriert ist, werden sie als inaktiv mit dem Grund angezeigt. Die Zusammenfassung jedes Laufs steht im Lauf und im Log, Fehler sind Teil des Fehler-Digests.
 * Timeouts und die maximale Größe einer Antwort werden pro Verbindung mit
@@ -2212,7 +2212,7 @@ projectforge.plugin.cveradar.deptrack.probeCron=0 */15 * * * *
 * Keys und Token zeigt der Properties-Editor nie an. Statt in `projectforge.properties` können sie als
   Umgebungsvariablen gesetzt werden, z. B. `PROJECTFORGE_PLUGIN_CVERADAR_GRAYLOG_TOKEN`.
 
-[[cve_radar_file]]
+[[cve_clinic_file]]
 ==== Die Akte einer CVE
 
 Eine Zeile der Liste der Schwachstellen öffnet die Akte der CVE: die NVD-Daten (die Hinweise zur Behebung der
@@ -2231,16 +2231,16 @@ Referenzen getrennt von den übrigen), die Bewertungen, die Maßnahmen, die Disk
 * *Diskussion:* Der Chat der Akte steht allen Lesenden offen. Zu Team-Prüfungen gibt es eine eigene Akte mit eigener
   Diskussion, die nur die gefragte Gruppe, das Security-Team und die Security Officer sehen.
 
-[[cve_radar_first_case]]
+[[cve_clinic_first_case]]
 ==== Ein erster Fall ohne Anbindungen
 
 Ein Fall lässt sich ganz ohne Anbindung durchspielen:
 
 . _Fälle_ -> _Neuer Fall_: ein Vorfall (die ID wird automatisch vergeben) oder eine CVE, mit den Maßnahmen für Techies
-  und Non-Techies. _Für Mitarbeitende freigegeben_ zeigt ihn allen Mitarbeitenden auf _Mein CVE-Radar_.
+  und Non-Techies. _Für Mitarbeitende freigegeben_ zeigt ihn allen Mitarbeitenden auf _Mein CVE-Clinic_.
 . In der Abschlussübersicht des Falls: _Team-Prüfung anfordern_ für jedes Projekt oder System, mit der Gruppe, die es
   prüft.
-. Die Gruppen beantworten ihre Prüfungen, die Mitarbeitenden bestätigen die Maßnahmen auf _Mein CVE-Radar_.
+. Die Gruppen beantworten ihre Prüfungen, die Mitarbeitenden bestätigen die Maßnahmen auf _Mein CVE-Clinic_.
 . Sobald nichts mehr offen ist, zeigt die Abschlussübersicht _Schließbar_; das Security-Team schließt den Fall mit
   Begründung (_Fall schließen_).
 

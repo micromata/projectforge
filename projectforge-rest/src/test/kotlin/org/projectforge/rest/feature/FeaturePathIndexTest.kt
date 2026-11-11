@@ -146,17 +146,17 @@ class FeaturePathIndexTest {
     @Test
     fun `next pages of a missing external plugin are blocked`() {
         val missing = index()
-        Assertions.assertTrue(missing.isBlocked("/next/cveradar/"))
-        Assertions.assertTrue(missing.isBlocked("/next/cveradar/case/42/"))
+        Assertions.assertTrue(missing.isBlocked("/next/cveclinic/"))
+        Assertions.assertTrue(missing.isBlocked("/next/cveclinic/case/42/"))
         Assertions.assertTrue(missing.isBlocked("/next/cvrcase/"))
-        Assertions.assertTrue("cveradar" in missing.nextRoutes().disabled)
-        val cveRadar = object : AbstractPlugin(ExternalPlugins.CVE_RADAR.id, "CVE-Radar", "External plugin.") {
+        Assertions.assertTrue("cveclinic" in missing.nextRoutes().disabled)
+        val cveRadar = object : AbstractPlugin(ExternalPlugins.CVE_RADAR.id, "CVE-Clinic", "External plugin.") {
             override fun initialize() {}
         }
         val available = index(plugins = listOf(TestPlugin(), cveRadar))
-        Assertions.assertFalse(available.isBlocked("/next/cveradar/"))
+        Assertions.assertFalse(available.isBlocked("/next/cveclinic/"))
         Assertions.assertFalse(available.isBlocked("/next/cvrcase/"))
-        Assertions.assertFalse("cveradar" in available.nextRoutes().disabled)
+        Assertions.assertFalse("cveclinic" in available.nextRoutes().disabled)
     }
 
     @Test

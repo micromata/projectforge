@@ -34,7 +34,7 @@ package org.projectforge.plugins.core
 object ExternalPlugins {
     /**
      * @param id The plugin id, see [AbstractPlugin.id].
-     * @param nextRoutes The routes of its next pages (without `next/`, e.g. `cveradar`).
+     * @param nextRoutes The routes of its next pages (without `next/`, e.g. `cveclinic`).
      * @param metadataFilePrefix The prefix of the generated field metadata files of its entities in
      *   `projectforge-next/lib/metadata`.
      * @param entityPackage The package of its entities: the plugin is on the classpath, if any entity of it is.
@@ -48,7 +48,7 @@ object ExternalPlugins {
 
     val CVE_RADAR = ExternalPlugin(
         id = PluginAdminService.PLUGIN_CVE_RADAR_ID,
-        nextRoutes = listOf("cveradar", "cvrcase", "cvrvulnerability"),
+        nextRoutes = listOf("cveclinic", "cvrcase", "cvrvulnerability"),
         metadataFilePrefix = "cvr-",
         entityPackage = "org.projectforge.plugins.cveradar",
     )

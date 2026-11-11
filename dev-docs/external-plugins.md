@@ -1,7 +1,9 @@
 # External plugins
 
 A plugin whose backend is developed in a repository of its own, while its next pages and texts stay here. The
-release jar (and so the Docker image) contains it as a binary. First (and so far only) one: the CVE-Radar.
+release jar (and so the Docker image) contains it as a binary. First (and so far only) one: the CVE-Clinic (formerly CVE-Radar: the display name, the next route `cveclinic` and the
+docs anchors changed, the technical names did not: plugin id, tables, settings and package stay `cveradar`/`Cvr*`;
+`OrphanedLinkFilter` redirects the old `next/cveradar/**` links).
 
 ## How it works
 

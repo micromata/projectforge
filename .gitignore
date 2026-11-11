@@ -75,7 +75,7 @@ venv
 /test-results/
 /playwright-report/
 
-# Outputs of the library-list hints of the CVE-Radar upload dialog
+# Outputs of the library-list hints of the CVE-Clinic upload dialog
 deps-gradle.txt
 deps-maven.txt
 jars.txt

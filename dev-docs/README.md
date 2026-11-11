@@ -11,7 +11,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [lanes-and-planes.md](lanes-and-planes.md)            | Reference | Lanes & Planes ExtAPI findings and checklist before the first real push               |
 | [history-n-plus-1.md](history-n-plus-1.md)            | Done      | History re-index removal, `pg_trgm` indexes, batched history loading; few open points |
 | [notification-rules.md](notification-rules.md)        | Reference | Adding a rule type of the notification system (handler, params, texts, tests)          |
-| [external-plugins.md](external-plugins.md)            | Reference | Plugins built in a repository of their own and shipped as binary (CVE-Radar)          |
+| [external-plugins.md](external-plugins.md)            | Reference | Plugins built in a repository of their own and shipped as binary (CVE-Clinic)          |
 | [file-store.md](file-store.md)                        | Reference | File store (`projectforge-files`), start-up guard for the former JCR; few open points |
 | [major-upgrades.md](major-upgrades.md)                | Plan      | Spring Boot 4 / Hibernate 7 done; Jackson 3 and the remaining majors open             |
 | [kost2-reallocation.md](kost2-reallocation.md)        | Plan      | Retroactive Kost2 reallocation of accounting records; not started                     |
@@ -21,7 +21,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [app-api-deprecations.md](app-api-deprecations.md)    | Reference | Fields and endpoints the published app still reads, kept for it; when they can go     |
 | [mobile-app.md](mobile-app.md)                        | Reference | Mobile app (React Native): app login via browser + PKCE, web session, SSO proxy, push, compatibility |
 | [reviews/pr-391-mcp-server.md](reviews/pr-391-mcp-server.md) | Review | PR #391 remote MCP server: findings, open                                       |
-| [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation); the CVE radar ones are in its backend repository               |
+| [requirements/](requirements/)                        | Plans     | Specifications: chat (in implementation); the CVE-Clinic ones are in its backend repository               |
 | [website-screenshots/](website-screenshots/README.md) | Tooling   | Scripts that shoot the website screenshots                                            |
 | [logo/](logo/README.md)                               | Assets    | Master SVGs of the ProjectForge logo and the script rendering every logo asset        |
 | [misc/](misc/)                                        | Assets    | nginx example configuration, forecast probabilities fixture                           |

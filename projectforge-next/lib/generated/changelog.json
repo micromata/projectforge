@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.9",
+    "date" : "2026-11-11",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "The CVE-Radar is now called CVE-Clinic. Old links to its pages are redirected; the plugin id, settings (`projectforge.plugin.cveradar.*`) and database tables keep their names." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

@@ -1466,10 +1466,10 @@ be notified in advance of files being deleted (for longer expiry periods). The m
 configured per area.
 * *Download all* downloads all files of an area as zip archive.
 
-[[cve_radar_libraries]]
-=== CVE-Radar: libraries of a component
+[[cve_clinic_libraries]]
+=== CVE-Clinic: libraries of a component
 
-The CVE-Radar matches vulnerabilities against the libraries of a component. They are uploaded in the inventory
+The CVE-Clinic matches vulnerabilities against the libraries of a component. They are uploaded in the inventory
 (_Upload libraries_ of a component): an SBOM, the lockfiles (npm, yarn, pnpm, Composer, Cargo, Go, Python), the output
 of Maven or Gradle, jar listings and the package lists of the operating system. The dialog shows which file or command
 to take for each of them. Only names and versions are read, nothing is executed, and the files are not stored.
@@ -1484,7 +1484,7 @@ the paths of the project:
 [source,bash]
 ----
 #!/usr/bin/env bash
-# Collects the lists of the libraries for the CVE-Radar into libraries.zip.
+# Collects the lists of the libraries for the CVE-Clinic into libraries.zip.
 set -euo pipefail
 out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
@@ -1514,7 +1514,7 @@ rm -f libraries.zip
   `gradle.properties`, `settings.xml` and all other files are skipped unread, a zip in the zip isn't unpacked.
 * Limits: 10 files at once, 10 MB per zip, 5 MB per file, 50 MB and 100 lists from the zips of an upload, 20,000
   libraries. The SBOMs of many repositories and images at once go into an area instead, see
-  <<cve_radar_sbom_import>>.
+  <<cve_clinic_sbom_import>>.
 * The preview lists every file of the zip with its format and the number of libraries; a file that isn't recognised
   is marked, so a mistake of the script is seen before anything is applied.
 * With _Replace the libraries uploaded earlier_, the libraries missing in the upload are removed: always upload the complete zip of the component.
@@ -1534,7 +1534,7 @@ The Alpine variant (`eclipse-temurin:21-jre-alpine`) lists with `apk info -v`, R
 `rpm -qa`. Images without a package manager (distroless, scratch) need an SBOM of the image:
 `syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. The distributions backport fixes without
 changing the upstream version, so only the distribution tells whether the installed version is affected. The lines of
-`/etc/os-release` (the release) and the source package of each package (`openssl` for `libssl3`) let CVE-Radar ask
+`/etc/os-release` (the release) and the source package of each package (`openssl` for `libssl3`) let CVE-Clinic ask
 the advisories of Debian and Ubuntu, as an SBOM does; a list of `${Package} ${Version}` only is matched by the name
 of the package against the NVD, its findings are possible ones.
 
@@ -1548,8 +1548,8 @@ the standard library fixed since; an update of the image or of the program fixes
 other operating systems only (e.g. Windows) don't match a component that runs on Linux, i.e. one with packages of a
 Linux distribution.
 
-[[cve_radar_sbom_import]]
-=== CVE-Radar: bulk import of SBOMs into an area
+[[cve_clinic_sbom_import]]
+=== CVE-Clinic: bulk import of SBOMs into an area
 
 A project with many repositories and container images is scanned as a whole by some tools: their output is a zip with
 an SBOM per repository (often with further ones of its modules) and per image, besides logs, raw reports of the
@@ -1586,8 +1586,8 @@ How the SBOMs are assigned, independent of the tool that wrote them:
 * The read zip is not stored; its plan is kept for an hour, until it is imported or another zip is read. One zip per
   user is uploaded and read at a time.
 
-[[cve_radar_inventory_delete]]
-=== CVE-Radar: delete a part of the inventory
+[[cve_clinic_inventory_delete]]
+=== CVE-Clinic: delete a part of the inventory
 
 _Delete_ in the dialog of an area, a system, an instance or a component removes it with everything below it: the
 areas, systems, instances and components, their libraries and technologies and all their findings, whatever their
@@ -1599,8 +1599,8 @@ findings, libraries and technologies, the totals at the bottom; nothing is delet
 * The last instance of a system stays: every system has one. Delete the system instead.
 * The vulnerabilities themselves stay; only their findings in the deleted part go.
 
-[[cve_radar_case_ai]]
-=== CVE-Radar: research a case with AI
+[[cve_clinic_case_ai]]
+=== CVE-Clinic: research a case with AI
 
 Researching a new case, with or without CVE, takes time: what is affected, how serious it is, which version fixes it,
 what helps until then. _Research with AI_ (list of the cases, or a new case; security team only) prepares this
@@ -1626,8 +1626,8 @@ its answer is pasted back.
   the priority and the measures.
 * What the AI system can't know is left out: assignee, team checks and the fix criteria of the client agent.
 
-[[cve_radar_case_file]]
-=== CVE-Radar: download and import a case
+[[cve_clinic_case_file]]
+=== CVE-Clinic: download and import a case
 
 _Download as JSON_ in the file of a case saves the case as a file: kind, code, title, description, priority with
 reason, fix version, workaround, measures, references, client advisory and the fix criteria of the client agent, as
@@ -1637,14 +1637,14 @@ _Import case_ (list of the cases, or a new case; security team only) creates a n
 a case into another instance of ProjectForge: paste the file or drop it, check the preview, _Create case_. The new
 case is assigned to oneself and its file opens. A CVE that has a case already is refused; an incident gets the next
 code of the year.
-It also takes the answer of an AI system to the prompt of <<cve_radar_case_ai,research with AI>>, e.g. one saved as a
+It also takes the answer of an AI system to the prompt of <<cve_clinic_case_ai,research with AI>>, e.g. one saved as a
 file; quotes made typographic by copying (`“…”`) are straightened.
 
-[[cve_radar_finding_report]]
-=== CVE-Radar: export the findings of a project
+[[cve_clinic_finding_report]]
+=== CVE-Clinic: export the findings of a project
 
 The open findings of a node of the inventory (area, system, instance or component) and below can be exported as one
-JSON file: the download icon in the row of a node with findings (_CVE-Radar > Systems_). It contains what one may
+JSON file: the download icon in the row of a node with findings (_CVE-Clinic > Systems_). It contains what one may
 see: per vulnerability the data of the NVD (description, CVSS, CWE, KEV, references), the case of the security team
 (priority, fix version, workaround, measures) and the technologies that matched, with their versions, package URLs,
 where they were found and the instances they matched in. The most urgent come first. Before them, `libraries`
@@ -1674,17 +1674,17 @@ A click on a tile filters the findings by it, a click on _CVEs_ shows all again.
   verified. The assessment of the security team takes precedence. Copy the prompt or download it as a file.
 * The answer of the AI system is a proposal: check versions and build snippets before using them.
 
-[[cve_radar_adhoc_check]]
-=== CVE-Radar: ad-hoc check of files
+[[cve_clinic_adhoc_check]]
+=== CVE-Clinic: ad-hoc check of files
 
-_CVE-Radar > Ad-hoc check_ checks files against all vulnerabilities without touching the inventory. Everybody with the
+_CVE-Clinic > Ad-hoc check_ checks files against all vulnerabilities without touching the inventory. Everybody with the
 reader role may use it; nothing is stored, and the result stays with the person who started the check (it is dropped
 about an hour after the end).
 
 * Drop or choose up to 10 files: the lists of libraries known from the upload to a component (lockfiles such as
   `package-lock.json`, `yarn.lock` or `pnpm-lock.yaml`, SBOMs in CycloneDX or SPDX, output of Maven or Gradle,
   package lists of containers), or a zip with such lists. Which formats there are and how to produce them is described
-  in <<cve_radar_libraries,CVE-Radar: libraries of a component>>; the page links to it.
+  in <<cve_clinic_libraries,CVE-Clinic: libraries of a component>>; the page links to it.
 * A bar per file shows how many of its packages are checked. The packages are compared with the vulnerabilities
   imported from the NVD with the rules of the inventory: a match by CPE or the catalogue entry with a version range
   is _affected_, one by name or without a version only _possibly affected_. Only vulnerabilities imported so far
@@ -1696,24 +1696,24 @@ about an hour after the end).
   `F1`, `F2`, … because their paths often carry project names. The _Report by package_ (PDF, Excel, JSON) is there
   as well.
 
-[[cve_radar_notifications]]
-=== CVE-Radar: notifications
+[[cve_clinic_notifications]]
+=== CVE-Clinic: notifications
 
 Notifications are set up by an admin as rules (page _Notification rules_). Three rule types belong to the
-CVE-Radar. Nobody is notified until such a rule exists; the admin chooses the recipients (except for the reminder of team
+CVE-Clinic. Nobody is notified until such a rule exists; the admin chooses the recipients (except for the reminder of team
 checks) and the delivery (in the app, by mail) for each rule.
 
-* *New findings of the CVE radar*: the responsible team of an affected system (the group of the system or of the nearest
+* *New findings of the CVE-Clinic*: the responsible team of an affected system (the group of the system or of the nearest
   area above) is notified right after the matching found something new; the recipients of the rule get it in copy. A rule
   starts from a CVSS severity (known exploited vulnerabilities always), optionally with possible findings and
   vulnerabilities not yet rated. A new rule starts with a text that names no details: _For a system in your
   responsibility there may be updates_, with a link to the list; who may see what is decided there. The text can name
   the vulnerabilities and systems with the variables of the rule instead.
-* *Outdated lists of libraries of the CVE radar*: the findings of a component are only as good as its list of libraries.
+* *Outdated lists of libraries of the CVE-Clinic*: the findings of a component are only as good as its list of libraries.
   If the last list of a component was applied more than the given number of days ago (30 by default), the responsible
   team and the recipients in copy are told, at most once a week; the notification is resolved as soon as the list is
   updated. Components that never had a list from a file are left out.
-* *Unanswered team checks of a case of the CVE radar*: the rule names a case. The members asked by one of its team
+* *Unanswered team checks of a case of the CVE-Clinic*: the rule names a case. The members asked by one of its team
   checks that every member answers, who haven't answered yet (as the team check lists them under _Not answered yet_), are
   reminded, at most once a day; how often follows from the schedule of the rule, or it is triggered by hand. Only they
   are notified, recipients given in the rule aren't used. The notification is resolved as soon as the member answered,
