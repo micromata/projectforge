@@ -405,7 +405,8 @@ plugin_name_of_jar() {
 }
 
 # Writes plugins-bin/<name>.properties (version, url of the GitHub release asset, sha256) for every jar <jars>
-# (comma separated), see downloadPinnedPlugins in projectforge-application/build.gradle.kts. publish uploads the jars.
+# (comma separated), see downloadPinnedPlugins in projectforge-application/build.gradle.kts. publish uploads the jars
+# (of pins written for <version>; an unchanged jar keeps the pin and asset of the release that introduced it).
 pin_external_plugins() {
   local version="$1" jars="$2" jar name sha256 repo_url
   [[ -z "$jars" ]] && return 0
@@ -415,6 +416,11 @@ pin_external_plugins() {
   for jar in ${list[@]+"${list[@]}"}; do
     name="$(plugin_name_of_jar "$jar" "$version")"
     sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+    # Builds are reproducible: a jar equal to the pinned one keeps its pin and asset (no new GitHub release).
+    if [[ -f "$ROOT/plugins-bin/$name.properties" && "$(sed -n 's/^sha256=//p' "$ROOT/plugins-bin/$name.properties")" == "$sha256" ]]; then
+      echo "The plugin $name is unchanged since $(sed -n 's/^version=//p' "$ROOT/plugins-bin/$name.properties"), its pin and asset are kept."
+      continue
+    fi
     printf 'version=%s\nurl=%s/releases/download/plugin-%s-%s/%s\nsha256=%s\n' \
       "$version" "$repo_url" "$name" "$version" "$(basename "$jar")" "$sha256" >"$ROOT/plugins-bin/$name.properties"
   done

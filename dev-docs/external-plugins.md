@@ -54,7 +54,8 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   jar (refused if one is missing in it), writes the pin `plugins-bin/<name>.properties` into the release commit,
   pins their submodule to the tag and tags them as well. `publish` pushes this repository, then the plugins, creates
   the GitHub release `plugin-<name>-X.Y.Z` with the jar (the hash must be the pinned one) and then the release itself.
-  Docker (`docker/push-release.sh`) and the GitHub release take the jar, unchanged. A mini release keeps the pin.
+  Docker (`docker/push-release.sh`) and the GitHub release take the jar, unchanged. A mini release keeps the pin, and so does a release in which the plugin jar is byte-identical to the pinned one
+  (the build is reproducible): no new asset, the pin points to the one of the release that introduced the jar.
 - The history of the plugin was extracted with `git filter-repo --paths-from-file` (paths
   `plugins/org.projectforge.plugins.cveradar/`, `dev-docs/requirements/PF-CVR*` with its images and
   `docker/compose/dependency-track/`, moved to `plugin/`, `docs/` and `docker/`).
