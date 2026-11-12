@@ -9,7 +9,7 @@ import { useRuleTypes } from "./use-rule-types";
 import { useRuleValue } from "./use-rule-value";
 
 /**
- * A new rule starts with the texts of its type, if it has some (e.g. a rule of the CVE radar with a text that
+ * A new rule starts with the texts of its type, if it has some (e.g. a rule of the CVE-Clinic with a text that
  * names no details: the systems and CVEs are in the app, not in the mail): set when the type is chosen, as long as
  * subject and text are empty or still the template of the type chosen before. Only a change of the type sets it,
  * so the fields can be emptied afterwards.

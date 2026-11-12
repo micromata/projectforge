@@ -25,11 +25,15 @@ import type {
   PushSettings,
   PushSettingsRequest,
   UIThemeRequest,
+  UITimeGridRequest,
+  UITimeGridSettings,
   UIThemeSettings,
   UserStatusResult,
 } from '@projectforge/shared/rs/user-status';
 import { useSyncExternalStore } from 'react';
 import { AppState, AppStateStatus, Appearance } from 'react-native';
+
+import { parseTimeGrid } from '@projectforge/shared/booking-time';
 
 import { ApiClient } from '../api/apiClient';
 import { JsonCache } from '../cache/jsonCache';
@@ -56,6 +60,7 @@ const INTERVAL = 60_000;
 const RELOAD_DELAY = 3_000;
 const THEME_CACHE = 'theme';
 const FIRST_DAY_CACHE = 'firstDayOfWeek';
+const TIME_GRID_CACHE = 'timeGrid';
 
 interface State {
   status: UserStatusResult | null;
@@ -63,11 +68,13 @@ interface State {
   theme: ThemeMode;
   /** The user's first day of the week (Monday 1 … Sunday 7), stored for a start without the server. */
   firstDayOfWeek: number;
+  /** The grid of the times of time sheets in minutes, 5 for a server that sends none; stored like the first day. */
+  timeGrid: number;
   /** Loaded by the settings ([loadPushSettings]); null before, offline and for an older server without them. */
   pushSettings: PushSettings | null;
 }
 
-const INITIAL: State = { status: null, theme: 'system', firstDayOfWeek: 1, pushSettings: null };
+const INITIAL: State = { status: null, theme: 'system', firstDayOfWeek: 1, timeGrid: 5, pushSettings: null };
 
 /**
  * The user status (`GET /rs/userStatus`) for the badge of the chat tab, the bell of the notifications, the message of
@@ -103,6 +110,10 @@ export class UserStatusStore {
     if (this.api === api && this.state.status == null && firstDay?.firstDayOfWeek != null) {
       this.setFirstDayOfWeek(parseFirstDayOfWeek(firstDay.firstDayOfWeek));
     }
+    const grid = await JsonCache.read<{ timeGrid?: number }>(TIME_GRID_CACHE);
+    if (this.api === api && this.state.status == null && grid?.timeGrid != null) {
+      this.setTimeGrid(parseTimeGrid(grid.timeGrid));
+    }
     this.appState = AppState.addEventListener('change', this.onAppState);
     this.startTimer();
     await this.refresh();
@@ -137,6 +148,9 @@ export class UserStatusStore {
       // An older server sends no first day of the week: the stored one stays.
       const firstDay = status.userData?.isoFirstDayOfWeekValue;
       if (firstDay != null) this.setFirstDayOfWeek(parseFirstDayOfWeek(firstDay), true);
+      // An older server sends no grid: the stored one stays.
+      const grid = status.userData?.timesheetTimeGridMinutes;
+      if (grid != null) this.setTimeGrid(parseTimeGrid(grid), true);
       this.emit();
     } catch (e) {
       appLog.debug('status', `User status not loaded: ${String(e)}`);
@@ -158,6 +172,25 @@ export class UserStatusStore {
       if (this.api === api && answer?.theme) this.setTheme(parseTheme(answer.theme), true);
     } catch (e) {
       if (this.api === api) this.setTheme(before, true);
+      throw e;
+    }
+  };
+
+  /**
+   * The user chose [minutes] as the grid of the timer in the app: shown at once and stored for the user as "My account"
+   * of the web pages stores it. A failure is thrown, the grid shown before is back then.
+   */
+  chooseTimeGrid = async (minutes: number) => {
+    const api = this.api;
+    if (api == null) return;
+    const before = this.state.timeGrid;
+    this.setTimeGrid(parseTimeGrid(minutes), true);
+    try {
+      const body: UITimeGridRequest = { minutes };
+      const answer = await api.post<UITimeGridSettings | undefined>('/rs/uiSettings/timesheetTimeGrid', { body });
+      if (this.api === api && answer?.minutes != null) this.setTimeGrid(parseTimeGrid(answer.minutes), true);
+    } catch (e) {
+      if (this.api === api) this.setTimeGrid(before, true);
       throw e;
     }
   };
@@ -257,6 +290,13 @@ export class UserStatusStore {
     this.emit();
   }
 
+  private setTimeGrid(timeGrid: number, store = false) {
+    if (store) JsonCache.write(TIME_GRID_CACHE, { timeGrid });
+    if (timeGrid === this.state.timeGrid) return;
+    this.state = { ...this.state, timeGrid };
+    this.emit();
+  }
+
   /** The app's own screens (useColorScheme) follow the theme of the web pages. */
   private applyTheme() {
     Appearance.setColorScheme(this.state.theme === 'system' ? 'unspecified' : this.state.theme);
@@ -295,4 +335,9 @@ export function useUserStatus(): State {
 /** The user's first day of the week (Monday 1 … Sunday 7). */
 export function useFirstDayOfWeek(): number {
   return useSyncExternalStore(userStatus.subscribe, () => userStatus.get().firstDayOfWeek);
+}
+
+/** The grid of the times of time sheets in minutes (timer, pickers, presets), configured on the server. */
+export function useTimeGrid(): number {
+  return useSyncExternalStore(userStatus.subscribe, () => userStatus.get().timeGrid);
 }

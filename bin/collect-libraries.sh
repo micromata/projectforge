@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 #
-# collect-libraries.sh — collects the libraries of ProjectForge's components for the CVE-Radar.
+# collect-libraries.sh — collects the libraries of ProjectForge's components for the CVE-Clinic.
 #
 # One zip per component (upload it with "Upload libraries" of the component in the inventory):
 #   backend       the runtime classpath of projectforge-application with all plugins (`gradle dependencies`)
 #   next, app     the npm packages needed at runtime (CycloneDX via `npm sbom`, else the package-lock.json)
 #   image-<name>  the packages of a Docker image (CycloneDX via syft, else dpkg/apk/rpm lists); its jars are
-#                 left out, they are the ones of backend
+#                 left out, they are the ones of backend. A tag is pulled every time (a cached `latest` or
+#                 `postgres:17` would be scanned in an arbitrarily old state); the registry only has the
+#                 released ProjectForge image, --build-app-image scans the one of the working tree instead
 # The web site (site/) isn't one: its npm packages only build the CSS (development dependencies, which the
-# CVE-Radar leaves out), nothing of them is delivered.
+# CVE-Clinic leaves out), nothing of them is delivered.
 # CycloneDX is preferred wherever possible: it has the full package urls (with the distribution of an OS
 # package) and is what Dependency-Track reads too. Nothing is uploaded by this script.
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT="$ROOT/build/cve-radar-libraries"
+OUT="$ROOT/build/cve-clinic-libraries"
 COMPOSE="$ROOT/docker/compose/docker-compose.yml"
 SYFT_IMAGE="${SYFT_IMAGE:-docker.io/anchore/syft:latest}"
 ALL_COMPONENTS="backend,next,app,images"
@@ -25,14 +27,17 @@ MAX_ZIP_BYTES=$((10 * 1024 * 1024))
 
 usage() {
   cat <<'EOF'
-collect-libraries.sh [options] — the libraries of ProjectForge's components as zips for the CVE-Radar
+collect-libraries.sh [options] — the libraries of ProjectForge's components as zips for the CVE-Clinic
 
 Options:
   --only <list>    components, comma separated: backend,next,app,images (default: all)
   --image <ref>    an image to collect (repeatable); replaces the images of docker/compose/docker-compose.yml.
                    Give the tags actually deployed.
-  --no-syft        no syft, the package lists of the images only (without the distribution)
-  --out <dir>      output directory (default: build/cve-radar-libraries)
+  --build-app-image
+                   builds the ProjectForge image of the working tree (docker/build-local.sh, needs the boot jar:
+                   ./gradlew :projectforge-application:bootJar) and collects it instead of micromata/projectforge
+  --no-syft       no syft, the package lists of the images only (without the distribution)
+  --out <dir>      output directory (default: build/cve-clinic-libraries)
   -h, --help       this help
 
 The images are read with docker or podman (override with CONTAINER_ENGINE=…). syft is taken from the PATH,
@@ -43,10 +48,14 @@ EOF
 only="$ALL_COMPONENTS"
 images=()
 use_syft=true
+build_app_image=false
+# The tag of --build-app-image: its base name makes the component image-projectforge, as for the released one.
+APP_IMAGE="localhost/projectforge:collect"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --only) only="$2"; shift 2 ;;
     --image) images+=("$2"); shift 2 ;;
+    --build-app-image) build_app_image=true; shift ;;
     --no-syft) use_syft=false; shift ;;
     --out) OUT="$2"; shift 2 ;;
     -h | --help) usage; exit 0 ;;
@@ -156,7 +165,16 @@ collect_image() {
   local component="image-$name"
   echo "$component: packages of $image …"
   [[ "${image##*/}" == *[:@]* && "$image" != *:latest ]] || warn "$image: no fixed tag, give the deployed one with --image"
-  "$ENGINE" image inspect "$image" >/dev/null 2>&1 || "$ENGINE" pull -q "$image" >/dev/null
+  # A tag moves, the cached image may be months old: pulled every time. A digest and a local image (localhost/,
+  # offline) are taken as they are.
+  if [[ "$image" == *@* ]] || [[ "$image" == localhost/* ]]; then
+    "$ENGINE" image inspect "$image" >/dev/null 2>&1 || "$ENGINE" pull -q "$image" >/dev/null
+  elif ! "$ENGINE" pull -q "$image" >/dev/null; then
+    "$ENGINE" image inspect "$image" >/dev/null 2>&1 || fail "$component: $image can't be pulled and isn't local"
+    warn "$component: $image can't be pulled, taking the local one"
+  fi
+  local created
+  created="$("$ENGINE" image inspect --format '{{.Created}}' "$image" | cut -c1-10)"
   prepare "$component"
   if $use_syft && syft_image "$image" >"$OUT/$component/$component.cdx.json"; then
     :
@@ -168,6 +186,18 @@ collect_image() {
     warn "$component: a package list has no distribution; the matches of OS packages are only hints"
   fi
   pack "$component"
+  summary[${#summary[@]} - 1]+=" ($image, created $created)"
+}
+
+# The ProjectForge image of the working tree, in place of the released one of the compose file.
+build_app_image() {
+  echo "image-projectforge: building $APP_IMAGE from the working tree …"
+  CONTAINER_TOOL="$(basename "$ENGINE")" "$ROOT/docker/build-local.sh" --fresh -t "$APP_IMAGE" >/dev/null
+  local i
+  for i in "${!images[@]}"; do
+    [[ "$(qualified "${images[$i]}")" == docker.io/micromata/projectforge[:@]* ]] && images[$i]="$APP_IMAGE"
+  done
+  [[ " ${images[*]} " == *" $APP_IMAGE "* ]] || images+=("$APP_IMAGE")
 }
 
 wanted backend && collect_backend
@@ -181,6 +211,7 @@ if wanted images; then
     if [[ ${#images[@]} -eq 0 ]]; then
       while read -r image; do images+=("$image"); done < <(sed -n 's/^[[:space:]]*image:[[:space:]]*//p' "$COMPOSE")
     fi
+    if $build_app_image; then build_app_image; fi
     for image in "${images[@]}"; do collect_image "$image"; done
   fi
 fi

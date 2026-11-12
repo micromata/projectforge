@@ -1,13 +1,65 @@
 ---
 title: "ProjectForge 9"
-date: 2026-11-11
-sort_key: "2026-11-11 0058"
+date: 2026-11-12
+sort_key: "2026-11-12 0059"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-10.changelog-release]
+=== ProjectForge 9.2.10 released
+
+[.changelog-source]
+__2026-11-12, tag https://github.com/micromata/projectforge/tree/9.2.10-RELEASE[9.2.10-RELEASE]__ +++{% include release-pills.html tag="9.2.10-RELEASE" docker="9.2.10" %}+++
+
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.2.10.jar: `+ab59d0d725e435bbb88e88c646eb20569a1a55a68d09d4f7be694276979bac35+`
+
+- **Time sheets**: timer in the top bar, shared with the app, and a time grid
+- **Lists**: compact head, scrolls away on tablets and phones
+- **CVE-Radar** is now called **CVE-Clinic**
+- **Custom logo**: adjustable height
+
+.Overview
+[%collapsible]
+====
+- **Time sheets:** a timer in the top bar of the web pages, kept on the server and shared with the app and other devices (stopping opens a new time sheet); a time grid in "My account" (default 15 minutes), to which the timer rounds the start down and the end up.
+- **Lists:** title, search and actions share one line, filters and totals stay on one line, on narrow screens the actions are behind a "more" button and on tablets and phones the head scrolls away with the rows; the invoice and liquidity lists switch to their charts or forecast with a button instead of tabs.
+- **CVE-Clinic:** the CVE-Radar is now called CVE-Clinic; old links are redirected, plugin id, settings and database tables keep their names.
+- **Custom logo:** the height of the logo in the header can be set with `+projectforge.logoHeight+` (in px).
+- **Mobile app (in preparation):** the timer is shared with the web pages, its start comes from the server's clock; the time grid and the theme (light, dark, system) can be chosen in the settings and apply to the web pages as well.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- [changelog-app]##App## The time grid and the theme (light, dark, system) can be chosen in the settings; both are shared with the web pages.
+- Custom logo: the height of the logo in the header can be set with `+projectforge.logoHeight+` (in px).
+- Time sheets: a time grid (default 15 minutes) in "My account". The timer rounds the start down and the end up to it; the times can still be set to 5 minutes.
+- Time sheets: a timer in the top bar of the web pages, shared with the app. Started on one, it can be stopped on the other; stopping opens a new time sheet.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- [changelog-app]##App## The timer is kept on the server: it is shared with the web pages and other devices, and its start is taken from the server's clock (needs a current server; otherwise it stays on the device).
+- Lists: the head takes less height. Title, search and actions share one line, the filters and the totals stay on one line, and on narrow screens the actions are collected behind a "more" button. On tablets and phones the head scrolls away with the rows. The invoice and liquidity lists switch to their charts or forecast with a button in the head instead of tabs, and the structure tree and the notification log use the same compact head.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- The CVE-Radar is now called CVE-Clinic. Old links to its pages are redirected; the plugin id, settings (`+projectforge.plugin.cveradar.*+`) and database tables keep their names.
+
+++++
+{% include download-link.html %}
+++++
+====
 
 [discrete#release-9-2-9.changelog-release]
 === ProjectForge 9.2.9 released

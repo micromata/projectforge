@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { ceil5, floor5, formatDuration, mondayOf, weekOfYear, weekStartOf } from '@projectforge/shared/booking-time';
+import { ceil5, floor5, formatDuration, mondayOf, parseTimeGrid, weekOfYear, weekStartOf } from '@projectforge/shared/booking-time';
 import {
   acceptancePending,
   bookingsOf,
@@ -55,6 +55,19 @@ describe('booking times', () => {
     expect(ceil5(new Date(2031, 2, 10, 8, 10))).toEqual(new Date(2031, 2, 10, 8, 10));
     expect(ceil5(new Date(2031, 2, 10, 8, 10, 1))).toEqual(new Date(2031, 2, 10, 8, 15));
     expect(ceil5(new Date(2031, 2, 10, 8, 56))).toEqual(new Date(2031, 2, 10, 9));
+  });
+
+  it('rounds to the grid of the installation', () => {
+    expect(floor5(new Date(2031, 2, 10, 8, 29, 59), 15)).toEqual(new Date(2031, 2, 10, 8, 15));
+    expect(ceil5(new Date(2031, 2, 10, 8, 31), 15)).toEqual(new Date(2031, 2, 10, 8, 45));
+    expect(ceil5(new Date(2031, 2, 10, 8, 30), 15)).toEqual(new Date(2031, 2, 10, 8, 30));
+    expect(ceil5(new Date(2031, 2, 10, 8, 46), 15)).toEqual(new Date(2031, 2, 10, 9));
+    expect(ceil5(new Date(2031, 2, 10, 8, 10), 30)).toEqual(new Date(2031, 2, 10, 8, 30));
+  });
+
+  it('takes a valid grid, else 5 minutes', () => {
+    expect([15, 30, 10, 5].map(parseTimeGrid)).toEqual([15, 30, 10, 5]);
+    expect([undefined, null, 0, 7, 45, 12.5, 60].map(parseTimeGrid)).toEqual([5, 5, 5, 5, 5, 5, 5]);
   });
 
   it('starts the week on Monday, numbered as ISO 8601', () => {

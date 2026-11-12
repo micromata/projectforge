@@ -1502,10 +1502,10 @@ längeren Ablauffristen wird vorab über Dateien informiert, die gelöscht werde
 wird je Bereich konfiguriert.
 * *Alles herunterladen* lädt alle Dateien eines Bereichs als Zip-Archiv herunter.
 
-[[cve_radar_libraries]]
-=== CVE-Radar: Bibliotheken einer Komponente
+[[cve_clinic_libraries]]
+=== CVE-Clinic: Bibliotheken einer Komponente
 
-Der CVE-Radar gleicht Schwachstellen mit den Bibliotheken einer Komponente ab. Sie werden im Inventar hochgeladen
+Der CVE-Clinic gleicht Schwachstellen mit den Bibliotheken einer Komponente ab. Sie werden im Inventar hochgeladen
 (_Bibliotheken hochladen_ einer Komponente): eine SBOM, die Lockfiles (npm, yarn, pnpm, Composer, Cargo, Go, Python),
 die Ausgabe von Maven oder Gradle, Jar-Listen und die Paketlisten des Betriebssystems. Der Dialog nennt für jede davon
 die Datei oder den Befehl. Gelesen werden nur Namen und Versionen, nichts wird ausgeführt und die Dateien werden nicht
@@ -1521,7 +1521,7 @@ Beispiel, an die Pfade des Projekts anzupassen:
 [source,bash]
 ----
 #!/usr/bin/env bash
-# Sammelt die Listen der Bibliotheken für den CVE-Radar in libraries.zip.
+# Sammelt die Listen der Bibliotheken für den CVE-Clinic in libraries.zip.
 set -euo pipefail
 out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
@@ -1552,7 +1552,7 @@ rm -f libraries.zip
   ungelesen, ein Zip im Zip wird nicht entpackt.
 * Grenzen: 10 Dateien auf einmal, 10 MB je Zip, 5 MB je Datei, 50 MB und 100 Listen aus den Zips eines Uploads,
   20.000 Bibliotheken. Die SBOMs vieler Repositories und Images auf einmal gehen stattdessen in einen Bereich, siehe
-  <<cve_radar_sbom_import>>.
+  <<cve_clinic_sbom_import>>.
 * Die Vorschau zeigt jede Datei des Zips mit ihrem Format und der Zahl der Bibliotheken; eine nicht erkannte Datei
   ist markiert, so fällt ein Fehler des Scripts auf, bevor etwas übernommen wird.
 * Mit _Früher hochgeladene Bibliotheken ersetzen_ werden die Bibliotheken entfernt, die im Upload fehlen: immer das vollständige Zip der Komponente
@@ -1573,7 +1573,7 @@ Die Alpine-Variante (`eclipse-temurin:21-jre-alpine`) listet mit `apk info -v`, 
 mit `rpm -qa`. Images ohne Paketmanager (distroless, scratch) brauchen eine SBOM des Images:
 `syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. Die Distributionen portieren Fixes zurück, ohne
 die Version des Originals zu ändern; ob die installierte Version betroffen ist, sagt nur die Distribution. Mit den
-Zeilen von `/etc/os-release` (dem Release) und dem Quellpaket jedes Pakets (`openssl` für `libssl3`) fragt CVE-Radar
+Zeilen von `/etc/os-release` (dem Release) und dem Quellpaket jedes Pakets (`openssl` für `libssl3`) fragt CVE-Clinic
 die Advisories von Debian und Ubuntu, wie bei einer SBOM; eine Liste nur aus `${Package} ${Version}` trifft über den
 Namen des Pakets gegen die NVD, ihre Funde sind mögliche.
 
@@ -1588,8 +1588,8 @@ alle seither behobenen Schwachstellen der Standardbibliothek mit; eine Aktualisi
 behebt sie alle auf einmal. Hinweise, die nur andere Betriebssysteme betreffen (z. B. Windows), treffen keine
 Komponente, die unter Linux läuft, also eine mit Paketen einer Linux-Distribution.
 
-[[cve_radar_sbom_import]]
-=== CVE-Radar: Sammelimport von SBOMs in einen Bereich
+[[cve_clinic_sbom_import]]
+=== CVE-Clinic: Sammelimport von SBOMs in einen Bereich
 
 Ein Projekt mit vielen Repositories und Container-Images scannen manche Werkzeuge als Ganzes: Ihre Ausgabe ist ein Zip
 mit einer SBOM je Repository (oft mit weiteren seiner Module) und je Image, daneben Logs, Rohberichte des Scanners und
@@ -1629,8 +1629,8 @@ Wie die SBOMs zugeordnet werden, unabhängig vom Werkzeug, das sie geschrieben h
 * Das gelesene Zip wird nicht gespeichert; sein Plan bleibt eine Stunde erhalten, bis zum Import oder bis ein anderes
   Zip gelesen wird. Je Benutzer wird ein Zip nach dem anderen hochgeladen und gelesen.
 
-[[cve_radar_inventory_delete]]
-=== CVE-Radar: einen Teil des Inventars löschen
+[[cve_clinic_inventory_delete]]
+=== CVE-Clinic: einen Teil des Inventars löschen
 
 _Löschen_ im Dialog eines Bereichs, Systems, einer Instanz oder Komponente entfernt sie mit allem, was darunter
 hängt: die Bereiche, Systeme, Instanzen und Komponenten, ihre Bibliotheken und Technologien und alle ihre Findings,
@@ -1643,8 +1643,8 @@ erst nach der Bestätigung.
 * Die letzte Instanz eines Systems bleibt: jedes System hat eine. Stattdessen das System löschen.
 * Die Schwachstellen selbst bleiben; nur ihre Findings im gelöschten Teil fallen weg.
 
-[[cve_radar_case_ai]]
-=== CVE-Radar: Fall mit KI recherchieren
+[[cve_clinic_case_ai]]
+=== CVE-Clinic: Fall mit KI recherchieren
 
 Einen neuen Fall zu recherchieren, mit oder ohne CVE, dauert: Was ist betroffen, wie ernst ist es, welche Version
 behebt es, was hilft bis dahin? _Mit KI recherchieren_ (Liste der Fälle oder neuer Fall; nur Security-Team) bereitet
@@ -1672,8 +1672,8 @@ wird dorthin kopiert, die Antwort wieder eingefügt.
 * Was das KI-System nicht wissen kann, bleibt weg: Bearbeitung, Team-Prüfungen und die Behebungskriterien des
   Client-Agents.
 
-[[cve_radar_case_file]]
-=== CVE-Radar: Fall herunterladen und importieren
+[[cve_clinic_case_file]]
+=== CVE-Clinic: Fall herunterladen und importieren
 
 _Als JSON herunterladen_ in der Akte eines Falls speichert den Fall als Datei: Art, Kennung, Titel, Beschreibung,
 Priorität mit Begründung, Fix-Version, Workaround, Maßnahmen, Referenzen, Freigabe für Mitarbeitende und die
@@ -1684,14 +1684,14 @@ _Fall importieren_ (Liste der Fälle oder neuer Fall; nur Security-Team) legt au
 an, z. B. um einen Fall in eine andere Instanz von ProjectForge zu übernehmen: Datei einfügen oder hineinziehen,
 Vorschau prüfen, _Fall anlegen_. Der neue Fall ist bei einem selbst in Bearbeitung, seine Akte öffnet sich. Eine CVE,
 zu der es schon einen Fall gibt, wird abgewiesen; ein Vorfall bekommt die nächste Kennung des Jahres.
-Auch die Antwort einer KI auf den Prompt von <<cve_radar_case_ai,Mit KI recherchieren>> wird angenommen, z. B. als
+Auch die Antwort einer KI auf den Prompt von <<cve_clinic_case_ai,Mit KI recherchieren>> wird angenommen, z. B. als
 Datei gespeichert; beim Kopieren typografisch gewordene Anführungszeichen (`“…”`) werden begradigt.
 
-[[cve_radar_finding_report]]
-=== CVE-Radar: Findings eines Projekts exportieren
+[[cve_clinic_finding_report]]
+=== CVE-Clinic: Findings eines Projekts exportieren
 
 Die offenen Findings eines Knotens im Inventar (Bereich, System, Instanz oder Komponente) und darunter lassen sich als
-eine JSON-Datei exportieren: das Download-Symbol in der Zeile eines Knotens mit Findings (_CVE-Radar > Systeme_). Sie
+eine JSON-Datei exportieren: das Download-Symbol in der Zeile eines Knotens mit Findings (_CVE-Clinic > Systeme_). Sie
 enthält, was man sehen darf: je Schwachstelle die Daten der NVD (Beschreibung, CVSS, CWE, KEV, Referenzen), den Fall
 des Security-Teams (Priorität, Fix-Version, Workaround, Maßnahmen) und die gefundenen Technologien mit Versionen,
 Paket-URLs, ihrem Fundort und den Instanzen, in denen sie gefunden wurden. Das Dringendste steht vorn. Davor fasst
@@ -1723,17 +1723,17 @@ Anzahlen in der Zeile. Ein Klick auf eine Kachel filtert die Findings danach, ei
   kopieren oder als Datei herunterladen.
 * Die Antwort des KI-Systems ist ein Vorschlag: Versionen und Ausschnitte für die Build-Dateien vor dem Einsatz prüfen.
 
-[[cve_radar_adhoc_check]]
-=== CVE-Radar: Ad-hoc-Prüfung von Dateien
+[[cve_clinic_adhoc_check]]
+=== CVE-Clinic: Ad-hoc-Prüfung von Dateien
 
-_CVE-Radar > Ad-hoc-Prüfung_ prüft Dateien gegen alle Schwachstellen, ohne das Inventar anzufassen. Alle mit Leserolle
+_CVE-Clinic > Ad-hoc-Prüfung_ prüft Dateien gegen alle Schwachstellen, ohne das Inventar anzufassen. Alle mit Leserolle
 können sie nutzen; es wird nichts gespeichert, und das Ergebnis bleibt bei der Person, die die Prüfung gestartet hat
 (es wird etwa eine Stunde nach dem Ende verworfen).
 
 * Bis zu 10 Dateien hineinziehen oder auswählen: die Listen von Bibliotheken, die vom Upload in eine Komponente bekannt
   sind (Lockfiles wie `package-lock.json`, `yarn.lock` oder `pnpm-lock.yaml`, SBOMs in CycloneDX oder SPDX, Ausgaben
   von Maven oder Gradle, Paketlisten von Containern), oder ein zip mit solchen Listen. Welche Formate es gibt und wie
-  man sie erzeugt, steht in <<cve_radar_libraries,CVE-Radar: Bibliotheken einer Komponente>>; die Seite verlinkt es.
+  man sie erzeugt, steht in <<cve_clinic_libraries,CVE-Clinic: Bibliotheken einer Komponente>>; die Seite verlinkt es.
 * Ein Balken je Datei zeigt, wie viele ihrer Pakete geprüft sind. Die Pakete werden mit den aus der NVD importierten
   Schwachstellen nach den Regeln des Inventars verglichen: Ein Treffer über CPE oder den Katalogeintrag mit
   Versionsbereich ist _betroffen_, einer über den Namen oder ohne Version nur _möglicherweise betroffen_. Es zählen nur
@@ -1745,26 +1745,26 @@ können sie nutzen; es wird nichts gespeichert, und das Ergebnis bleibt bei der 
   eingeschaltet) macht daraus `F1`, `F2`, … weil im Pfad oft Projektnamen stehen. Den _Report nach Package_ (PDF,
   Excel, JSON) gibt es auch hier.
 
-[[cve_radar_notifications]]
-=== CVE-Radar: Benachrichtigungen
+[[cve_clinic_notifications]]
+=== CVE-Clinic: Benachrichtigungen
 
 Benachrichtigungen richtet ein Admin als Regeln ein (Seite _Benachrichtigungsregeln_). Drei Regeltypen
-gehören zum CVE-Radar. Solange keine solche Regel existiert, wird niemand benachrichtigt; Empfänger (außer bei der Erinnerung
+gehören zum CVE-Clinic. Solange keine solche Regel existiert, wird niemand benachrichtigt; Empfänger (außer bei der Erinnerung
 an Teamabfragen) und Zustellung (in der App, per Mail) wählt der Admin für jede Regel.
 
-* *Neue Befunde des CVE-Radars*: Das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des
+* *Neue Befunde der CVE-Clinic*: Das verantwortliche Team eines betroffenen Systems (die Gruppe des Systems oder des
   nächsten Bereichs darüber) wird direkt benachrichtigt, nachdem der Abgleich etwas Neues gefunden hat; die Empfänger der
   Regel bekommen es in Kopie. Eine Regel gilt ab einem CVSS-Schweregrad (bekannt ausgenutzte Schwachstellen immer),
   wahlweise auch für mögliche Befunde und noch nicht bewertete Schwachstellen. Eine neue Regel beginnt mit einem Text
   ohne Details: _Für ein System in eurer Verantwortung gibt es möglicherweise Updates_, mit einem Link auf die Liste;
   dort entscheidet sich, wer was sehen darf. Mit den Variablen der Regel kann der Text stattdessen die Schwachstellen und
   Systeme nennen.
-* *Veraltete Bibliothekslisten des CVE-Radars*: Die Befunde einer Komponente sind nur so gut wie ihre Bibliotheksliste.
+* *Veraltete Bibliothekslisten der CVE-Clinic*: Die Befunde einer Komponente sind nur so gut wie ihre Bibliotheksliste.
   Wurde die letzte Liste einer Komponente vor mehr als der angegebenen Anzahl Tage übernommen (vorab 30), werden das
   verantwortliche Team und die Empfänger in Kopie benachrichtigt, höchstens einmal pro Woche; die Benachrichtigung
   erledigt sich, sobald die Liste aktualisiert ist. Komponenten, die nie eine Liste aus einer Datei hatten, bleiben außen
   vor.
-* *Unbeantwortete Teamabfragen eines Falls des CVE-Radars*: Die Regel nennt einen Fall. Die Mitglieder, die eine seiner
+* *Unbeantwortete Teamabfragen eines Falls der CVE-Clinic*: Die Regel nennt einen Fall. Die Mitglieder, die eine seiner
   Teamabfragen, die jedes Mitglied beantwortet, noch nicht beantwortet haben (wie die Teamabfrage sie unter _Noch nicht
   geantwortet_ auflistet), werden erinnert, höchstens einmal am Tag; wie oft, ergibt sich aus dem Zeitplan der Regel,
   oder sie wird von Hand ausgelöst. Nur sie werden benachrichtigt, in der Regel angegebene Empfänger werden nicht

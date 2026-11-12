@@ -8,7 +8,7 @@
 | Owner | Kai Reinhard |
 | Date | 2026-11-02 |
 | Stage | R1 released (ProjectForge 9.0.16), R2 in progress |
-| Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); data transfer areas (PF-CHAT-DT); [PF-CVR – CVE-Radar](PF-CVR_CVE-Radar_Vulnerability_Management.md); later invoices, orders and others |
+| Used by | chat rooms and direct messages (built-in hosts, PF-CHAT-ROOM, PF-CHAT-DM); data transfer areas (PF-CHAT-DT); PF-CVR – CVE-Clinic (spec in its backend repository); later invoices, orders and others |
 
 ---
 
@@ -28,7 +28,7 @@ do not follow the access rules of the object.
 
 The chat is a module of its own: it knows nothing about vulnerabilities or invoices. The embedding module (the
 *host*) tells it who may read and write. The first host is the chat room (PF-CHAT-ROOM), a small built-in host
-whose objects are rooms with participants; the CVE-Radar follows.
+whose objects are rooms with participants; the CVE-Clinic follows.
 
 **Measurable benefit (targets):**
 - Every discussion about an embedded object is found at the object, complete with files and threads.
@@ -47,7 +47,7 @@ whose objects are rooms with participants; the CVE-Radar follows.
 ## 3. System context
 
 ```
- Host module (chat rooms, CVE-Radar, invoices, orders …)
+ Host module (chat rooms, CVE-Clinic, invoices, orders …)
    └ chat context: title, link, channels, read/write check, moderators, participants, retention
         │
         ▼
@@ -70,7 +70,7 @@ whose objects are rooms with participants; the CVE-Radar follows.
 
 | Term | Meaning |
 |---|---|
-| Host | The module that embeds the chat for its objects (e.g. CVE-Radar for vulnerabilities). |
+| Host | The module that embeds the chat for its objects (e.g. CVE-Clinic for vulnerabilities). |
 | Host object | The object a conversation belongs to (e.g. vulnerability `CVE-2026-90101`, invoice 4711). |
 | Chat context | The adapter a host registers: title, link, channels, access checks, moderators, retention of its objects. |
 | Channel | A conversation kind of a host, e.g. *internal* and *public* for a vulnerability; one conversation per host object and channel. |
@@ -280,8 +280,8 @@ page, thread side panel, mention suggestions, file upload and image viewer.
 | Chat room | *main* | participants of the room (ROOM-02) | first host, built in |
 | Direct message | *main* | the two users (DM-04) | built in |
 | Data transfer area | *main* | the users with access to the area inside PF (DT-02) | data transfer plugin, files in the area |
-| CVE-Radar vulnerability | *internal*, *public* | internal: ST and affected groups; public: recipients of the client advisory | [PF-CVR-DISC](PF-CVR_CVE-Radar_Vulnerability_Management.md#511-pf-cvr-disc--discussion) |
-| CVE-Radar finding | *internal* | visibility of the finding (PF-CVR VIS-09) | system-specific discussion |
+| CVE-Clinic vulnerability | *internal*, *public* | internal: ST and affected groups; public: recipients of the client advisory | PF-CVR-DISC |
+| CVE-Clinic finding | *internal* | visibility of the finding (PF-CVR VIS-09) | system-specific discussion |
 | Invoice (later) | *internal* | as the invoice (`RechnungDao`) | questions about an invoice |
 | Order (later) | *internal* | as the order (`AuftragDao`) | discussion about an order |
 

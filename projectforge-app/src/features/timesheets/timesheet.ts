@@ -278,18 +278,29 @@ export interface BookingDraft extends BookingWhat {
   stop: Date;
 }
 
-/** A running timer, kept on the device only. */
+/** A running timer: at the server (shared with the web pages) or, without an answer of it, on the device only. */
 export interface RunningTimer {
   start: Date;
   what: BookingWhat | null;
+  /** True once the server has it: only then it is dropped when the server no longer has it (stopped elsewhere). */
+  remote?: boolean;
 }
 
 /** The timer as stored in its file. */
 export interface StoredTimer {
   start: number;
   what: BookingWhat | null;
+  remote?: boolean;
 }
 
-export const storedTimer = (timer: RunningTimer): StoredTimer => ({ start: timer.start.getTime(), what: timer.what });
+export const storedTimer = (timer: RunningTimer): StoredTimer => ({
+  start: timer.start.getTime(),
+  what: timer.what,
+  remote: timer.remote,
+});
 
-export const timerOf = (stored: StoredTimer): RunningTimer => ({ start: new Date(stored.start), what: stored.what });
+export const timerOf = (stored: StoredTimer): RunningTimer => ({
+  start: new Date(stored.start),
+  what: stored.what,
+  remote: stored.remote,
+});

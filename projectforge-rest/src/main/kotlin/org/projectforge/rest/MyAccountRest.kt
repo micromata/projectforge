@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.timesheet.TimesheetTimeGridService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
@@ -125,6 +126,9 @@ class MyAccountRest {
     @Autowired
     private lateinit var userService: UserService
 
+    @Autowired
+    private lateinit var timesheetTimeGridService: TimesheetTimeGridService
+
     /**
      * The editable fields are [firstname] to [sshPublicKey], everything else is for display only and ignored on
      * saving.
@@ -137,6 +141,8 @@ class MyAccountRest {
         var dateFormat: String? = null,
         var excelDateFormat: String? = null,
         var timeNotation: TimeNotation? = null,
+        /** The grid of the timer in minutes, see [TimesheetTimeGridService]; stored in the user's preferences. */
+        var timesheetTimeGridMinutes: Int? = null,
         /** The time zone's id, e.g. `Europe/Berlin`. */
         var timeZone: String? = null,
         var personalPhoneIdentifiers: String? = null,
@@ -193,6 +199,7 @@ class MyAccountRest {
         val dateFormats: List<UserSettingsOptions.Option>,
         val excelDateFormats: List<UserSettingsOptions.Option>,
         val timeNotations: List<UserSettingsOptions.Option>,
+        val timesheetTimeGrids: List<UserSettingsOptions.Option>,
     )
 
     class InitData(
@@ -253,6 +260,7 @@ class MyAccountRest {
                 dateFormats = UserSettingsOptions.dateFormats(),
                 excelDateFormats = UserSettingsOptions.excelDateFormats(),
                 timeNotations = UserSettingsOptions.timeNotations(),
+                timesheetTimeGrids = UserSettingsOptions.timesheetTimeGrids(),
             ),
             defaults = Defaults(
                 dateFormat = Configuration.instance.defaultDateFormat,
@@ -308,6 +316,7 @@ class MyAccountRest {
             .takeIf { it.isNotEmpty() }
             ?.let { return ResponseEntity(ResponseAction(validationErrors = it), HttpStatus.NOT_ACCEPTABLE) }
         userService.updateMyAccount(user)
+        timesheetTimeGridService.set(data.timesheetTimeGridMinutes)
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
 
@@ -524,6 +533,7 @@ class MyAccountRest {
             dateFormat = user.dateFormat,
             excelDateFormat = user.excelDateFormat,
             timeNotation = user.timeNotation,
+            timesheetTimeGridMinutes = timesheetTimeGridService.get(),
             timeZone = user.timeZone.id,
             personalPhoneIdentifiers = user.personalPhoneIdentifiers,
             gpgPublicKey = user.gpgPublicKey,

@@ -56,13 +56,16 @@ export interface TrimmedImage {
  * height of at most `maxHeight`. So the image keeps its size and only loses the margin; centring the
  * cropped image vertically then centres what is visible of it.
  *
+ * With `fixedHeight` the whole image is scaled to `maxHeight` (enlarged too), and the crop shrinks with it.
+ *
  * Until the image is measured, and whenever it can't be (load error, a canvas that is not readable), the
  * original url is returned, so the caller's `<img onError>` still sees a broken image. Reading the pixels
  * needs a same-origin image (`/rsPublic` is), showing the result needs `img-src blob:` in the CSP.
  */
 export function useTrimmedImage(
   url: string | undefined,
-  maxHeight: number
+  maxHeight: number,
+  fixedHeight = false
 ): TrimmedImage | undefined {
   const [trimmed, setTrimmed] = useState<{ url: string } & TrimmedImage>();
 
@@ -106,7 +109,9 @@ export function useTrimmedImage(
         cropped.toBlob((blob) => {
           if (!blob || cancelled) return;
           blobUrl = URL.createObjectURL(blob);
-          const scale = Math.min(1, maxHeight / height);
+          const scale = fixedHeight
+            ? maxHeight / height
+            : Math.min(1, maxHeight / height);
           setTrimmed({ url, src: blobUrl, height: box.height * scale });
         });
       } catch {
@@ -118,7 +123,7 @@ export function useTrimmedImage(
       cancelled = true;
       if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
-  }, [url, maxHeight]);
+  }, [url, maxHeight, fixedHeight]);
 
   if (!url) return undefined;
   // Keyed by url, so a changed url never shows the crop of the previous image.

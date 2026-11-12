@@ -61,11 +61,14 @@ class GenerateNextFieldMetadataTest {
       )
     }
     // Orphans: a renamed or deleted entity would otherwise leave its file (and its stale rules) behind.
+    // The files of an external plugin missing in this build are no orphans.
+    val kept = GenerateNextFieldMetadataMain.keptFilePrefixes()
     val orphans = GenerateNextFieldMetadataMain.outDir(rootDir)
       .listFiles { file -> file.name.endsWith(".generated.ts") }
       .orEmpty()
       .map { it.name }
       .filterNot { expectedFiles.containsKey(it) }
+      .filterNot { name -> kept.any { name.startsWith(it) } }
       .sorted()
     assertTrue(
       orphans.isEmpty(),

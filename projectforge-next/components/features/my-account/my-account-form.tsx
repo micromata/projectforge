@@ -151,6 +151,13 @@ export function MyAccountForm({ init }: { init: MyAccountInit }) {
                 : undefined
             }
           />
+          <SelectField
+            disabled={readOnly}
+            name="timesheetTimeGridMinutes"
+            label={t("user.timesheetTimeGrid")}
+            hint={t("user.tooltip.timesheetTimeGrid")}
+            options={options.timesheetTimeGrids}
+          />
           {/* Only of use for the direct calls of Sipgate (SipgateDirectCallService). */}
           {init.phoneIdentifiersSupported && (
             <InputField

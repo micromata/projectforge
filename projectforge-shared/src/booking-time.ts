@@ -71,19 +71,31 @@ export function isoWeekday(t: Date): number {
   return ((t.getDay() + 6) % 7) + 1;
 }
 
-export function floor5(t: Date): Date {
+/**
+ * The grid of the times in minutes the installation configured (a divisor of 60 that is a multiple of 5), the
+ * default [BOOKING_STEP_MINUTES] for a missing or invalid value, e.g. from an older server.
+ */
+export function parseTimeGrid(value?: number | null): number {
+  return value != null && Number.isInteger(value) && value >= BOOKING_STEP_MINUTES && value <= 30 && 60 % value === 0
+    ? value
+    : BOOKING_STEP_MINUTES;
+}
+
+/** [t] rounded down to the grid [step] (minutes), seconds dropped. */
+export function floor5(t: Date, step = BOOKING_STEP_MINUTES): Date {
   return new Date(
     t.getFullYear(),
     t.getMonth(),
     t.getDate(),
     t.getHours(),
-    t.getMinutes() - (t.getMinutes() % BOOKING_STEP_MINUTES),
+    t.getMinutes() - (t.getMinutes() % step),
   );
 }
 
-export function ceil5(t: Date): Date {
-  const floor = floor5(t);
-  return floor.getTime() === t.getTime() ? floor : addMinutes(floor, BOOKING_STEP_MINUTES);
+/** [t] rounded up to the grid [step] (minutes). */
+export function ceil5(t: Date, step = BOOKING_STEP_MINUTES): Date {
+  const floor = floor5(t, step);
+  return floor.getTime() === t.getTime() ? floor : addMinutes(floor, step);
 }
 
 /** The minutes from [start] to [stop]. */

@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.10",
+    "date" : "2026-11-12",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "Docker: Das Image enthält curl, wget und gnupg des Basis-Images nicht mehr (nur zum Herunterladen des JDK nötig), womit auch deren Schwachstellen entfallen.", "Docker: Die Compose-Beispiele betreiben nginx auf Alpine (stable-alpine-slim) statt Debian, ohne curl, perl, libxml2 und die Bildbibliotheken des Debian-Images, die die meisten seiner bekannten Schwachstellen verursachten." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "CVE-Clinic: Enthält eine Komponente mehrere betroffene Versionen einer Bibliothek (z. B. zwei Versionen eines npm-Pakets), nennen der Fund, die Bibliotheken und der Report jetzt alle statt nur einer.", "E-Rechnung: Eine ZUGFeRD-Rechnung ohne Käufer-Referenz (BT-10) wird von der Prüfung nicht mehr als fehlerhaft gemeldet, die Regel BR-DE-15 gilt nur für XRechnung. Der XRechnung-Export nennt die fehlende Referenz (Leitweg-ID oder Kundenreferenz) vorab. Hinweise an der Kundenreferenz (BT-10) sowie an Ansprechpartner und Abteilung (zusammen BT-56)." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -52,6 +65,26 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-10",
+      "version" : "9.2.10",
+      "date" : "2026-11-12",
+      "title" : "ProjectForge 9.2.10 veröffentlicht",
+      "tag" : "9.2.10-RELEASE",
+      "downloadLink" : true,
+      "sha256" : "ab59d0d725e435bbb88e88c646eb20569a1a55a68d09d4f7be694276979bac35",
+      "summary" : [ "**Zeitberichte**: Timer in der Kopfzeile, gemeinsam mit der App, und ein Zeitraster", "**Listen**: kompakter Kopf, scrollt auf Tablets und Smartphones weg", "**CVE-Radar** heißt jetzt **CVE-Clinic**", "**Eigenes Logo**: Höhe einstellbar" ],
+      "overview" : [ "**Zeitberichte:** Ein Timer in der Kopfzeile der Webseiten, der auf dem Server liegt und auch in der App und auf anderen Geräten gilt (beim Stoppen öffnet sich ein neuer Zeitbericht); ein Zeitraster unter „Mein Zugang“ (Standard 15 Minuten), auf das der Timer den Start ab- und das Ende aufrundet.", "**Listen:** Titel, Suche und Aktionen stehen in einer Zeile, Filter und Summen bleiben einzeilig, auf schmalen Bildschirmen liegen die Aktionen hinter einem „Mehr“-Button, und auf Tablets und Smartphones scrollt der Kopf mit den Zeilen weg; die Rechnungs- und die Liquiditätsliste wechseln per Button statt per Tabs zu ihren Grafiken bzw. zur Vorschau.", "**CVE-Clinic:** Der CVE-Radar heißt jetzt CVE-Clinic; alte Links werden umgeleitet, Plugin-ID, Einstellungen und Datenbanktabellen behalten ihre Namen.", "**Eigenes Logo:** Die Höhe des Logos in der Kopfzeile lässt sich mit `projectforge.logoHeight` (in px) einstellen.", "**Mobile App (in Vorbereitung):** Der Timer gilt auch auf den Webseiten, sein Start stammt von der Uhr des Servers; Zeitraster und Erscheinungsbild (hell, dunkel, System) lassen sich in den Einstellungen wählen und gelten auch auf den Webseiten." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "{app} Das Zeitraster und das Erscheinungsbild (hell, dunkel, System) lassen sich in den Einstellungen wählen; beides gilt auch auf den Webseiten.", "Eigenes Logo: Die Höhe des Logos in der Kopfzeile lässt sich mit `projectforge.logoHeight` (in px) einstellen.", "Zeitberichte: Ein Zeitraster (Standard 15 Minuten) unter „Mein Zugang“. Der Timer rundet den Start ab und das Ende auf; die Zeiten lassen sich weiterhin auf 5 Minuten genau setzen.", "Zeitberichte: Ein Timer in der Kopfzeile der Webseiten, der auch in der App gilt. Auf der einen Seite gestartet, kann er auf der anderen gestoppt werden; beim Stoppen öffnet sich ein neuer Zeitbericht." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "{app} Der Timer liegt auf dem Server: Er gilt auch auf den Webseiten und anderen Geräten, und sein Start stammt von der Uhr des Servers (braucht einen aktuellen Server, sonst bleibt er auf dem Gerät).", "Listen: Der Kopf braucht weniger Höhe. Titel, Suche und Aktionen stehen in einer Zeile, Filter und Summen bleiben einzeilig, und auf schmalen Bildschirmen sind die Aktionen hinter einem „Mehr“-Button gesammelt. Auf Tablets und Smartphones scrollt der Kopf mit den Zeilen weg. Die Rechnungs- und die Liquiditätsliste wechseln per Button im Kopf statt per Tabs zu ihren Grafiken bzw. zur Vorschau, und der Strukturbaum und das Benachrichtigungs-Log nutzen denselben kompakten Kopf." ]
+      }, {
+        "type" : "changed",
+        "items" : [ "Der CVE-Radar heißt jetzt CVE-Clinic. Alte Links auf seine Seiten werden umgeleitet; Plugin-ID, Einstellungen (`projectforge.plugin.cveradar.*`) und Datenbanktabellen behalten ihre Namen." ]
+      } ]
+    }, {
       "id" : "9-2-9",
       "version" : "9.2.9",
       "date" : "2026-11-11",

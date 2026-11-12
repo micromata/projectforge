@@ -2053,7 +2053,10 @@
       "textsHint": "Applies to the names of customer entries as well as to customers entered as free text in orders and invoices. An exact name (case-insensitive) or a pattern: ACME* (starts with), *Logistics (ends with), *ACME* (contains). Confirm each with Enter.",
       "title": "Customer groups and business units"
     },
-    "customerref1": "Customer reference",
+    "customerref1": {
+      "_": "Customer reference",
+      "tooltip": "Sent as buyer reference (BT-10) of the e-invoice, if there is no Leitweg-ID. An XRechnung needs BT-10: the Leitweg-ID for public sector recipients, otherwise any reference such as this one. Optional for ZUGFeRD. Put the order number into its own field (BT-13)."
+    },
     "datev": {
       "import": {
         "_": "Import Datev",
@@ -2227,7 +2230,10 @@
       "city": "City",
       "contactDepartment": "Department",
       "contactEmail": "Contact person email of the customer (BT-58)",
-      "contactPerson": "Contact person",
+      "contactPerson": {
+        "_": "Contact person",
+        "tooltip": "Contact person and department are sent together as one text, the contact point of the buyer (BT-56), e.g. \"Jane Doe, Purchasing\"."
+      },
       "costCenter": "Cost center",
       "country": "Country",
       "eInvoice": "E-Invoice",
@@ -2625,6 +2631,7 @@
           "bankAccountNotConfigured": "No bank account of the seller is configured (projectforge.einvoice.seller.bankAccounts). An administrator has to add one.",
           "bankAccountNotFound": "The bank account of this invoice ({arg0}) is not among the configured ones. Please select one of them.",
           "bankAccountNotSelected": "No bank account is selected for this invoice.",
+          "buyerReferenceMissing": "The buyer reference (BT-10) is missing: an XRechnung needs the Leitweg-ID or, without one, the customer reference.",
           "cancellationNotNegative": "The net sum of a cancellation invoice has to be negative: it reverses the amounts of the cancelled invoice.",
           "cancellationOriginalMissing": "The cancellation invoice references no cancelled invoice with a number.",
           "customerAddressIncomplete": "The address of the customer is incomplete: zip code and city are required.",
@@ -3806,9 +3813,9 @@
     "ruleName": "Rule",
     "ruleTypes": {
       "CREDITOR_INVOICES_DUE": "Creditor invoices due",
-      "CVERADAR_FINDINGS": "New findings of the CVE radar",
-      "CVERADAR_STALE_LISTS": "Outdated lists of libraries of the CVE radar",
-      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unanswered team checks of a case of the CVE radar",
+      "CVERADAR_FINDINGS": "New findings of the CVE-Clinic",
+      "CVERADAR_STALE_LISTS": "Outdated lists of libraries of the CVE-Clinic",
+      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unanswered team checks of a case of the CVE-Clinic",
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
@@ -3856,7 +3863,7 @@
     "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
     "template": {
       "findingsSubject": "Possible updates for your systems",
-      "findingsText": "<p>For a system in your responsibility there may be updates. Details are in the CVE radar: [cvrListLink]</p>",
+      "findingsText": "<p>For a system in your responsibility there may be updates. Details are in the CVE-Clinic: [cvrListLink]</p>",
       "staleListsSubject": "List of libraries possibly outdated",
       "staleListsText": "<p>The list of libraries of [cvrStaleCount] component(s) in your responsibility was last updated more than [cvrMaxAgeDays] days ago. New vulnerabilities are not found then. Please upload a current list: [cvrListLink]</p><p>[cvrStaleList]</p>",
       "teamCheckUnansweredSubject": "Your answer to [cvrCaseCode] is missing",
@@ -3886,7 +3893,7 @@
       "cvrStaleList": "Components with an outdated list (system, instance, component, day of the last list)",
       "cvrSystemList": "Affected systems (number of vulnerabilities)",
       "cvrTeamCheckCount": "Number of team checks not answered by the recipient",
-      "cvrTeamCheckLink": "Link to the team check (to my CVE radar, if there are several)",
+      "cvrTeamCheckLink": "Link to the team check (to my CVE-Clinic, if there are several)",
       "cvrTeamCheckList": "Team checks not answered by the recipient (project or system checked)",
       "cvrVulnerabilityCount": "Number of vulnerabilities",
       "cvrVulnerabilityList": "Vulnerabilities (CVE, severity, systems and instances, technology; ? possible only)",
@@ -4394,7 +4401,7 @@
         "OSV": "OSV ecosystem list"
       },
       "chat": {
-        "caseNotice": "Everybody with access to the CVE-Radar reads along here. Please name no details of projects or systems, neither in the text nor in attachments (screenshots, logs, configurations): those belong in the file of the team check, which only the asked group, the security team and the security officer see."
+        "caseNotice": "Everybody with access to the CVE-Clinic reads along here. Please name no details of projects or systems, neither in the text nor in attachments (screenshots, logs, configurations): those belong in the file of the team check, which only the asked group, the security team and the security officer see."
       },
       "clientAnswer": {
         "DONE": "Done",
@@ -4881,7 +4888,7 @@
           "hint": "The measures to confirm, the open checks of your groups and your devices as the log server reports them.",
           "noDevices": "No devices reported for you.",
           "teamChecks": "Checks of my groups",
-          "title": "My CVE-Radar"
+          "title": "My CVE-Clinic"
         },
         "nav": {
           "adhoc": "Ad-hoc check",
@@ -4889,7 +4896,7 @@
           "catalog": "Technologies",
           "devices": "Devices",
           "inventory": "Systems",
-          "my": "My CVE-Radar",
+          "my": "My CVE-Clinic",
           "prototype": "Demo",
           "vulnerabilities": "Vulnerabilities"
         },
@@ -4926,7 +4933,7 @@
         "techMeasures": "Measures for techies",
         "workaround": "Workaround"
       },
-      "menu": "CVE-Radar",
+      "menu": "CVE-Clinic",
       "my": {
         "answeredByTeamCheck": "Your answer to the check above is also your answer to this case. Something unclear? Then ask here.",
         "confirm": {
@@ -5161,7 +5168,7 @@
         "teamcheck": "Members of the checked group and the {arg1} answer. Only the {arg1} create and delete team checks."
       },
       "role": {
-        "CA": "CVE-Radar admin",
+        "CA": "CVE-Clinic admin",
         "EMPLOYEE": "Employee",
         "MG": "Management",
         "SO": "Security officer",
@@ -5270,7 +5277,7 @@
       },
       "start": {
         "demo": {
-          "hint": "All planned functions of the CVE-Radar as a clickable prototype with fictitious test data.",
+          "hint": "All planned functions of the CVE-Clinic as a clickable prototype with fictitious test data.",
           "link": "Open demo",
           "title": "Demo"
         },
@@ -5348,7 +5355,7 @@
       },
       "teamCheck": {
         "add": "Request team check",
-        "addInfo": "The group checks whether the project or system is affected and answers like team feedback. Its members find the check under \"My CVE-Radar\" (\"Checks of my groups\"); they are not notified by mail yet, so let them know.",
+        "addInfo": "The group checks whether the project or system is affected and answers like team feedback. Its members find the check under \"My CVE-Clinic\" (\"Checks of my groups\"); they are not notified by mail yet, so let them know.",
         "answer": "Answer",
         "answerNow": "Answer now",
         "answeredBy": "Answered by",
@@ -5389,7 +5396,7 @@
         "ECOSYSTEM": "Ecosystem",
         "PRODUCT": "Product"
       },
-      "title": "CVE-Radar",
+      "title": "CVE-Clinic",
       "tree": {
         "collapse": "Collapse",
         "expand": "Expand"
@@ -7499,6 +7506,22 @@
     "stopTime": "Stop time",
     "tag": "Tag",
     "templates": "Templates",
+    "timer": {
+      "discard": {
+        "_": "Discard timer",
+        "tooltip": "Stops the timer without booking anything."
+      },
+      "since": "since {arg0}",
+      "start": {
+        "_": "Start timer",
+        "tooltip": "Starts a timer on the server, shared with the app. Stopping it opens a new time sheet; the start is rounded down and the end up to the time grid."
+      },
+      "stop": {
+        "_": "Stop timer",
+        "button": "Stop",
+        "tooltip": "Stops the timer and opens a new time sheet. The start is rounded down and the end up to the time grid (see My account)."
+      }
+    },
     "timesheets": "Time sheets",
     "title": {
       "add": "New time sheet",
@@ -7816,6 +7839,7 @@
       }
     },
     "sshPublicKey": "SSH public key",
+    "timesheetTimeGrid": "Time grid (minutes)",
     "title": {
       "add": "Add new user",
       "edit": "Edit user",
@@ -7834,6 +7858,7 @@
       "sshPublicKey": "The own public SSH key, e.g. ssh-ed25519 AAAA…. Never enter the private key here.",
       "timeNotation": "Times with 12 hours (am/pm) or with 24 hours.",
       "timeZone": "All times (time sheets, calendar events) are shown and entered in this time zone.",
+      "timesheetTimeGrid": "The timer rounds the start down and the stop up to this grid, e.g. 15 for quarter hours. The times can still be set to 5 minutes.",
       "username": "The login name. Only the administration can change it."
     },
     "unassignedGroups": "Unassigned groups",

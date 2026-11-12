@@ -44,6 +44,8 @@ export interface MyAccountData {
   dateFormat?: string | null;
   excelDateFormat?: string | null;
   timeNotation?: string | null;
+  /** The grid of the timer in minutes (5, 10, 15, 20 or 30). */
+  timesheetTimeGridMinutes?: number | null;
   timeZone?: string | null;
   personalPhoneIdentifiers?: string | null;
   gpgPublicKey?: string | null;
@@ -71,6 +73,7 @@ export interface MyAccountInit {
     dateFormats: SelectOption[];
     excelDateFormats: SelectOption[];
     timeNotations: SelectOption[];
+    timesheetTimeGrids: SelectOption[];
   };
   /** What applies while a format is empty (the installation's defaults). */
   defaults: {

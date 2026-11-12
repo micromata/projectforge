@@ -26,12 +26,12 @@ export function luceneQueryDocsUrl(locale: string): string {
   return `${webDocsLink(locale)}/userguide/#full_indexed_search`;
 }
 
-/** The user guide's chapter on the libraries of a CVE-Radar component: the formats, a script collecting them in a zip. */
-export function cveRadarLibrariesDocsUrl(locale: string): string {
-  return `${webDocsLink(locale)}/userguide/#cve_radar_libraries`;
+/** The user guide's chapter on the libraries of a CVE-Clinic component: the formats, a script collecting them in a zip. */
+export function cveClinicLibrariesDocsUrl(locale: string): string {
+  return `${webDocsLink(locale)}/userguide/#cve_clinic_libraries`;
 }
 
-/** The user guide on the bulk import of SBOMs into an area (`[[cve_radar_sbom_import]]`). */
-export function cveRadarSbomImportDocsUrl(locale: string): string {
-  return `${webDocsLink(locale)}/userguide/#cve_radar_sbom_import`;
+/** The user guide on the bulk import of SBOMs into an area (`[[cve_clinic_sbom_import]]`). */
+export function cveClinicSbomImportDocsUrl(locale: string): string {
+  return `${webDocsLink(locale)}/userguide/#cve_clinic_sbom_import`;
 }

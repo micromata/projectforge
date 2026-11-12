@@ -19,8 +19,12 @@ The version is set only by the release script (`gradle.properties`, `version=`).
    `changelog/changelog.de.json`. The release `X.Y.Z` goes on top of `releases` with the tag `X.Y.Z-RELEASE`.
 2. `bin/pfDev.sh release X.Y.Z`: checks the changelog, sets the version, runs `gen` and the build with all
    tests, commits and tags `X.Y.Z-RELEASE`, then commits the next `X.Y.(Z+1)-SNAPSHOT`. Nothing is pushed.
-3. `bin/pfDev.sh publish X.Y.Z`: pushes the branch and the tag, and creates the GitHub release with the notes
-   generated from the changelog and the jar attached. It asks before each step.
+3. `bin/pfDev.sh publish X.Y.Z`: pushes the branch and the tag, creates the GitHub release with the notes
+   generated from the changelog and the jar attached. It asks before each step. For the external plugins (CVE-Clinic,
+   `dev-docs/external-plugins.md`), `release` needs their checkouts (`PF_EXTERNAL_PLUGINS` or
+   `~/.config/projectforge/external-plugins`) and pins their jars in `plugins-bin/`; `publish` pushes them and uploads
+   each jar to the GitHub release `plugin-<name>-X.Y.Z` first. Never delete those releases: builds from the sources
+   download the jars from there.
 4. Docker images, each architecture built natively (docker or podman). Log in first with an organization access
    token of `micromata`: `podman login docker.io -u micromata` (or `docker login -u micromata`), the token as
    password. A password doesn't work with 2FA. The token needs *Image Push* on `micromata/projectforge`, and

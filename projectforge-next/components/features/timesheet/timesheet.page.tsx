@@ -40,6 +40,12 @@ const NEW_ENTRY_PARAMS = [
   "userId",
   "firstHour",
   "taskId",
+  // What a stopped timer fills in besides the period (TimesheetEntityRest.newBaseDTO).
+  "kost2Id",
+  "description",
+  "location",
+  "reference",
+  "tag",
 ] as const;
 
 /** JIRA issue links below the two free-text fields, as Wicket's `addJIRAField` shows them. */

@@ -26,8 +26,11 @@ RUN addgroup --system projectforge && adduser --system --ingroup projectforge pr
 
 # Install findutils (xargs needed by gradle)
 #RUN apt-get update && apt-get install -y findutils && rm -rf /var/lib/apt/lists/*
-# Security updates of the base image packages; pgrep needed by the entrypoint.sh
-RUN apt-get update && apt-get upgrade -y && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
+# Security updates of the base image packages; pgrep needed by the entrypoint.sh. curl, wget and gnupg (with
+# dirmngr) come with the base image for downloading the JDK, nothing uses them at runtime: removed with their
+# vulnerabilities.
+RUN apt-get update && apt-get upgrade -y && apt-get install -y procps \
+    && apt-get purge -y --auto-remove curl wget gnupg dirmngr && rm -rf /var/lib/apt/lists/*
 
 
 # Expose the port and declare the volume

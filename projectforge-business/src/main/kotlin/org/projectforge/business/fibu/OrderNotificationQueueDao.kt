@@ -28,6 +28,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.util.Date
 
 /** The queue of the order changes for the daily digest ([OrderNotificationQueueDO]). */
@@ -36,31 +37,40 @@ class OrderNotificationQueueDao {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
+    /** What the digest shows of an order, copied when the change is queued (a deleted order isn't loadable later). */
+    data class Snapshot(
+        val orderNumber: Int?,
+        val orderTitle: String?,
+        val customerProject: String? = null,
+        val status: String? = null,
+        val amount: BigDecimal? = null,
+        /** The translated names of the properties changed by this save. */
+        val changes: List<String> = emptyList(),
+    )
+
     /**
      * Queues the change, replacing the entry of the recipient for the same order. An order created and changed again
-     * before the digest stays "created".
+     * before the digest stays "created"; the changed properties of all changes are collected.
      */
     fun enqueue(
         recipientId: Long,
         orderId: Long,
-        orderNumber: Int?,
-        orderTitle: String?,
+        snapshot: Snapshot,
         operation: String,
         link: String?,
     ) {
         try {
-            enqueueOnce(recipientId, orderId, orderNumber, orderTitle, operation, link)
+            enqueueOnce(recipientId, orderId, snapshot, operation, link)
         } catch (ex: PersistenceException) {
             // Concurrent save of the same order: the other transaction inserted the row first, now it's an update.
-            enqueueOnce(recipientId, orderId, orderNumber, orderTitle, operation, link)
+            enqueueOnce(recipientId, orderId, snapshot, operation, link)
         }
     }
 
     private fun enqueueOnce(
         recipientId: Long,
         orderId: Long,
-        orderNumber: Int?,
-        orderTitle: String?,
+        snapshot: Snapshot,
         operation: String,
         link: String?,
     ) {
@@ -77,11 +87,17 @@ class OrderNotificationQueueDao {
                 } else {
                     operation
                 }
+                val changes = joinChanges(existing.changes?.split(CHANGES_SEPARATOR).orEmpty() + snapshot.changes)
                 context.executeUpdate(
                     "update OrderNotificationQueueDO q set q.orderNumber = :nr, q.orderTitle = :title," +
-                            " q.operation = :op, q.link = :link, q.created = :now where q.id = :id",
-                    Pair("nr", orderNumber),
-                    Pair("title", orderTitle?.take(1000)),
+                            " q.orderCustomerProject = :cp, q.orderStatus = :status, q.orderAmount = :amount," +
+                            " q.changes = :changes, q.operation = :op, q.link = :link, q.created = :now where q.id = :id",
+                    Pair("nr", snapshot.orderNumber),
+                    Pair("title", snapshot.orderTitle?.take(1000)),
+                    Pair("cp", snapshot.customerProject?.take(1000)),
+                    Pair("status", snapshot.status),
+                    Pair("amount", snapshot.amount),
+                    Pair("changes", changes),
                     Pair("op", op),
                     Pair("link", link?.take(1000)),
                     Pair("now", Date()),
@@ -91,14 +107,29 @@ class OrderNotificationQueueDao {
                 context.em.persist(OrderNotificationQueueDO().also {
                     it.recipientId = recipientId
                     it.orderId = orderId
-                    it.orderNumber = orderNumber
-                    it.orderTitle = orderTitle?.take(1000)
+                    it.orderNumber = snapshot.orderNumber
+                    it.orderTitle = snapshot.orderTitle?.take(1000)
+                    it.orderCustomerProject = snapshot.customerProject?.take(1000)
+                    it.orderStatus = snapshot.status
+                    it.orderAmount = snapshot.amount
+                    it.changes = joinChanges(snapshot.changes)
                     it.operation = operation
                     it.link = link?.take(1000)
                     it.created = Date()
                 })
             }
         }
+    }
+
+    // Distinct, in the order of the changes; whole names only, so the column limit never cuts one in half.
+    private fun joinChanges(names: List<String>): String? {
+        val result = StringBuilder()
+        for (name in names.map { it.trim() }.filter { it.isNotEmpty() }.distinct()) {
+            if (result.length + name.length + CHANGES_SEPARATOR.length > 2000) break
+            if (result.isNotEmpty()) result.append(CHANGES_SEPARATOR)
+            result.append(name)
+        }
+        return result.toString().ifEmpty { null }
     }
 
     /** All queued entries, grouped by recipient. */
@@ -124,5 +155,9 @@ class OrderNotificationQueueDao {
                 )
             }
         }
+    }
+
+    companion object {
+        private const val CHANGES_SEPARATOR = ", "
     }
 }

@@ -108,6 +108,18 @@ class OrphanedLinkFilterTest {
         Assertions.assertNull(redirectOf("/rs/adminErrors/list"))
     }
 
+    /** The CVE-Radar became the CVE-Clinic: old links (notifications, chats, bookmarks) keep working. */
+    @Test
+    fun `renamed next sections are redirected with their sub pages`() {
+        Assertions.assertEquals("/next/cveclinic", redirectOf("/next/cveradar"))
+        Assertions.assertEquals("/next/cveclinic", redirectOf("/next/cveradar/"))
+        Assertions.assertEquals("/next/cveclinic/case/42", redirectOf("/next/cveradar/case/42/"))
+        Assertions.assertEquals("/next/cveclinic/teamcheck/7?tab=x", redirectOf("/next/cveradar/teamcheck/7", mapOf("tab" to "x")))
+        Assertions.assertNull(redirectOf("/next/cveclinic/case/42"))
+        Assertions.assertNull(redirectOf("/next/cveradarXyz"))
+        Assertions.assertNull(redirectOf("/rs/cveradar/my"))
+    }
+
     /** The old Wicket calendars, the former page after login, still lead to the next calendar. */
     @Test
     fun `the old wicket calendar is redirected to next`() {
