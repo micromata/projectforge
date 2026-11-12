@@ -34,6 +34,10 @@ Commands:
                    of a plugin given here (e.g. one built in the repository of an
                    external plugin: bin/pf.sh bootjar there) replaces its pin and needs no
                    GitHub release (also PF_EXTRA_PLUGINS)
+  gen, run, bootjar
+                   Without PF_EXTRA_PLUGINS these build the external plugins configured
+                   for the release (see below) against this checkout and use their jars;
+                   PF_NO_EXTERNAL_PLUGINS=1 skips that
   check            Next quality gates: typecheck → lint → format:check
   changelog-fold [id]
                    Moves the entries of changelog/unreleased/ (one file per change,
@@ -380,6 +384,26 @@ build_external_plugins() {
     jars+=("${found[0]}")
   done < <(external_plugins)
   (IFS=,; echo "${jars[*]+"${jars[*]}"}")
+}
+
+# For gen, run and bootjar: without PF_EXTRA_PLUGINS, builds the jars of the configured external plugins against this
+# checkout (so the core is always the one you work in) and exports them as PF_EXTRA_PLUGINS. The jars are copied to
+# build/external-plugins/, so a later gradle run in the plugin repository (for another checkout) doesn't replace the
+# jar under a running server. PF_NO_EXTERNAL_PLUGINS=1 skips this (the plugin's pages are switched off then).
+use_external_plugins() {
+  [[ -z "${PF_EXTRA_PLUGINS:-}" && -z "${PF_NO_EXTERNAL_PLUGINS:-}" && -n "$(external_plugins)" ]] || return 0
+  local version jars jar copies=() target="$ROOT/build/external-plugins"
+  version="$(sed -n 's/^version=//p' "$ROOT/gradle.properties")"
+  jars="$(build_external_plugins "$version")" || exit 1
+  mkdir -p "$target"
+  IFS=',' read -r -a list <<< "$jars"
+  for jar in ${list[@]+"${list[@]}"}; do
+    cp "$jar" "$target/"
+    copies+=("$target/$(basename "$jar")")
+  done
+  PF_EXTRA_PLUGINS="$(IFS=,; echo "${copies[*]+"${copies[*]}"}")"
+  export PF_EXTRA_PLUGINS
+  echo "External plugins: $PF_EXTRA_PLUGINS" >&2
 }
 
 # Fails, if the release jar lacks one of the jars <jars> (comma separated).
@@ -956,9 +980,11 @@ parse_slot "${1:-}"
 
 case "$cmd" in
   gen)
+    use_external_plugins
     exec "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease "$@"
     ;;
   run)
+    use_external_plugins
     slot_run "$@"
     ;;
   reload)
@@ -993,6 +1019,7 @@ case "$cmd" in
     cd "$NEXT" && exec npm run build "$@"
     ;;
   bootjar)
+    [[ -n "${1:-}" ]] || use_external_plugins
     extra="${1:-${PF_EXTRA_PLUGINS:-}}"
     if [[ -n "$extra" ]]; then
       abs=()
