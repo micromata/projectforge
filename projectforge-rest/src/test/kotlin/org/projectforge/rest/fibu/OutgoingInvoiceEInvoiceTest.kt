@@ -303,6 +303,8 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
             invoice.customerAddress = "Kundenstraße 2"
             invoice.customerZipCode = "34117"
             invoice.customerCity = "Kassel"
+            // The XRechnung demands a buyer reference (BT-10, BR-DE-15): the Leitweg-ID or the customer reference.
+            invoice.customerref1 = "BR-2026-1"
         }
         invoice.positionen = mutableListOf(
             RechnungsPositionDO().also { pos ->
