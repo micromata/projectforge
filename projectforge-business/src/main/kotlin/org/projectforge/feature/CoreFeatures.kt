@@ -93,7 +93,8 @@ object CoreFeatures {
             next = listOf("task", "taskWizard") + PROJECT_WIZARD,
             shared = listOf("task/tree", "task/favorites", "task/recent", "task/info", "task/kost2Preview"),
         ),
-        MenuItemDefId.TIMESHEET_LIST to Extras(rest = CALENDAR_SUBSCRIPTION),
+        // The timer of the top bar (hidden with the feature switched off).
+        MenuItemDefId.TIMESHEET_LIST to Extras(rest = listOf("timesheetTimer") + CALENDAR_SUBSCRIPTION),
         MenuItemDefId.VACATION to Extras(rest = listOf("vacationExport")),
     )
 
