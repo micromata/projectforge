@@ -31,6 +31,8 @@ export const myAccountSchema = z.object({
   dateFormat: m.nullableString("dateFormat"),
   excelDateFormat: m.nullableString("excelDateFormat"),
   timeNotation: z.string().nullable(),
+  // The minutes as text, as the other choices; the server reads them as a number.
+  timesheetTimeGridMinutes: z.string().nullable(),
   timeZone: z
     .string()
     .nullable()
@@ -53,6 +55,7 @@ export const EMPTY_VALUES: MyAccountValues = {
   dateFormat: null,
   excelDateFormat: null,
   timeNotation: null,
+  timesheetTimeGridMinutes: null,
   timeZone: null,
   personalPhoneIdentifiers: null,
   gpgPublicKey: null,
@@ -68,6 +71,10 @@ export function toFormValues(data: MyAccountData): MyAccountValues {
     dateFormat: data.dateFormat ?? null,
     excelDateFormat: data.excelDateFormat ?? null,
     timeNotation: data.timeNotation ?? null,
+    timesheetTimeGridMinutes:
+      data.timesheetTimeGridMinutes != null
+        ? String(data.timesheetTimeGridMinutes)
+        : null,
     timeZone: data.timeZone ?? null,
     personalPhoneIdentifiers: data.personalPhoneIdentifiers ?? null,
     gpgPublicKey: data.gpgPublicKey ?? null,

@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "{app} The timer is kept on the server: it is shared with the web pages and other devices, and its start is taken from the server's clock (needs a current server; otherwise it stays on the device).",
+  "de": "{app} Der Timer liegt auf dem Server: Er gilt auch auf den Webseiten und anderen Geräten, und sein Start stammt von der Uhr des Servers (braucht einen aktuellen Server, sonst bleibt er auf dem Gerät)."
+}

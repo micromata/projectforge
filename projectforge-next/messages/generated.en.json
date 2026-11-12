@@ -7499,6 +7499,22 @@
     "stopTime": "Stop time",
     "tag": "Tag",
     "templates": "Templates",
+    "timer": {
+      "discard": {
+        "_": "Discard timer",
+        "tooltip": "Stops the timer without booking anything."
+      },
+      "since": "since {arg0}",
+      "start": {
+        "_": "Start timer",
+        "tooltip": "Starts a timer on the server, shared with the app. Stopping it opens a new time sheet; the start is rounded down and the end up to the time grid."
+      },
+      "stop": {
+        "_": "Stop timer",
+        "button": "Stop",
+        "tooltip": "Stops the timer and opens a new time sheet. The start is rounded down and the end up to the time grid (see My account)."
+      }
+    },
     "timesheets": "Time sheets",
     "title": {
       "add": "New time sheet",
@@ -7816,6 +7832,7 @@
       }
     },
     "sshPublicKey": "SSH public key",
+    "timesheetTimeGrid": "Time grid (minutes)",
     "title": {
       "add": "Add new user",
       "edit": "Edit user",
@@ -7834,6 +7851,7 @@
       "sshPublicKey": "The own public SSH key, e.g. ssh-ed25519 AAAA…. Never enter the private key here.",
       "timeNotation": "Times with 12 hours (am/pm) or with 24 hours.",
       "timeZone": "All times (time sheets, calendar events) are shown and entered in this time zone.",
+      "timesheetTimeGrid": "The timer rounds the start down and the stop up to this grid, e.g. 15 for quarter hours. The times can still be set to 5 minutes.",
       "username": "The login name. Only the administration can change it."
     },
     "unassignedGroups": "Unassigned groups",

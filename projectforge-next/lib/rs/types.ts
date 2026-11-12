@@ -171,6 +171,8 @@ export interface UserData {
   decimalSeparator: string;
   /** The version of the own avatar (lib/rs/user-avatar.ts), null without one. */
   avatarVersion?: number | null;
+  /** The grid of the timer of the time sheets in minutes (5, 10, 15, 20 or 30), absent on an older server. */
+  timesheetTimeGridMinutes?: number | null;
 }
 
 /**

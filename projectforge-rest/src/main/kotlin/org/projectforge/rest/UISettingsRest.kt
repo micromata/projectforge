@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.timesheet.TimesheetTimeGridService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
@@ -44,6 +45,9 @@ class UISettingsRest {
   @Autowired
   private lateinit var userPrefService: UserPrefService
 
+  @Autowired
+  private lateinit var timesheetTimeGridService: TimesheetTimeGridService
+
   @AccessChecked("Own user only (logged-in user's data/prefs)")
   @GetMapping("theme")
   fun getTheme(): UIThemeSettings {
@@ -58,6 +62,20 @@ class UISettingsRest {
     val value = normalize(settings.theme)
     userPrefService.putEntry(PREF_AREA, PREF_NAME_THEME, UIThemeSettings(value))
     return ResponseEntity.ok(UIThemeSettings(value))
+  }
+
+  /** The grid in minutes the timer and the presets of time sheets round to, see [TimesheetTimeGridService]. */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
+  @GetMapping("timesheetTimeGrid")
+  fun getTimesheetTimeGrid(): UITimeGridSettings {
+    return UITimeGridSettings(timesheetTimeGridService.get())
+  }
+
+  /** Stores the grid; a value that is not one of the allowed grids is replaced by the default. */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
+  @PostMapping("timesheetTimeGrid")
+  fun setTimesheetTimeGrid(@RequestBody settings: UITimeGridSettings): ResponseEntity<UITimeGridSettings> {
+    return ResponseEntity.ok(UITimeGridSettings(timesheetTimeGridService.set(settings.minutes)))
   }
 
   /**
@@ -126,6 +144,9 @@ class UISettingsRest {
 
 /** Serializable value stored in the user's preferences; a class (not a bare String) so it can grow without a migration. */
 class UIThemeSettings(var theme: String? = null)
+
+/** The grid of the times of time sheets in minutes (5, 10, 15, 20 or 30). */
+class UITimeGridSettings(var minutes: Int? = null)
 
 /**
  * The user's arrangement of a chart dashboard: its tiles in display order. Tiles the client defines but the

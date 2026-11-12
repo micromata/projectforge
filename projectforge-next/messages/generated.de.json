@@ -7499,6 +7499,22 @@
     "stopTime": "Ende",
     "tag": "Etikett",
     "templates": "Vorlagen",
+    "timer": {
+      "discard": {
+        "_": "Timer verwerfen",
+        "tooltip": "Beendet den Timer, ohne etwas zu buchen."
+      },
+      "since": "seit {arg0}",
+      "start": {
+        "_": "Timer starten",
+        "tooltip": "Startet einen Timer auf dem Server, der auch in der App gilt. Beim Stoppen öffnet sich ein neuer Zeitbericht; der Start wird auf das Zeitraster abgerundet und das Ende aufgerundet."
+      },
+      "stop": {
+        "_": "Timer stoppen",
+        "button": "Stopp",
+        "tooltip": "Stoppt den Timer und öffnet einen neuen Zeitbericht. Der Start wird auf das Zeitraster abgerundet und das Ende aufgerundet (siehe Mein Zugang)."
+      }
+    },
     "timesheets": "Zeitberichte",
     "title": {
       "add": "Neuer Zeitbericht",
@@ -7816,6 +7832,7 @@
       }
     },
     "sshPublicKey": "SSH public key",
+    "timesheetTimeGrid": "Zeitraster (Minuten)",
     "title": {
       "add": "Neue:r Benutzer:in",
       "edit": "Benutzer:in bearbeiten",
@@ -7834,6 +7851,7 @@
       "sshPublicKey": "Der eigene öffentliche SSH-Schlüssel, z. B. ssh-ed25519 AAAA…. Hier nie den privaten Schlüssel eintragen.",
       "timeNotation": "Uhrzeiten mit 12 Stunden (am/pm) oder mit 24 Stunden.",
       "timeZone": "Alle Uhrzeiten (Zeitberichte, Kalendertermine) werden in dieser Zeitzone angezeigt und eingegeben.",
+      "timesheetTimeGrid": "Der Timer rundet den Start auf dieses Raster ab und das Ende auf. 15 steht für Viertelstunden. Die Zeiten lassen sich weiterhin auf 5 Minuten genau setzen.",
       "username": "Der Anmeldename. Ändern kann ihn nur die Administration."
     },
     "unassignedGroups": "Nicht assoziierte Gruppen",
