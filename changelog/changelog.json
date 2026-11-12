@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.2.11 released",
       "tag": "9.2.11-RELEASE",
       "downloadLink": true,
+      "sha256": "b8d7cffa29768aa13f1340f0b6cfc72f7a4b4062e0148724371beac60086f434",
       "summary": [
         "**CVE-Clinic**: status workflow of the findings with risk acceptance",
         "**Login**: password spraying is slowed down",

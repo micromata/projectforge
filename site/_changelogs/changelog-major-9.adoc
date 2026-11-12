@@ -15,6 +15,9 @@ What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
 [.changelog-source]
 __2026-11-13, tag https://github.com/micromata/projectforge/tree/9.2.11-RELEASE[9.2.11-RELEASE]__ +++{% include release-pills.html tag="9.2.11-RELEASE" docker="9.2.11" %}+++
 
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.2.11.jar: `+b8d7cffa29768aa13f1340f0b6cfc72f7a4b4062e0148724371beac60086f434+`
+
 - **CVE-Clinic**: status workflow of the findings with risk acceptance
 - **Login**: password spraying is slowed down
 - **Two-factor setup** revised: passkeys and security keys
