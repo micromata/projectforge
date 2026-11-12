@@ -1954,8 +1954,13 @@ mit ihren Personen und moderiert die Diskussionen.
 
 |Security Officer
 |`securityOfficerGroup`
-|Setzen zusätzlich die verbindliche Priorität von Fällen anderer und schließen einen Fall mit offenen Punkten (mit
-Begründung).
+|Setzen zusätzlich die verbindliche Priorität von Fällen anderer, schließen einen Fall mit offenen Punkten (mit
+Begründung) und geben die Risikoakzeptanz eines Befunds frei.
+
+|Geschäftsleitung
+|`managementGroup`
+|Liest wie die Lesenden und gibt die Risikoakzeptanz eines Befunds ab Priorität P2 neben dem Security Officer frei
+(zwei Personen).
 
 |alle
 |
@@ -1998,6 +2003,7 @@ projectforge.plugin.cveradar.securityOfficerGroup=security-officers
 # Größe durchlassen (nginx: client_max_body_size).
 projectforge.plugin.cveradar.sbomImport.maxSizeMb=20
 projectforge.plugin.cveradar.sbomImport.maxSizeLimitMb=1024
+projectforge.plugin.cveradar.managementGroup=management
 ----
 
 Das Zip eines Sammelimports von SBOMs (siehe Benutzerhandbuch) liegt während des Lesens im temporären Verzeichnis der

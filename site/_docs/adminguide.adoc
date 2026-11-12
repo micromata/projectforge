@@ -1903,7 +1903,13 @@ with their persons, moderates the discussions.
 
 |Security officers
 |`securityOfficerGroup`
-|Additionally set the binding priority of cases of others and close a case with open items (with a reason).
+|Additionally set the binding priority of cases of others, close a case with open items (with a reason) and approve the
+risk acceptance of a finding.
+
+|Management
+|`managementGroup`
+|Reads like the readers and approves the risk acceptance of a finding from priority P2 on besides the security officer
+(two persons).
 
 |everybody
 |
@@ -1946,6 +1952,7 @@ projectforge.plugin.cveradar.securityOfficerGroup=security-officers
 # (nginx: client_max_body_size).
 projectforge.plugin.cveradar.sbomImport.maxSizeMb=20
 projectforge.plugin.cveradar.sbomImport.maxSizeLimitMb=1024
+projectforge.plugin.cveradar.managementGroup=management
 ----
 
 The zip of a bulk import of SBOMs (see the user guide) is stored in the temporary directory of the JVM while it is read
