@@ -327,6 +327,8 @@ directory (or be given as absolute paths):
 projectforge.logoFile=logo.png
 # Optional variant for the dark mode:
 projectforge.logoFileDark=logo-dark.png
+# Optional height of the web app logo in px (12 to 48, default: up to 36):
+projectforge.logoHeight=28
 # Logo used in exports:
 projectforge.export.logoFile=logo-export.png
 ----

@@ -260,6 +260,8 @@ export interface SystemStatus {
   logoUrl?: string;
   /** Optional dark-mode variant of {@link logoUrl}; absent when no dark logo is configured. */
   logoUrlDark?: string;
+  /** `projectforge.logoHeight`: height in px of the logo(s) in the header; absent where the default applies. */
+  logoHeight?: number;
   /** `projectforge.development.mode` of the instance — the flag behind DevelopmentMarker. */
   developmentMode?: boolean;
   /** `projectforge.testsystemMode` of the instance — the test-system badge of DevelopmentMarker. */

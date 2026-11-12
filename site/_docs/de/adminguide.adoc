@@ -337,6 +337,8 @@ Home-Verzeichnisses liegen (oder als absolute Pfade angegeben werden):
 projectforge.logoFile=logo.png
 # Optionale Variante für den Dark Mode:
 projectforge.logoFileDark=logo-dark.png
+# Optionale Höhe des Web-App-Logos in px (12 bis 48, Standard: bis zu 36):
+projectforge.logoHeight=28
 # Logo in Exporten:
 projectforge.export.logoFile=logo-export.png
 ----

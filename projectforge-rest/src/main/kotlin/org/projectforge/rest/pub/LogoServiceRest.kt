@@ -130,6 +130,12 @@ class LogoServiceRest {
             }
         }
 
+        /** Configured height in px of the logo in the header; null where the client's default applies. */
+        @JvmStatic
+        val logoHeight: Int? by lazy {
+            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoHeight
+        }
+
         private val logoFile: File? by lazy {
             ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoFileObject
         }
