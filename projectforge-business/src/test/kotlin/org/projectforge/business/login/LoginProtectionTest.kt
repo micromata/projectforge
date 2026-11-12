@@ -99,6 +99,33 @@ class LoginProtectionTest {
                 "No offset for new ip address expected.")
     }
 
+    @Test
+    fun testPasswordSpraying() {
+        val lp = instance()
+        lp.clearAll()
+        val sprayed = lp.passwordKey("Summer2026!".toCharArray())
+        Assertions.assertNotNull(sprayed)
+        Assertions.assertEquals(sprayed, lp.passwordKey("Summer2026!".toCharArray()), "Same password, same key.")
+        Assertions.assertNotEquals(sprayed, lp.passwordKey("Summer2027!".toCharArray()))
+        Assertions.assertFalse(sprayed!!.contains("Summer"), "The key must not reveal the password.")
+        Assertions.assertNull(lp.passwordKey(null))
+        Assertions.assertNull(lp.passwordKey(CharArray(0)))
+        // One failed attempt per user and per ip: neither the user nor the ip map ever gets conspicuous.
+        for (i in 1..9) {
+            lp.incrementFailedLoginTimeOffset("user$i", "192.0.2.$i", passwordKey = sprayed)
+        }
+        Assertions.assertEquals(0, lp.getFailedLoginTimeOffsetIfExists("victim", "192.0.2.100", passwordKey = sprayed),
+                "Below the threshold of the password.")
+        lp.incrementFailedLoginTimeOffset("user10", "192.0.2.10", passwordKey = sprayed)
+        Assertions.assertTrue(lp.getFailedLoginTimeOffsetIfExists("victim", "192.0.2.100", passwordKey = sprayed) > 0,
+                "The sprayed password is penalized for any user and ip.")
+        Assertions.assertEquals(0, lp.getFailedLoginTimeOffsetIfExists("victim", "192.0.2.100",
+                passwordKey = lp.passwordKey("Another1!".toCharArray())), "Other passwords are not affected.")
+        Assertions.assertEquals(0, lp.getFailedLoginTimeOffsetIfExists("victim", "192.0.2.100"),
+                "Without a password key (tokens etc.) nothing changes.")
+        Assertions.assertEquals(10, lp.getNumberOfFailedLoginAttempts("victim", "192.0.2.100", passwordKey = sprayed))
+    }
+
     companion object {
         private const val DURATION_48_HOURS = 48 * 60 * 60 * 1000.toLong()
         private const val DURATION_4_HOURS = 4 * 60 * 60 * 1000.toLong()

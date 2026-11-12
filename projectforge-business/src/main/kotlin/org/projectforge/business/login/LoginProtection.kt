@@ -24,6 +24,12 @@
 package org.projectforge.business.login
 
 import org.slf4j.LoggerFactory
+import java.nio.CharBuffer
+import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.util.Arrays
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 import kotlin.math.max
 
 /**
@@ -52,6 +58,9 @@ import kotlin.math.max
 </pre> *
  *
  *
+ * Password spraying (one password tried against many users, so that no single user and no single ip address is
+ * conspicuous) is slowed down by a third map, keyed by [passwordKey] of the tried password.
+ *
  * Time offsets for ip addresses should be much smaller (for avoiding penalties for normal usage by a lot of users behind the same NAT
  * system).
  *
@@ -68,6 +77,11 @@ class LoginProtection private constructor() {
     internal val mapByIpAddress = LoginProtectionMap()
 
     /**
+     * Failed logins by (keyed hash of the) tried password, see [passwordKey].
+     */
+    internal val mapByPasswordKey = LoginProtectionMap()
+
+    /**
      * Call this before checking the login credentials. If a long > 0 is returned please don't proceed the login-procedure. Please display a
      * user message that the login was denied due previous failed login attempts. The user should try it later again (after x seconds). <br></br>
      * If a login offset exists for both (for user id and client's ip address) the larger value will be returned.
@@ -78,7 +92,12 @@ class LoginProtection private constructor() {
      * @return the time offset (in ms) for login if exist, otherwise 0.
      */
     @JvmOverloads
-    fun getFailedLoginTimeOffsetIfExists(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
+    fun getFailedLoginTimeOffsetIfExists(
+        userId: String?,
+        clientIpAddress: String?,
+        authenticationType: String? = null,
+        passwordKey: String? = null,
+    ): Long {
         if (log.isDebugEnabled) {
             log.debug("Checking login protection for user '$userId', client ip address '$clientIpAddress' and authentication type '$authenticationType'.")
         }
@@ -91,7 +110,8 @@ class LoginProtection private constructor() {
         if (clientIpAddress != null) {
             ipAddressOffset = mapByIpAddress.getFailedLoginTimeOffsetIfExists(clientIpAddress)
         }
-        return if (userIdOffset > ipAddressOffset) userIdOffset else ipAddressOffset
+        val passwordOffset = if (passwordKey != null) mapByPasswordKey.getFailedLoginTimeOffsetIfExists(passwordKey) else 0L
+        return max(max(userIdOffset, ipAddressOffset), passwordOffset)
     }
 
     /**
@@ -104,7 +124,12 @@ class LoginProtection private constructor() {
      * @return The number of failed login attempts (not expired ones) if existed, otherwise 0.
      */
     @JvmOverloads
-    fun getNumberOfFailedLoginAttempts(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Int {
+    fun getNumberOfFailedLoginAttempts(
+        userId: String?,
+        clientIpAddress: String?,
+        authenticationType: String? = null,
+        passwordKey: String? = null,
+    ): Int {
         var failedLoginsForUserId = 0
         var failedLoginsForIpAddress = 0
         if (userId != null) {
@@ -114,7 +139,8 @@ class LoginProtection private constructor() {
         if (clientIpAddress != null) {
             failedLoginsForIpAddress = mapByIpAddress.getNumberOfFailedLoginAttempts(clientIpAddress)
         }
-        return if (failedLoginsForUserId > failedLoginsForIpAddress) failedLoginsForUserId else failedLoginsForIpAddress
+        val failedLoginsForPassword = if (passwordKey != null) mapByPasswordKey.getNumberOfFailedLoginAttempts(passwordKey) else 0
+        return max(max(failedLoginsForUserId, failedLoginsForIpAddress), failedLoginsForPassword)
     }
 
     /**
@@ -153,6 +179,7 @@ class LoginProtection private constructor() {
     fun clearAll() {
         mapByUserString.clearAll()
         mapByIpAddress.clearAll()
+        mapByPasswordKey.clearAll()
     }
 
     /**
@@ -164,7 +191,13 @@ class LoginProtection private constructor() {
      * @return Login time offset in ms. If time offsets are given for both, the user id and the ip address, the larger one will be returned.
      */
     @JvmOverloads
-    fun incrementFailedLoginTimeOffset(userId: String?, clientIpAddress: String?, authenticationType: String? = null): Long {
+    fun incrementFailedLoginTimeOffset(
+        userId: String?,
+        clientIpAddress: String?,
+        authenticationType: String? = null,
+        passwordKey: String? = null,
+    ): Long {
+        var timeOffsetForPassword: Long = 0
         var timeOffsetForUserId: Long = 0
         var timeOffsetForIpAddress: Long = 0
         if (userId != null) {
@@ -180,7 +213,38 @@ class LoginProtection private constructor() {
                 log.warn("Time-offset (penalty) for ip address '$clientIpAddress' increased: ${timeOffsetForIpAddress / 1000} seconds.")
             }
         }
-        return max(timeOffsetForUserId, timeOffsetForIpAddress)
+        if (passwordKey != null) {
+            timeOffsetForPassword = mapByPasswordKey.incrementFailedLoginTimeOffset(passwordKey)
+            if (timeOffsetForPassword > 0) {
+                // Neither the password nor its key is logged.
+                log.warn("Time-offset (penalty) for a password tried too often increased: ${timeOffsetForPassword / 1000} seconds (password spraying?).")
+            }
+        }
+        return max(max(timeOffsetForUserId, timeOffsetForIpAddress), timeOffsetForPassword)
+    }
+
+    /**
+     * Key for [mapByPasswordKey]: HMAC-SHA256 of the password with a random key created at start-up. It lives in
+     * memory only, so neither the password nor a hash that could be attacked offline is ever stored or logged, and
+     * it's different after every restart. The password isn't modified, the caller clears it.
+     */
+    fun passwordKey(password: CharArray?): String? {
+        if (password == null || password.isEmpty()) {
+            return null
+        }
+        val buffer = StandardCharsets.UTF_8.encode(CharBuffer.wrap(password))
+        val bytes = ByteArray(buffer.remaining())
+        buffer.get(bytes)
+        if (buffer.hasArray()) {
+            Arrays.fill(buffer.array(), 0.toByte())
+        }
+        try {
+            val mac = Mac.getInstance(HMAC_ALGORITHM)
+            mac.init(SecretKeySpec(passwordKeySecret, HMAC_ALGORITHM))
+            return mac.doFinal(bytes).take(16).joinToString("") { "%02x".format(it) }
+        } finally {
+            Arrays.fill(bytes, 0.toByte())
+        }
     }
 
     private fun getUserString(user: Any, authenticationType: String?): String? {
@@ -200,6 +264,13 @@ class LoginProtection private constructor() {
          * After this given number of failed logins (for one specific ip address) the account penalty counter will be incremented.
          */
         private const val DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_IP = 1000
+        /**
+         * After this given number of failed logins with one specific password (whoever tried it) the penalty counter
+         * will be incremented. Several users may mistype the same wrong password by chance, a spray hits it often.
+         */
+        private const val DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_PASSWORD = 10
+        private const val HMAC_ALGORITHM = "HmacSHA256"
+        private val passwordKeySecret = ByteArray(32).also { SecureRandom().nextBytes(it) }
         private val instance = LoginProtection()
         @JvmStatic
         fun instance(): LoginProtection {
@@ -213,5 +284,6 @@ class LoginProtection private constructor() {
     init {
         mapByUserString.numberOfFailedLoginsBeforeIncrementing = DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_USER_ID
         mapByIpAddress.numberOfFailedLoginsBeforeIncrementing = DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_IP
+        mapByPasswordKey.numberOfFailedLoginsBeforeIncrementing = DEFAULT_NUMBER_OF_FAILED_LOGINS_BEFORE_INCREMENTING_FOR_PASSWORD
     }
 }
