@@ -4207,6 +4207,7 @@
         "download": "Als Datei herunterladen",
         "info": "Den Prompt kopieren oder als Datei herunterladen und in ein freigegebenes KI-System einfügen.",
         "label": "Prompt",
+        "language": "Sprache des Prompts",
         "step": "Schritt {arg0} von {arg1}: {arg2}"
       },
       "apply": "Übernehmen",
@@ -4616,22 +4617,32 @@
         "discardReason": "Grund",
         "empty": "Kein Befund: Keine Technologie des Inventars passt zu dieser Schwachstelle.",
         "error": {
-          "reason": "Zum Verwerfen eines Befunds ist ein Grund nötig."
+          "expiry": "Eine Risikoakzeptanz braucht ein Enddatum in der Zukunft.",
+          "fixedVersion": "Die behobene Version ist anzugeben.",
+          "reason": "Zum Verwerfen eines Befunds ist ein Grund nötig.",
+          "reasonRequired": "Für diesen Status ist ein Grund nötig.",
+          "status": "Dieser Status kann hier nicht gesetzt werden."
         },
         "filter": {
           "affected": "Mit Treffern im Inventar"
         },
         "hidden": "+{arg0} weitere betroffene Installationen, für dich nicht sichtbar.",
         "matched": "Treffer",
+        "reason": "Grund",
         "restore": "Zurücknehmen",
-        "source": "Fundort",
-        "status": {
-          "DISCARDED": "Verworfen",
-          "NEW": "Neu"
+        "risk": {
+          "approve": "Freigeben",
+          "approvedMg": "Freigegeben von der Geschäftsleitung: {arg0}",
+          "approvedSo": "Freigegeben vom Security Officer: {arg0}",
+          "needsManagement": "Ab Priorität P2 gibt auch die Geschäftsleitung frei.",
+          "reject": "Ablehnen",
+          "requested": "Risikoakzeptanz von {arg0} beantragt, gültig bis {arg1}."
         },
+        "riskExpires": "Gültig bis",
+        "source": "Fundort",
         "tab": {
           "_": "Betroffen",
-          "info": "Technologien des Inventars, die zu dieser Schwachstelle passen. Ohne genaue Version oder nur über den Namen ist ein Treffer nur möglich."
+          "info": "Technologien des Inventars, die zu dieser Schwachstelle passen. Ohne genaue Version oder nur über den Namen ist ein Treffer nur möglich. Das Security-Team setzt den Status je Installation; eine Risikoakzeptanz gibt der Security Officer frei."
         }
       },
       "findingBucket": {
@@ -4663,6 +4674,7 @@
       },
       "findingStatus": {
         "AFFECTED": "Betroffen",
+        "DISCARDED": "Verworfen",
         "FIXED": "Behoben",
         "FIX_PLANNED": "Behebung geplant",
         "IN_REVIEW": "In Prüfung",
@@ -4673,6 +4685,7 @@
       },
       "findings": {
         "confirmFixed": "Behoben bestätigen…",
+        "fixedDate": "Behoben am",
         "fixedVersion": "Behobene Version",
         "openOf": "{arg0} von {arg1} offen",
         "openOnly": "Nur offene",
@@ -7600,9 +7613,9 @@
           "info": "Hierüber kann eine Authenticator-App eingerichtet werden."
         },
         "info": {
-          "1": "### Zwei-Faktor-Authentifizierung (2FA)\n\n* ProjectForge unterstützt 2FA für eine erhöhte Sicherheit. Authenticator-Apps, SMS (wenn konfiguriert) und/oder E-Mails werden als 2. Faktor unterstützt.\n* Immer, wenn ProjectForge einen Code anfordert, kann ein Code aus der Authenticator-App eingegeben werden oder ein Einmalpasswort per E-Mail oder als SMS angefordert werden.\n\nWenn die Angemeldet-Bleiben-Funktion bei der Anmeldung verwendet wird, kann eine unnötig häufige Code-Abfrage vermieden werden!",
+          "1": "Als zweiter Faktor sind Passkeys und Sicherheitsschlüssel (WebAuthn), Authenticator-Apps, E-Mail und, falls konfiguriert, SMS möglich. Fordert ProjectForge einen Code an, genügt einer davon.\n\nMit \"Angemeldet bleiben\" bei der Anmeldung wird der Code nicht unnötig oft abgefragt.",
           "2": "Es wird dringend empfohlen, einen zweiten Faktor über eine Authenticator-App und/oder WebAuthn (z. B. Passkey, Sicherheitsschlüssel) und, falls verfügbar, auch eine Mobilfunknummer zum Anfordern von Codes per SMS zu konfiguieren.\n\nEinige Sicherheitsfunktionen, wie z. B. ein Passwort-Reset, steht nur zur Verfügung, wenn mindestens ein 2. Faktor (Authenticator-App, SMS oder WebAuthn) konfiguriert ist.",
-          "3": "Hier können 2FA-Codes getestet werden. Außerdem benötigen Änderungen auf dieser Seite eine aktuelle 2FA-Prüfung.",
+          "3": "Hier können 2FA-Codes getestet werden. Änderungen auf dieser Seite erfordern eine aktuelle 2FA-Prüfung.",
           "title": "Zweifaktorauthentifizierung"
         },
         "showAuthenticatorKey": "Authenticator-Zugang anzeigen",
@@ -7631,7 +7644,7 @@
         },
         "validation": "Code nicht gültig oder die Zweifaktor-Authentifizierung ist noch nicht eingerichtet."
       },
-      "lastSuccessful2FA": "Letzte erfolgreiche 2. Faktorauthentifizierung",
+      "lastSuccessful2FA": "Letzte erfolgreiche 2FA-Prüfung",
       "password": {
         "wrong": "Passwortprüfung fehlgeschlagen."
       },
