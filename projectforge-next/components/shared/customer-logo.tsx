@@ -38,16 +38,27 @@ export function CustomerLogo() {
   const [failedDark, setFailedDark] = useState(false);
   const src = (url: string | undefined) =>
     url && `/rsPublic/${url.replace(/^\/+/, "")}`;
-  const light = useTrimmedImage(src(logoUrl), MAX_HEIGHT);
-  const dark = useTrimmedImage(src(logoUrlDark), MAX_HEIGHT);
+  // `projectforge.logoHeight`: the logo is shown at exactly that height; otherwise at its own, up to MAX_HEIGHT.
+  const configuredHeight = data?.logoHeight;
+  const light = useTrimmedImage(
+    src(logoUrl),
+    configuredHeight ?? MAX_HEIGHT,
+    configuredHeight !== undefined
+  );
+  const dark = useTrimmedImage(
+    src(logoUrlDark),
+    configuredHeight ?? MAX_HEIGHT,
+    configuredHeight !== undefined
+  );
 
   if (!light || failed) return null;
   const hasDark = !!dark && !failedDark;
   // A crop is shown at the height its pixels had in the whole image, not stretched to max-h-9.
+  const logoHeight = (image: TrimmedImage) => image.height ?? configuredHeight;
   const height = (image: TrimmedImage) =>
-    image.height === undefined
+    logoHeight(image) === undefined
       ? undefined
-      : ({ "--logo-height": `${image.height}px` } as React.CSSProperties);
+      : ({ "--logo-height": `${logoHeight(image)}px` } as React.CSSProperties);
 
   return (
     <>
@@ -60,8 +71,9 @@ export function CustomerLogo() {
         // Bounds an arbitrary customer image inside the row's fixed height - without it a tall logo
         // would push the row open and the collapse arithmetic with it. w-auto keeps the aspect ratio.
         className={cn(
-          "max-h-9 w-auto",
-          light.height !== undefined && "h-(--logo-height)",
+          "w-auto",
+          configuredHeight === undefined && "max-h-9",
+          logoHeight(light) !== undefined && "h-(--logo-height)",
           hasDark && "dark:hidden"
         )}
         onError={() => setFailed(true)}
@@ -73,8 +85,9 @@ export function CustomerLogo() {
           alt={t("customer")}
           style={height(dark)}
           className={cn(
-            "hidden max-h-9 w-auto dark:block",
-            dark.height !== undefined && "h-(--logo-height)"
+            "hidden w-auto dark:block",
+            configuredHeight === undefined && "max-h-9",
+            logoHeight(dark) !== undefined && "h-(--logo-height)"
           )}
           onError={() => setFailedDark(true)}
         />

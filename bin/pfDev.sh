@@ -28,6 +28,16 @@ Commands:
                    (keeps the own side of generated files, no conflicts); done by
                    every pfDev.sh call, once for all worktrees
   build            next build (projectforge-next)
+  bootjar [<plugin jar>[,<plugin jar>…]]
+                   Test build of the boot jar (tests skipped), prints its path. Without
+                   an argument the plugins pinned in plugins-bin/ are downloaded; a jar
+                   of a plugin given here (e.g. one built in the repository of an
+                   external plugin: bin/pf.sh bootjar there) replaces its pin and needs no
+                   GitHub release (also PF_EXTRA_PLUGINS)
+  gen, run, bootjar
+                   Without PF_EXTRA_PLUGINS these build the external plugins configured
+                   for the release (see below) against this checkout and use their jars;
+                   PF_NO_EXTERNAL_PLUGINS=1 skips that
   check            Next quality gates: typecheck → lint → format:check
   changelog-fold [id]
                    Moves the entries of changelog/unreleased/ (one file per change,
@@ -46,6 +56,13 @@ Commands:
                    runs gen and a clean build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Finally asks whether to run publish (push +
                    GitHub release); declined, nothing is pushed.
+                   External plugins (checkouts in PF_EXTERNAL_PLUGINS, comma separated,
+                   or one per line in ~/.config/projectforge/external-plugins; needed
+                   for a published release): tested, built into the jar, pinned in
+                   plugins-bin/ (url + sha256, in the release commit; the jar is attached by
+                   publish to the GitHub release plugin-<name>-X.Y.Z, so a build from the
+                   sources downloads it), their submodule pinned and tagged X.Y.Z-RELEASE
+                   as well; publish pushes them after this repository
   publish <X.Y.Z>  Pushes the release and its tag and creates its GitHub release (notes
                    generated from the changelog, the jar attached if wanted, e.g. not for
                    minor releases); asks before each step. The docker
@@ -301,6 +318,202 @@ confirm_yes() {
   [[ -z "$answer" || "$answer" == [yY] ]]
 }
 
+# External plugins (dev-docs/external-plugins.md): checkouts of the repositories of plugins built outside of this one,
+# whose jars go into the release jar. Comma separated in PF_EXTERNAL_PLUGINS, otherwise one per line in
+# EXTERNAL_PLUGINS_FILE. Each one builds with "./gradlew -PpfCoreDir=<this checkout> :plugin:<task>" into
+# plugin/build/libs/<name>-<version>.jar and has this repository as submodule projectforge/ (pinned on release).
+EXTERNAL_PLUGINS_FILE="$HOME/.config/projectforge/external-plugins"
+
+external_plugins() {
+  local list="${PF_EXTERNAL_PLUGINS:-}" dir
+  if [[ -z "$list" && -f "$EXTERNAL_PLUGINS_FILE" ]]; then
+    list="$(grep -Ev '^[[:space:]]*(#|$)' "$EXTERNAL_PLUGINS_FILE" | paste -sd, -)"
+  fi
+  local dirs=()
+  IFS=',' read -r -a dirs <<< "$list"
+  for dir in ${dirs[@]+"${dirs[@]}"}; do
+    dir="$(echo "$dir" | xargs)"
+    [[ -n "$dir" ]] && echo "${dir/#\~/$HOME}"
+  done
+  return 0
+}
+
+# Fails, if a checkout of an external plugin isn't ready for the release tag <tag>.
+check_external_plugins() {
+  local tag="$1" dir
+  while read -r dir; do
+    if [[ ! -x "$dir/gradlew" ]]; then
+      echo "External plugin: no gradle project at $dir." >&2
+      exit 1
+    fi
+    if [[ -n "$(git -C "$dir" status --porcelain)" ]]; then
+      echo "External plugin $dir: the working tree isn't clean." >&2
+      exit 1
+    fi
+    if git -C "$dir" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+      echo "External plugin $dir: the tag $tag exists already." >&2
+      exit 1
+    fi
+    git -C "$dir" fetch --quiet
+    if git -C "$dir" rev-parse -q --verify '@{upstream}' >/dev/null 2>&1 &&
+      (($(git -C "$dir" rev-list --count 'HEAD..@{upstream}') > 0)); then
+      echo "External plugin $dir: the branch is behind its upstream, pull first." >&2
+      exit 1
+    fi
+  done < <(external_plugins)
+}
+
+# Runs ":plugin:<task>" of every external plugin against this checkout.
+run_external_plugins() {
+  local task="$1" dir
+  while read -r dir; do
+    (cd "$dir" && ./gradlew -PpfCoreDir="$ROOT" ":plugin:$task")
+  done < <(external_plugins)
+}
+
+# Builds the jars of the external plugins against this checkout; prints them comma separated (pf.extraPlugins).
+build_external_plugins() {
+  local version="$1" dir jars=() found
+  while read -r dir; do
+    (cd "$dir" && ./gradlew -q -PpfCoreDir="$ROOT" :plugin:jar) >&2
+    found=("$dir"/plugin/build/libs/*-"$version".jar)
+    if [[ ${#found[@]} -ne 1 || ! -f "${found[0]}" ]]; then
+      echo "External plugin $dir: expected one jar plugin/build/libs/*-$version.jar." >&2
+      exit 1
+    fi
+    jars+=("${found[0]}")
+  done < <(external_plugins)
+  (IFS=,; echo "${jars[*]+"${jars[*]}"}")
+}
+
+# For gen, run and bootjar: without PF_EXTRA_PLUGINS, builds the jars of the configured external plugins against this
+# checkout (so the core is always the one you work in) and exports them as PF_EXTRA_PLUGINS. The jars are copied to
+# build/external-plugins/, so a later gradle run in the plugin repository (for another checkout) doesn't replace the
+# jar under a running server. PF_NO_EXTERNAL_PLUGINS=1 skips this (the plugin's pages are switched off then).
+use_external_plugins() {
+  [[ -z "${PF_EXTRA_PLUGINS:-}" && -z "${PF_NO_EXTERNAL_PLUGINS:-}" && -n "$(external_plugins)" ]] || return 0
+  local version jars jar copies=() target="$ROOT/build/external-plugins"
+  version="$(sed -n 's/^version=//p' "$ROOT/gradle.properties")"
+  jars="$(build_external_plugins "$version")" || exit 1
+  mkdir -p "$target"
+  IFS=',' read -r -a list <<< "$jars"
+  for jar in ${list[@]+"${list[@]}"}; do
+    cp "$jar" "$target/"
+    copies+=("$target/$(basename "$jar")")
+  done
+  PF_EXTRA_PLUGINS="$(IFS=,; echo "${copies[*]+"${copies[*]}"}")"
+  export PF_EXTRA_PLUGINS
+  echo "External plugins: $PF_EXTRA_PLUGINS" >&2
+}
+
+# Fails, if the release jar lacks one of the jars <jars> (comma separated).
+check_release_jar_plugins() {
+  local version="$1" jars="$2" jar name
+  local app="$ROOT/projectforge-application/build/libs/projectforge-application-$version.jar"
+  IFS=',' read -r -a list <<< "$jars"
+  for jar in ${list[@]+"${list[@]}"}; do
+    name="$(basename "$jar")"
+    if ! unzip -l "$app" "BOOT-INF/lib/$name" >/dev/null 2>&1; then
+      echo "The release jar lacks the external plugin BOOT-INF/lib/$name." >&2
+      exit 1
+    fi
+  done
+}
+
+# Name of the plugin of the jar <jar> built for <version>, e.g. cveradar (projectforge-plugin-cveradar-X.Y.Z.jar).
+plugin_name_of_jar() {
+  local name
+  name="$(basename "$1" .jar)"
+  name="${name%-$2}"
+  echo "${name#projectforge-plugin-}"
+}
+
+# Writes plugins-bin/<name>.properties (version, url of the GitHub release asset, sha256) for every jar <jars>
+# (comma separated), see downloadPinnedPlugins in projectforge-application/build.gradle.kts. publish uploads the jars
+# (of pins written for <version>; an unchanged jar keeps the pin and asset of the release that introduced it).
+pin_external_plugins() {
+  local version="$1" jars="$2" jar name sha256 repo_url
+  [[ -z "$jars" ]] && return 0
+  repo_url="$(gh repo view --json url --jq .url)"
+  mkdir -p "$ROOT/plugins-bin"
+  IFS=',' read -r -a list <<< "$jars"
+  for jar in ${list[@]+"${list[@]}"}; do
+    name="$(plugin_name_of_jar "$jar" "$version")"
+    sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+    # Builds are reproducible: a jar equal to the pinned one keeps its pin and asset (no new GitHub release).
+    if [[ -f "$ROOT/plugins-bin/$name.properties" && "$(sed -n 's/^sha256=//p' "$ROOT/plugins-bin/$name.properties")" == "$sha256" ]]; then
+      echo "The plugin $name is unchanged since $(sed -n 's/^version=//p' "$ROOT/plugins-bin/$name.properties"), its pin and asset are kept."
+      continue
+    fi
+    printf 'version=%s\nurl=%s/releases/download/plugin-%s-%s/%s\nsha256=%s\n' \
+      "$version" "$repo_url" "$name" "$version" "$(basename "$jar")" "$sha256" >"$ROOT/plugins-bin/$name.properties"
+  done
+}
+
+# Creates the GitHub releases plugin-<name>-<version> with the jars pinned for <version> in plugins-bin/ as assets
+# (not the latest release), after the push of the tag. Skipped if the release exists; the jar must be the pinned one.
+publish_external_plugin_assets() {
+  local version="$1" tag="$1-RELEASE" pin name jar pinned sha256 asset_tag dir found
+  for pin in "$ROOT"/plugins-bin/*.properties; do
+    [[ -f "$pin" ]] || continue
+    [[ "$(sed -n 's/^version=//p' "$pin")" == "$version" ]] || continue
+    name="$(basename "$pin" .properties)"
+    asset_tag="plugin-$name-$version"
+    if gh release view "$asset_tag" >/dev/null 2>&1; then
+      echo "The GitHub release $asset_tag exists already."
+      continue
+    fi
+    jar=""
+    while read -r dir; do
+      found=("$dir"/plugin/build/libs/projectforge-plugin-"$name"-"$version".jar)
+      [[ -f "${found[0]}" ]] && jar="${found[0]}"
+    done < <(external_plugins)
+    if [[ -z "$jar" ]]; then
+      echo "The jar of the plugin $name $version isn't built here (external plugin checkout missing), upload it to $asset_tag by hand." >&2
+      exit 1
+    fi
+    pinned="$(sed -n 's/^sha256=//p' "$pin")"
+    sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+    if [[ "$sha256" != "$pinned" ]]; then
+      echo "The SHA-256 $sha256 of $jar isn't the pinned one ($pinned), it was rebuilt after the release." >&2
+      exit 1
+    fi
+    confirm_yes "Create the GitHub release $asset_tag with $(basename "$jar") (the pinned plugin of $version)?" || continue
+    gh release create "$asset_tag" "$jar" --target "$(git rev-parse "$tag^{commit}")" --latest=false \
+      --title "Plugin $name $version" \
+      --notes "Binary of the plugin $name for ProjectForge $version, pinned in plugins-bin/$name.properties. Do not delete."
+  done
+}
+
+# Pins the submodule projectforge/ of every external plugin to the release tag (commit "release: X.Y.Z") and tags
+# the plugin with the same tag.
+tag_external_plugins() {
+  local version="$1" tag="$1-RELEASE" dir
+  while read -r dir; do
+    if [[ -e "$dir/projectforge/.git" ]]; then
+      git -C "$dir/projectforge" fetch -q "$ROOT" "refs/tags/$tag:refs/tags/$tag"
+      git -C "$dir/projectforge" checkout -q "$tag"
+      git -C "$dir" add projectforge
+      git -C "$dir" diff --cached --quiet || git -C "$dir" commit -q -m "release: $version"
+    fi
+    git -C "$dir" tag -a "$tag" -m "ProjectForge $version"
+  done < <(external_plugins)
+}
+
+# Pushes the external plugins with the release tag, after this repository (their submodule points to its tag).
+push_external_plugins() {
+  local tag="$1-RELEASE" dir
+  while read -r dir; do
+    if ! git -C "$dir" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+      echo "External plugin $dir: no tag $tag, not pushed." >&2
+      continue
+    fi
+    if confirm_yes "Push the external plugin $dir and its tag $tag?"; then
+      git -C "$dir" push --follow-tags
+    fi
+  done < <(external_plugins)
+}
+
 RELEASE_USAGE="Usage: pfDev.sh release X.Y.Z [--skip-tests] / pfDev.sh publish X.Y.Z / pfDev.sh github-release X.Y.Z..."
 
 release() {
@@ -325,6 +538,7 @@ release() {
     echo "The branch is behind its upstream, pull first." >&2
     exit 1
   fi
+  check_external_plugins "$tag"
   # The generated files must be up to date, otherwise the tests fail on them, late in the release. Changes are
   # committed on their own (before the release commit), e.g. a "Not yet released" entry dated today.
   "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
@@ -351,6 +565,17 @@ release() {
       published=-PreleasePublished=false
     fi
   fi
+  # A published release ships the jar, which must contain the external plugins (e.g. the CVE-Clinic).
+  local is_published
+  if [[ -n "$published" ]]; then
+    [[ "$published" == *=true ]] && is_published=true || is_published=false
+  else
+    is_published="$(release_published "$version")"
+  fi
+  if [[ "$is_published" == true && -z "$(external_plugins)" ]]; then
+    echo "No external plugins configured (PF_EXTERNAL_PLUGINS or $EXTERNAL_PLUGINS_FILE), the release jar would lack them." >&2
+    exit 1
+  fi
   # Fails with every problem of the changelog, before anything is changed.
   "$GRADLEW" -p "$ROOT" :projectforge-application:checkReleaseChangelog -PreleaseVersion="$version" ${published:+"$published"}
   # Shown before the first question, so a release can't count backwards by mistake.
@@ -365,9 +590,12 @@ release() {
   done
   confirm "Release $version from $(git branch --show-current) (then $next)?" || exit 1
   # The tests run first, on the unchanged tree: a failure stops the release before anything is changed.
-  if ! $skip_tests; then "$GRADLEW" -p "$ROOT" clean test; fi
+  if ! $skip_tests; then
+    "$GRADLEW" -p "$ROOT" clean test
+    run_external_plugins test
+  fi
   start="$(git rev-parse --short HEAD)"
-  trap 'echo "pfDev.sh release failed. To start over: git reset --hard $start && git tag -d $tag (if created)." >&2' ERR
+  trap 'echo "pfDev.sh release failed. To start over: git reset --hard $start && git tag -d $tag (if created; also in the external plugins)." >&2' ERR
   # The entries of changelog/unreleased/ go into the release (checked folded already), its entry is added if missing.
   if [[ -n "$published" ]]; then
     "$GRADLEW" -p "$ROOT" :projectforge-application:foldChangelog --rerun -PreleaseVersion="$version" "$published"
@@ -376,13 +604,21 @@ release() {
   fi
   set_version "$version"
   "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
+  # The external plugins are built before the release commit (the version is set already; they only need the sources
+  # of this checkout) to pin their jars in plugins-bin/, which belongs to the commit the tag points to.
+  local extra_jars
+  extra_jars="$(build_external_plugins "$version")"
+  [[ "$is_published" == true ]] && pin_external_plugins "$version" "$extra_jars"
   git add -A
   git commit -q -m "release: $version"
   # Built from the release commit, so the jar's build.properties show it (and not a dirty tree). A clean build,
   # so no leftovers of earlier builds end up in the release jar. Tagged only after a successful build. The tests
   # ran before the release commit, which only changes the changelog, the version and generated files.
-  "$GRADLEW" -p "$ROOT" clean build -x test
+  # The external plugins go into the jar as built above.
+  "$GRADLEW" -p "$ROOT" clean build -x test ${extra_jars:+"-Ppf.extraPlugins=$extra_jars"}
+  check_release_jar_plugins "$version" "$extra_jars"
   git tag -a "$tag" -m "ProjectForge $version"
+  tag_external_plugins "$version"
   set_version "$next"
   # The jar contains the changelog, so the checksum of a published release's jar follows after the tag.
   local changelog_files=()
@@ -432,12 +668,15 @@ publish() {
   if [[ "$(release_published "$version")" == false ]]; then
     confirm_yes "Push $(git branch --show-current) and the tag $tag (mini release: no jar or docker images)?" || exit 1
     git push --follow-tags
+    push_external_plugins "$version"
     github_release "$version"
     echo "Its changes are also part of the release notes of the next published release."
     return
   fi
   confirm_yes "Push $(git branch --show-current) and the tag $tag?" || exit 1
   git push --follow-tags
+  push_external_plugins "$version"
+  publish_external_plugin_assets "$version"
   github_release "$version"
   echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
   # The upload to SourceForge is done by hand; afterwards the jar is set as default download there (files/latest).
@@ -741,9 +980,11 @@ parse_slot "${1:-}"
 
 case "$cmd" in
   gen)
+    use_external_plugins
     exec "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease "$@"
     ;;
   run)
+    use_external_plugins
     slot_run "$@"
     ;;
   reload)
@@ -776,6 +1017,25 @@ case "$cmd" in
     ;;
   build)
     cd "$NEXT" && exec npm run build "$@"
+    ;;
+  bootjar)
+    [[ -n "${1:-}" ]] || use_external_plugins
+    extra="${1:-${PF_EXTRA_PLUGINS:-}}"
+    if [[ -n "$extra" ]]; then
+      abs=()
+      IFS=',' read -r -a parts <<< "$extra"
+      for part in "${parts[@]}"; do
+        part="${part/#\~/$HOME}"
+        [[ -e "$part" ]] || { echo "Plugin jar $part doesn't exist." >&2; exit 1; }
+        abs+=("$(cd "$(dirname "$part")" && pwd)/$(basename "$part")")
+      done
+      extra="$(IFS=,; echo "${abs[*]}")"
+    elif ! compgen -G "$ROOT/plugins-bin/*.properties" >/dev/null; then
+      echo "Note: no plugin jar given and nothing pinned in plugins-bin/, the boot jar gets no external plugin."
+    fi
+    "$GRADLEW" -p "$ROOT" :projectforge-application:bootJar -x test ${extra:+"-Ppf.extraPlugins=$extra"}
+    version="$(sed -n 's/^version=//p' "$ROOT/gradle.properties")"
+    echo "Boot jar: $ROOT/projectforge-application/build/libs/projectforge-application-$version.jar"
     ;;
   app)
     ((SLOT == 0)) || set -- "$SLOT" "$@"

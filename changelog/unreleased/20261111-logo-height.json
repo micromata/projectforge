@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Custom logo: the height of the logo in the header can be set with `projectforge.logoHeight` (in px).",
+  "de": "Eigenes Logo: Die Höhe des Logos in der Kopfzeile lässt sich mit `projectforge.logoHeight` (in px) einstellen."
+}

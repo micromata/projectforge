@@ -2,6 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.projectforge.BuildPropertiesGenerator
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
+import java.net.URI
+import java.security.MessageDigest
+import java.util.Properties
 
 plugins {
     id("org.springframework.boot") version libs.versions.org.springframework.boot.get()
@@ -58,6 +61,70 @@ val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
 
+// Plugins developed outside of this repository (see org.projectforge.plugins.core.ExternalPlugins), joining the
+// boot jar, bootRun and the generators as binaries: -Ppf.extraPlugins=<jar or directory of jars>[,...] (relative to
+// the root project) or the environment variable PF_EXTRA_PLUGINS. A plugin brings its own libraries, which aren't in
+// ProjectForge, as further jars.
+val extraPluginJars = (providers.gradleProperty("pf.extraPlugins").orNull
+    ?: providers.environmentVariable("PF_EXTRA_PLUGINS").orNull)
+    ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
+    ?.flatMap { path ->
+        val file = rootProject.file(path)
+        require(file.exists()) { "pf.extraPlugins: '$file' doesn't exist." }
+        if (file.isDirectory) file.listFiles { f -> f.extension == "jar" }.orEmpty().sortedBy { it.name } else listOf(file)
+    }.orEmpty()
+
+// Plugins pinned in plugins-bin/*.properties (version, url, sha256 of a jar attached to a GitHub release, written by
+// "pfDev.sh release"): downloaded and verified for the boot jar only, so a community build from the sources has them as
+// well. Not for bootRun, tests and generators (a jar of the last release might not fit a newer snapshot); those use
+// pf.extraPlugins, which also wins over a pin of the same jar name.
+abstract class DownloadPinnedPlugins : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val pinFiles: ConfigurableFileCollection
+
+    /** Names of jars of pf.extraPlugins, they win over the pin of the same plugin (<name>.properties, projectforge-plugin-<name>-<version>.jar). */
+    @get:Input
+    abstract val skipNames: ListProperty<String>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun download() {
+        val dir = outputDir.get().asFile
+        dir.deleteRecursively()
+        dir.mkdirs()
+        pinFiles.files.sortedBy { it.name }.forEach { pinFile ->
+            val pin = Properties().apply { pinFile.inputStream().use { load(it) } }
+            val url = requireNotNull(pin.getProperty("url")) { "${pinFile.name}: url is missing." }
+            val expected = requireNotNull(pin.getProperty("sha256")) { "${pinFile.name}: sha256 is missing." }.lowercase()
+            val name = url.substringAfterLast('/')
+            val plugin = pinFile.nameWithoutExtension
+            val replacedBy = skipNames.get().firstOrNull { it == name || it.startsWith("projectforge-plugin-$plugin-") }
+            if (replacedBy != null) {
+                logger.lifecycle("Pinned plugin $plugin ($name) replaced by pf.extraPlugins: $replacedBy")
+                return@forEach
+            }
+            val target = File(dir, name)
+            URI(url).toURL().openStream().use { input -> target.outputStream().use { input.copyTo(it) } }
+            val actual = MessageDigest.getInstance("SHA-256").digest(target.readBytes()).joinToString("") { "%02x".format(it) }
+            if (actual != expected) {
+                target.delete()
+                throw GradleException("${pinFile.name}: $url has the sha256 $actual, expected $expected.")
+            }
+        }
+    }
+}
+
+val pinnedPluginsDir = layout.buildDirectory.dir("pinned-plugins")
+val pinFileList = rootProject.file("plugins-bin").listFiles { f -> f.extension == "properties" }.orEmpty().sortedBy { it.name }
+val downloadPinnedPlugins = tasks.register<DownloadPinnedPlugins>("downloadPinnedPlugins") {
+    pinFiles.from(pinFileList)
+    skipNames.set(extraPluginJars.map { it.name })
+    outputDir.set(pinnedPluginsDir)
+}
+
 dependencies {
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
@@ -73,6 +140,9 @@ dependencies {
     implementation(project(":org.projectforge.plugins.banking"))
     implementation(project(":org.projectforge.plugins.skillmatrix"))
     implementation(project(":org.projectforge.plugins.todo"))
+    if (extraPluginJars.isNotEmpty()) {
+        runtimeOnly(files(extraPluginJars))
+    }
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
     testImplementation(libs.org.mockito.junit.jupiter)
@@ -317,6 +387,13 @@ tasks.named<BootJar>("bootJar") {
     val nextAppJarProvider = project(":projectforge-next").layout.buildDirectory.file("libs/projectforge-next-${project.version}.jar")
     from(nextAppJarProvider) {
         into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.
+    }
+    if (pinFileList.isNotEmpty()) {
+        dependsOn(downloadPinnedPlugins)
+        from(pinnedPluginsDir) {
+            include("*.jar")
+            into("BOOT-INF/lib") // Plugins of other repositories, pinned in plugins-bin.
+        }
     }
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
     // Gradle 9 sorts archive entries by default. Boot's sorting copy action then reads the zipTree entries of the

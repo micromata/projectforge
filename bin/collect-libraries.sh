@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# collect-libraries.sh — collects the libraries of ProjectForge's components for the CVE-Radar.
+# collect-libraries.sh — collects the libraries of ProjectForge's components for the CVE-Clinic.
 #
 # One zip per component (upload it with "Upload libraries" of the component in the inventory):
 #   backend       the runtime classpath of projectforge-application with all plugins (`gradle dependencies`)
@@ -8,14 +8,14 @@
 #   image-<name>  the packages of a Docker image (CycloneDX via syft, else dpkg/apk/rpm lists); its jars are
 #                 left out, they are the ones of backend
 # The web site (site/) isn't one: its npm packages only build the CSS (development dependencies, which the
-# CVE-Radar leaves out), nothing of them is delivered.
+# CVE-Clinic leaves out), nothing of them is delivered.
 # CycloneDX is preferred wherever possible: it has the full package urls (with the distribution of an OS
 # package) and is what Dependency-Track reads too. Nothing is uploaded by this script.
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT="$ROOT/build/cve-radar-libraries"
+OUT="$ROOT/build/cve-clinic-libraries"
 COMPOSE="$ROOT/docker/compose/docker-compose.yml"
 SYFT_IMAGE="${SYFT_IMAGE:-docker.io/anchore/syft:latest}"
 ALL_COMPONENTS="backend,next,app,images"
@@ -25,14 +25,14 @@ MAX_ZIP_BYTES=$((10 * 1024 * 1024))
 
 usage() {
   cat <<'EOF'
-collect-libraries.sh [options] — the libraries of ProjectForge's components as zips for the CVE-Radar
+collect-libraries.sh [options] — the libraries of ProjectForge's components as zips for the CVE-Clinic
 
 Options:
   --only <list>    components, comma separated: backend,next,app,images (default: all)
   --image <ref>    an image to collect (repeatable); replaces the images of docker/compose/docker-compose.yml.
                    Give the tags actually deployed.
   --no-syft        no syft, the package lists of the images only (without the distribution)
-  --out <dir>      output directory (default: build/cve-radar-libraries)
+  --out <dir>      output directory (default: build/cve-clinic-libraries)
   -h, --help       this help
 
 The images are read with docker or podman (override with CONTAINER_ENGINE=…). syft is taken from the PATH,
