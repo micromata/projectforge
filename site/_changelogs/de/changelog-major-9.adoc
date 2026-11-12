@@ -1,13 +1,62 @@
 ---
 title: "ProjectForge 9"
-date: 2026-11-11
-sort_key: "2026-11-11 0058"
+date: 2026-11-12
+sort_key: "2026-11-12 0059"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-10.changelog-release]
+=== ProjectForge 9.2.10 veröffentlicht
+
+[.changelog-source]
+__2026-11-12, Tag https://github.com/micromata/projectforge/tree/9.2.10-RELEASE[9.2.10-RELEASE]__ +++{% include release-pills.html tag="9.2.10-RELEASE" docker="9.2.10" %}+++
+
+- **Zeitberichte**: Timer in der Kopfzeile, gemeinsam mit der App, und ein Zeitraster
+- **Listen**: kompakter Kopf, scrollt auf Tablets und Smartphones weg
+- **CVE-Radar** heißt jetzt **CVE-Clinic**
+- **Eigenes Logo**: Höhe einstellbar
+
+.Überblick
+[%collapsible]
+====
+- **Zeitberichte:** Ein Timer in der Kopfzeile der Webseiten, der auf dem Server liegt und auch in der App und auf anderen Geräten gilt (beim Stoppen öffnet sich ein neuer Zeitbericht); ein Zeitraster unter „Mein Zugang“ (Standard 15 Minuten), auf das der Timer den Start ab- und das Ende aufrundet.
+- **Listen:** Titel, Suche und Aktionen stehen in einer Zeile, Filter und Summen bleiben einzeilig, auf schmalen Bildschirmen liegen die Aktionen hinter einem „Mehr“-Button, und auf Tablets und Smartphones scrollt der Kopf mit den Zeilen weg; die Rechnungs- und die Liquiditätsliste wechseln per Button statt per Tabs zu ihren Grafiken bzw. zur Vorschau.
+- **CVE-Clinic:** Der CVE-Radar heißt jetzt CVE-Clinic; alte Links werden umgeleitet, Plugin-ID, Einstellungen und Datenbanktabellen behalten ihre Namen.
+- **Eigenes Logo:** Die Höhe des Logos in der Kopfzeile lässt sich mit `+projectforge.logoHeight+` (in px) einstellen.
+- **Mobile App (in Vorbereitung):** Der Timer gilt auch auf den Webseiten, sein Start stammt von der Uhr des Servers; Zeitraster und Erscheinungsbild (hell, dunkel, System) lassen sich in den Einstellungen wählen und gelten auch auf den Webseiten.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- [changelog-app]##App## Das Zeitraster und das Erscheinungsbild (hell, dunkel, System) lassen sich in den Einstellungen wählen; beides gilt auch auf den Webseiten.
+- Eigenes Logo: Die Höhe des Logos in der Kopfzeile lässt sich mit `+projectforge.logoHeight+` (in px) einstellen.
+- Zeitberichte: Ein Zeitraster (Standard 15 Minuten) unter „Mein Zugang“. Der Timer rundet den Start ab und das Ende auf; die Zeiten lassen sich weiterhin auf 5 Minuten genau setzen.
+- Zeitberichte: Ein Timer in der Kopfzeile der Webseiten, der auch in der App gilt. Auf der einen Seite gestartet, kann er auf der anderen gestoppt werden; beim Stoppen öffnet sich ein neuer Zeitbericht.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- [changelog-app]##App## Der Timer liegt auf dem Server: Er gilt auch auf den Webseiten und anderen Geräten, und sein Start stammt von der Uhr des Servers (braucht einen aktuellen Server, sonst bleibt er auf dem Gerät).
+- Listen: Der Kopf braucht weniger Höhe. Titel, Suche und Aktionen stehen in einer Zeile, Filter und Summen bleiben einzeilig, und auf schmalen Bildschirmen sind die Aktionen hinter einem „Mehr“-Button gesammelt. Auf Tablets und Smartphones scrollt der Kopf mit den Zeilen weg. Die Rechnungs- und die Liquiditätsliste wechseln per Button im Kopf statt per Tabs zu ihren Grafiken bzw. zur Vorschau, und der Strukturbaum und das Benachrichtigungs-Log nutzen denselben kompakten Kopf.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Der CVE-Radar heißt jetzt CVE-Clinic. Alte Links auf seine Seiten werden umgeleitet; Plugin-ID, Einstellungen (`+projectforge.plugin.cveradar.*+`) und Datenbanktabellen behalten ihre Namen.
+
+++++
+{% include download-link.html %}
+++++
+====
 
 [discrete#release-9-2-9.changelog-release]
 === ProjectForge 9.2.9 veröffentlicht

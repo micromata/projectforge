@@ -1,23 +1,5 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
-  "unreleased" : {
-    "id" : "unreleased",
-    "version" : "9.2.9",
-    "date" : "2026-11-12",
-    "title" : "Not yet released",
-    "summary" : [ "**Time sheets**: timer in the top bar, shared with the app, and a time grid", "**Lists**: compact head, scrolls away on tablets and phones", "**CVE-Radar** is now called **CVE-Clinic**", "**Custom logo**: adjustable height" ],
-    "overview" : [ "**Time sheets:** a timer in the top bar of the web pages, kept on the server and shared with the app and other devices (stopping opens a new time sheet); a time grid in \"My account\" (default 15 minutes), to which the timer rounds the start down and the end up.", "**Lists:** title, search and actions share one line, filters and totals stay on one line, on narrow screens the actions are behind a \"more\" button and on tablets and phones the head scrolls away with the rows; the invoice and liquidity lists switch to their charts or forecast with a button instead of tabs.", "**CVE-Clinic:** the CVE-Radar is now called CVE-Clinic; old links are redirected, plugin id, settings and database tables keep their names.", "**Custom logo:** the height of the logo in the header can be set with `projectforge.logoHeight` (in px).", "**Mobile app (in preparation):** the timer is shared with the web pages, its start comes from the server's clock; the time grid and the theme (light, dark, system) can be chosen in the settings and apply to the web pages as well." ],
-    "sections" : [ {
-      "type" : "added",
-      "items" : [ "{app} The time grid and the theme (light, dark, system) can be chosen in the settings; both are shared with the web pages.", "Custom logo: the height of the logo in the header can be set with `projectforge.logoHeight` (in px).", "Time sheets: a time grid (default 15 minutes) in \"My account\". The timer rounds the start down and the end up to it; the times can still be set to 5 minutes.", "Time sheets: a timer in the top bar of the web pages, shared with the app. Started on one, it can be stopped on the other; stopping opens a new time sheet." ]
-    }, {
-      "type" : "improved",
-      "items" : [ "{app} The timer is kept on the server: it is shared with the web pages and other devices, and its start is taken from the server's clock (needs a current server; otherwise it stays on the device).", "Lists: the head takes less height. Title, search and actions share one line, the filters and the totals stay on one line, and on narrow screens the actions are collected behind a \"more\" button. On tablets and phones the head scrolls away with the rows. The invoice and liquidity lists switch to their charts or forecast with a button in the head instead of tabs, and the structure tree and the notification log use the same compact head." ]
-    }, {
-      "type" : "changed",
-      "items" : [ "The CVE-Radar is now called CVE-Clinic. Old links to its pages are redirected; the plugin id, settings (`projectforge.plugin.cveradar.*`) and database tables keep their names." ]
-    } ]
-  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -70,6 +52,25 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-10",
+      "version" : "9.2.10",
+      "date" : "2026-11-12",
+      "title" : "ProjectForge 9.2.10 released",
+      "tag" : "9.2.10-RELEASE",
+      "downloadLink" : true,
+      "summary" : [ "**Time sheets**: timer in the top bar, shared with the app, and a time grid", "**Lists**: compact head, scrolls away on tablets and phones", "**CVE-Radar** is now called **CVE-Clinic**", "**Custom logo**: adjustable height" ],
+      "overview" : [ "**Time sheets:** a timer in the top bar of the web pages, kept on the server and shared with the app and other devices (stopping opens a new time sheet); a time grid in \"My account\" (default 15 minutes), to which the timer rounds the start down and the end up.", "**Lists:** title, search and actions share one line, filters and totals stay on one line, on narrow screens the actions are behind a \"more\" button and on tablets and phones the head scrolls away with the rows; the invoice and liquidity lists switch to their charts or forecast with a button instead of tabs.", "**CVE-Clinic:** the CVE-Radar is now called CVE-Clinic; old links are redirected, plugin id, settings and database tables keep their names.", "**Custom logo:** the height of the logo in the header can be set with `projectforge.logoHeight` (in px).", "**Mobile app (in preparation):** the timer is shared with the web pages, its start comes from the server's clock; the time grid and the theme (light, dark, system) can be chosen in the settings and apply to the web pages as well." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "{app} The time grid and the theme (light, dark, system) can be chosen in the settings; both are shared with the web pages.", "Custom logo: the height of the logo in the header can be set with `projectforge.logoHeight` (in px).", "Time sheets: a time grid (default 15 minutes) in \"My account\". The timer rounds the start down and the end up to it; the times can still be set to 5 minutes.", "Time sheets: a timer in the top bar of the web pages, shared with the app. Started on one, it can be stopped on the other; stopping opens a new time sheet." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "{app} The timer is kept on the server: it is shared with the web pages and other devices, and its start is taken from the server's clock (needs a current server; otherwise it stays on the device).", "Lists: the head takes less height. Title, search and actions share one line, the filters and the totals stay on one line, and on narrow screens the actions are collected behind a \"more\" button. On tablets and phones the head scrolls away with the rows. The invoice and liquidity lists switch to their charts or forecast with a button in the head instead of tabs, and the structure tree and the notification log use the same compact head." ]
+      }, {
+        "type" : "changed",
+        "items" : [ "The CVE-Radar is now called CVE-Clinic. Old links to its pages are redirected; the plugin id, settings (`projectforge.plugin.cveradar.*`) and database tables keep their names." ]
+      } ]
+    }, {
       "id" : "9-2-9",
       "version" : "9.2.9",
       "date" : "2026-11-11",
