@@ -63,6 +63,8 @@ internal object JarExtractor {
         "merlin-core",
         // All plugins: the script header declares the scripting DAOs of every registered plugin.
         """org\.projectforge\.plugins\.[a-z]+""",
+        // External plugins (binary from a repository of its own, see dev-docs/external-plugins.md).
+        """projectforge-plugin-[a-z]+""",
         "poi",
         "poi-ooxml",
         "projectforge-business",
