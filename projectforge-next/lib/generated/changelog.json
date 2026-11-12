@@ -5,6 +5,8 @@
     "version" : "9.2.10",
     "date" : "2026-11-12",
     "title" : "Not yet released",
+    "summary" : [ "**CVE-Clinic**: status workflow of the findings with risk acceptance", "**Login**: password spraying is slowed down", "**Two-factor setup** revised: passkeys and security keys", "**Docker**: fewer known vulnerabilities in the images", "**E-invoice**: ZUGFeRD check no longer fails without a buyer reference" ],
+    "overview" : [ "**CVE-Clinic:** findings follow a status workflow (new to fixed, mitigated or risk accepted) with approval of risk acceptances and \"fix planned\" on a version change; all affected versions of a library are named; the language of an AI prompt is selectable; the trees start collapsed and remember their open nodes.", "**Login:** password spraying (the same password against many users) is slowed down by counting failed logins per tried password.", "**Two-factor setup:** passkeys and security keys are easier to find and to add.", "**Docker:** the image no longer contains curl, wget and gnupg, the compose examples run nginx on Alpine; this removes many known vulnerabilities.", "**E-invoice:** a ZUGFeRD invoice without a buyer reference is no longer reported as faulty; the XRechnung export names the missing reference beforehand.", "**Order notifications:** the daily summary shows status, net sum, customer, project and the changed properties of each order.", "**Fixes:** Kotlin scripts find the entities of the CVE-Clinic plugin again, the horizontal scrollbar of tables no longer hides the last row, and time sheet templates are applied again in the mobile app." ],
     "sections" : [ {
       "type" : "added",
       "items" : [ {
