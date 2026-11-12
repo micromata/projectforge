@@ -48,7 +48,7 @@ export function TimesheetTimerButton() {
           variant="ghost"
           size="sm"
           className="shrink-0"
-          aria-label={t("timesheet.timer.start")}
+          aria-label={t("timesheet.timer.start._")}
           data-testid="timesheet-timer-start"
           disabled={isBusy}
           onClick={start}
@@ -105,7 +105,7 @@ export function TimesheetTimerButton() {
           variant="ghost"
           size="icon"
           className="size-7 text-muted-foreground"
-          aria-label={t("timesheet.timer.discard")}
+          aria-label={t("timesheet.timer.discard._")}
           disabled={isBusy}
           onClick={discard}
         >
@@ -116,7 +116,7 @@ export function TimesheetTimerButton() {
         <Button
           size="sm"
           className="gap-1 bg-warning text-black hover:bg-warning/90"
-          aria-label={t("timesheet.timer.stop")}
+          aria-label={t("timesheet.timer.stop._")}
           data-testid="timesheet-timer-stop"
           onClick={stop}
         >
