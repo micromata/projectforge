@@ -48,43 +48,52 @@ export function NotificationLogPage() {
       <PageTitleRow
         category={t("notification.rule.title")}
         title={t("notification.log")}
+        // The filters sit in the head row beside the title, labels inline, so the log starts right below it.
+        center={
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="notification-log-recipient">
+                {t("notification.recipient")}
+              </Label>
+              <PersonSelect
+                id="notification-log-recipient"
+                value={recipient}
+                onChange={setRecipient}
+                className="w-64"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="notification-log-status">
+                {t("notification.status")}
+              </Label>
+              <Select
+                value={status ?? ALL}
+                onValueChange={(value) =>
+                  setStatus(
+                    value === ALL ? null : (value as NotificationStatus)
+                  )
+                }
+              >
+                <SelectTrigger
+                  id="notification-log-status"
+                  className="h-9 w-48"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>{t("filter.all")}</SelectItem>
+                  {STATUSES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {t(`notification.statuses.${value}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        }
+        wrap
       />
-      <div className="flex flex-wrap items-end gap-4 px-4 pt-3">
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="notification-log-recipient">
-            {t("notification.recipient")}
-          </Label>
-          <PersonSelect
-            id="notification-log-recipient"
-            value={recipient}
-            onChange={setRecipient}
-            className="w-64"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="notification-log-status">
-            {t("notification.status")}
-          </Label>
-          <Select
-            value={status ?? ALL}
-            onValueChange={(value) =>
-              setStatus(value === ALL ? null : (value as NotificationStatus))
-            }
-          >
-            <SelectTrigger id="notification-log-status" className="h-9 w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>{t("filter.all")}</SelectItem>
-              {STATUSES.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {t(`notification.statuses.${value}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
       <NotificationLogTable
         rows={query.data}
         isLoading={query.isLoading}

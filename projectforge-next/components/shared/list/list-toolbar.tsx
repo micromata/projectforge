@@ -2,12 +2,14 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { FilterIcon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
+import { FilterIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { useCramped } from "@/hooks/use-cramped";
 import { Separator } from "@/components/ui/separator";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
-import { PageTitleRow } from "@/components/shared/page-title-row";
+import { ExperimentalBadge } from "@/components/shared/experimental-badge";
+import { useDocumentTitle } from "@/hooks/use-document-title";
+import { CollapsibleActions } from "@/components/shared/collapsible-actions";
 import { CrampedToggleButton } from "./cramped-toggle-button";
 import { ListFilterRow } from "./list-filter-row";
 import { SearchInput } from "./search-input";
@@ -16,9 +18,16 @@ export interface ListToolbarProps {
   /** Heading of the page, e.g. "Bücherliste". */
   title: string;
   /**
-   * The host already shows the heading (an embedded list under a tab): no title row of its own, its
-   * actions move to the right end of the search row.
+   * The host's tab bar, put in place of the heading (an embedded list under tabs: the tab is the heading) so tabs,
+   * search and actions share one line.
    */
+  lead?: ReactNode;
+  /**
+   * Switch to a second view of the list's data (see ViewToggleButton): beside the add button and always visible,
+   * not collected with the other actions.
+   */
+  viewSwitch?: ReactNode;
+  /** The host shows the heading itself (an embedded list under its own title): the toolbar leaves out its own. */
   compact?: boolean;
   /** The menu parent above it, e.g. "Allgemein" — where the entry sits in the main menu. */
   category: string;
@@ -70,6 +79,8 @@ export interface ListToolbarProps {
 /** The head of every list page: where it sits, what it is called, search, filters and "add". */
 export function ListToolbar({
   title,
+  lead,
+  viewSwitch,
   compact = false,
   category,
   searchValue,
@@ -88,7 +99,6 @@ export function ListToolbar({
 }: ListToolbarProps) {
   const t = useTranslations();
   const cramped = useCramped();
-  const [actionsOpen, setActionsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   // On a phone the table is what matters: the head folds the actions and the filter row away, each unfolded
   // by a tap (not on scrolling, which iOS doesn't do reliably). Folded away by CSS only, so an action's
@@ -103,17 +113,11 @@ export function ListToolbar({
   );
   const controls = (foldable: boolean) => (
     <>
+      {viewSwitch}
       {foldable ? (
-        // In the title row, which makes the actions its own items on a cramped screen: there this one
-        // takes a line of its own below the title, unfolded by the "more" button.
-        <div
-          className={cn(
-            "flex flex-wrap items-center gap-2 sm:gap-3 cramped:order-last cramped:basis-full cramped:justify-end",
-            !actionsOpen && "cramped:hidden"
-          )}
-        >
+        <CollapsibleActions highlighted={selectionActive}>
           {secondary}
-        </div>
+        </CollapsibleActions>
       ) : (
         secondary
       )}
@@ -125,20 +129,10 @@ export function ListToolbar({
       {gearMenu && addHref && (
         <Separator
           orientation="vertical"
-          className={cn("!h-5 !self-center", foldable && "cramped:hidden")}
+          className={cn("!h-5 !self-center", foldable && "@max-6xl:hidden")}
         />
       )}
       {addHref && <AddEntryButton href={addHref} />}
-      {foldable && (
-        <CrampedToggleButton
-          icon={MoreHorizontalIcon}
-          label={t("more")}
-          iconOnly
-          open={actionsOpen}
-          onToggle={() => setActionsOpen((open) => !open)}
-          highlighted={selectionActive && !actionsOpen}
-        />
-      )}
       {menu && (
         <>
           <Separator orientation="vertical" className="!h-5 !self-center" />
@@ -147,26 +141,34 @@ export function ListToolbar({
       )}
     </>
   );
+  useDocumentTitle(title);
   return (
-    <div className="border-b bg-background">
-      {!compact && (
-        <PageTitleRow
-          title={title}
-          category={category}
-          experimental={experimental}
-          compactWhenCramped
-        >
-          {controls(true)}
-        </PageTitleRow>
-      )}
-
-      <div
-        className={cn(
-          "flex items-center gap-3 px-4 pb-2.5",
-          compact ? "pt-2.5" : "py-2.5"
+    <div className="@container border-b bg-background">
+      {/* One line for heading, search and actions: the list's title (or the host's tabs, which are the heading
+          then) leads, so the table starts as high as possible. On a cramped screen the heading takes a line of
+          its own above search and actions. */}
+      <div className="flex flex-wrap items-center gap-3 px-4 pt-2 pb-2.5">
+        {(lead || !compact) && (
+          <div className="min-w-0 shrink-0 cramped:basis-full">
+            {lead ?? (
+              <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  {category && (
+                    // Not printed: where the page sits in the menu says nothing on paper.
+                    <p className="text-[11px] leading-3 font-medium tracking-wider text-muted-foreground uppercase print:hidden cramped:hidden">
+                      {category}
+                    </p>
+                  )}
+                  <h1 className="truncate text-lg leading-6 font-bold tracking-tight">
+                    {title}
+                  </h1>
+                </div>
+                {experimental && <ExperimentalBadge />}
+              </div>
+            )}
+          </div>
         )}
-      >
-        <div className="relative max-w-md flex-1">
+        <div className="relative max-w-xs min-w-40 flex-1">
           <SearchInput
             value={searchValue}
             onChange={onSearchChange}
@@ -182,11 +184,9 @@ export function ListToolbar({
             count={filterCount}
           />
         )}
-        {compact && (
-          <div className="ml-auto flex items-center gap-3">
-            {controls(false)}
-          </div>
-        )}
+        <div className="ml-auto flex items-center justify-end gap-3 print:hidden">
+          {controls(true)}
+        </div>
       </div>
 
       <ListFilterRow

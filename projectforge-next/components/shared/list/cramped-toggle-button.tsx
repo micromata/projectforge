@@ -15,6 +15,11 @@ interface CrampedToggleButtonProps {
   count?: number;
   /** Marked as on although folded: something in the folded part is active (the selection mode). */
   highlighted?: boolean;
+  /**
+   * When the button is shown: on a `cramped` screen (the default), or whenever the head is narrow (below 72rem wide,
+   * measured on the toolbar, see ListToolbar) — a tablet in portrait or a narrow window as well.
+   */
+  showWhen?: "cramped" | "narrow";
 }
 
 /**
@@ -29,13 +34,18 @@ export function CrampedToggleButton({
   onToggle,
   count = 0,
   highlighted = false,
+  showWhen = "cramped",
 }: CrampedToggleButtonProps) {
   return (
     <Button
       type="button"
       variant={highlighted ? "default" : open ? "secondary" : "ghost"}
       size={iconOnly ? "icon" : "sm"}
-      className={cn("hidden gap-1.5 cramped:inline-flex", iconOnly && "size-8")}
+      className={cn(
+        "hidden gap-1.5",
+        showWhen === "narrow" ? "@max-6xl:inline-flex" : "cramped:inline-flex",
+        iconOnly && "size-8"
+      )}
       aria-expanded={open}
       aria-label={iconOnly ? label : undefined}
       onClick={onToggle}

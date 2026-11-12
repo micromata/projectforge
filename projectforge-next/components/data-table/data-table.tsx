@@ -452,10 +452,11 @@ export function DataTable<TData>({
           }}
         >
           {/* As wide as the visible part and sticky to its left edge: it scrolls up with the rows, but not
-              sideways with the columns. */}
+              sideways with the columns. While a panel of the head is open (data-actions-open, see ListToolbar) it
+              lifts above the sticky column header, which would cover the panel otherwise. */}
           {headInScroll && headSlot && (
             <div
-              className="sticky left-0"
+              className="sticky left-0 has-[[data-actions-open]]:z-30"
               style={{
                 width: containerWidth > 0 ? containerWidth : undefined,
               }}

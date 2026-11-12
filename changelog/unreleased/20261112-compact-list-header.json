@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Lists: the head takes less height. Title, search and actions share one line, the filters and the totals stay on one line, and on narrow screens the actions are collected behind a \"more\" button. On tablets and phones the head scrolls away with the rows. The invoice and liquidity lists switch to their charts or forecast with a button in the head instead of tabs, and the structure tree and the notification log use the same compact head.",
+  "de": "Listen: Der Kopf braucht weniger Höhe. Titel, Suche und Aktionen stehen in einer Zeile, Filter und Summen bleiben einzeilig, und auf schmalen Bildschirmen sind die Aktionen hinter einem „Mehr“-Button gesammelt. Auf Tablets und Smartphones scrollt der Kopf mit den Zeilen weg. Die Rechnungs- und die Liquiditätsliste wechseln per Button im Kopf statt per Tabs zu ihren Grafiken bzw. zur Vorschau, und der Strukturbaum und das Benachrichtigungs-Log nutzen denselben kompakten Kopf."
+}

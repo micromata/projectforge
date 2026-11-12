@@ -137,8 +137,11 @@ export function FilterPills({
           <div
             className={cn(
               "flex flex-wrap items-center gap-1.5",
+              // Below a desktop width the pills stay on one line, swiped sideways, instead of growing the head.
+              "max-xl:flex-nowrap max-xl:overflow-x-auto max-xl:[scrollbar-width:none] max-xl:[&::-webkit-scrollbar]:hidden max-xl:[&>*]:shrink-0",
               // Folded: one line, swiped sideways.
-              collapsed && "flex-nowrap overflow-x-auto [&>*]:shrink-0",
+              collapsed &&
+                "flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0",
               className
             )}
           >

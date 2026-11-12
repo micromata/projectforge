@@ -17,8 +17,9 @@ test.describe("liquidity forecast export", { tag: "@parallel" }, () => {
     const format = await userFormat(page);
     await goto(page, "/liquidity");
     await page
-      .getByRole("tab", {
+      .getByRole("button", {
         name: format.t("plugins.liquidityplanning.forecast._"),
+        exact: true,
       })
       .click();
 

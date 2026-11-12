@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { DataTableHeadSlot } from "@/components/data-table/data-table-head-slot";
 import { useCramped } from "@/hooks/use-cramped";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 export interface ListPageShellProps {
   toolbar: ReactNode;
@@ -30,7 +31,10 @@ export function ListPageShell({
   children,
 }: ListPageShellProps) {
   const cramped = useCramped();
-  if (cramped) {
+  // A touch device (tablet) has less room than its width suggests: the soft keyboard, the browser bars. There the
+  // head scrolls away with the rows, too.
+  const touch = useMediaQuery("(pointer: coarse)");
+  if (cramped || touch) {
     // On a phone the header alone may fill the screen. In the table's scroll area (DataTableHeadSlot) it scrolls
     // away with the rows, and the table then has the whole height, its column header sticky; a swipe down brings
     // it back. One scroller: iOS doesn't hand a swipe on from a table at its top to an outer one (<main>).
