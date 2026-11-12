@@ -32,6 +32,26 @@ test.describe("runtime plugin PoC", () => {
     expect(problems).toEqual([]);
   });
 
+  test("deep links below the plugin route survive reload, back and forward", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, "/pluginPoc/items/5");
+    await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
+    await page.reload();
+    await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
+
+    await page.getByTestId("poc-back").click();
+    await expect(page.getByTestId("plugin-poc")).toBeVisible();
+    await page.getByTestId("poc-open-item").click();
+    await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
+    expect(page.url()).toMatch(/\/next\/pluginPoc\/items\/5\/?$/);
+
+    await page.goBack();
+    await expect(page.getByTestId("plugin-poc")).toBeVisible();
+    await page.goForward();
+    await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
+  });
+
   test("a missing bundle is a real 404, not the app shell", async ({ request }) => {
     const res = await request.get("/next/plugins-assets/cveradar-poc/missing.js");
     expect(res.status()).toBe(404);

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/shared/section-card";
 import { getQueryClient } from "@/lib/query-client";
 import { request } from "@/lib/rs/client";
+import { usePluginRoute } from "@/lib/plugin-runtime/route-context";
 
 /**
  * The host side of the runtime frontend plugin PoC: what an independently built plugin bundle gets of
@@ -19,6 +20,7 @@ export interface HostPluginRuntime {
   reactQuery: typeof reactQuery;
   ui: { Button: typeof Button; SectionCard: typeof SectionCard };
   api: { request: typeof request };
+  hooks: { usePluginRoute: typeof usePluginRoute };
   /** Identity checks of the PoC (see the plugin's page), not part of a later SDK. */
   debug: { react: typeof React; queryClient: reactQuery.QueryClient };
 }
@@ -37,6 +39,7 @@ export function installPluginRuntime(): HostPluginRuntime {
     reactQuery,
     ui: { Button, SectionCard },
     api: { request },
+    hooks: { usePluginRoute },
     debug: { react: React, queryClient: getQueryClient() },
   };
   globalThis.__HOST_PLUGIN_RUNTIME__ = runtime;
