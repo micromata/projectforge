@@ -134,6 +134,9 @@ class OrphanedLinkFilter : Filter {
         response: ServletResponse,
         uri: String,
     ): Boolean {
+        if (redirectRenamedNextSection(request, response, uri)) {
+            return true
+        }
         val newRoute = RENAMED_NEXT_PAGES.entries.find { (oldRoute, _) ->
             val path = "/${Constants.NEXT_APP_PATH}$oldRoute"
             uri.endsWith(path) || uri.contains("$path/")
@@ -142,6 +145,35 @@ class OrphanedLinkFilter : Filter {
         val query = wicketQuery(request).let { if (it.isNotEmpty() && newRoute.contains('?')) "&${it.drop(1)}" else it }
         redirect(response, uri, "/${Constants.NEXT_APP_PATH}$newRoute$query")
         return true
+    }
+
+    /**
+     * The pages of a renamed section of projectforge-next ([RENAMED_NEXT_SECTIONS], e.g. `next/cveradar/case/42`),
+     * linked by notifications, chats and bookmarks: the rest of the path and the query are carried over.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectRenamedNextSection(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        for ((oldRoute, newRoute) in RENAMED_NEXT_SECTIONS) {
+            val path = "/${Constants.NEXT_APP_PATH}$oldRoute"
+            val rest = when {
+                uri.endsWith(path) -> ""
+                uri.contains("$path/") -> uri.substringAfter("$path/").trimEnd('/')
+                else -> continue
+            }
+            // The rest is interpolated into the Location header, so only what a route segment can be is passed on.
+            if (!rest.all { it.isLetterOrDigit() || it == '/' || it == '-' || it == '_' }) {
+                continue
+            }
+            val target = if (rest.isEmpty()) newRoute else "$newRoute/$rest"
+            redirect(response, uri, "/${Constants.NEXT_APP_PATH}$target${wicketQuery(request)}")
+            return true
+        }
+        return false
     }
 
     /**
@@ -337,6 +369,14 @@ class OrphanedLinkFilter : Filter {
         private val RENAMED_NEXT_PAGES = mapOf(
             "adminErrors" to "systemDashboard",
             "problemDashboard" to "systemDashboard",
+        )
+
+        /**
+         * Former route -> current route of renamed sections of next pages (without `next/`), whose sub pages move
+         * with them, see [redirectRenamedNextSection]: the CVE-Radar became the CVE-Clinic.
+         */
+        private val RENAMED_NEXT_SECTIONS = mapOf(
+            "cveradar" to "cveclinic",
         )
 
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */

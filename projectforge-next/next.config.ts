@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
     proxyTimeout: 300_000,
     // Dev-only as well: the dev server buffers a request body for the rewrites below and passes on only the first
     // 10 MB by default, while the content length stays the full one; Spring then waits for the rest until the read
-    // times out. As the cap of a bulk import of SBOMs (CveRadarConfig.SbomImport.maxSizeLimitMb).
+    // times out. As the cap of a bulk import of SBOMs (CveClinicConfig.SbomImport.maxSizeLimitMb).
     proxyClientMaxBodySize: "1gb",
   },
   // Dev-only: proxy backend calls to Spring, on :8080 or wherever PF_BACKEND_URL points (a dev

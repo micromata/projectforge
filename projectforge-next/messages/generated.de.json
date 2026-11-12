@@ -3806,9 +3806,9 @@
     "ruleName": "Regel",
     "ruleTypes": {
       "CREDITOR_INVOICES_DUE": "Fällige Kreditorenrechnungen",
-      "CVERADAR_FINDINGS": "Neue Befunde des CVE-Radars",
-      "CVERADAR_STALE_LISTS": "Veraltete Bibliothekslisten des CVE-Radars",
-      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unbeantwortete Teamabfragen eines Falls des CVE-Radars",
+      "CVERADAR_FINDINGS": "Neue Befunde der CVE-Clinic",
+      "CVERADAR_STALE_LISTS": "Veraltete Bibliothekslisten der CVE-Clinic",
+      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unbeantwortete Teamabfragen eines Falls der CVE-Clinic",
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
@@ -3856,7 +3856,7 @@
     "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
     "template": {
       "findingsSubject": "Mögliche Updates für eure Systeme",
-      "findingsText": "<p>Für ein System in eurer Verantwortung gibt es möglicherweise Updates. Details stehen im CVE-Radar: [cvrListLink]</p>",
+      "findingsText": "<p>Für ein System in eurer Verantwortung gibt es möglicherweise Updates. Details stehen im CVE-Clinic: [cvrListLink]</p>",
       "staleListsSubject": "Bibliotheksliste möglicherweise veraltet",
       "staleListsText": "<p>Die Bibliotheksliste von [cvrStaleCount] Komponente(n) in eurer Verantwortung wurde zuletzt vor mehr als [cvrMaxAgeDays] Tagen aktualisiert. Neue Schwachstellen werden dann nicht erkannt. Bitte eine aktuelle Liste hochladen: [cvrListLink]</p><p>[cvrStaleList]</p>",
       "teamCheckUnansweredSubject": "Deine Antwort zu [cvrCaseCode] fehlt noch",
@@ -3886,7 +3886,7 @@
       "cvrStaleList": "Komponenten mit veralteter Liste (System, Instanz, Komponente, Tag der letzten Liste)",
       "cvrSystemList": "Betroffene Systeme (Anzahl Schwachstellen)",
       "cvrTeamCheckCount": "Anzahl der vom Empfänger nicht beantworteten Teamabfragen",
-      "cvrTeamCheckLink": "Link zur Teamabfrage (zu Mein CVE-Radar, wenn es mehrere sind)",
+      "cvrTeamCheckLink": "Link zur Teamabfrage (zu Mein CVE-Clinic, wenn es mehrere sind)",
       "cvrTeamCheckList": "Vom Empfänger nicht beantwortete Teamabfragen (geprüftes Projekt oder System)",
       "cvrVulnerabilityCount": "Anzahl Schwachstellen",
       "cvrVulnerabilityList": "Schwachstellen (CVE, Schweregrad, Systeme und Instanzen, Technologie; ? nur möglich)",
@@ -4394,7 +4394,7 @@
         "OSV": "OSV-Ökosystemliste"
       },
       "chat": {
-        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Radar mit. Bitte keine Details zu Projekten oder Systemen nennen, weder im Text noch in Anhängen (Screenshots, Logs, Konfigurationen): Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
+        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Clinic mit. Bitte keine Details zu Projekten oder Systemen nennen, weder im Text noch in Anhängen (Screenshots, Logs, Konfigurationen): Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
       },
       "clientAnswer": {
         "DONE": "Erledigt",
@@ -4881,7 +4881,7 @@
           "hint": "Die zu bestätigenden Maßnahmen, die offenen Prüfungen der eigenen Gruppen und die eigenen Geräte, wie der Log-Server sie meldet.",
           "noDevices": "Für dich sind keine Geräte gemeldet.",
           "teamChecks": "Prüfungen meiner Gruppen",
-          "title": "Mein CVE-Radar"
+          "title": "Mein CVE-Clinic"
         },
         "nav": {
           "adhoc": "Ad-hoc-Prüfung",
@@ -4889,7 +4889,7 @@
           "catalog": "Technologien",
           "devices": "Geräte",
           "inventory": "Systeme",
-          "my": "Mein CVE-Radar",
+          "my": "Mein CVE-Clinic",
           "prototype": "Demo",
           "vulnerabilities": "Schwachstellen"
         },
@@ -4926,7 +4926,7 @@
         "techMeasures": "Maßnahmen für Techies",
         "workaround": "Workaround"
       },
-      "menu": "CVE-Radar",
+      "menu": "CVE-Clinic",
       "my": {
         "answeredByTeamCheck": "Deine Antwort zur Prüfung oben gilt zugleich als deine Antwort zu diesem Fall. Ist etwas unklar, kannst du hier nachfragen.",
         "confirm": {
@@ -5161,7 +5161,7 @@
         "teamcheck": "Mitglieder der geprüften Gruppe und das {arg1} antworten. Teamprüfungen anlegen und löschen nur das {arg1}."
       },
       "role": {
-        "CA": "CVE-Radar-Admin",
+        "CA": "CVE-Clinic-Admin",
         "EMPLOYEE": "Mitarbeiter:in",
         "MG": "Geschäftsleitung",
         "SO": "Security Officer",
@@ -5270,7 +5270,7 @@
       },
       "start": {
         "demo": {
-          "hint": "Alle geplanten Funktionen des CVE-Radars als klickbarer Prototyp mit fiktiven Testdaten.",
+          "hint": "Alle geplanten Funktionen der CVE-Clinic als klickbarer Prototyp mit fiktiven Testdaten.",
           "link": "Demo öffnen",
           "title": "Demo"
         },
@@ -5348,7 +5348,7 @@
       },
       "teamCheck": {
         "add": "Team-Prüfung anfordern",
-        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Radar“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
+        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Clinic“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
         "answer": "Antwort",
         "answerNow": "Jetzt antworten",
         "answeredBy": "Beantwortet von",
@@ -5389,7 +5389,7 @@
         "ECOSYSTEM": "Ökosystem",
         "PRODUCT": "Produkt"
       },
-      "title": "CVE-Radar",
+      "title": "CVE-Clinic",
       "tree": {
         "collapse": "Zuklappen",
         "expand": "Aufklappen"
