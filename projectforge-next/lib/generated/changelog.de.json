@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.10",
+    "date" : "2026-11-12",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "Docker: Das Image enthält curl, wget und gnupg des Basis-Images nicht mehr (nur zum Herunterladen des JDK nötig), womit auch deren Schwachstellen entfallen.", "Docker: Die Compose-Beispiele betreiben nginx auf Alpine (stable-alpine-slim) statt Debian, ohne curl, perl, libxml2 und die Bildbibliotheken des Debian-Images, die die meisten seiner bekannten Schwachstellen verursachten." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "CVE-Clinic: Enthält eine Komponente mehrere betroffene Versionen einer Bibliothek (z. B. zwei Versionen eines npm-Pakets), nennen der Fund, die Bibliotheken und der Report jetzt alle statt nur einer.", "E-Rechnung: Eine ZUGFeRD-Rechnung ohne Käufer-Referenz (BT-10) wird von der Prüfung nicht mehr als fehlerhaft gemeldet, die Regel BR-DE-15 gilt nur für XRechnung. Der XRechnung-Export nennt die fehlende Referenz (Leitweg-ID oder Kundenreferenz) vorab. Hinweise an der Kundenreferenz (BT-10) sowie an Ansprechpartner und Abteilung (zusammen BT-56)." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
