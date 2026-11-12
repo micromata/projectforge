@@ -1,0 +1,32 @@
+{
+  "summary": {
+    "en": [
+      "**Time sheets**: timer in the top bar, shared with the app, and a time grid",
+      "**Lists**: compact head, scrolls away on tablets and phones",
+      "**CVE-Radar** is now called **CVE-Clinic**",
+      "**Custom logo**: adjustable height"
+    ],
+    "de": [
+      "**Zeitberichte**: Timer in der Kopfzeile, gemeinsam mit der App, und ein Zeitraster",
+      "**Listen**: kompakter Kopf, scrollt auf Tablets und Smartphones weg",
+      "**CVE-Radar** heißt jetzt **CVE-Clinic**",
+      "**Eigenes Logo**: Höhe einstellbar"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Time sheets:** a timer in the top bar of the web pages, kept on the server and shared with the app and other devices (stopping opens a new time sheet); a time grid in \"My account\" (default 15 minutes), to which the timer rounds the start down and the end up.",
+      "**Lists:** title, search and actions share one line, filters and totals stay on one line, on narrow screens the actions are behind a \"more\" button and on tablets and phones the head scrolls away with the rows; the invoice and liquidity lists switch to their charts or forecast with a button instead of tabs.",
+      "**CVE-Clinic:** the CVE-Radar is now called CVE-Clinic; old links are redirected, plugin id, settings and database tables keep their names.",
+      "**Custom logo:** the height of the logo in the header can be set with `projectforge.logoHeight` (in px).",
+      "**Mobile app (in preparation):** the timer is shared with the web pages, its start comes from the server's clock; the time grid and the theme (light, dark, system) can be chosen in the settings and apply to the web pages as well."
+    ],
+    "de": [
+      "**Zeitberichte:** Ein Timer in der Kopfzeile der Webseiten, der auf dem Server liegt und auch in der App und auf anderen Geräten gilt (beim Stoppen öffnet sich ein neuer Zeitbericht); ein Zeitraster unter „Mein Zugang“ (Standard 15 Minuten), auf das der Timer den Start ab- und das Ende aufrundet.",
+      "**Listen:** Titel, Suche und Aktionen stehen in einer Zeile, Filter und Summen bleiben einzeilig, auf schmalen Bildschirmen liegen die Aktionen hinter einem „Mehr“-Button, und auf Tablets und Smartphones scrollt der Kopf mit den Zeilen weg; die Rechnungs- und die Liquiditätsliste wechseln per Button statt per Tabs zu ihren Grafiken bzw. zur Vorschau.",
+      "**CVE-Clinic:** Der CVE-Radar heißt jetzt CVE-Clinic; alte Links werden umgeleitet, Plugin-ID, Einstellungen und Datenbanktabellen behalten ihre Namen.",
+      "**Eigenes Logo:** Die Höhe des Logos in der Kopfzeile lässt sich mit `projectforge.logoHeight` (in px) einstellen.",
+      "**Mobile App (in Vorbereitung):** Der Timer gilt auch auf den Webseiten, sein Start stammt von der Uhr des Servers; Zeitraster und Erscheinungsbild (hell, dunkel, System) lassen sich in den Einstellungen wählen und gelten auch auf den Webseiten."
+    ]
+  }
+}
