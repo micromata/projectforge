@@ -13,6 +13,7 @@
 #   -j, --jar FILE        Boot jar to use (default: auto-detected in projectforge-application/build/libs)
 #   -p, --platform PLAT   Target platform, e. g. linux/amd64. Uses buildx (default: native)
 #   -b, --base-image IMG  Base image (default: the Dockerfile's BASE_IMAGE default)
+#   -f, --fresh           Pulls the base image and builds without layer cache (current security updates)
 #   -s, --save            Save the image to build/docker/<name>.tar for handing it over
 #   -r, --run             Run the image interactively after building
 #   -n, --name NAME       Container name for --run (default: projectforge-pentest)
@@ -32,13 +33,14 @@ IMAGE_TAG="projectforge:pentest"
 JAR_PATH=""
 PLATFORM=""
 BASE_IMAGE=""
+DO_FRESH=false
 DO_SAVE=false
 DO_RUN=false
 CONTAINER_NAME="projectforge-pentest"
 HOST_DIR="${HOME}/ProjectForgePentest"
 
 usage() {
-  sed -n '3,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '3,25p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 while [ $# -gt 0 ]; do
@@ -58,6 +60,10 @@ while [ $# -gt 0 ]; do
     -b | --base-image)
       BASE_IMAGE="$2"
       shift 2
+      ;;
+    -f | --fresh)
+      DO_FRESH=true
+      shift
       ;;
     -s | --save)
       DO_SAVE=true
@@ -140,6 +146,9 @@ trap cleanup EXIT
 BUILD_ARGS=(--build-arg "JAR_FILE=${JAR_FILE}")
 if [ -n "$BASE_IMAGE" ]; then
   BUILD_ARGS+=(--build-arg "BASE_IMAGE=${BASE_IMAGE}")
+fi
+if [ "$DO_FRESH" = true ]; then
+  BUILD_ARGS+=(--pull --no-cache)
 fi
 
 echo "Building image $IMAGE_TAG..."

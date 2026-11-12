@@ -34,7 +34,9 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
 
   nginx:
-    image: nginx:latest
+    # Alpine slim: nginx without curl, perl, libxml2 and the image libraries of the Debian image (no fixes for many
+    # of their CVEs); the configuration loads no modules.
+    image: docker.io/library/nginx:stable-alpine-slim
     container_name: nginx
     restart: always
     ports:

@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Docker: the image no longer contains curl, wget and gnupg of the base image (only needed for downloading the JDK), which removes their vulnerabilities.",
+  "de": "Docker: Das Image enthält curl, wget und gnupg des Basis-Images nicht mehr (nur zum Herunterladen des JDK nötig), womit auch deren Schwachstellen entfallen."
+}

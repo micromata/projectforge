@@ -307,7 +307,7 @@ podman run --rm -d --name nginx-init \
   -p 80:80 \
   -v ./nginx/nginx-init.conf:/etc/nginx/nginx.conf:ro \
   -v ./nginx/webroot:/var/www/certbot \
-  docker.io/library/nginx:alpine
+  docker.io/library/nginx:stable-alpine-slim
 
 # Check that it is running (otherwise: podman logs nginx-init — run without --rm to keep it)
 podman ps

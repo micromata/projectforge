@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nginx:
-    image: docker.io/library/nginx:alpine
+    image: docker.io/library/nginx:stable-alpine-slim
     ports:
       - "80:80"
       - "443:443"
