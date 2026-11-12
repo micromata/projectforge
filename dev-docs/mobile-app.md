@@ -48,8 +48,18 @@ A phone books in a few taps, so the tab "Time sheets" (`src/features/timesheets/
   the times), then *when* in one row (wheel in 5-minute steps, "+15 min", "until now"; a stop before the start means
   the next day), then the text. The only cost unit of a task is chosen automatically. On a wide screen the form is a
   side panel instead of a bottom sheet.
-- **Timer:** local, kept in a file of the cache so it survives closing the app; stopping opens the form with the start
-  rounded down and the stop rounded up to 5 minutes. Not on the server, so another device doesn't see it.
+- **Timer:** kept at the server per user (`TimesheetTimerRest`, `/rs/timesheetTimer`, user preferences), so the app and
+  the web pages share it: started on one, stopped on the other. The server's clock gives the start. The app starts and
+  stops it on the device at once (a file of the cache, so it survives closing the app) and mirrors that to the server;
+  it takes the server's timer over on login and when the tab opens (`syncTimer`). Without an answer (offline, an older
+  server without the endpoint) the timer stays on the device only; such a timer is not dropped by a sync, one the server
+  had is (`RunningTimer.remote`). Stopping opens the form with the start rounded down and the stop rounded up to the
+  time grid; the timer ends when the booking is saved.
+- **Time grid:** chosen per user, in "My account" of the web pages or in the settings of the app (with the theme), stored
+  in the user's preferences (`TimesheetTimeGridService`, `POST /rs/uiSettings/timesheetTimeGrid`, default 15) and sent as
+  `userData.timesheetTimeGridMinutes` of `/rs/userStatus`; the app keeps it like the first day of the week and falls
+  back to 5 minutes for an older server. It only rounds the timer ("until now" too); "from" and "to" stay in 5-minute
+  steps, as the server validates them.
 - **Times** are the device's clock (local time, sent as UTC instants like next does); days begin at the device's
   midnight. The daily target of the week strip is a constant (8 h), not the working day of the installation.
 - The list of next (`/next/timesheet`) switches to this tab (`core/web/nativePage.ts`, switchable in the settings of the
@@ -171,6 +181,10 @@ app has only its token:
     (`renewLogin: false`). The `ApiClient` doesn't start a new browser login while it has the proxy cookies a login
     brought without satisfying the proxy (only once others arrive), which would otherwise leave the retry without a
     login. The proxy's login never happens in the WebView, which never shows another site.
+  - Paths of the proxy on the server's origin (Authentik's `/outpost.goauthentik.io/start`) aren't pages: only a
+    page of next is the page loaded again after a renewal, the page shown and the start page of the tab
+    (`lastPage`). Loaded again, the start of the proxy's login would redirect to its login although the app is let
+    through, and the probe would open it outside the app.
 - **Only pages of the server in the WebView:** the app loads only urls of the server's origin (`WebNavigation.pageUrl`;
   its own loads don't pass `shouldOverrideUrlLoading` on Android, this includes the `startUrl` of the server). As a
   last guard, a page of another site that is committed anyway (`onPageCommitVisible`, e.g. a back navigation on
@@ -267,6 +281,10 @@ The store version of the app is old the day after a server release, so the serve
    [app-api-deprecations.md](app-api-deprecations.md). The next app release stops reading it.
 5. **Clean-up:** an entry goes when `AppCompatibility.MIN_APP_VERSION` is above the last app version that reads it; the
    release checklist (CLAUDE.md, "Compatibility of app and server") looks through the register.
+   Example, no break: the shared timer (`/rs/timesheetTimer`) and the time grid (`userData.timesheetTimeGridMinutes`,
+   `/rs/uiSettings/timesheetTimeGrid`) are new. An older app ignores them (its timer stays on the device, rounded to
+   5 minutes); a new app on an older server keeps the timer on the device, rounds to 5 minutes and hides the grid
+   setting, because the server sends none.
 6. **A hard break without a fallback** raises `MIN_APP_VERSION` in the same commit (see above) and says so in the
    changelog; where the app can fall back, add a feature flag to the system status instead.
 

@@ -183,6 +183,12 @@ export function addressBook(timestamp: number, addresses: AppAddress[], favorite
   return { timestamp, addresses: [...addresses].sort(compareAddresses), favoriteIds };
 }
 
+/** [book] with [id] marked as favorite ([favorite]) or not. */
+export function withFavorite(book: AddressBook, id: number, favorite: boolean): AddressBook {
+  const others = book.favoriteIds.filter((it) => it !== id);
+  return { ...book, favoriteIds: favorite ? [...others, id] : others };
+}
+
 /**
  * The book after a sync: the changed addresses replace the stored ones, the ones not in [ids] are gone. Null if
  * [ids] holds addresses the book doesn't have and that aren't among [changed] (a newly visible address that wasn't

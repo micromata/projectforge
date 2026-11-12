@@ -33,6 +33,7 @@ import {
   sectionIndex,
   sectionLetter,
   subtitle,
+  withFavorite,
 } from '../address';
 import { AddressesRepository, ImageFiles, imageName } from '../addressesRepository';
 import { ApiException } from '../../../core/api/apiException';
@@ -113,6 +114,15 @@ describe('address', () => {
   });
 });
 
+describe('withFavorite', () => {
+  it('adds a favorite once and removes it', () => {
+    const book = addressBook(1, [], [1]);
+    expect(withFavorite(book, 2, true).favoriteIds).toEqual([1, 2]);
+    expect(withFavorite(book, 1, true).favoriteIds).toEqual([1]);
+    expect(withFavorite(book, 1, false).favoriteIds).toEqual([]);
+  });
+});
+
 describe('AddressesRepository', () => {
   const files = (): ImageFiles & { stored: Map<string, Uint8Array> } => {
     const stored = new Map<string, Uint8Array>();
@@ -138,7 +148,7 @@ describe('AddressesRepository', () => {
       .fn()
       .mockResolvedValueOnce({ timestamp: 1, ids: [1], favoriteIds: [1], addresses: [address({ id: 1, name: 'Abel' })] })
       .mockResolvedValueOnce({ timestamp: 2, ids: [1, 2], addresses: [address({ id: 2, name: 'Cohen' })] });
-    const repository = new AddressesRepository({ get, download: jest.fn() }, cache(), files());
+    const repository = new AddressesRepository({ post: jest.fn(), get, download: jest.fn() }, cache(), files());
     const first = await repository.sync(null);
     expect(first.favoriteIds).toEqual([1]);
     const second = await repository.sync(first);
@@ -148,16 +158,16 @@ describe('AddressesRepository', () => {
 
   it('keeps the stored book without a connection, but reports an answer of the server', async () => {
     const stored = addressBook(1, [address({ id: 1 })]);
-    const offline = new AddressesRepository({ get: jest.fn().mockRejectedValue(new TypeError('Network request failed')), download: jest.fn() }, cache(), files());
+    const offline = new AddressesRepository({ post: jest.fn(), get: jest.fn().mockRejectedValue(new TypeError('Network request failed')), download: jest.fn() }, cache(), files());
     expect(await offline.sync(stored)).toEqual({ ...stored, fromCache: true });
-    const refused = new AddressesRepository({ get: jest.fn().mockRejectedValue(new ApiException('HTTP 500', 500)), download: jest.fn() }, cache(), files());
+    const refused = new AddressesRepository({ post: jest.fn(), get: jest.fn().mockRejectedValue(new ApiException('HTTP 500', 500)), download: jest.fn() }, cache(), files());
     await expect(refused.sync(stored)).rejects.toThrow('HTTP 500');
   });
 
   it('loads everything once when the server starts to send the vCards, else only the changes', async () => {
     const list = { timestamp: 2, ids: [1], addresses: [address({ id: 1, vCard: 'BEGIN:VCARD' })], withVCards: true };
     const get = jest.fn().mockResolvedValue(list);
-    const repository = new AddressesRepository({ get, download: jest.fn() }, cache(), files());
+    const repository = new AddressesRepository({ post: jest.fn(), get, download: jest.fn() }, cache(), files());
     const book = await repository.sync(addressBook(1, [address({ id: 1 })]));
     expect(book.withVCards).toBe(true);
     await repository.sync(book);
@@ -167,7 +177,7 @@ describe('AddressesRepository', () => {
       '/rs/address/appList?modifiedSince=2',
     ]);
     const old = jest.fn().mockResolvedValue({ ...list, withVCards: undefined });
-    await new AddressesRepository({ get: old, download: jest.fn() }, cache(), files()).sync(addressBook(1, [address({ id: 1 })]));
+    await new AddressesRepository({ post: jest.fn(), get: old, download: jest.fn() }, cache(), files()).sync(addressBook(1, [address({ id: 1 })]));
     expect(old.mock.calls.map((it) => it[0])).toEqual(['/rs/address/appList?modifiedSince=1']);
   });
 
@@ -175,7 +185,7 @@ describe('AddressesRepository', () => {
     const images = files();
     images.write(imageName(1, 10), new Uint8Array([0xff, 0xd8, 1]));
     const download = jest.fn().mockResolvedValue(new Uint8Array([9]));
-    const repository = new AddressesRepository({ get: jest.fn(), download }, cache(), images);
+    const repository = new AddressesRepository({ post: jest.fn(), get: jest.fn(), download }, cache(), images);
     const vCard = 'BEGIN:VCARD\r\nFN:Jane\r\nEND:VCARD\r\n';
     const text = new TextDecoder().decode(await repository.vCard(address({ id: 1, lastUpdate: 10, hasImage: true, vCard })));
     expect(text).toBe('BEGIN:VCARD\r\nFN:Jane\r\nPHOTO;ENCODING=b;TYPE=JPEG:/9gB\r\nEND:VCARD\r\n');
@@ -189,12 +199,26 @@ describe('AddressesRepository', () => {
     const download = jest.fn().mockResolvedValue(new Uint8Array([1]));
     images.write(imageName(1, 5), new Uint8Array([0]));
     const get = jest.fn().mockResolvedValue({ timestamp: 2, ids: [1], addresses: [address({ id: 1, lastUpdate: 10, hasImage: true })] });
-    const repository = new AddressesRepository({ get, download }, cache(), images);
+    const repository = new AddressesRepository({ post: jest.fn(), get, download }, cache(), images);
     await repository.sync(null);
     expect(images.names()).toEqual([]);
     expect(await repository.image(1, 10)).toBe('file:///1-10.img');
     expect(await repository.image(1, 10)).toBe('file:///1-10.img');
     expect(download).toHaveBeenCalledTimes(1);
     expect(download.mock.calls[0][0]).toBe('/rs/address/imagePreview/1');
+  });
+
+  it('marks a favorite at the server and stores the book', async () => {
+    const post = jest.fn().mockResolvedValue({ isFavoriteCard: true });
+    const stored = cache();
+    const repository = new AddressesRepository({ post, get: jest.fn(), download: jest.fn() }, stored, files());
+    await repository.setFavorite(7, true);
+    await repository.setFavorite(7, false);
+    expect(post.mock.calls.map((it) => it[0])).toEqual([
+      '/rs/address/favorite/7?favorite=true',
+      '/rs/address/favorite/7?favorite=false',
+    ]);
+    repository.store({ ...addressBook(1, [], [7]), fromCache: true });
+    expect(await repository.loadCached()).toEqual({ ...addressBook(1, [], [7]), fromCache: false });
   });
 });

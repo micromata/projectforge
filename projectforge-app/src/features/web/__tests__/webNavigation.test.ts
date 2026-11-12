@@ -113,6 +113,7 @@ test('pages of next, not the legacy pages nor another site', () => {
   for (const url of [
     'https://pf.example.org/wa/wicket/page',
     'https://pf.example.org/nextcloud/',
+    'https://pf.example.org/outpost.goauthentik.io/start?rd=%2Fnext%2F',
     'https://other.example.org/next/',
   ]) {
     expect(navigation.isNextPage(url)).toBe(false);

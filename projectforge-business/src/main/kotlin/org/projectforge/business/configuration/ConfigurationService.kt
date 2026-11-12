@@ -169,6 +169,30 @@ open class ConfigurationService {
   open var logoFileNameDark: String? = null
     protected set
 
+  /** Raw value of `projectforge.logoHeight`, see [logoHeight]. */
+  @Value("\${projectforge.logoHeight:}")
+  open var logoHeightString: String? = null
+    protected set
+
+  /**
+   * Height in px of the logo in the header of the web app (`projectforge.logoHeight`), clamped to
+   * [MIN_LOGO_HEIGHT]..[MAX_LOGO_HEIGHT] (the header row is 48 px high). Null if unset or invalid: the client
+   * then uses its default.
+   */
+  open val logoHeight: Int?
+    get() {
+      val value = logoHeightString?.trim()
+      if (value.isNullOrEmpty()) {
+        return null
+      }
+      val height = value.toIntOrNull()
+      if (height == null) {
+        log.warn { "Invalid value '$value' of projectforge.logoHeight, a number of pixels is expected. Ignoring." }
+        return null
+      }
+      return height.coerceIn(MIN_LOGO_HEIGHT, MAX_LOGO_HEIGHT)
+    }
+
   /**
    * Default is €
    */
@@ -679,6 +703,9 @@ open class ConfigurationService {
         log.info { "Using existing " + type + ":" + file.absolutePath }
       }
     }
+
+    const val MIN_LOGO_HEIGHT = 12
+    const val MAX_LOGO_HEIGHT = 48
 
     private const val ENVIRONMENT_FILE = "environment.sh"
     private const val ENVIRONMENT_FILE_INITIAL_CONTENT = "#!/bin/bash\n\n" +

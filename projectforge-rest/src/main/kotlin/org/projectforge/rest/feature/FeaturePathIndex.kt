@@ -29,6 +29,7 @@ import org.projectforge.PageRoutes
 import org.projectforge.feature.FeatureDefinition
 import org.projectforge.feature.FeatureService
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.plugins.core.ExternalPlugins
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.ui.AutoCompletion
@@ -46,6 +47,8 @@ private val log = KotlinLogging.logger {}
  * The owners of a path are the features of the longest of their paths (segment by segment) being a prefix of it
  * ([FeatureDefinition.paths]). The REST endpoints of a plugin which no menu entry claims belong to the plugin's
  * feature (found by the package of the controller), and so do its next pages ([org.projectforge.plugins.core.AbstractPlugin.featureNextRoutes]).
+ *
+ * The next pages of an external plugin missing in this build ([ExternalPlugins]) are always blocked.
  *
  * A path is blocked, if all of its owners are switched off. Always reachable:
  * - paths without owner, and the core ([CORE_REST], [CORE_REST_PUBLIC]),
@@ -67,7 +70,13 @@ class FeaturePathIndex {
         val definitions: List<FeatureDefinition>,
         val owners: Map<String, Set<String>>,
         val shared: Set<String>,
-    )
+        /** Ids of the external plugins missing in this build: owners which are never switched on. */
+        val missing: Set<String>,
+    ) {
+        fun isOn(owner: String, featureService: FeatureService): Boolean {
+            return owner !in missing && featureService.isEnabled(owner)
+        }
+    }
 
     @Volatile
     private var index: Index? = null
@@ -133,10 +142,14 @@ class FeaturePathIndex {
     }
 
     /**
-     * Whether any path is blocked at all: if not, the filter needn't read the bodies of the attachment calls.
+     * Whether any path is blocked at all: if not, the filter needn't read the bodies of the attachment calls. The next
+     * pages of a missing external plugin don't count, they are no attachment categories.
      */
     fun anythingBlocked(): Boolean {
-        return getIndex().owners.values.any { owners -> owners.none { featureService.isEnabled(it) } }
+        val index = getIndex()
+        return index.owners.values.any { owners ->
+            owners.any { it !in index.missing } && owners.none { index.isOn(it, featureService) }
+        }
     }
 
     /**
@@ -167,7 +180,7 @@ class FeaturePathIndex {
                 return false
             }
             index.owners[key]?.let { owners ->
-                return owners.none { featureService.isEnabled(it) }
+                return owners.none { index.isOn(it, featureService) }
             }
         }
         return false
@@ -199,8 +212,12 @@ class FeaturePathIndex {
                 }
             }
         }
+        val missing = ExternalPlugins.missing(pluginAdminService.availablePlugins.map { it.id })
+        missing.forEach { plugin ->
+            plugin.nextRoutes.forEach { owners.getOrPut("${FeatureDefinition.NEXT_PREFIX}$it") { mutableSetOf() }.add(plugin.id) }
+        }
         log.debug { "Feature paths: $owners" }
-        return Index(definitions, owners, shared).also { index = it }
+        return Index(definitions, owners, shared, missing.map { it.id }.toSet()).also { index = it }
     }
 
     companion object {
@@ -226,6 +243,8 @@ class FeaturePathIndex {
             "menu",
             "next2FA",
             "notification",
+            // Push settings of the user ("My account" → Apps, settings of the mobile app).
+            "pushSettings",
             "timeZones",
             "uiSettings",
             "userEvents",

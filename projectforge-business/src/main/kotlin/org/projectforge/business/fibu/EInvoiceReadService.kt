@@ -102,7 +102,7 @@ class EInvoiceReadService {
             idx++
         }
 
-        var invoiceData = buildInvoiceData(invoice, importer).copy(
+        var invoiceData = buildInvoiceData(invoice, importer, buyerReferenceRequired = isXRechnungProfile(profile)).copy(
             format = "ZUGFeRD",
             profile = profile,
             attachments = attachmentList,
@@ -156,7 +156,7 @@ class EInvoiceReadService {
             "XRechnung"
         }
 
-        val invoiceData = buildInvoiceData(invoice, importer).copy(
+        val invoiceData = buildInvoiceData(invoice, importer, buyerReferenceRequired = true).copy(
             format = standard,
             profile = profile,
             attachments = attachmentList,
@@ -175,7 +175,17 @@ class EInvoiceReadService {
         }
     }
 
-    private fun buildInvoiceData(invoice: CalculatedInvoice?, importer: ZUGFeRDImporter): EInvoiceData {
+    /**
+     * BR-DE-15 (buyer reference, BT-10) belongs to the German XRechnung rules. A ZUGFeRD with the EN16931 profile,
+     * as exported here, doesn't need it.
+     */
+    private fun isXRechnungProfile(profile: String?): Boolean = profile?.contains("xrechnung", ignoreCase = true) == true
+
+    private fun buildInvoiceData(
+        invoice: CalculatedInvoice?,
+        importer: ZUGFeRDImporter,
+        buyerReferenceRequired: Boolean,
+    ): EInvoiceData {
         val validationErrors = mutableListOf<String>()
 
         if (invoice == null) {
@@ -234,7 +244,7 @@ class EInvoiceReadService {
             lineItems = lineItems,
             validationErrors = validationErrors,
         ).let { data ->
-            data.copy(validationErrors = data.validationErrors + validate(data) + listOfNotNull(checkTotals(invoice, data)))
+            data.copy(validationErrors = data.validationErrors + validate(data, buyerReferenceRequired) + listOfNotNull(checkTotals(invoice, data)))
         }
     }
 
@@ -251,7 +261,7 @@ class EInvoiceReadService {
         return "[BR-CO-16] Amount due for payment (BT-115) is ${payable.toPlainString()}, but the calculated total is ${calculated.toPlainString()}."
     }
 
-    private fun validate(data: EInvoiceData): List<String> {
+    private fun validate(data: EInvoiceData, buyerReferenceRequired: Boolean): List<String> {
         val errors = mutableListOf<String>()
         if (data.invoiceNumber.isNullOrBlank()) {
             errors.add("[BT-1] Invoice number is missing.")
@@ -271,7 +281,7 @@ class EInvoiceReadService {
         if (data.buyer?.name.isNullOrBlank()) {
             errors.add("[BT-44] Buyer name is missing.")
         }
-        if (data.buyerReference.isNullOrBlank()) {
+        if (buyerReferenceRequired && data.buyerReference.isNullOrBlank()) {
             errors.add("[BR-DE-15] Buyer reference (BT-10) is missing.")
         }
         if (data.seller?.city.isNullOrBlank()) {

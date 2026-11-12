@@ -2,6 +2,8 @@ import type { ComponentType } from "react";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { FieldNameOf, SectionDef } from "@/lib/page-def/types";
 
+const CONTACT_POINT_HINT = "fibu.konto.contactPerson.tooltip";
+
 /** The properties an e-invoice is addressed with, by what they mean — each entity names them its own way. */
 export interface EInvoiceAddressNames<M extends EntityMetadata> {
   contactPerson: FieldNameOf<M>;
@@ -49,8 +51,9 @@ export function eInvoiceAddressFields<M extends EntityMetadata>({
   return {
     mainColumns: 4,
     fields: [
-      { name: names.contactPerson, span: 2 },
-      { name: names.contactDepartment, span: 2 },
+      // Both end up in the one BT-56, the hint of the first one says so for the pair.
+      { name: names.contactPerson, span: 2, hintKey: CONTACT_POINT_HINT },
+      { name: names.contactDepartment, span: 2, hintKey: CONTACT_POINT_HINT },
       { name: names.street, span: 4, rows: streetRows },
       { name: names.zipCode },
       { name: names.city, span: 2 },

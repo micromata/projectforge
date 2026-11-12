@@ -49,6 +49,10 @@ const nextConfig: NextConfig = {
     // (ForecastExport walks every order and every invoice of three years). Prod has no proxy — Spring
     // serves both — so this only makes dev behave like it.
     proxyTimeout: 300_000,
+    // Dev-only as well: the dev server buffers a request body for the rewrites below and passes on only the first
+    // 10 MB by default, while the content length stays the full one; Spring then waits for the rest until the read
+    // times out. As the cap of a bulk import of SBOMs (CveClinicConfig.SbomImport.maxSizeLimitMb).
+    proxyClientMaxBodySize: "1gb",
   },
   // Dev-only: proxy backend calls to Spring, on :8080 or wherever PF_BACKEND_URL points (a dev
   // instance of another slot, see bin/pfDev.sh). `basePath: false` keeps

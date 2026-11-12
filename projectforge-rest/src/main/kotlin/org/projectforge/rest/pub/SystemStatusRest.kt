@@ -55,6 +55,8 @@ class SystemStatusRest {
         var logoUrl: String? = null,
         /** Optional dark-mode variant of [logoUrl]; null when no dark logo is configured. */
         var logoUrlDark: String? = null,
+        /** Height in px of the logo(s) in the header (`projectforge.logoHeight`); null: the client's default. */
+        var logoHeight: Int? = null,
         /**
          * True if `projectforge.development.mode` is set, so that a client can show that this instance
          * isn't a productive one (projectforge-next shows a marker in its logo row).
@@ -98,6 +100,7 @@ class SystemStatusRest {
             copyRightYears = systemStatus.copyRightYears,
             logoUrl = LogoServiceRest.logoUrl,
             logoUrlDark = LogoServiceRest.logoUrlDark,
+            logoHeight = LogoServiceRest.logoHeight,
             developmentMode = systemStatus.developmentMode,
             testsystemMode = systemStatus.testsystemMode,
             testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,
@@ -127,6 +130,7 @@ class SystemStatusRest {
             copyRightYears = "2001-${Year.now()}",
             logoUrl = LogoServiceRest.logoUrl,
             logoUrlDark = LogoServiceRest.logoUrlDark,
+            logoHeight = LogoServiceRest.logoHeight,
             developmentMode = systemStatus.developmentMode,
             testsystemMode = systemStatus.testsystemMode,
             testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,

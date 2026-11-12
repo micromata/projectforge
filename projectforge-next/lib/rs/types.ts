@@ -171,6 +171,8 @@ export interface UserData {
   decimalSeparator: string;
   /** The version of the own avatar (lib/rs/user-avatar.ts), null without one. */
   avatarVersion?: number | null;
+  /** The grid of the timer of the time sheets in minutes (5, 10, 15, 20 or 30), absent on an older server. */
+  timesheetTimeGridMinutes?: number | null;
 }
 
 /**
@@ -260,6 +262,8 @@ export interface SystemStatus {
   logoUrl?: string;
   /** Optional dark-mode variant of {@link logoUrl}; absent when no dark logo is configured. */
   logoUrlDark?: string;
+  /** `projectforge.logoHeight`: height in px of the logo(s) in the header; absent where the default applies. */
+  logoHeight?: number;
   /** `projectforge.development.mode` of the instance — the flag behind DevelopmentMarker. */
   developmentMode?: boolean;
   /** `projectforge.testsystemMode` of the instance — the test-system badge of DevelopmentMarker. */

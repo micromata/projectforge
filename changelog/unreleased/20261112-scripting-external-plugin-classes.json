@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Scripts: the entities of the CVE-Clinic plugin (e.g. CvrCaseDO) are found again by Kotlin scripts (\"Unresolved reference 'cveradar'\").",
+  "de": "Skripte: Die Entitäten des CVE-Clinic-Plugins (z. B. CvrCaseDO) werden von Kotlin-Skripten wieder gefunden („Unresolved reference 'cveradar'“)."
+}

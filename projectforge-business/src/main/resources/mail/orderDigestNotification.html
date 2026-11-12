@@ -20,6 +20,17 @@
               <% } else { %>#<%= entry.number %><% } %>
               <%= pf.getString(entry.title) %>
             </span>
+            <% if (entry.status != null || entry.amount != null) { %>
+            <span class="value">
+              <% if (entry.status != null) { %><%= pf.getString(entry.status) %><% } %>
+              <% if (entry.status != null && entry.amount != null) { %>&middot;<% } %>
+              <% if (entry.amount != null) { %><span class="no-wrap"><%= pf.getCurrency(entry.amount) %></span><% } %>
+            </span>
+            <% } %>
+            <% if (entry.customerProject) { %><span class="value"><%= pf.getString(entry.customerProject) %></span><% } %>
+            <% if (entry.operation == "UPDATE" && entry.changes) { %>
+            <span class="value"><%= pf.getI18nString("fibu.auftrag.mail.digest.changes") %>: <%= pf.getString(entry.changes) %></span>
+            <% } %>
           </td>
         </tr>
         <% } %>

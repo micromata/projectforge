@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.timesheet.TimesheetTimeGridConfig
 import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -60,6 +61,11 @@ object UserSettingsOptions {
     fun excelDateFormats(): List<Option> {
         val today = LocalDate.now()
         return Configuration.instance.dateFormats.map { createOption(it, today, excelDateFormat = true) }
+    }
+
+    /** The grids of the timer in minutes, the values are the minutes as text. */
+    fun timesheetTimeGrids(): List<Option> {
+        return TimesheetTimeGridConfig.ALLOWED.map { Option(it.toString(), it.toString()) }
     }
 
     fun timeNotations(): List<Option> {

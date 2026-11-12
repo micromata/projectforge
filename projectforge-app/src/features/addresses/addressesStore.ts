@@ -26,7 +26,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { ApiClient } from '../../core/api/apiClient';
 import { authController } from '../../core/auth/authController';
 import { JsonCache } from '../../core/cache/jsonCache';
-import { AddressBook, AppAddress } from './address';
+import { AddressBook, AppAddress, withFavorite } from './address';
 import { addressImageFiles } from './addressImages';
 import { AddressesRepository, imageName } from './addressesRepository';
 
@@ -121,6 +121,30 @@ class AddressesStore {
     const api = this.api;
     if (api == null || this.state.status !== 'data' || Date.now() - this.lastSync < STALE_MILLIS) return;
     void this.syncSilently(api, this.state.book);
+  }
+
+  /**
+   * Marks the address [id] as a favorite ([favorite]) or removes the mark: shown at once, taken back if the server
+   * refuses. The failure is returned for the caller to report.
+   */
+  async setFavorite(id: number, favorite: boolean): Promise<unknown> {
+    const api = this.api;
+    if (api == null || this.state.status !== 'data') return null;
+    this.set({ status: 'data', book: withFavorite(this.state.book, id, favorite) });
+    const repository = this.repository(api);
+    try {
+      await repository.setFavorite(id, favorite);
+      // The current book: a sync may have replaced the shown one meanwhile.
+      if (this.api === api && this.state.status === 'data') repository.store(this.state.book);
+      return null;
+    } catch (e) {
+      // Taken back unless it was changed again meanwhile.
+      const book = this.state.status === 'data' ? this.state.book : null;
+      if (this.api === api && book != null && book.favoriteIds.includes(id) === favorite) {
+        this.set({ status: 'data', book: withFavorite(book, id, !favorite) });
+      }
+      return e;
+    }
   }
 
   /** The `file://` url of the image of [address] (thumbnail or [full]), null without one. */

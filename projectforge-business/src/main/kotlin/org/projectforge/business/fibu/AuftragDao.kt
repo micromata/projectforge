@@ -590,7 +590,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                     OrderNotificationMode.DAILY -> {
                         // Collected for the daily digest (OrderNotificationDigestService), not mailed now.
                         orderNotificationQueueDao.enqueue(
-                            recipient.id!!, auftrag.id!!, auftrag.nummer, auftrag.titel, operationType.name, requestUrl,
+                            recipient.id!!, auftrag.id!!, digestSnapshot(auftrag, operationType, history),
+                            operationType.name, requestUrl,
                         )
                         continue
                     }
@@ -614,6 +615,32 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
         failure?.let { throw it }
         return sent
+    }
+
+    /**
+     * What the daily digest shows of the order. The changed properties are those of the newest history entries (the
+     * ones of this save, positions and payment schedules included); a deleted order has no teaser.
+     */
+    private fun digestSnapshot(
+        auftrag: AuftragDO,
+        operationType: OperationType,
+        history: List<FlatDisplayHistoryEntry>,
+    ): OrderNotificationQueueDao.Snapshot {
+        val changes = if (operationType == OperationType.UPDATE) {
+            val newest = history.mapNotNull { it.timestamp?.time }.maxOrNull()
+            history.filter { newest != null && (it.timestamp?.time ?: 0) >= newest - 5000 }
+                .mapNotNull { it.displayPropertyName ?: it.propertyName }
+        } else {
+            emptyList()
+        }
+        return OrderNotificationQueueDao.Snapshot(
+            orderNumber = auftrag.nummer,
+            orderTitle = auftrag.titel,
+            customerProject = auftrag.projektKundeAsString,
+            status = auftrag.status?.name,
+            amount = auftrag.nettoSumme,
+            changes = changes,
+        )
     }
 
     private fun sendNotification(

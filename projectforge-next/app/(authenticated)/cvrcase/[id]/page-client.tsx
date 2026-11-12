@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { useRouteParams } from "@/hooks/use-route-params";
 import { PageShell } from "@/components/shared/page-shell";
 import { EntityEditPage } from "@/components/shared/edit/entity-edit-page";
-import { CVR_CASE_PAGE } from "@/components/features/cve-radar/cases/case.page";
+import { CVR_CASE_PAGE } from "@/components/features/cve-clinic/cases/case.page";
 
 // Reads the id from the URL at runtime rather than from a server-provided route param, so any id
 // works under the static export (see page.tsx and use-route-params.ts).

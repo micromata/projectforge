@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Docker: the compose examples run nginx on Alpine (stable-alpine-slim) instead of Debian, without curl, perl, libxml2 and the image libraries of the Debian image, which caused most of its known vulnerabilities.",
+  "de": "Docker: Die Compose-Beispiele betreiben nginx auf Alpine (stable-alpine-slim) statt Debian, ohne curl, perl, libxml2 und die Bildbibliotheken des Debian-Images, die die meisten seiner bekannten Schwachstellen verursachten."
+}

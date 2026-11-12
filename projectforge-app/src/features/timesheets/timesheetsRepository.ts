@@ -34,6 +34,7 @@ import type {
   TimesheetFavorite,
   TimesheetSave,
 } from '@projectforge/shared/rs/timesheet';
+import type { TimesheetTimerInfo, TimesheetTimerStartRequest } from '@projectforge/shared/rs/timesheet-timer';
 
 import type { ApiClient } from '../../core/api/apiClient';
 import { ApiException } from '../../core/api/apiException';
@@ -78,6 +79,7 @@ export class TimesheetsRepository {
   private static readonly PATH = '/rs/timesheet';
   private static readonly TASK_PATH = '/rs/task';
   private static readonly TIMER_NAME = 'timesheetTimer';
+  private static readonly TIMER_PATH = '/rs/timesheetTimer';
 
   constructor(
     private readonly api: Pick<ApiClient, 'get' | 'post' | 'put' | 'delete'>,
@@ -237,6 +239,56 @@ export class TimesheetsRepository {
   async loadTimer(): Promise<RunningTimer | null> {
     const stored = await this.cache.read<StoredTimer>(TimesheetsRepository.TIMER_NAME);
     return stored == null ? null : timerOf(stored);
+  }
+
+  /**
+   * The timer of the user at the server (started in the app or on the web pages), null without one. Throws if there is
+   * no answer (offline, an older server without the endpoint): the timer on the device stays then.
+   */
+  async serverTimer(): Promise<RunningTimer | null> {
+    const info = await this.api.get<TimesheetTimerInfo>(TimesheetsRepository.TIMER_PATH, { renewLogin: false });
+    if (!info.running || info.startedAt == null) return null;
+    // The server's clock gives the start, the device's clock is only used for showing the elapsed time.
+    return { start: new Date(info.startedAt), what: await this.whatOfTimer(info), remote: true };
+  }
+
+  /** Starts the timer at the server; the answer has its start. Throws like [serverTimer]. */
+  async startServerTimer(what: BookingWhat | null): Promise<RunningTimer> {
+    const body: TimesheetTimerStartRequest = {
+      taskId: what?.task?.id ?? null,
+      kost2Id: what?.kost2?.id ?? null,
+      description: what?.description || null,
+      location: what?.location || null,
+      reference: what?.reference || null,
+      tag: what?.tag ?? null,
+    };
+    const info = await this.api.post<TimesheetTimerInfo>(`${TimesheetsRepository.TIMER_PATH}/start`, { body });
+    return { start: new Date(info.startedAt ?? Date.now()), what, remote: true };
+  }
+
+  async clearServerTimer(): Promise<void> {
+    await this.api.post(`${TimesheetsRepository.TIMER_PATH}/clear`);
+  }
+
+  /** What the timer books on: its task and cost unit are looked up by their ids, without any a timer books nothing. */
+  private async whatOfTimer(info: TimesheetTimerInfo): Promise<BookingWhat | null> {
+    const texts = {
+      description: info.description ?? '',
+      location: info.location ?? '',
+      reference: info.reference ?? '',
+      tag: info.tag || null,
+    };
+    if (info.taskId == null) {
+      return texts.description || texts.location || texts.reference || texts.tag ? { task: null, kost2: null, ...texts } : null;
+    }
+    try {
+      const taskInfo = await this.taskInfo(info.taskId);
+      const kost2 = taskInfo.kost2List.find((it) => it.id === info.kost2Id) ?? null;
+      return { task: taskInfo.task, kost2, ...texts };
+    } catch {
+      // The timer is shown without its task (it is chosen when stopping) rather than not at all.
+      return { task: null, kost2: null, ...texts };
+    }
   }
 
   saveTimer(timer: RunningTimer): void {

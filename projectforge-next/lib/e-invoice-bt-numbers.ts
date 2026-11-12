@@ -14,6 +14,8 @@ const BT_NUMBERS: Record<string, Record<string, string>> = {
     currency: "BT-5",
     faelligkeit: "BT-9",
     customerLeitwegId: "BT-10",
+    // Sent as BT-10 where there is no Leitweg-ID (see EInvoiceExportService.buyerReferenceOf).
+    customerref1: "BT-10",
     customerOrderNumber: "BT-13",
     customerCostCenter: "BT-19",
     originalRechnung: "BT-25",

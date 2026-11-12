@@ -1,6 +1,132 @@
 {
   "releases": [
     {
+      "id": "9-2-10",
+      "version": "9.2.10",
+      "date": "2026-11-12",
+      "title": "ProjectForge 9.2.10 released",
+      "tag": "9.2.10-RELEASE",
+      "downloadLink": true,
+      "sha256": "ab59d0d725e435bbb88e88c646eb20569a1a55a68d09d4f7be694276979bac35",
+      "summary": [
+        "**Time sheets**: timer in the top bar, shared with the app, and a time grid",
+        "**Lists**: compact head, scrolls away on tablets and phones",
+        "**CVE-Radar** is now called **CVE-Clinic**",
+        "**Custom logo**: adjustable height"
+      ],
+      "overview": [
+        "**Time sheets:** a timer in the top bar of the web pages, kept on the server and shared with the app and other devices (stopping opens a new time sheet); a time grid in \"My account\" (default 15 minutes), to which the timer rounds the start down and the end up.",
+        "**Lists:** title, search and actions share one line, filters and totals stay on one line, on narrow screens the actions are behind a \"more\" button and on tablets and phones the head scrolls away with the rows; the invoice and liquidity lists switch to their charts or forecast with a button instead of tabs.",
+        "**CVE-Clinic:** the CVE-Radar is now called CVE-Clinic; old links are redirected, plugin id, settings and database tables keep their names.",
+        "**Custom logo:** the height of the logo in the header can be set with `projectforge.logoHeight` (in px).",
+        "**Mobile app (in preparation):** the timer is shared with the web pages, its start comes from the server's clock; the time grid and the theme (light, dark, system) can be chosen in the settings and apply to the web pages as well."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "{app} The time grid and the theme (light, dark, system) can be chosen in the settings; both are shared with the web pages.",
+            "Custom logo: the height of the logo in the header can be set with `projectforge.logoHeight` (in px).",
+            "Time sheets: a time grid (default 15 minutes) in \"My account\". The timer rounds the start down and the end up to it; the times can still be set to 5 minutes.",
+            "Time sheets: a timer in the top bar of the web pages, shared with the app. Started on one, it can be stopped on the other; stopping opens a new time sheet."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "{app} The timer is kept on the server: it is shared with the web pages and other devices, and its start is taken from the server's clock (needs a current server; otherwise it stays on the device).",
+            "Lists: the head takes less height. Title, search and actions share one line, the filters and the totals stay on one line, and on narrow screens the actions are collected behind a \"more\" button. On tablets and phones the head scrolls away with the rows. The invoice and liquidity lists switch to their charts or forecast with a button in the head instead of tabs, and the structure tree and the notification log use the same compact head."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "The CVE-Radar is now called CVE-Clinic. Old links to its pages are redirected; the plugin id, settings (`projectforge.plugin.cveradar.*`) and database tables keep their names."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9-2-9",
+      "version": "9.2.9",
+      "date": "2026-11-11",
+      "title": "ProjectForge 9.2.9 released",
+      "tag": "9.2.9-RELEASE",
+      "published": false,
+      "summary": [
+        "**CVE-Radar**: bulk import of SBOMs, report by package, ratings of all sources, fixes for severity and Maven versions",
+        "**Backup**: the CVE-Radar source data is no longer backed up",
+        "**Notifications**: push messages show their content",
+        "**App**: grouped pages menu, SSO renewal in Safari fixed, booking form improvements",
+        "**Invoices**: cleaner invoice address and customer reference"
+      ],
+      "overview": [
+        "**CVE-Radar:** a zip with the SBOMs of many repositories and container images can be imported into an area in one go (preview, adaptable codes and names, largest zip set per area); \"Report by package\" downloads the vulnerabilities per package and version as PDF, Excel or JSON; single vulnerabilities can be left out of the report and the AI prompt; the file of a vulnerability shows the ratings of all its sources side by side; the inventory counts the findings of a node by severity, each CVE once; the progress bar of imports and matching runs until the findings are stored, SBOMs are read as a stream; the severity of a vulnerability known from OSV only follows its CVSS score, Maven versions with a qualifier like -jre or .RELEASE count as the release itself, and a file above the upload limit is refused at once; an area, system, instance or component can be deleted with everything below it for good, after a list shows what goes.",
+        "**Backup and history:** the data of the CVE-Radar sources isn't backed up any more (the separate dump projectforge_cveradar_… is gone, the imports fill it again after a restore); technologies, libraries and imported vulnerabilities are no longer kept in the history.",
+        "**Notifications:** push messages show the title and the beginning of the notification (switchable per user and for the whole server with `projectforge.push.content=false`); the text of chat notifications no longer repeats their title.",
+        "**Chat and changelog:** the arrow keys keep paging in the full size view of several images; a link of the table of contents opened as a drawer scrolls to its entry again.",
+        "**Invoices:** the contact person of the customer is no longer printed in the invoice address of the document (the e-invoice still states it, templates may print it), and the text after the colon in the customer reference is no longer bold.",
+        "**Sipgate:** a permanently deleted address no longer comes back through the contact sync, its Sipgate contact is deleted instead.",
+        "**Mobile app (in preparation):** the pages menu opens its categories on a tablet and remembers opened ones, behind an SSO proxy the pages no longer open in Safari after the session of the proxy ended, a favorite star in the address view, and the booking form scrolls the edited field and the optional fields into view above the keyboard."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "CVE-Radar findings export and ad-hoc check: single vulnerabilities can be left out of the report and the AI prompt (\"Select vulnerabilities\"), e.g. to handle an update with big changes in a branch of its own. The prompt now asks first for a newer release of the direct dependency that brings in the fixed version, and forcing the version only if there is none.",
+            "{app} Addresses: the star in the view of an address marks it as a favorite or removes the mark at once.",
+            "CVE-Radar findings export and ad-hoc check: \"Report by package\" downloads the vulnerabilities per package (library and version) as PDF, Excel or JSON: tiles per severity, an overview with the highest score and the version that fixes all of them, then per package its vulnerabilities with score, description, affected versions and a link to the NVD or the advisory. For an ad-hoc check as for an area, a system, an instance or a component of the inventory; the selection of vulnerabilities and the replaced names apply.",
+            {
+              "title": "CVE-Radar",
+              "items": [
+                "Bulk import of SBOMs into an area: a zip with the SBOMs of many repositories and container images (e.g. the output of a scan of a whole project) becomes a system per repository and a component per image. A preview shows what is created or updated, codes and names can be changed; logs, raw reports and an SBOM of everything are skipped. The largest zip is set per area by the security officer.",
+                "SBOMs are read as a stream, so big ones need little memory."
+              ]
+            },
+            "CVE-Radar: the file of a vulnerability shows the ratings of its sources side by side (NVD, the CNA, the OSV advisories with GitHub's own rating, the EUVD, kept also once the NVD rated the vulnerability), so a differing severity can be traced."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "{app} Pages menu: on a tablet the categories of the main menu are open, opened or closed ones stay so; the main menu tab comes second.",
+            {
+              "title": "Notifications",
+              "items": [
+                "{app} Push messages show the title and the beginning of the notification, as in the web version (for a chat message the message itself). Each user can switch the content off in \"My account\" (Apps) or in the settings of the app; `projectforge.push.content=false` keeps it out of every push.",
+                "The text of chat notifications no longer repeats their title: it shows the message, with its author where the title doesn't name them."
+              ]
+            },
+            "{app} Booking: opening \"Location, reference, tag\" scrolls its fields into view.",
+            "Invoices: the contact person of the customer (BT-56) is no longer printed in the invoice address of the invoice document, below the company name; the e-invoice still states it, and an invoice template may print it via the variable Ansprechpartner (with the condition isAnsprechpartner).",
+            "Invoices: in the customer reference of the invoice document, the text after the colon of each line (e.g. \"Supplier number: 1140300\") is no longer printed bold; the label stays bold, as for the order number.",
+            "CVE-Radar: the progress bar of an SBOM import (also of a zip with many SBOMs), of an uploaded library list and of matching again also runs while the components are matched against the vulnerabilities, with the OSV advisories checked and the findings stored."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Backup: the data of the CVE-Radar sources (details of the vulnerabilities, OSV advisories, indexes) isn't backed up any more, the separate dump projectforge_cveradar_… is gone. After restoring, the imports fill it again by themselves: the NVD import reads the NVD since 1999 once more for the stored vulnerabilities without details, and their findings stay as they are until then.",
+            "CVE-Radar inventory: the findings of a node are shown as CVEs by severity (critical, high, medium/low) and those only possibly affected, each CVE counted once, matching the key figures of its tooltip.",
+            "CVE-Radar: the technologies and libraries of a component and the imported vulnerabilities are no longer kept in the history; existing entries are removed.",
+            "CVE-Radar: an area, a system, an instance or a component of the inventory can be deleted with everything below it, its libraries and all its findings, for good. Before, a list shows what goes with the numbers of findings, libraries and technologies of every entry."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "{app} Behind an SSO proxy, the pages no longer open in Safari after the proxy's session ended: after the new login the page asked for is loaded in the app again, and the pages tab no longer starts with the proxy's login.",
+            "CVE-Radar: a Maven version with a qualifier other than a pre-release (Guava's 33.7.2-jre or 33.7.2-android, 1.0-jdk8, 5.3.18.RELEASE) is the release itself, no longer a pre-release of it that is still affected.",
+            "CVE-Radar library upload: a file above the limit (5 MB, a zip 10 MB) is refused at once with its message instead of failing in the browser, and the progress bar stays visible above the buttons.",
+            "CVE-Radar: the severity of a vulnerability known from OSV only (not yet from the NVD) belongs to its CVSS score, no longer to the rating of GitHub (e.g. critical with a score of 6.1); stored entries are corrected.",
+            "{app} Booking: the keyboard no longer covers the text field being edited; the form scrolls it into view.",
+            "Chat: in the full size view of several images, the arrow keys keep paging after the first or last image was reached. Changelog: a link of the table of contents opened as a drawer (narrow screens, app) scrolls to its entry again instead of back to the top.",
+            "Sipgate: a permanently deleted address no longer comes back through the contact sync; its Sipgate contact is deleted instead."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-2-8",
       "version": "9.2.8",
       "date": "2026-11-09",

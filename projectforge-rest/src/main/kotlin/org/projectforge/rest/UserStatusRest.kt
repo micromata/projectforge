@@ -31,6 +31,7 @@ import org.projectforge.SystemAlertMessage
 import org.projectforge.business.chat.ChatUnreadCounter
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.notification.NotificationDao
+import org.projectforge.business.timesheet.TimesheetTimeGridService
 import org.projectforge.business.user.UserAvatarCache
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
@@ -97,6 +98,9 @@ open class UserStatusRest {
   private lateinit var chatUnreadCounter: ChatUnreadCounter
 
   @Autowired
+  private lateinit var timesheetTimeGridService: TimesheetTimeGridService
+
+  @Autowired
   private lateinit var uiSettingsRest: UISettingsRest
 
   data class UserData(
@@ -125,6 +129,8 @@ open class UserStatusRest {
     var decimalSeparator: Char? = null,
     /** The version of the user's avatar for the user menu (see UserAvatarRest), null without one. */
     var avatarVersion: Long? = null,
+    /** The grid of the times of time sheets in minutes (5, 10, 15, 20 or 30), see TimesheetTimeGridConfig. */
+    var timesheetTimeGridMinutes: Int? = null,
   ) {
     /**
      * 0 - Sunday, 1 - Monday, ...
@@ -235,6 +241,7 @@ open class UserStatusRest {
       userId = user.id,
       employeeId = employeeId,
       avatarVersion = userAvatarCache.getVersion(user.id), // The own one, visible anyway.
+      timesheetTimeGridMinutes = timesheetTimeGridService.get(),
       locale = ThreadLocalUserContext.localeAsString,
       timeZone = ThreadLocalUserContext.timeZone.id,
       timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),

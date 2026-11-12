@@ -1030,8 +1030,35 @@ a.changelog-pill-docker:hover {
 .pf-gallery figure {
   margin: 0;
 }
+.pf-gallery + .pf-gallery {
+  margin-top: 1.25rem;
+}
+/* Portrait screenshots of the app: phones four in a row (two on small screens), tablets three. */
+.pf-gallery-phone {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.pf-gallery-tablet {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (width < 36rem) {
+  .pf-gallery-phone {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pf-gallery-tablet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.pf-app-store-badge {
+  display: inline-block;
+  line-height: 0;
+}
+.pf-app-store-badge img {
+  display: block;
+  width: auto;
+  height: 48px;
+}
 /* An odd number of screenshots: the first one takes the whole width, the grid has no gap at the end. */
-.pf-gallery > figure:first-child:nth-last-child(odd) {
+.pf-gallery:not(.pf-gallery-phone, .pf-gallery-tablet) > figure:first-child:nth-last-child(odd) {
   grid-column: 1 / -1;
 }
 .pf-gallery a {
@@ -1052,8 +1079,12 @@ a.changelog-pill-docker:hover {
   line-height: 18px;
   color: var(--color-muted-foreground);
 }
-.pf-adoc-sections .pf-gallery a {
+.pf-adoc-sections .pf-gallery a,
+.pf-adoc-sections .pf-app-store-badge {
   text-decoration: none;
+}
+.pf-adoc-sections .pf-app-store {
+  margin-top: 1.5rem;
 }
 /* Sections without a screenshot keep a readable line length. */
 .pf-adoc-sections > .sect1:not(:has(.imageblock, .pf-gallery)) > h2,

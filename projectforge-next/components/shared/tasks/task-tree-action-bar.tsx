@@ -2,6 +2,7 @@
 
 import { ListGearMenu } from "@/components/data-table";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
+import { CollapsibleActions } from "@/components/shared/collapsible-actions";
 import { Separator } from "@/components/ui/separator";
 import { TaskPerspectiveLink } from "./task-perspective-link";
 import { ProjectWizardLink } from "./project-wizard-link";
@@ -27,13 +28,18 @@ import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
 export function TaskTreeActionBar() {
   return (
     <>
-      <TaskPerspectiveLink to="list" />
-      <TaskWizardLink />
-      <ProjectWizardLink />
-      <ListGearMenu entity="task" />
+      <CollapsibleActions>
+        <TaskPerspectiveLink to="list" />
+        <TaskWizardLink />
+        <ProjectWizardLink />
+        <ListGearMenu entity="task" />
+      </CollapsibleActions>
       {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
           flex-start (see ListToolbar, where the same separator stands). */}
-      <Separator orientation="vertical" className="!h-5 !self-center" />
+      <Separator
+        orientation="vertical"
+        className="!h-5 !self-center @max-6xl:hidden"
+      />
       {/* No parent: the form asks for one, which is what Wicket's `+` does too — its page passes no
           `PARAM_PARENT_TASK_ID` either. The per-row action adds below a specific task instead (see
           TaskTreeTable). */}
