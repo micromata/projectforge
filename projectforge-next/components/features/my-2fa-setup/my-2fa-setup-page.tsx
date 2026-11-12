@@ -110,17 +110,13 @@ function My2FASetupContent({ init }: { init: My2FASetupInit }) {
         </div>
       </SectionCard>
       <div className="grid gap-4 lg:grid-cols-2">
+        <WebAuthnSection init={init} onChanged={refresh} check2FA={check2FA} />
         <div className="flex flex-col gap-4">
+          <AuthenticatorSection init={init} onChanged={refresh} />
           {init.smsConfigured && (
             <MobilePhoneSection init={init} onChanged={refresh} />
           )}
-          <WebAuthnSection
-            init={init}
-            onChanged={refresh}
-            check2FA={check2FA}
-          />
         </div>
-        <AuthenticatorSection init={init} onChanged={refresh} />
       </div>
     </div>
   );

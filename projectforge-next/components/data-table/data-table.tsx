@@ -438,7 +438,10 @@ export function DataTable<TData>({
             // The scroll container of a bounded table; in autoHeight the div just holds the table and
             // the page scrolls, so the sticky header anchors to the page rather than to this box.
             // min-h-0/min-w-0 keep it bounded by its parent so it — not the page — scrolls both axes.
-            !autoHeight && "min-h-0 min-w-0 flex-1 overflow-auto"
+            // The padding is room beneath the rows for the scrollbar: an overlay one (macOS) is drawn over the
+            // content and would hide the last row.
+            !autoHeight &&
+              "min-h-0 min-w-0 flex-1 overflow-auto pb-3 print:pb-0"
           )}
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
