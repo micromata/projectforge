@@ -133,6 +133,10 @@ class OrderNotificationDigestService {
             mapOf(
                 "number" to it.orderNumber,
                 "title" to it.orderTitle,
+                "customerProject" to it.orderCustomerProject,
+                "status" to it.orderStatus?.let { name -> AuftragsStatus.entries.find { s -> s.name == name } },
+                "amount" to it.orderAmount,
+                "changes" to it.changes,
                 "operation" to it.operation,
                 "link" to it.link,
             )

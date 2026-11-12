@@ -197,7 +197,8 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
         val data = mutableMapOf<String, Any?>(
             "subject" to subject,
             "entries" to listOf(
-                mapOf("number" to 7299, "title" to "Relaunch Kundenportal <b>(Phase 2)</b>", "operation" to "UPDATE", "link" to "https://projectforge.example.org/next/order/4711"),
+                mapOf("number" to 7299, "title" to "Relaunch Kundenportal <b>(Phase 2)</b>", "operation" to "UPDATE", "link" to "https://projectforge.example.org/next/order/4711",
+                    "status" to AuftragsStatus.BEAUFTRAGT, "amount" to BigDecimal("12345.60"), "customerProject" to "ACME <i>GmbH</i> - Portal", "changes" to "Status, Bindungsfrist"),
                 mapOf("number" to 7300, "title" to "Wartung 2027", "operation" to "INSERT", "link" to null),
                 mapOf("number" to 7001, "title" to "Altauftrag", "operation" to "DELETE", "link" to null),
             ),
@@ -209,6 +210,9 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
         Assertions.assertTrue(mail.content.contains("#7299"), mail.content)
         Assertions.assertTrue(mail.content.contains("Angelegt"), mail.content)
         Assertions.assertFalse(mail.content.contains("<b>(Phase 2)</b>"), "The title must be escaped: ${mail.content}")
+        Assertions.assertTrue(mail.content.contains("Status, Bindungsfrist"), mail.content)
+        Assertions.assertTrue(mail.content.contains("12.345,60"), mail.content)
+        Assertions.assertFalse(mail.content.contains("<i>GmbH</i>"), "The customer must be escaped: ${mail.content}")
         MailPreview.write(sendMail, "orderDigestNotification", mail)
     }
 

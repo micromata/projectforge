@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 
 class OrderNotificationQueueTest : AbstractTestBase() {
     @Autowired
@@ -40,8 +41,8 @@ class OrderNotificationQueueTest : AbstractTestBase() {
     fun `the latest change of an order replaces the queued one`() {
         val userId = getUser(TEST_USER).id!!
         val orderId = 987654321L
-        queueDao.enqueue(userId, orderId, 77, "First", "INSERT", "https://pf/order/1")
-        queueDao.enqueue(userId, orderId, 77, "Second", "UPDATE", null)
+        queueDao.enqueue(userId, orderId, snapshot(77, "First"), "INSERT", "https://pf/order/1")
+        queueDao.enqueue(userId, orderId, snapshot(77, "Second"), "UPDATE", null)
         val entries = queueDao.selectAllByRecipient()[userId]!!.filter { it.orderId == orderId }
         assertEquals(1, entries.size)
         assertEquals("Second", entries[0].orderTitle)
@@ -51,13 +52,37 @@ class OrderNotificationQueueTest : AbstractTestBase() {
     }
 
     @Test
+    fun `status and sum are replaced, the changed properties are collected`() {
+        val userId = getUser(TEST_USER).id!!
+        val orderId = 987654323L
+        queueDao.enqueue(
+            userId, orderId,
+            snapshot(79, "T").copy(status = "BEAUFTRAGT", amount = BigDecimal("100.00"), changes = listOf("Status", "Titel")),
+            "UPDATE", null,
+        )
+        queueDao.enqueue(
+            userId, orderId,
+            snapshot(79, "T").copy(status = "ABGESCHLOSSEN", amount = BigDecimal("250.50"), changes = listOf("Titel", "Bindungsfrist")),
+            "UPDATE", null,
+        )
+        val entries = queueDao.selectAllByRecipient()[userId]!!.filter { it.orderId == orderId }
+        assertEquals(1, entries.size)
+        assertEquals("ABGESCHLOSSEN", entries[0].orderStatus)
+        assertEquals(0, BigDecimal("250.50").compareTo(entries[0].orderAmount))
+        assertEquals("Status, Titel, Bindungsfrist", entries[0].changes)
+        queueDao.delete(entries)
+    }
+
+    private fun snapshot(number: Int, title: String) = OrderNotificationQueueDao.Snapshot(number, title)
+
+    @Test
     fun `a change queued while the digest was sent stays queued`() {
         val userId = getUser(TEST_USER).id!!
         val orderId = 987654322L
-        queueDao.enqueue(userId, orderId, 78, "Before", "UPDATE", null)
+        queueDao.enqueue(userId, orderId, snapshot(78, "Before"), "UPDATE", null)
         val loaded = queueDao.selectAllByRecipient()[userId]!!.filter { it.orderId == orderId }
         Thread.sleep(5)
-        queueDao.enqueue(userId, orderId, 78, "During the send", "UPDATE", null)
+        queueDao.enqueue(userId, orderId, snapshot(78, "During the send"), "UPDATE", null)
         queueDao.delete(loaded)
         val remaining = queueDao.selectAllByRecipient()[userId]!!.filter { it.orderId == orderId }
         assertEquals(1, remaining.size)

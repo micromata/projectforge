@@ -33,13 +33,14 @@ import jakarta.persistence.NamedQueries
 import jakarta.persistence.NamedQuery
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import java.math.BigDecimal
 import java.util.Date
 
 /**
  * An order change waiting for the daily digest mail of a recipient who chose [OrderNotificationMode.DAILY].
  * One row per recipient and order, the latest change overwrites the former. Deliberately no
  * [org.projectforge.framework.persistence.entities.DefaultBaseDO]: written by the order save without history, deleted
- * after the digest is sent. Number and title are copied, so the digest can name an order that is deleted meanwhile.
+ * after the digest is sent. Number, title and the data shown in the digest are copied, so the digest can name an order that is deleted meanwhile.
  */
 @Entity
 @Table(
@@ -75,6 +76,22 @@ open class OrderNotificationQueueDO {
 
     @get:Column(name = "order_title", length = 1000)
     open var orderTitle: String? = null
+
+    /** Customer and project of the order as one text (`AuftragDO.projektKundeAsString`). */
+    @get:Column(name = "order_customer_project", length = 1000)
+    open var orderCustomerProject: String? = null
+
+    /** Name of the [AuftragsStatus], localized when the digest is rendered. */
+    @get:Column(name = "order_status", length = 30)
+    open var orderStatus: String? = null
+
+    /** The net sum of the order. */
+    @get:Column(name = "order_amount", precision = 18, scale = 2)
+    open var orderAmount: BigDecimal? = null
+
+    /** Names of the changed properties (comma separated, translated), collected over all changes since the last digest. */
+    @get:Column(length = 2000)
+    open var changes: String? = null
 
     /** `INSERT`, `UPDATE` or `DELETE` (name of the OperationType). */
     @get:Column(length = 20, nullable = false)
