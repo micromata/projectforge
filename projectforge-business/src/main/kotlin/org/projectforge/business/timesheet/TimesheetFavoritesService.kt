@@ -77,7 +77,8 @@ class TimesheetFavoritesService {
 
   fun getList(): List<TimesheetFavorite> {
     val favorites = getFavorites()
-    return favorites.idTitleList.map { TimesheetFavorite(it.name, it.id) }
+    // The full favorites: the app applies a template from this list (task, cost unit, texts), not only its name.
+    return favorites.idTitleList.map { favorites.get(it.id) ?: TimesheetFavorite(it.name, it.id) }
   }
 
   fun selectTimesheet(id: Long): TimesheetFavorite? {

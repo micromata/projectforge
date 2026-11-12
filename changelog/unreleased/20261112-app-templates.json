@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "{app} Time sheet templates are applied again when booking (task, cost unit and texts were left empty).",
+  "de": "{app} Zeitberichtsvorlagen werden beim Buchen wieder übernommen (Task, Kostenträger und Texte blieben leer)."
+}
