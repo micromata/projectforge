@@ -48,6 +48,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApiException } from '../../core/api/apiException';
 import { errorText, t } from '../../core/i18n/translations';
+import { useTimeGrid } from '../../core/status/userStatus';
 import { useColors } from '../../core/ui/colors';
 import { MenuItem, MenuSheet } from '../../core/ui/MenuSheet';
 import { PromptDialog } from '../../core/ui/PromptDialog';
@@ -106,6 +107,7 @@ export function BookingForm({
   const [kost2, setKost2] = useState<Kost2Ref | null>(what0?.task ? (what0.kost2 ?? null) : null);
   /** The cost units the task offers, null while they are loaded. */
   const [kost2Options, setKost2Options] = useState<Kost2Ref[] | null>(null);
+  const timeGrid = useTimeGrid();
   const [start, setStart] = useState(initial.start);
   const [stop, setStop] = useState(initial.stop);
   const [description, setDescription] = useState(what0?.description ?? '');
@@ -215,7 +217,7 @@ export function BookingForm({
 
   const duration = minutesBetween(start, stop);
   const nextDay = !sameDay(start, stop);
-  const now = ceil5(new Date());
+  const now = ceil5(new Date(), timeGrid);
   const untilNow = sameDay(start, now) && now > start;
 
   const changeStart = (value: Date) => {

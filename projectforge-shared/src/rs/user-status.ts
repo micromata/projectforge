@@ -50,6 +50,8 @@ export interface UserStatusResult {
 export interface UserStatusUserData {
   /** The first day of the week: Monday 1 … Sunday 7 (ISO 8601). */
   isoFirstDayOfWeekValue?: number | null;
+  /** The grid the timer of the app rounds to in minutes (5, 10, 15, 20 or 30), absent on older servers (then 5). */
+  timesheetTimeGridMinutes?: number | null;
 }
 
 /** @server org.projectforge.business.notification.NotificationDao$Summary */
@@ -73,6 +75,19 @@ export interface UIThemeSettings {
 /** The theme chosen in the app (`light`, `dark` or `system`). @request org.projectforge.rest.UIThemeSettings */
 export interface UIThemeRequest {
   theme: string;
+}
+
+/**
+ * The grid the timer rounds to in minutes, and the answer of storing one. The same setting as in "My account".
+ * @server org.projectforge.rest.UITimeGridSettings
+ */
+export interface UITimeGridSettings {
+  minutes?: number | null;
+}
+
+/** The grid chosen in the app (5, 10, 15, 20 or 30). @request org.projectforge.rest.UITimeGridSettings */
+export interface UITimeGridRequest {
+  minutes: number;
 }
 
 /**

@@ -46,6 +46,14 @@
           "controller": "org.projectforge.rest.UISettingsRest"
         },
         {
+          "call": "GET /rs/uiSettings/timesheetTimeGrid",
+          "controller": "org.projectforge.rest.UISettingsRest"
+        },
+        {
+          "call": "POST /rs/uiSettings/timesheetTimeGrid",
+          "controller": "org.projectforge.rest.UISettingsRest"
+        },
+        {
           "call": "GET /rs/pushSettings",
           "controller": "org.projectforge.rest.PushSettingsRest"
         },
@@ -125,6 +133,18 @@
     {
       "name": "Time sheets",
       "endpoints": [
+        {
+          "call": "GET /rs/timesheetTimer",
+          "controller": "org.projectforge.rest.TimesheetTimerRest"
+        },
+        {
+          "call": "POST /rs/timesheetTimer/start",
+          "controller": "org.projectforge.rest.TimesheetTimerRest"
+        },
+        {
+          "call": "POST /rs/timesheetTimer/clear",
+          "controller": "org.projectforge.rest.TimesheetTimerRest"
+        },
         {
           "call": "GET /rs/timesheet/appList",
           "controller": "org.projectforge.rest.TimesheetEntityRest"
