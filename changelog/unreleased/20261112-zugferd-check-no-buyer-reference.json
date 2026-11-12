@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "E-invoice check: a ZUGFeRD invoice without a buyer reference (BT-10) is no longer reported as faulty. The rule BR-DE-15 belongs to XRechnung only.",
+  "de": "E-Rechnungs-Prüfung: Eine ZUGFeRD-Rechnung ohne Käufer-Referenz (BT-10) wird nicht mehr als fehlerhaft gemeldet. Die Regel BR-DE-15 gilt nur für XRechnung."
+}

@@ -2053,7 +2053,10 @@
       "textsHint": "Gilt für die Namen von Kundeneinträgen ebenso wie für Kunden, die in Aufträgen und Rechnungen als Freitext erfasst sind. Ein exakter Name (Groß-/Kleinschreibung egal) oder ein Muster: ACME* (beginnt mit), *Logistics (endet mit), *ACME* (enthält). Jeweils mit Enter übernehmen.",
       "title": "Kundengruppen und Business Units"
     },
-    "customerref1": "Kundenreferenz",
+    "customerref1": {
+      "_": "Kundenreferenz",
+      "tooltip": "Wird als Käufer-Referenz (BT-10) der E-Rechnung gesendet, wenn keine Leitweg-ID vorhanden ist. Eine XRechnung braucht BT-10: bei öffentlichen Auftraggebern die Leitweg-ID, sonst irgendeine Referenz wie diese. Bei ZUGFeRD optional. Die Bestellnummer gehört in das eigene Feld (BT-13)."
+    },
     "datev": {
       "import": {
         "_": "Buchhaltungsdaten importieren",
@@ -2227,7 +2230,10 @@
       "city": "Ort",
       "contactDepartment": "Abteilung",
       "contactEmail": "E-Mail-Adresse Ansprechpartner Kunde (BT-58)",
-      "contactPerson": "Ansprechpartner",
+      "contactPerson": {
+        "_": "Ansprechpartner",
+        "tooltip": "Ansprechpartner und Abteilung werden zusammen als ein Text gesendet, die Kontaktstelle des Käufers (BT-56), z.B. \"Erika Mustermann, Einkauf\"."
+      },
       "costCenter": "Kostenstelle",
       "country": "Land",
       "eInvoice": "E-Rechnung",
@@ -2625,6 +2631,7 @@
           "bankAccountNotConfigured": "Es ist kein Bankkonto des Verkäufers konfiguriert (projectforge.einvoice.seller.bankAccounts). Ein Administrator muss eines hinterlegen.",
           "bankAccountNotFound": "Das Bankkonto dieser Rechnung ({arg0}) ist keines der konfigurierten. Bitte eines davon auswählen.",
           "bankAccountNotSelected": "Für diese Rechnung ist kein Bankkonto ausgewählt.",
+          "buyerReferenceMissing": "Die Käufer-Referenz (BT-10) fehlt: Eine XRechnung braucht die Leitweg-ID oder, ohne diese, die Kundenreferenz.",
           "cancellationNotNegative": "Die Nettosumme einer Storno-Rechnung muss negativ sein: Sie kehrt die Beträge der stornierten Rechnung um.",
           "cancellationOriginalMissing": "Die Storno-Rechnung verweist auf keine stornierte Rechnung mit Rechnungsnummer.",
           "customerAddressIncomplete": "Die Adresse des Kunden ist unvollständig: Postleitzahl und Ort sind erforderlich.",

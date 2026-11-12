@@ -80,7 +80,7 @@ class EInvoiceExportService(
     }
 
     fun exportAsXRechnung(invoice: RechnungDO): ByteArray {
-        val validationErrors = validate(invoice)
+        val validationErrors = validateForXRechnung(invoice)
         if (validationErrors.isNotEmpty()) {
             throw IllegalStateException(
                 "Invoice ${invoice.nummer} cannot be exported as XRechnung: ${validationErrors.joinToString("; ")}"
@@ -357,6 +357,23 @@ class EInvoiceExportService(
     }
 
     /**
+     * [validate] plus what only the XRechnung demands: the buyer reference (BT-10, BR-DE-15), the Leitweg-ID or,
+     * without one, the customer reference. A ZUGFeRD in the EN16931 profile gets along without.
+     */
+    fun validateForXRechnung(invoice: RechnungDO): List<String> {
+        val errors = validate(invoice).toMutableList()
+        if (buyerReferenceOf(invoice).isNullOrBlank()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.buyerReferenceMissing"))
+        }
+        return errors
+    }
+
+    private fun buyerReferenceOf(invoice: RechnungDO): String? =
+        invoice.customerLeitwegId?.takeIf { it.isNotBlank() }
+            ?: invoice.kunde?.konto?.leitwegId?.takeIf { it.isNotBlank() }
+            ?: invoice.customerref1
+
+    /**
      * The sums of the e-invoice are calculated by Mustang, those of the invoice document (the PDF of the template,
      * the UI) by [RechnungCalculator]. Both must be the same, otherwise the recipient rejects the invoice (the
      * ZUGFeRD PDF would state another amount than its XML). Refuses the export, if they differ.
@@ -420,7 +437,7 @@ class EInvoiceExportService(
         mustangInvoice.setDetailedDeliveryPeriod(toDate(deliveryBegin), toDate(deliveryEnd))
 
         // Buyer reference: Leitweg-ID (BT-10, required for XRechnung to public sector)
-        val buyerReference = invoice.customerLeitwegId ?: invoice.kunde?.konto?.leitwegId ?: invoice.customerref1
+        val buyerReference = buyerReferenceOf(invoice)
         if (!buyerReference.isNullOrBlank()) {
             mustangInvoice.setReferenceNumber(buyerReference)
         }

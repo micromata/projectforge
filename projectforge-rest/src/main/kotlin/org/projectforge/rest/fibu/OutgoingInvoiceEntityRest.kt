@@ -739,7 +739,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
     fun exportXRechnung(@PathVariable("id") id: Long): ResponseEntity<*> {
         val invoice = checkEInvoiceReadAccess(id)
         log.info { "Exporting invoice #$id as XRechnung." }
-        return exportEInvoice(invoice) {
+        return exportEInvoice(invoice, eInvoiceExportService::validateForXRechnung) {
             RestUtils.downloadFile(
                 eInvoiceExportService.getExportFilename(invoice),
                 eInvoiceExportService.exportAsXRechnung(invoice),
@@ -794,9 +794,13 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
      * throwing `IllegalStateException` (it is Wicket's service, and Wicket checks beforehand), and an exception
      * whose message has to be parsed is a worse answer than the list it was built from.
      */
-    private fun exportEInvoice(invoice: RechnungDO, export: () -> ResponseEntity<*>): ResponseEntity<*> {
+    private fun exportEInvoice(
+        invoice: RechnungDO,
+        validate: (RechnungDO) -> List<String> = eInvoiceExportService::validate,
+        export: () -> ResponseEntity<*>,
+    ): ResponseEntity<*> {
         RechnungCalculator.calculate(invoice)
-        val errors = eInvoiceExportService.validate(invoice)
+        val errors = validate(invoice)
         if (errors.isNotEmpty()) {
             log.info { "Invoice #${invoice.id} is not exportable as an e-invoice: ${errors.joinToString("; ")}" }
             return ResponseEntity.badRequest().body(errors.joinToString("\n"))

@@ -359,7 +359,12 @@ export const INVOICE_PAGE = definePage<
         aside: [
           { custom: CustomerProjectFields },
           { custom: AccountField },
-          { name: "customerref1", rows: 2 },
+          // The hint says it is sent as BT-10 where there is no Leitweg-ID.
+          {
+            name: "customerref1",
+            rows: 2,
+            hintKey: "fibu.customerref1.tooltip",
+          },
           // The order number the customer wants on the invoice (BT-13), apart from the reference above.
           { name: "customerOrderNumber" },
         ],
