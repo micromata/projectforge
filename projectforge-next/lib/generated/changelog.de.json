@@ -1,29 +1,5 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
-  "unreleased" : {
-    "id" : "unreleased",
-    "version" : "9.2.10",
-    "date" : "2026-11-12",
-    "title" : "Noch nicht veröffentlicht",
-    "summary" : [ "**CVE-Clinic**: Status-Workflow der Befunde mit Risikoakzeptanz", "**Login**: Password-Spraying wird gebremst", "**2FA-Einrichtung** überarbeitet: Passkeys und Sicherheitsschlüssel", "**Docker**: weniger bekannte Schwachstellen in den Images", "**E-Rechnung**: ZUGFeRD-Prüfung meldet fehlende Käufer-Referenz nicht mehr als Fehler" ],
-    "overview" : [ "**CVE-Clinic:** Befunde durchlaufen einen Status-Workflow (von neu bis behoben, abgeschwächt oder Risiko akzeptiert) mit Freigabe von Risikoakzeptanzen und „Behebung geplant“ bei Versionswechsel; alle betroffenen Versionen einer Bibliothek werden genannt; die Sprache eines KI-Prompts ist wählbar; die Bäume starten zugeklappt und merken sich ihre offenen Knoten.", "**Login:** Password-Spraying (dasselbe Passwort bei vielen Usern) wird gebremst, indem Fehlversuche pro probiertem Passwort gezählt werden.", "**2FA-Einrichtung:** Passkeys und Sicherheitsschlüssel sind leichter zu finden und hinzuzufügen.", "**Docker:** Das Image enthält curl, wget und gnupg nicht mehr, die Compose-Beispiele betreiben nginx auf Alpine; das beseitigt viele bekannte Schwachstellen.", "**E-Rechnung:** Eine ZUGFeRD-Rechnung ohne Käufer-Referenz wird nicht mehr als fehlerhaft gemeldet; der XRechnung-Export nennt die fehlende Referenz vorab.", "**Auftragsbenachrichtigungen:** Die tägliche Zusammenfassung zeigt je Auftrag Status, Nettosumme, Kunde, Projekt und die geänderten Eigenschaften.", "**Korrekturen:** Kotlin-Skripte finden die Entitäten des CVE-Clinic-Plugins wieder, die horizontale Scrollleiste von Tabellen verdeckt die letzte Zeile nicht mehr, und Zeitberichtsvorlagen werden in der mobilen App wieder übernommen." ],
-    "sections" : [ {
-      "type" : "added",
-      "items" : [ {
-        "title" : "CVE-Clinic: Status-Workflow der Befunde, Risikoakzeptanz und „Behebung geplant“ bei Versionswechsel",
-        "items" : [ "Befunde durchlaufen einen Status-Workflow: neu, in Prüfung, betroffen, nicht betroffen, Behebung geplant, behoben, abgeschwächt, Risiko akzeptiert. Das Security-Team setzt ihn für mehrere Befunde auf einmal, bei „nicht betroffen“ mit Grund, bei „behoben“ mit der behobenen Version.", "Eine Risikoakzeptanz wird mit Grund und Enddatum beantragt und vom Security Officer freigegeben, ab Priorität P2 zum Zeitpunkt des Antrags auch von der Geschäftsleitung (neue Einstellung `managementGroup`), nie von der Person, die sie beantragt hat; nach ihrem letzten Tag, oder bis dahin nicht freigegeben, gilt der Befund wieder als betroffen.", "Ändert sich die Version einer Technologie so, dass eine Schwachstelle nicht mehr passt, wechseln ihre offenen Befunde auf „Behebung geplant“ und die Behebung wird je Instanz bestätigt; ein Zurücksetzen auf eine betroffene Version öffnet geplante und behobene Befunde wieder. Die Liste der Schwachstellen zählt auch die Befunde in Arbeit und erledigte." ]
-      } ]
-    }, {
-      "type" : "improved",
-      "items" : [ "CVE-Clinic: Die Sprache eines KI-Prompts ist wählbar (Deutsch oder Englisch), unabhängig von der Sprache der Webapp.", "Login: Password-Spraying (dasselbe Passwort bei vielen Usern) wird gebremst. Fehlversuche werden auch pro probiertem Passwort gezählt, als Hash mit Schlüssel nur im Speicher.", "Auftragsbenachrichtigungen: Die tägliche Zusammenfassung zeigt je Auftrag Status, Nettosumme, Kunde und Projekt sowie die geänderten Eigenschaften." ]
-    }, {
-      "type" : "changed",
-      "items" : [ "CVE-Clinic: Inventar- und Katalogbaum starten zugeklappt; welche Knoten offen sind, wird in den Benutzereinstellungen gemerkt.", "Docker: Das Image enthält curl, wget und gnupg des Basis-Images nicht mehr (nur zum Herunterladen des JDK nötig), womit auch deren Schwachstellen entfallen.", "Docker: Die Compose-Beispiele betreiben nginx auf Alpine (stable-alpine-slim) statt Debian, ohne curl, perl, libxml2 und die Bildbibliotheken des Debian-Images, die die meisten seiner bekannten Schwachstellen verursachten.", "2FA-Einrichtung überarbeitet: Passkeys und Sicherheitsschlüssel sind leichter zu finden und hinzuzufügen." ]
-    }, {
-      "type" : "fixed",
-      "items" : [ "{app} Zeitberichtsvorlagen werden beim Buchen wieder übernommen (Task, Kostenträger und Texte blieben leer).", "CVE-Clinic: Enthält eine Komponente mehrere betroffene Versionen einer Bibliothek (z. B. zwei Versionen eines npm-Pakets), nennen der Fund, die Bibliotheken und der Report jetzt alle statt nur einer.", "Skripte: Die Entitäten des CVE-Clinic-Plugins (z. B. CvrCaseDO) werden von Kotlin-Skripten wieder gefunden („Unresolved reference 'cveradar'“).", "Tabellen: Die horizontale Scrollleiste verdeckt die letzte Zeile nicht mehr.", "E-Rechnung: Eine ZUGFeRD-Rechnung ohne Käufer-Referenz (BT-10) wird von der Prüfung nicht mehr als fehlerhaft gemeldet, die Regel BR-DE-15 gilt nur für XRechnung. Der XRechnung-Export nennt die fehlende Referenz (Leitweg-ID oder Kundenreferenz) vorab. Hinweise an der Kundenreferenz (BT-10) sowie an Ansprechpartner und Abteilung (zusammen BT-56)." ]
-    } ]
-  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -76,6 +52,31 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-11",
+      "version" : "9.2.11",
+      "date" : "2026-11-13",
+      "title" : "ProjectForge 9.2.11 veröffentlicht",
+      "tag" : "9.2.11-RELEASE",
+      "downloadLink" : true,
+      "summary" : [ "**CVE-Clinic**: Status-Workflow der Befunde mit Risikoakzeptanz", "**Login**: Password-Spraying wird gebremst", "**2FA-Einrichtung** überarbeitet: Passkeys und Sicherheitsschlüssel", "**Docker**: weniger bekannte Schwachstellen in den Images", "**E-Rechnung**: ZUGFeRD-Prüfung meldet fehlende Käufer-Referenz nicht mehr als Fehler" ],
+      "overview" : [ "**CVE-Clinic:** Befunde durchlaufen einen Status-Workflow (von neu bis behoben, abgeschwächt oder Risiko akzeptiert) mit Freigabe von Risikoakzeptanzen und „Behebung geplant“ bei Versionswechsel; alle betroffenen Versionen einer Bibliothek werden genannt; die Sprache eines KI-Prompts ist wählbar; die Bäume starten zugeklappt und merken sich ihre offenen Knoten.", "**Login:** Password-Spraying (dasselbe Passwort bei vielen Usern) wird gebremst, indem Fehlversuche pro probiertem Passwort gezählt werden.", "**2FA-Einrichtung:** Passkeys und Sicherheitsschlüssel sind leichter zu finden und hinzuzufügen.", "**Docker:** Das Image enthält curl, wget und gnupg nicht mehr, die Compose-Beispiele betreiben nginx auf Alpine; das beseitigt viele bekannte Schwachstellen.", "**E-Rechnung:** Eine ZUGFeRD-Rechnung ohne Käufer-Referenz wird nicht mehr als fehlerhaft gemeldet; der XRechnung-Export nennt die fehlende Referenz vorab.", "**Auftragsbenachrichtigungen:** Die tägliche Zusammenfassung zeigt je Auftrag Status, Nettosumme, Kunde, Projekt und die geänderten Eigenschaften.", "**Korrekturen:** Kotlin-Skripte finden die Entitäten des CVE-Clinic-Plugins wieder, die horizontale Scrollleiste von Tabellen verdeckt die letzte Zeile nicht mehr, und Zeitberichtsvorlagen werden in der mobilen App wieder übernommen." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ {
+          "title" : "CVE-Clinic: Status-Workflow der Befunde, Risikoakzeptanz und „Behebung geplant“ bei Versionswechsel",
+          "items" : [ "Befunde durchlaufen einen Status-Workflow: neu, in Prüfung, betroffen, nicht betroffen, Behebung geplant, behoben, abgeschwächt, Risiko akzeptiert. Das Security-Team setzt ihn für mehrere Befunde auf einmal, bei „nicht betroffen“ mit Grund, bei „behoben“ mit der behobenen Version.", "Eine Risikoakzeptanz wird mit Grund und Enddatum beantragt und vom Security Officer freigegeben, ab Priorität P2 zum Zeitpunkt des Antrags auch von der Geschäftsleitung (neue Einstellung `managementGroup`), nie von der Person, die sie beantragt hat; nach ihrem letzten Tag, oder bis dahin nicht freigegeben, gilt der Befund wieder als betroffen.", "Ändert sich die Version einer Technologie so, dass eine Schwachstelle nicht mehr passt, wechseln ihre offenen Befunde auf „Behebung geplant“ und die Behebung wird je Instanz bestätigt; ein Zurücksetzen auf eine betroffene Version öffnet geplante und behobene Befunde wieder. Die Liste der Schwachstellen zählt auch die Befunde in Arbeit und erledigte." ]
+        } ]
+      }, {
+        "type" : "improved",
+        "items" : [ "CVE-Clinic: Die Sprache eines KI-Prompts ist wählbar (Deutsch oder Englisch), unabhängig von der Sprache der Webapp.", "Login: Password-Spraying (dasselbe Passwort bei vielen Usern) wird gebremst. Fehlversuche werden auch pro probiertem Passwort gezählt, als Hash mit Schlüssel nur im Speicher.", "Auftragsbenachrichtigungen: Die tägliche Zusammenfassung zeigt je Auftrag Status, Nettosumme, Kunde und Projekt sowie die geänderten Eigenschaften." ]
+      }, {
+        "type" : "changed",
+        "items" : [ "CVE-Clinic: Inventar- und Katalogbaum starten zugeklappt; welche Knoten offen sind, wird in den Benutzereinstellungen gemerkt.", "Docker: Das Image enthält curl, wget und gnupg des Basis-Images nicht mehr (nur zum Herunterladen des JDK nötig), womit auch deren Schwachstellen entfallen.", "Docker: Die Compose-Beispiele betreiben nginx auf Alpine (stable-alpine-slim) statt Debian, ohne curl, perl, libxml2 und die Bildbibliotheken des Debian-Images, die die meisten seiner bekannten Schwachstellen verursachten.", "2FA-Einrichtung überarbeitet: Passkeys und Sicherheitsschlüssel sind leichter zu finden und hinzuzufügen." ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "{app} Zeitberichtsvorlagen werden beim Buchen wieder übernommen (Task, Kostenträger und Texte blieben leer).", "CVE-Clinic: Enthält eine Komponente mehrere betroffene Versionen einer Bibliothek (z. B. zwei Versionen eines npm-Pakets), nennen der Fund, die Bibliotheken und der Report jetzt alle statt nur einer.", "Skripte: Die Entitäten des CVE-Clinic-Plugins (z. B. CvrCaseDO) werden von Kotlin-Skripten wieder gefunden („Unresolved reference 'cveradar'“).", "Tabellen: Die horizontale Scrollleiste verdeckt die letzte Zeile nicht mehr.", "E-Rechnung: Eine ZUGFeRD-Rechnung ohne Käufer-Referenz (BT-10) wird von der Prüfung nicht mehr als fehlerhaft gemeldet, die Regel BR-DE-15 gilt nur für XRechnung. Der XRechnung-Export nennt die fehlende Referenz (Leitweg-ID oder Kundenreferenz) vorab. Hinweise an der Kundenreferenz (BT-10) sowie an Ansprechpartner und Abteilung (zusammen BT-56)." ]
+      } ]
+    }, {
       "id" : "9-2-10",
       "version" : "9.2.10",
       "date" : "2026-11-12",

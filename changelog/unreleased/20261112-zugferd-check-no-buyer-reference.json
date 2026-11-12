@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "E-invoice: a ZUGFeRD invoice without a buyer reference (BT-10) is no longer reported as faulty by the check, the rule BR-DE-15 belongs to XRechnung only. The XRechnung export names the missing reference (Leitweg-ID or customer reference) beforehand. Hints on the customer reference (BT-10) and on contact person and department (together BT-56).",
-  "de": "E-Rechnung: Eine ZUGFeRD-Rechnung ohne Käufer-Referenz (BT-10) wird von der Prüfung nicht mehr als fehlerhaft gemeldet, die Regel BR-DE-15 gilt nur für XRechnung. Der XRechnung-Export nennt die fehlende Referenz (Leitweg-ID oder Kundenreferenz) vorab. Hinweise an der Kundenreferenz (BT-10) sowie an Ansprechpartner und Abteilung (zusammen BT-56)."
-}
