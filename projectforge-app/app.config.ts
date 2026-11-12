@@ -48,14 +48,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // The callback of the browser login (AppAuthService of the server builds projectforge://auth).
   scheme: 'projectforge',
   // Higher than the Flutter app's last 1.0.1+5. The build numbers go on from there.
-  version: '1.1.0',
+  version: '1.1.1',
   orientation: 'default',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   runtimeVersion: { policy: 'fingerprint' },
   ios: {
     bundleIdentifier: BUNDLE_ID,
-    buildNumber: '8',
+    buildNumber: '9',
     appleTeamId: 'E4Q65AC7LP',
     supportsTablet: true,
     infoPlist: {
@@ -67,7 +67,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: BUNDLE_ID,
-    versionCode: 8,
+    versionCode: 9,
     // The launcher masks the icon (circle, squircle, ...): the flames inside the safe zone, on the plate of the icon
     // (dev-docs/logo/render-logos.py).
     adaptiveIcon: { foregroundImage: './assets/adaptive-icon.png', backgroundColor: '#111d30' },

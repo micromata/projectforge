@@ -1,6 +1,6 @@
 {
   "name": "projectforge-app",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -48,8 +48,14 @@
     "typescript": "~6.0.3"
   },
   "overrides": {
-    "glob@>=9.0.0 <14.0.2": "^14.0.2",
-    "minimatch@>=7.0.0 <11.0.1": "^11.0.1"
+    "@expo/fingerprint": {
+      "glob": "^14.0.2",
+      "minimatch": "^11.0.1"
+    },
+    "@expo/cli": {
+      "glob": "^14.0.2",
+      "minimatch": "^11.0.1"
+    }
   },
   "scripts": {
     "start": "expo start --dev-client",
