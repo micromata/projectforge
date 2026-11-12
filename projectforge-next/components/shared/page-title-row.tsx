@@ -55,7 +55,7 @@ export function PageTitleRow({
 }: PageTitleRowProps) {
   useDocumentTitle(title);
   const titleClass = cn(
-    "text-lg font-bold tracking-tight",
+    "text-lg leading-6 font-bold tracking-tight",
     compactWhenCramped && "cramped:truncate"
   );
   return (
@@ -63,7 +63,7 @@ export function PageTitleRow({
       className={cn(
         // Below sm the actions may not fit beside the title: they wrap onto their own line (right-aligned,
         // see below) instead of sticking out of the screen.
-        "flex items-center gap-3 px-3 pt-2 max-sm:flex-wrap max-sm:gap-y-2 sm:px-4 sm:pt-3",
+        "@container flex items-center gap-3 px-3 pt-2 max-sm:flex-wrap max-sm:gap-y-2 sm:px-4 sm:pt-2",
         wrap && "flex-wrap gap-y-2",
         centerBelow && "max-sm:flex-wrap max-sm:gap-y-2",
         compactWhenCramped && "cramped:flex-wrap cramped:gap-y-2"
@@ -81,7 +81,7 @@ export function PageTitleRow({
           // Not printed: where the page sits in the menu says nothing on paper.
           <p
             className={cn(
-              "text-[11px] font-medium uppercase tracking-wider text-muted-foreground print:hidden",
+              "text-[11px] leading-3 font-medium uppercase tracking-wider text-muted-foreground print:hidden",
               compactWhenCramped && "cramped:hidden"
             )}
           >

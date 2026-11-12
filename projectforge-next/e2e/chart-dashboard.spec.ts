@@ -26,8 +26,9 @@ test.describe("chart dashboard", { tag: "@parallel" }, () => {
     const openForecast = async () => {
       await goto(page, "/liquidity");
       await page
-        .getByRole("tab", {
+        .getByRole("button", {
           name: format.t("plugins.liquidityplanning.forecast._"),
+          exact: true,
         })
         .click();
     };

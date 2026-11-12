@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -83,10 +83,11 @@ export interface EntityListPageProps<
    * liquidity page shows this list in one tab and its forecast in another, under a single shell.
    */
   embedded?: boolean;
-  /**
-   * With `embedded`: the host shows the heading already (a tab), so the list leaves out its own title
-   * row and puts its gear menu and actions into the search row.
-   */
+  /** With `embedded`: the host's tab bar, shown in place of the heading (see ListToolbar.lead). */
+  toolbarLead?: ReactNode;
+  /** The switch to a second view of the list (see ListToolbar.viewSwitch). */
+  viewSwitch?: ReactNode;
+  /** With `embedded`: the host shows the heading already, so the list leaves out its own. */
   compact?: boolean;
 }
 
@@ -108,6 +109,8 @@ export function EntityListPage<
   transient = false,
   embedded = false,
   compact = false,
+  toolbarLead,
+  viewSwitch,
 }: EntityListPageProps<Row, Values, Data, M>) {
   // Column layout is stored server-side per entity, so it follows the user across devices (see
   // AbstractPagesRest.columnStates). The table only mounts once it has arrived: the state seeds
@@ -159,6 +162,8 @@ export function EntityListPage<
       transient={transient}
       embedded={embedded}
       compact={compact}
+      toolbarLead={toolbarLead}
+      viewSwitch={viewSwitch}
     />
   );
 }
@@ -211,6 +216,8 @@ function DeclaredList<
   transient = false,
   embedded = false,
   compact = false,
+  toolbarLead,
+  viewSwitch,
 }: {
   page: PageDef<Row, Values, Data, M>;
   storedState: ColumnState;
@@ -218,6 +225,8 @@ function DeclaredList<
   transient?: boolean;
   embedded?: boolean;
   compact?: boolean;
+  toolbarLead?: ReactNode;
+  viewSwitch?: ReactNode;
 }) {
   const t = useTranslations();
   // Where "add" and a row click lead: this app's form, or the legacy one for a page whose list is
@@ -359,6 +368,8 @@ function DeclaredList<
       toolbar={
         <ListToolbar
           compact={embedded && compact}
+          lead={toolbarLead}
+          viewSwitch={viewSwitch}
           // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
           // heading and the parent of `task.title.list.select`), and the bare key would throw.
           title={t(leafKeyOf(page.titleKey, t.has))}
