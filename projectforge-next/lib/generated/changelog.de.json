@@ -6,6 +6,12 @@
     "date" : "2026-11-11",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "{app} Das Zeitraster und das Erscheinungsbild (hell, dunkel, System) lassen sich in den Einstellungen wählen; beides gilt auch auf den Webseiten.", "Eigenes Logo: Die Höhe des Logos in der Kopfzeile lässt sich mit `projectforge.logoHeight` (in px) einstellen.", "Zeitberichte: Ein Zeitraster (Standard 15 Minuten) unter „Mein Zugang“. Der Timer rundet den Start ab und das Ende auf; die Zeiten lassen sich weiterhin auf 5 Minuten genau setzen.", "Zeitberichte: Ein Timer in der Kopfzeile der Webseiten, der auch in der App gilt. Auf der einen Seite gestartet, kann er auf der anderen gestoppt werden; beim Stoppen öffnet sich ein neuer Zeitbericht." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "{app} Der Timer liegt auf dem Server: Er gilt auch auf den Webseiten und anderen Geräten, und sein Start stammt von der Uhr des Servers (braucht einen aktuellen Server, sonst bleibt er auf dem Gerät)." ]
+    }, {
       "type" : "changed",
       "items" : [ "Der CVE-Radar heißt jetzt CVE-Clinic. Alte Links auf seine Seiten werden umgeleitet; Plugin-ID, Einstellungen (`projectforge.plugin.cveradar.*`) und Datenbanktabellen behalten ihre Namen." ]
     } ]
