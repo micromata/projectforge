@@ -265,6 +265,15 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         }
         if (taskId != null) {
             sheet.task = Task.getTask(taskId)
+            // The cost unit and the texts of a stopped timer (TimesheetTimerRest): they win over the recent sheet.
+            RestHelper.parseLong(request, "kost2Id")?.let { sheet.kost2 = Kost2.getkost2(it) }
+        }
+        request?.let { req ->
+            fun text(name: String, maxLength: Int) = req.getParameter(name)?.take(maxLength)
+            text("description", 4000)?.let { sheet.description = it }
+            text("location", 255)?.let { sheet.location = it }
+            text("reference", 255)?.let { sheet.reference = it }
+            text("tag", 255)?.let { sheet.tag = it }
         }
         if (sheet.user == null) {
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.

@@ -166,6 +166,23 @@ test('a theme the server refused to store is taken back', async () => {
   expect(store.get().theme).toBe('light');
 });
 
+test('the time grid comes from the user status, stays without one and a chosen one is stored for the user', async () => {
+  const { client, requests } = api((request) =>
+    request.url.endsWith('/rs/uiSettings/timesheetTimeGrid')
+      ? { body: { minutes: 30 } }
+      : { body: { userData: { timesheetTimeGridMinutes: 15 } } },
+  );
+  const store = await started(client);
+  expect(store.get().timeGrid).toBe(15);
+  await store.chooseTimeGrid(30);
+  expect(store.get().timeGrid).toBe(30);
+  const post = requests.find((it) => it.url.endsWith('/rs/uiSettings/timesheetTimeGrid'));
+  expect(post?.init.method).toBe('POST');
+  expect(post?.body).toEqual({ minutes: 30 });
+  // A server that sends none: the stored one stays.
+  expect((await started(api(() => ({ body: {} })).client)).get().timeGrid).toBe(30);
+});
+
 test('the push settings are loaded and a choice is stored for the user', async () => {
   const { client, requests } = api((request) =>
     request.url.endsWith('/rs/pushSettings')

@@ -25,7 +25,6 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   addDays,
   addMinutes,
-  BOOKING_STEP_MINUTES,
   ceil5,
   dayOf,
   daysBetween,
@@ -37,10 +36,10 @@ import {
   weekStartOf,
 } from '@projectforge/shared/booking-time';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { AppState, FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { errorText, t } from '../../core/i18n/translations';
-import { useFirstDayOfWeek } from '../../core/status/userStatus';
+import { useFirstDayOfWeek, useTimeGrid } from '../../core/status/userStatus';
 import { useColors } from '../../core/ui/colors';
 import { MenuSheet } from '../../core/ui/MenuSheet';
 import { snackbar } from '../../core/ui/snackbar';
@@ -88,9 +87,22 @@ export function TimesheetsScreen({
   const pager = useRef<FlatList<number>>(null);
 
   const firstDay = useFirstDayOfWeek();
+  const timeGrid = useTimeGrid();
   const weekStart = weekStartOf(day, firstDay);
   const weekState = state.weeks[weekStart.getTime()];
   const week = weekState?.status === 'data' ? weekState.week : null;
+
+  // The timer may have been started or stopped on the web pages or another device: on opening, coming back to the app
+  // and, as the user status, every minute.
+  useEffect(() => {
+    timesheets.syncTimer();
+    const interval = setInterval(() => timesheets.syncTimer(), 60_000);
+    const subscription = AppState.addEventListener('change', (state) => state === 'active' && timesheets.syncTimer());
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
+  }, []);
 
   // The week of the day and the ones around it (swiping the strip or across the first day of the week shows them).
   useEffect(() => {
@@ -182,15 +194,16 @@ export function TimesheetsScreen({
 
   const startTimer = (what: BookingWhat | null = null) => {
     timesheets.startTimer(what);
-    snackbar.show(t('app.timesheet.timer.started'));
+    snackbar.show(t('app.timesheet.timer.started', timeGrid));
   };
 
   const stopTimer = () => {
     const timer = state.timer;
     if (timer == null) return;
-    const start = floor5(timer.start);
-    let stop = ceil5(new Date());
-    if (stop <= start) stop = addMinutes(start, BOOKING_STEP_MINUTES);
+    // The start back to the last, the stop up to the next step of the grid (e.g. quarter hours).
+    const start = floor5(timer.start, timeGrid);
+    let stop = ceil5(new Date(), timeGrid);
+    if (stop <= start) stop = addMinutes(start, timeGrid);
     open({ what: timer.what, start, stop, fromTimer: true });
   };
 

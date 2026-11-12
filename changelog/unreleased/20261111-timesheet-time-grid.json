@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Time sheets: a time grid (default 15 minutes) in \"My account\". The timer rounds the start down and the end up to it; the times can still be set to 5 minutes.",
+  "de": "Zeitberichte: Ein Zeitraster (Standard 15 Minuten) unter „Mein Zugang“. Der Timer rundet den Start ab und das Ende auf; die Zeiten lassen sich weiterhin auf 5 Minuten genau setzen."
+}

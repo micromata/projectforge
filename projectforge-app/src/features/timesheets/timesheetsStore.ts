@@ -97,6 +97,7 @@ class TimesheetsStore {
     this.emit();
     const repo = this.repo;
     if (repo) void repo.loadTimer().then((timer) => this.repo === repo && this.set({ timer }));
+    this.syncTimer();
   }
 
   /**
@@ -135,15 +136,53 @@ class TimesheetsStore {
       .catch(() => undefined);
   }
 
+  /**
+   * Starts the timer. It runs on the device at once and is started at the server too, which gives the start (its clock)
+   * and shares it with the web pages and other devices. Without an answer (offline, an older server) it stays on the
+   * device only.
+   */
   startTimer(what: BookingWhat | null = null) {
+    const repo = this.repository();
     const timer = { start: new Date(), what };
-    this.repository()?.saveTimer(timer);
+    repo?.saveTimer(timer);
     this.set({ timer });
+    void repo?.startServerTimer(what).then(
+      (started) => {
+        if (this.repo !== repo || this.state.timer?.start !== timer.start) return;
+        repo.saveTimer(started);
+        this.set({ timer: started });
+      },
+      () => undefined,
+    );
   }
 
   stopTimer() {
-    this.repository()?.clearTimer();
+    const repo = this.repository();
+    repo?.clearTimer();
     this.set({ timer: null });
+    void repo?.clearServerTimer().catch(() => undefined);
+  }
+
+  /**
+   * Takes over the timer of the server: started or stopped on another device or on the web pages. Without an answer the
+   * timer of the device stays.
+   */
+  syncTimer() {
+    const repo = this.repository();
+    void repo?.serverTimer().then(
+      (timer) => {
+        if (this.repo !== repo) return;
+        if (timer) {
+          repo.saveTimer(timer);
+          this.set({ timer });
+        } else if (this.state.timer?.remote) {
+          // Stopped elsewhere. One only on the device (the server was not reached when it started) stays.
+          repo.clearTimer();
+          this.set({ timer: null });
+        }
+      },
+      () => undefined,
+    );
   }
 
   setDeleteHandler(handler: ((id: number) => void) | null) {
