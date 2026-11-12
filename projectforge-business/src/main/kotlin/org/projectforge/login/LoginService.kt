@@ -290,13 +290,19 @@ open class LoginService {
         }
         val loginProtection = LoginProtection.instance()
         val clientIpAddress = getClientIp(request)
-        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(loginData.username, clientIpAddress)
+        // Spraying: one password against many users stays below the thresholds of each user and ip address.
+        val passwordKey = loginProtection.passwordKey(loginData.password)
+        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(
+            loginData.username, clientIpAddress, passwordKey = passwordKey
+        )
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
             log.warn { "The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later." }
 
             val numberOfFailedAttempts =
-                loginProtection.getNumberOfFailedLoginAttempts(loginData.username, clientIpAddress)
+                loginProtection.getNumberOfFailedLoginAttempts(
+                    loginData.username, clientIpAddress, passwordKey = passwordKey
+                )
             return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(
                 seconds,
                 numberOfFailedAttempts.toString()
@@ -307,7 +313,9 @@ open class LoginService {
         if (result.loginResultStatus == LoginResultStatus.SUCCESS) {
             loginProtection.clearLoginTimeOffset(result.user?.username, result.user?.id, clientIpAddress)
         } else if (result.loginResultStatus == LoginResultStatus.FAILED) {
-            loginProtection.incrementFailedLoginTimeOffset(loginData.username, clientIpAddress)
+            loginProtection.incrementFailedLoginTimeOffset(
+                loginData.username, clientIpAddress, passwordKey = passwordKey
+            )
         }
         return result
     }
