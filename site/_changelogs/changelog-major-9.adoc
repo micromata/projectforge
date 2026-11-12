@@ -15,6 +15,9 @@ What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
 [.changelog-source]
 __2026-11-12, tag https://github.com/micromata/projectforge/tree/9.2.10-RELEASE[9.2.10-RELEASE]__ +++{% include release-pills.html tag="9.2.10-RELEASE" docker="9.2.10" %}+++
 
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.2.10.jar: `+ab59d0d725e435bbb88e88c646eb20569a1a55a68d09d4f7be694276979bac35+`
+
 - **Time sheets**: timer in the top bar, shared with the app, and a time grid
 - **Lists**: compact head, scrolls away on tablets and phones
 - **CVE-Radar** is now called **CVE-Clinic**

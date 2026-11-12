@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.2.10 released",
       "tag": "9.2.10-RELEASE",
       "downloadLink": true,
+      "sha256": "ab59d0d725e435bbb88e88c646eb20569a1a55a68d09d4f7be694276979bac35",
       "summary": [
         "**Time sheets**: timer in the top bar, shared with the app, and a time grid",
         "**Lists**: compact head, scrolls away on tablets and phones",

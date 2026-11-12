@@ -58,6 +58,7 @@
       "title" : "ProjectForge 9.2.10 released",
       "tag" : "9.2.10-RELEASE",
       "downloadLink" : true,
+      "sha256" : "ab59d0d725e435bbb88e88c646eb20569a1a55a68d09d4f7be694276979bac35",
       "summary" : [ "**Time sheets**: timer in the top bar, shared with the app, and a time grid", "**Lists**: compact head, scrolls away on tablets and phones", "**CVE-Radar** is now called **CVE-Clinic**", "**Custom logo**: adjustable height" ],
       "overview" : [ "**Time sheets:** a timer in the top bar of the web pages, kept on the server and shared with the app and other devices (stopping opens a new time sheet); a time grid in \"My account\" (default 15 minutes), to which the timer rounds the start down and the end up.", "**Lists:** title, search and actions share one line, filters and totals stay on one line, on narrow screens the actions are behind a \"more\" button and on tablets and phones the head scrolls away with the rows; the invoice and liquidity lists switch to their charts or forecast with a button instead of tabs.", "**CVE-Clinic:** the CVE-Radar is now called CVE-Clinic; old links are redirected, plugin id, settings and database tables keep their names.", "**Custom logo:** the height of the logo in the header can be set with `projectforge.logoHeight` (in px).", "**Mobile app (in preparation):** the timer is shared with the web pages, its start comes from the server's clock; the time grid and the theme (light, dark, system) can be chosen in the settings and apply to the web pages as well." ],
       "sections" : [ {
