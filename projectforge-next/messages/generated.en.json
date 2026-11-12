@@ -4184,7 +4184,7 @@
           "approvedOnly": "Use this prompt only with: {arg0}",
           "copied": "Prompt copied.",
           "copy": "Copy prompt",
-          "instruction": "Analyse the following vulnerability for an IT company. Answer in German, only with JSON exactly in the format of the example at the end.",
+          "instruction": "Analyse the following vulnerability for an IT company. Answer in English, only with JSON exactly in the format of the example at the end.",
           "title": "Prompt for an approved AI system",
           "withInventory": "Include technologies and versions in use (never names or codes of systems)"
         },
@@ -4199,6 +4199,7 @@
         "download": "Download as a file",
         "info": "Copy the prompt or download it as a file, and paste it into an approved AI system.",
         "label": "Prompt",
+        "language": "Language of the prompt",
         "step": "Step {arg0} of {arg1}: {arg2}"
       },
       "apply": "Apply",

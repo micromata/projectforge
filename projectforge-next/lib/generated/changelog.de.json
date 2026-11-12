@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.10",
+    "date" : "2026-11-12",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "CVE-Clinic: Inventar- und Katalogbaum starten zugeklappt; welche Knoten offen sind, wird in den Benutzereinstellungen gemerkt." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

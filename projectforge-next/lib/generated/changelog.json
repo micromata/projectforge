@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.2.10",
+    "date" : "2026-11-12",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "CVE-Clinic: the inventory and catalogue trees start collapsed; which nodes are open is remembered in the user settings." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

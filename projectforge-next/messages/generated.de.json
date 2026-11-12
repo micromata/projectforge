@@ -4199,6 +4199,7 @@
         "download": "Als Datei herunterladen",
         "info": "Den Prompt kopieren oder als Datei herunterladen und in ein freigegebenes KI-System einfügen.",
         "label": "Prompt",
+        "language": "Sprache des Prompts",
         "step": "Schritt {arg0} von {arg1}: {arg2}"
       },
       "apply": "Übernehmen",
