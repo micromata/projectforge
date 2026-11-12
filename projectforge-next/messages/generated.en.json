@@ -1794,6 +1794,7 @@
       "mail": {
         "digest": {
           "changed": "Changed",
+          "changes": "Changes",
           "created": "Created",
           "deleted": "Deleted",
           "intro": "these orders have been created, changed or deleted since the last summary:",
@@ -7600,7 +7601,7 @@
         },
         "info": {
           "1": "### Second factor authentication (2FA)\n\n* ProjectForge supports 2FA for more security. Authenticator apps, mobile phones if texting is configured and/or e-mail are supported.\n* Every time ProjectForge requests a code, you may enter it from your Authenticator app or request a one-time-password by e-mail or as text message.\n\nPlease use the stay-logged-in functionality on login to prevent annoying 2FA requests!",
-          "2": "It's highly recommended to configure a second factor via Authenticator App and/or WebAuthn (e.g. Fido2) and, if available a mobile phone number for a second factor via text messages.\n\nSome security relevant functionalities such as password reset are only available, if a second factor is configured (Authenticator-App, mobile phone, or WebAuthn).",
+          "2": "It's highly recommended to configure a second factor via Authenticator App and/or WebAuthn (e.g. passkey, security key) and, if available a mobile phone number for a second factor via text messages.\n\nSome security relevant functionalities such as password reset are only available, if a second factor is configured (Authenticator-App, mobile phone, or WebAuthn).",
           "3": "Feel free to test 2FA codes here. Modifications on this setup pages need a current 2FA authentification as well.",
           "title": "Two-factor authentication"
         },
@@ -8066,6 +8067,22 @@
   "value": "Value",
   "values": "Values",
   "webauthn": {
+    "add": "Add passkey or security key",
+    "choice": {
+      "any": {
+        "info": "The browser offers all options, e.g. a phone nearby or a password manager.",
+        "title": "Other options"
+      },
+      "crossPlatform": {
+        "info": "USB or NFC key, e.g. YubiKey. It is plugged in or held to the device when asked.",
+        "title": "Security key"
+      },
+      "platform": {
+        "info": "Touch ID or Face ID on Apple devices, Windows Hello, Android. Depending on the settings the passkey is synchronized via iCloud Keychain or the password manager.",
+        "title": "This device (passkey)"
+      }
+    },
+    "empty": "No passkey or security key registered yet. The easiest way is Touch ID or Face ID of this device.",
     "entry": {
       "delete": {
         "question": "Do you really want to delete this WebAuthn token? It can no longer be used as second factor afterwards."
@@ -8085,10 +8102,10 @@
       "userNotOwnerOrEntryDoesnotExist": "The user has no access to this foreign webauthn entry or no such entry exists.",
       "validate": "Error while validating authentication."
     },
-    "info": "WebAuthn is a modern and secure standard for having secure 2FA hardware tokens. You may here register your hardware tokens.",
+    "info": "Passkeys and security keys are a modern and secure way to confirm the second factor: Touch ID or Face ID of an Apple device, Windows Hello, a passkey of an Android device or password manager, or a hardware key (e.g. YubiKey). Several of them can be registered.",
     "registration": {
       "2FARequired": {
-        "info": "Please renew Your 2FA before registering Your WebAuthn token."
+        "info": "A recent 2FA check is required for registering. It is requested when adding."
       },
       "button": {
         "authenticate": {
@@ -8096,9 +8113,11 @@
           "info": "You may use any of your registered WebAuthn tokens here (for example Yubikey)."
         },
         "register": "Register"
-      }
+      },
+      "next": "Afterwards the browser asks for the confirmation (fingerprint, face, PIN or key).",
+      "success": "Registered"
     },
-    "title": "WebAuthn (Fido2 etc.)"
+    "title": "Passkeys & security keys (WebAuthn)"
   },
   "yes": "Yes"
 }

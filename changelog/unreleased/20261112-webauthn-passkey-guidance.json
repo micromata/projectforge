@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Two-factor setup: the WebAuthn section is now called \"Passkeys & security keys\" and explains that Touch ID, Face ID, Windows Hello, password manager passkeys and hardware keys can be registered. The add dialog offers the choice between this device, a security key and other options.",
+  "de": "2FA-Einrichtung: Der WebAuthn-Abschnitt heißt jetzt \"Passkeys & Sicherheitsschlüssel\" und erklärt, dass Touch ID, Face ID, Windows Hello, Passkeys von Passwort-Managern und Hardware-Schlüssel registriert werden können. Der Dialog zum Hinzufügen bietet die Auswahl zwischen diesem Gerät, einem Sicherheitsschlüssel und anderen Möglichkeiten."
+}

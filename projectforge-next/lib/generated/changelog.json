@@ -6,11 +6,14 @@
     "date" : "2026-11-12",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Order notifications: the daily summary shows status, net sum, customer and project of each order and which properties were changed." ]
+    }, {
       "type" : "changed",
-      "items" : [ "Docker: the image no longer contains curl, wget and gnupg of the base image (only needed for downloading the JDK), which removes their vulnerabilities.", "Docker: the compose examples run nginx on Alpine (stable-alpine-slim) instead of Debian, without curl, perl, libxml2 and the image libraries of the Debian image, which caused most of its known vulnerabilities." ]
+      "items" : [ "Docker: the image no longer contains curl, wget and gnupg of the base image (only needed for downloading the JDK), which removes their vulnerabilities.", "Docker: the compose examples run nginx on Alpine (stable-alpine-slim) instead of Debian, without curl, perl, libxml2 and the image libraries of the Debian image, which caused most of its known vulnerabilities.", "Two-factor setup: the WebAuthn section is now called \"Passkeys & security keys\" and explains that Touch ID, Face ID, Windows Hello, password manager passkeys and hardware keys can be registered. The add dialog offers the choice between this device, a security key and other options." ]
     }, {
       "type" : "fixed",
-      "items" : [ "CVE-Clinic: if a component contains several affected versions of a library (e.g. two versions of one npm package), the finding, the libraries and the report now name all of them instead of only one.", "E-invoice: a ZUGFeRD invoice without a buyer reference (BT-10) is no longer reported as faulty by the check, the rule BR-DE-15 belongs to XRechnung only. The XRechnung export names the missing reference (Leitweg-ID or customer reference) beforehand. Hints on the customer reference (BT-10) and on contact person and department (together BT-56)." ]
+      "items" : [ "CVE-Clinic: if a component contains several affected versions of a library (e.g. two versions of one npm package), the finding, the libraries and the report now name all of them instead of only one.", "Scripts: the entities of the CVE-Clinic plugin (e.g. CvrCaseDO) are found again by Kotlin scripts (\"Unresolved reference 'cveradar'\").", "E-invoice: a ZUGFeRD invoice without a buyer reference (BT-10) is no longer reported as faulty by the check, the rule BR-DE-15 belongs to XRechnung only. The XRechnung export names the missing reference (Leitweg-ID or customer reference) beforehand. Hints on the customer reference (BT-10) and on contact person and department (together BT-56)." ]
     } ]
   },
   "groups" : [ {

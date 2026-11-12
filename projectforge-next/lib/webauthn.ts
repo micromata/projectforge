@@ -95,6 +95,7 @@ function toPublicKeyOptions(
 /**
  * Runs the browser's authentication ceremony and builds the finish request.
  *
+ * @param attachment narrows the offered authenticators to this device (`platform`) or to external keys (`cross-platform`).
  * @returns null if the user aborted or dismissed the prompt (NotAllowedError) —
  * that is a cancellation, not an error to report.
  */
@@ -203,13 +204,20 @@ export function toRegisterFinishRequest(
  * An already registered key (InvalidStateError, see excludeCredentials) is thrown.
  */
 export async function register(
-  options: WebAuthnRequestOptions
+  options: WebAuthnRequestOptions,
+  attachment?: AuthenticatorAttachment
 ): Promise<WebAuthnRegisterFinishRequest | null> {
   let credential: Credential | null;
   try {
-    credential = await navigator.credentials.create({
-      publicKey: toPublicKeyCreationOptions(options),
-    });
+    const publicKey = toPublicKeyCreationOptions(options);
+    if (attachment) {
+      // Only a hint for the browser which kind of authenticator to offer, the server accepts both kinds.
+      publicKey.authenticatorSelection = {
+        ...publicKey.authenticatorSelection,
+        authenticatorAttachment: attachment,
+      };
+    }
+    credential = await navigator.credentials.create({ publicKey });
   } catch (error) {
     if (error instanceof DOMException && error.name === "NotAllowedError") {
       return null;

@@ -15,6 +15,7 @@ import {
 import { GuardedDialog } from "@/components/shared/guarded-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Table,
   TableBody,
@@ -64,7 +65,8 @@ export function WebAuthnSection({
       <SectionHeader
         title={t("webauthn.title")}
         trailing={
-          supported && (
+          supported &&
+          init.webAuthnEntries.length > 0 && (
             <Button
               type="button"
               size="sm"
@@ -84,6 +86,22 @@ export function WebAuthnSection({
           <FormAlert tone="info">
             {t("webauthn.registration.2FARequired.info")}
           </FormAlert>
+        )}
+        {init.webAuthnEntries.length === 0 && (
+          <div className="flex flex-col items-start gap-3 rounded-md border border-primary/30 bg-primary/5 p-4">
+            <p className="text-sm">{t("webauthn.empty")}</p>
+            {supported && (
+              <Button
+                type="button"
+                size="lg"
+                className="gap-2"
+                onClick={() => setAdding(true)}
+              >
+                <HugeiconsIcon icon={FingerPrintIcon} size={18} aria-hidden />
+                {t("webauthn.add")}
+              </Button>
+            )}
+          </div>
         )}
         {init.webAuthnEntries.length > 0 && (
           <div className="overflow-x-auto rounded-md border">
@@ -148,6 +166,33 @@ export function WebAuthnSection({
   );
 }
 
+type RegisterKind = "platform" | "crossPlatform" | "any";
+
+const ATTACHMENT: Record<RegisterKind, AuthenticatorAttachment | undefined> = {
+  platform: "platform",
+  crossPlatform: "cross-platform",
+  any: undefined,
+};
+
+// Keys written out, the generator finds literal keys only.
+const CHOICES = [
+  {
+    kind: "platform",
+    title: "webauthn.choice.platform.title",
+    info: "webauthn.choice.platform.info",
+  },
+  {
+    kind: "crossPlatform",
+    title: "webauthn.choice.crossPlatform.title",
+    info: "webauthn.choice.crossPlatform.info",
+  },
+  {
+    kind: "any",
+    title: "webauthn.choice.any.title",
+    info: "webauthn.choice.any.info",
+  },
+] as const;
+
 function RegisterDialog({
   fresh2FA,
   check2FA,
@@ -162,6 +207,7 @@ function RegisterDialog({
   const t = useTranslations();
   const [displayName, setDisplayName] = useState("");
   const [running, setRunning] = useState(false);
+  const [kind, setKind] = useState<RegisterKind>("platform");
 
   const run = async () => {
     setRunning(true);
@@ -169,13 +215,13 @@ function RegisterDialog({
       // Up front: the challenge is spent by the attempt, so a 403 of the finish couldn't simply be repeated.
       if (!fresh2FA && !(await check2FA())) return;
       const options = await fetchWebAuthnRegisterOptions();
-      const finishRequest = await register(options);
+      const finishRequest = await register(options, ATTACHMENT[kind]);
       if (!finishRequest) return; // Cancelled in the browser's prompt.
       const registered = await runSetupWrite(() =>
         finishWebAuthnRegister(displayName, finishRequest)
       );
       if (registered) {
-        toast.success(t("operation.updated"));
+        toast.success(t("webauthn.registration.success"));
         await onRegistered();
         onClose();
       }
@@ -189,7 +235,7 @@ function RegisterDialog({
 
   return (
     <GuardedDialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("webauthn.title")}</DialogTitle>
           <DialogDescription>{t("webauthn.info")}</DialogDescription>
@@ -201,6 +247,28 @@ function RegisterDialog({
             void run();
           }}
         >
+          <RadioGroup
+            value={kind}
+            onValueChange={(value) => setKind(value as RegisterKind)}
+            className="mb-3 gap-2"
+          >
+            {CHOICES.map(({ kind: value, title, info }) => (
+              <Label
+                key={value}
+                htmlFor={`webauthn-register-${value}`}
+                className="items-start gap-3 rounded-md border p-3 font-normal has-data-checked:border-primary"
+              >
+                <RadioGroupItem
+                  id={`webauthn-register-${value}`}
+                  value={value}
+                />
+                <span className="flex flex-col gap-0.5">
+                  <span className="font-medium">{t(title)}</span>
+                  <span className={HELP_TEXT_CLASS}>{t(info)}</span>
+                </span>
+              </Label>
+            ))}
+          </RadioGroup>
           <Label htmlFor="webauthn-register-displayName">
             {t("webauthn.entry.displayName._")}
           </Label>
@@ -213,6 +281,7 @@ function RegisterDialog({
           <p className="text-xs text-muted-foreground">
             {t("webauthn.entry.displayName.info")}
           </p>
+          <p className={HELP_TEXT_CLASS}>{t("webauthn.registration.next")}</p>
           <DialogFooter className="mt-3">
             <Button type="button" variant="outline" onClick={onClose}>
               {t("cancel")}

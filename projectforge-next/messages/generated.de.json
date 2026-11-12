@@ -1794,6 +1794,7 @@
       "mail": {
         "digest": {
           "changed": "Geändert",
+          "changes": "Änderungen",
           "created": "Angelegt",
           "deleted": "Gelöscht",
           "intro": "diese Aufträge wurden seit der letzten Zusammenfassung angelegt, geändert oder gelöscht:",
@@ -7600,7 +7601,7 @@
         },
         "info": {
           "1": "### Zwei-Faktor-Authentifizierung (2FA)\n\n* ProjectForge unterstützt 2FA für eine erhöhte Sicherheit. Authenticator-Apps, SMS (wenn konfiguriert) und/oder E-Mails werden als 2. Faktor unterstützt.\n* Immer, wenn ProjectForge einen Code anfordert, kann ein Code aus der Authenticator-App eingegeben werden oder ein Einmalpasswort per E-Mail oder als SMS angefordert werden.\n\nWenn die Angemeldet-Bleiben-Funktion bei der Anmeldung verwendet wird, kann eine unnötig häufige Code-Abfrage vermieden werden!",
-          "2": "Es wird dringend empfohlen, einen zweiten Faktor über eine Authenticator-App und/oder WebAuthn (z. B. Fidu2) und, falls verfügbar, auch eine Mobilfunknummer zum Anfordern von Codes per SMS zu konfiguieren.\n\nEinige Sicherheitsfunktionen, wie z. B. ein Passwort-Reset, steht nur zur Verfügung, wenn mindestens ein 2. Faktor (Authenticator-App, SMS oder WebAuthn) konfiguriert ist.",
+          "2": "Es wird dringend empfohlen, einen zweiten Faktor über eine Authenticator-App und/oder WebAuthn (z. B. Passkey, Sicherheitsschlüssel) und, falls verfügbar, auch eine Mobilfunknummer zum Anfordern von Codes per SMS zu konfiguieren.\n\nEinige Sicherheitsfunktionen, wie z. B. ein Passwort-Reset, steht nur zur Verfügung, wenn mindestens ein 2. Faktor (Authenticator-App, SMS oder WebAuthn) konfiguriert ist.",
           "3": "Hier können 2FA-Codes getestet werden. Außerdem benötigen Änderungen auf dieser Seite eine aktuelle 2FA-Prüfung.",
           "title": "Zweifaktorauthentifizierung"
         },
@@ -8066,6 +8067,22 @@
   "value": "Wert",
   "values": "Werte",
   "webauthn": {
+    "add": "Passkey oder Sicherheitsschlüssel hinzufügen",
+    "choice": {
+      "any": {
+        "info": "Der Browser bietet alle Möglichkeiten an, z. B. ein Telefon in der Nähe oder einen Passwort-Manager.",
+        "title": "Andere Möglichkeiten"
+      },
+      "crossPlatform": {
+        "info": "USB- oder NFC-Schlüssel, z. B. YubiKey. Wird bei der Aufforderung eingesteckt oder an das Gerät gehalten.",
+        "title": "Sicherheitsschlüssel"
+      },
+      "platform": {
+        "info": "Touch ID oder Face ID bei Apple-Geräten, Windows Hello, Android. Je nach Einstellung wird der Passkey über den iCloud-Schlüsselbund oder den Passwort-Manager synchronisiert.",
+        "title": "Dieses Gerät (Passkey)"
+      }
+    },
+    "empty": "Noch kein Passkey und kein Sicherheitsschlüssel registriert. Am einfachsten geht es mit Touch ID oder Face ID dieses Geräts.",
     "entry": {
       "delete": {
         "question": "Soll dieser WebAuthn-Token wirklich gelöscht werden? Er kann danach nicht mehr als zweiter Faktor verwendet werden."
@@ -8085,10 +8102,10 @@
       "userNotOwnerOrEntryDoesnotExist": "Der/die Benutzer:in hat nicht das Recht, auf fremde WebAuthn-Einträge zuzugreifen oder der gesuchte Eintrag existiert nicht.",
       "validate": "Fehler bei der Validierung der Authentifizierungsdaten."
     },
-    "info": "WebAuthn ist ein moderner und sicherer Standard, um eine hardwarebasierte Zweifaktorauthentifizierung zu ermöglichen. Hier kannst du einen oder mehrere deiner Token registrieren, um eine bequeme und sichere 2FA zu nutzen.",
+    "info": "Passkeys und Sicherheitsschlüssel sind eine moderne und sichere Möglichkeit, den zweiten Faktor zu bestätigen: Touch ID oder Face ID eines Apple-Geräts, Windows Hello, ein Passkey eines Android-Geräts oder Passwort-Managers oder ein Hardware-Schlüssel (z. B. YubiKey). Es können mehrere registriert werden.",
     "registration": {
       "2FARequired": {
-        "info": "Bitte de 2FA erneuern, bevor ein WebAuthn-Token registriert werden kann."
+        "info": "Zum Registrieren ist eine aktuelle 2FA-Prüfung nötig. Die Prüfung wird beim Hinzufügen angefordert."
       },
       "button": {
         "authenticate": {
@@ -8096,9 +8113,11 @@
           "info": "Du kannst hier registrierte WebAuthn-Token benutzen (z. B. Yubikey)."
         },
         "register": "Registrieren"
-      }
+      },
+      "next": "Danach fragt der Browser nach der Bestätigung (Fingerabdruck, Gesicht, PIN oder Schlüssel).",
+      "success": "Registriert"
     },
-    "title": "WebAuthn (Fido2 etc.)"
+    "title": "Passkeys & Sicherheitsschlüssel (WebAuthn)"
   },
   "yes": "Ja"
 }
