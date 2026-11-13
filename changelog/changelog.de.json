@@ -7,7 +7,8 @@
         "**Login**: Password-Spraying wird gebremst",
         "**2FA-Einrichtung** überarbeitet: Passkeys und Sicherheitsschlüssel",
         "**Docker**: weniger bekannte Schwachstellen in den Images",
-        "**E-Rechnung**: ZUGFeRD-Prüfung meldet fehlende Käufer-Referenz nicht mehr als Fehler"
+        "**E-Rechnung**: ZUGFeRD-Prüfung meldet fehlende Käufer-Referenz nicht mehr als Fehler",
+        "{app} Version 1.1.1 im App Store"
       ],
       "overview": [
         "**CVE-Clinic:** Befunde durchlaufen einen Status-Workflow (von neu bis behoben, abgeschwächt oder Risiko akzeptiert) mit Freigabe von Risikoakzeptanzen und „Behebung geplant“ bei Versionswechsel; alle betroffenen Versionen einer Bibliothek werden genannt; die Sprache eines KI-Prompts ist wählbar; die Bäume starten zugeklappt und merken sich ihre offenen Knoten.",
@@ -16,12 +17,14 @@
         "**Docker:** Das Image enthält curl, wget und gnupg nicht mehr, die Compose-Beispiele betreiben nginx auf Alpine; das beseitigt viele bekannte Schwachstellen.",
         "**E-Rechnung:** Eine ZUGFeRD-Rechnung ohne Käufer-Referenz wird nicht mehr als fehlerhaft gemeldet; der XRechnung-Export nennt die fehlende Referenz vorab.",
         "**Auftragsbenachrichtigungen:** Die tägliche Zusammenfassung zeigt je Auftrag Status, Nettosumme, Kunde, Projekt und die geänderten Eigenschaften.",
+        "{app} Version 1.1.1 der App ist im App Store (seit 12.11.): Seitenmenü, Push-Nachrichten mit Inhalt, gemeinsamer Timer und Zeitraster, Favoriten-Stern bei Adressen und eine Buchungsmaske, die die Tastatur nicht mehr verdeckt.",
         "**Korrekturen:** Kotlin-Skripte finden die Entitäten des CVE-Clinic-Plugins wieder, die horizontale Scrollleiste von Tabellen verdeckt die letzte Zeile nicht mehr, und Zeitberichtsvorlagen werden in der mobilen App wieder übernommen."
       ],
       "sections": [
         {
           "type": "added",
           "items": [
+            "{app} Version 1.1.1 der App ist im App Store verfügbar (veröffentlicht am 12.11.2026): Seitenmenü mit offenen Kategorien auf Tablets, Push-Nachrichten mit Inhalt, gemeinsamer Timer und Zeitraster in den Einstellungen, der Stern einer Adresse, die Buchungsmaske wird nicht mehr von der Tastatur verdeckt, Anmeldung hinter einem SSO-Proxy ohne Umweg über Safari und aktualisierte Bibliotheken (bekannte Schwachstellen in Build-Werkzeugen beseitigt).",
             {
               "title": "CVE-Clinic: Status-Workflow der Befunde, Risikoakzeptanz und „Behebung geplant“ bei Versionswechsel",
               "items": [

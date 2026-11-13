@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "{app} Version 1.1.1 of the app is available in the App Store (released on November 12, 2026): pages menu with open categories on tablets, push messages with content, shared timer and time grid in the settings, the star of an address, the booking form no longer hidden by the keyboard, login behind an SSO proxy without detour to Safari, and updated libraries (known vulnerabilities in build tools removed).",
-  "de": "{app} Version 1.1.1 der App ist im App Store verfügbar (veröffentlicht am 12.11.2026): Seitenmenü mit offenen Kategorien auf Tablets, Push-Nachrichten mit Inhalt, gemeinsamer Timer und Zeitraster in den Einstellungen, der Stern einer Adresse, die Buchungsmaske wird nicht mehr von der Tastatur verdeckt, Anmeldung hinter einem SSO-Proxy ohne Umweg über Safari und aktualisierte Bibliotheken (bekannte Schwachstellen in Build-Werkzeugen beseitigt)."
-}

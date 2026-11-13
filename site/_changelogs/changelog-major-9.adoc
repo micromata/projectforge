@@ -23,6 +23,7 @@ SHA-256 of projectforge-application-9.2.11.jar: `+b8d7cffa29768aa13f1340f0b6cfc7
 - **Two-factor setup** revised: passkeys and security keys
 - **Docker**: fewer known vulnerabilities in the images
 - **E-invoice**: ZUGFeRD check no longer fails without a buyer reference
+- [changelog-app]##App## Version 1.1.1 in the App Store
 
 .Overview
 [%collapsible]
@@ -33,6 +34,7 @@ SHA-256 of projectforge-application-9.2.11.jar: `+b8d7cffa29768aa13f1340f0b6cfc7
 - **Docker:** the image no longer contains curl, wget and gnupg, the compose examples run nginx on Alpine; this removes many known vulnerabilities.
 - **E-invoice:** a ZUGFeRD invoice without a buyer reference is no longer reported as faulty; the XRechnung export names the missing reference beforehand.
 - **Order notifications:** the daily summary shows status, net sum, customer, project and the changed properties of each order.
+- [changelog-app]##App## Version 1.1.1 of the app is in the App Store (since November 12): pages menu, push messages with content, shared timer and time grid, favorite star of addresses and a booking form the keyboard no longer covers.
 - **Fixes:** Kotlin scripts find the entities of the CVE-Clinic plugin again, the horizontal scrollbar of tables no longer hides the last row, and time sheet templates are applied again in the mobile app.
 ====
 
@@ -43,6 +45,7 @@ SHA-256 of projectforge-application-9.2.11.jar: `+b8d7cffa29768aa13f1340f0b6cfc7
 ++++
 {% include tag.html tag="added" %}
 ++++
+- [changelog-app]##App## Version 1.1.1 of the app is available in the App Store (released on November 12, 2026): pages menu with open categories on tablets, push messages with content, shared timer and time grid in the settings, the star of an address, the booking form no longer hidden by the keyboard, login behind an SSO proxy without detour to Safari, and updated libraries (known vulnerabilities in build tools removed).
 - **CVE-Clinic: status workflow of the findings, risk acceptance and fix planned on a version change**
   * Findings follow a status workflow: new, in review, affected, not affected, fix planned, fixed, mitigated, risk accepted. The security team sets it for several findings at once, with a reason for "not affected" and the fixed version for "fixed".
   * A risk acceptance is requested with a reason and an end date and approved by the security officer, from priority P2 at the time of the request on by the management as well (new group setting `+managementGroup+`), never by the person who requested it; after its last day, or unapproved by then, the finding is affected again.
