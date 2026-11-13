@@ -8,6 +8,9 @@
     "sections" : [ {
       "type" : "fixed",
       "items" : [ {
+        "title" : "Merlin",
+        "items" : [ "The PDF export of templates uses LibreOffice, if installed on the server, like the invoice PDF: the layout is closer to Word, and serial documents with PDF export no longer take minutes per document.", "A document of a serial execution that can't be converted to PDF is delivered as Word document instead of aborting the whole run." ]
+      }, {
         "title" : "Scripts",
         "items" : [ "JFreeChart scripts run again in the release jar (the library was missing in the script class path).", "A chart produced by a script is shown directly on the output tab, the demo script draws a modern donut chart.", "The demo script \"Excel export of all user\" works again." ]
       } ]

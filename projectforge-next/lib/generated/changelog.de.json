@@ -8,6 +8,9 @@
     "sections" : [ {
       "type" : "fixed",
       "items" : [ {
+        "title" : "Merlin",
+        "items" : [ "Der PDF-Export von Vorlagen nutzt wie das Rechnungs-PDF LibreOffice, wenn es auf dem Server installiert ist: Das Layout ist näher an Word, und Serienbriefe mit PDF-Export brauchen nicht mehr Minuten pro Dokument.", "Ein Dokument eines Serienbriefs, das sich nicht in PDF umwandeln lässt, wird als Word-Dokument geliefert, statt den ganzen Lauf abzubrechen." ]
+      }, {
         "title" : "Scripte",
         "items" : [ "JFreeChart-Scripte laufen im Release-Jar wieder (die Bibliothek fehlte im Script-Classpath).", "Ein von einem Script erzeugtes Diagramm wird direkt im Reiter „Ausgabe“ angezeigt, das Demo-Script zeichnet ein modernes Donut-Diagramm.", "Das Demo-Script „Excel export of all user“ läuft wieder." ]
       } ]

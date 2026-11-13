@@ -131,7 +131,6 @@ export const MERLIN_PAGE = definePage<
       {
         id: "attachments",
         titleKey: "attachment.list",
-        visible: ({ data }) => data?.id != null,
         render: ({ id }) => <MerlinAttachments id={id} />,
       },
     ],
