@@ -1,0 +1,9 @@
+{
+  "type": "fixed",
+  "en": "Merlin",
+  "de": "Merlin",
+  "items": [
+    { "en": "The PDF export of templates uses LibreOffice, if installed on the server, like the invoice PDF: the layout is closer to Word, and serial documents with PDF export no longer take minutes per document.", "de": "Der PDF-Export von Vorlagen nutzt wie das Rechnungs-PDF LibreOffice, wenn es auf dem Server installiert ist: Das Layout ist näher an Word, und Serienbriefe mit PDF-Export brauchen nicht mehr Minuten pro Dokument." },
+    { "en": "A document of a serial execution that can't be converted to PDF is delivered as Word document instead of aborting the whole run.", "de": "Ein Dokument eines Serienbriefs, das sich nicht in PDF umwandeln lässt, wird als Word-Dokument geliefert, statt den ganzen Lauf abzubrechen." }
+  ]
+}

@@ -65,14 +65,25 @@ open class LibreOfficeService(
     /**
      * @return The PDF/A-3, or null if LibreOffice isn't available or the conversion failed (logged).
      */
-    open fun convertDocxToPdf(docx: ByteArray): ByteArray? {
+    open fun convertDocxToPdf(docx: ByteArray): ByteArray? = convertDocxToPdf(listOf(docx))?.first()
+
+    /**
+     * Converts several Word documents in one LibreOffice run, which saves its start for each document (serial
+     * documents of Merlin).
+     * @return The PDF/A-3 documents in the order of the given ones (null for a document LibreOffice didn't convert),
+     * or null if LibreOffice isn't available or the run failed (logged).
+     */
+    open fun convertDocxToPdf(docxList: List<ByteArray>): List<ByteArray?>? {
+        if (docxList.isEmpty()) {
+            return emptyList()
+        }
         val soffice = executable ?: return null
         return lock.withLock {
             val jobDir = Files.createTempDirectory(workDir.toPath(), "job").toFile()
             try {
-                convert(soffice, jobDir, docx)
+                convert(soffice, jobDir, docxList)
             } catch (ex: Exception) {
-                log.error(ex) { "Converting Word document with LibreOffice failed: ${ex.message}" }
+                log.error(ex) { "Converting Word document(s) with LibreOffice failed: ${ex.message}" }
                 null
             } finally {
                 jobDir.deleteRecursively()
@@ -80,33 +91,42 @@ open class LibreOfficeService(
         }
     }
 
-    private fun convert(soffice: File, jobDir: File, docx: ByteArray): ByteArray? {
-        val input = File(jobDir, "document.docx").also { it.writeBytes(docx) }
+    private fun convert(soffice: File, jobDir: File, docxList: List<ByteArray>): List<ByteArray?>? {
+        val baseNames = docxList.indices.map { "document-${it + 1}" }
+        val inputs = docxList.mapIndexed { index, docx ->
+            File(jobDir, "${baseNames[index]}.docx").also { it.writeBytes(docx) }
+        }
         val outDir = File(jobDir, "out")
         val logFile = File(jobDir, "soffice.log")
         val started = System.currentTimeMillis()
         val process = ProcessBuilder(
-            soffice.absolutePath,
-            "-env:UserInstallation=${File(workDir, "profile").toPath().toUri()}",
-            "--headless", "--norestore", "--nolockcheck", "--nodefault",
-            "--convert-to", PDF_A3_FILTER,
-            "--outdir", outDir.absolutePath,
-            input.absolutePath,
+            listOf(
+                soffice.absolutePath,
+                "-env:UserInstallation=${File(workDir, "profile").toPath().toUri()}",
+                "--headless", "--norestore", "--nolockcheck", "--nodefault",
+                "--convert-to", PDF_A3_FILTER,
+                "--outdir", outDir.absolutePath,
+            ) + inputs.map { it.absolutePath }
         ).directory(jobDir).redirectErrorStream(true).redirectOutput(logFile).also {
             it.environment()["FONTCONFIG_FILE"] = File(workDir, "fonts.conf").absolutePath
         }.start()
-        if (!process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+        val timeout = TIMEOUT_SECONDS + (docxList.size - 1) * TIMEOUT_SECONDS_PER_FURTHER_DOCUMENT
+        if (!process.waitFor(timeout, TimeUnit.SECONDS)) {
             process.destroyForcibly()
-            log.error { "LibreOffice didn't finish within $TIMEOUT_SECONDS s, conversion aborted." }
+            log.error { "LibreOffice didn't finish within $timeout s, conversion aborted." }
             return null
         }
-        val pdf = File(outDir, "document.pdf")
-        if (process.exitValue() != 0 || !pdf.isFile) {
+        val pdfs = baseNames.map { File(outDir, "$it.pdf").takeIf { file -> file.isFile }?.readBytes() }
+        if (process.exitValue() != 0 || pdfs.all { it == null }) {
             log.error { "LibreOffice failed (exit code ${process.exitValue()}): ${logFile.readText().trim()}" }
             return null
         }
-        log.info { "Converted Word document to PDF/A-3 with LibreOffice in ${System.currentTimeMillis() - started} ms." }
-        return pdf.readBytes()
+        val missing = pdfs.count { it == null }
+        if (missing > 0) {
+            log.error { "LibreOffice didn't convert $missing of ${docxList.size} Word documents: ${logFile.readText().trim()}" }
+        }
+        log.info { "Converted ${docxList.size - missing} Word document(s) to PDF/A-3 with LibreOffice in ${System.currentTimeMillis() - started} ms." }
+        return pdfs
     }
 
     private fun createWorkDir(): File {
@@ -161,6 +181,8 @@ open class LibreOfficeService(
 
     companion object {
         private const val TIMEOUT_SECONDS = 120L
+
+        private const val TIMEOUT_SECONDS_PER_FURTHER_DOCUMENT = 30L
 
         private const val PDF_A3_FILTER = """pdf:writer_pdf_Export:{"SelectPdfVersion":{"type":"long","value":"3"}}"""
 
