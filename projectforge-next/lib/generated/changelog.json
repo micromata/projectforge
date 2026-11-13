@@ -6,6 +6,12 @@
     "date" : "2026-11-13",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "Shared costs: the hours of time sheets overlapping other ones (only possible with shared costs)",
+        "items" : [ "Time sheet list: in the statistics, absolute and as a share of the total duration.", "Monthly employee report: in the statistics and as a column of their own per cost unit, with their total." ]
+      } ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Merlin",

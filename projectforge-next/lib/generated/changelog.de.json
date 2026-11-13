@@ -6,6 +6,12 @@
     "date" : "2026-11-13",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "Geteilte Kosten: die Stunden von Zeitberichten, die sich mit anderen überlappen (nur bei geteilten Kosten möglich)",
+        "items" : [ "Zeitberichtsliste: in der Statistik, absolut und als Anteil an der Gesamtdauer.", "Monatsbericht: in der Statistik und als eigene Spalte je Kostenträger, mit Summe." ]
+      } ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Merlin",
