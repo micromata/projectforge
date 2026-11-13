@@ -1,13 +1,81 @@
 ---
 title: "ProjectForge 9"
-date: 2026-11-12
-sort_key: "2026-11-12 0059"
+date: 2026-11-13
+sort_key: "2026-11-13 0060"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-11.changelog-release]
+=== ProjectForge 9.2.11 released
+
+[.changelog-source]
+__2026-11-13, tag https://github.com/micromata/projectforge/tree/9.2.11-RELEASE[9.2.11-RELEASE]__ +++{% include release-pills.html tag="9.2.11-RELEASE" docker="9.2.11" %}+++
+
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.2.11.jar: `+b8d7cffa29768aa13f1340f0b6cfc72f7a4b4062e0148724371beac60086f434+`
+
+- **CVE-Clinic**: status workflow of the findings with risk acceptance
+- **Login**: password spraying is slowed down
+- **Two-factor setup** revised: passkeys and security keys
+- **Docker**: fewer known vulnerabilities in the images
+- **E-invoice**: ZUGFeRD check no longer fails without a buyer reference
+
+.Overview
+[%collapsible]
+====
+- **CVE-Clinic:** findings follow a status workflow (new to fixed, mitigated or risk accepted) with approval of risk acceptances and "fix planned" on a version change; all affected versions of a library are named; the language of an AI prompt is selectable; the trees start collapsed and remember their open nodes.
+- **Login:** password spraying (the same password against many users) is slowed down by counting failed logins per tried password.
+- **Two-factor setup:** passkeys and security keys are easier to find and to add.
+- **Docker:** the image no longer contains curl, wget and gnupg, the compose examples run nginx on Alpine; this removes many known vulnerabilities.
+- **E-invoice:** a ZUGFeRD invoice without a buyer reference is no longer reported as faulty; the XRechnung export names the missing reference beforehand.
+- **Order notifications:** the daily summary shows status, net sum, customer, project and the changed properties of each order.
+- **Fixes:** Kotlin scripts find the entities of the CVE-Clinic plugin again, the horizontal scrollbar of tables no longer hides the last row, and time sheet templates are applied again in the mobile app.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **CVE-Clinic: status workflow of the findings, risk acceptance and fix planned on a version change**
+  * Findings follow a status workflow: new, in review, affected, not affected, fix planned, fixed, mitigated, risk accepted. The security team sets it for several findings at once, with a reason for "not affected" and the fixed version for "fixed".
+  * A risk acceptance is requested with a reason and an end date and approved by the security officer, from priority P2 at the time of the request on by the management as well (new group setting `+managementGroup+`), never by the person who requested it; after its last day, or unapproved by then, the finding is affected again.
+  * If the version of a technology changes so that a vulnerability no longer matches, its open findings are set to "fix planned" and the fix is confirmed per instance; a rollback to an affected version reopens planned and fixed findings. The list of vulnerabilities also counts the findings in progress and done.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- CVE-Clinic: the language of an AI prompt can be chosen (German or English), whatever language the web app is set to.
+- Login: password spraying (the same password tried against many users) is slowed down. Failed logins are also counted per tried password, kept as a keyed hash in memory only.
+- Order notifications: the daily summary shows status, net sum, customer and project of each order and which properties were changed.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- CVE-Clinic: the inventory and catalogue trees start collapsed; which nodes are open is remembered in the user settings.
+- Docker: the image no longer contains curl, wget and gnupg of the base image (only needed for downloading the JDK), which removes their vulnerabilities.
+- Docker: the compose examples run nginx on Alpine (stable-alpine-slim) instead of Debian, without curl, perl, libxml2 and the image libraries of the Debian image, which caused most of its known vulnerabilities.
+- Two-factor setup revised: passkeys and security keys are easier to find and to add.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- [changelog-app]##App## Time sheet templates are applied again when booking (task, cost unit and texts were left empty).
+- CVE-Clinic: if a component contains several affected versions of a library (e.g. two versions of one npm package), the finding, the libraries and the report now name all of them instead of only one.
+- Scripts: the entities of the CVE-Clinic plugin (e.g. CvrCaseDO) are found again by Kotlin scripts ("Unresolved reference 'cveradar'").
+- Tables: the horizontal scrollbar no longer hides the last row.
+- E-invoice: a ZUGFeRD invoice without a buyer reference (BT-10) is no longer reported as faulty by the check, the rule BR-DE-15 belongs to XRechnung only. The XRechnung export names the missing reference (Leitweg-ID or customer reference) beforehand. Hints on the customer reference (BT-10) and on contact person and department (together BT-56).
+
+++++
+{% include download-link.html %}
+++++
+====
 
 [discrete#release-9-2-10.changelog-release]
 === ProjectForge 9.2.10 released
