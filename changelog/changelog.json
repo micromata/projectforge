@@ -57,7 +57,7 @@
         "**CVE-Radar**: bulk import of SBOMs, report by package, ratings of all sources, fixes for severity and Maven versions",
         "**Backup**: the CVE-Radar source data is no longer backed up",
         "**Notifications**: push messages show their content",
-        "**App**: grouped pages menu, SSO renewal in Safari fixed, booking form improvements",
+        "{app} grouped pages menu, SSO renewal in Safari fixed, booking form improvements",
         "**Invoices**: cleaner invoice address and customer reference"
       ],
       "overview": [
@@ -137,7 +137,7 @@
         "**Chat**: link previews, clickable urls in all rich texts",
         "**CVE-Radar**: findings per node and library, fewer false positives with Debian/Ubuntu advisories, Dependency-Track connection, own backup dump",
         "**New logo**: web interface, website, app icon",
-        "**App**: changelog, last used tab, wide-screen menu",
+        "{app} changelog, last used tab, wide-screen menu",
         "**Security**: shorter CSRF token lifetime, library updates (freemarker, jsoup)",
         "**Docker**: image on Ubuntu 24.04, compose example on PostgreSQL 17"
       ],
@@ -225,7 +225,7 @@
       "published": false,
       "summary": [
         "**CVE-Radar**: EUVD as an additional source, team checks answered per person",
-        "**App**: pushes from all servers, new menu of the ProjectForge tab, browser functions in web tabs",
+        "{app} pushes from all servers, new menu of the ProjectForge tab, browser functions in web tabs",
         "**Edited by**: new column in many lists",
         "**E-invoice**: self-check of the generated file, separate contact emails",
         "**Business cards**: photo linked by a public url with a random token"

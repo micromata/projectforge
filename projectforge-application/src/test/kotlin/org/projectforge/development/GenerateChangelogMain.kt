@@ -190,8 +190,8 @@ object GenerateChangelogMain {
   private val ITALIC_REGEX = Regex("""(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])""")
   private val RED_REGEX = Regex("""\{red}(.*?)\{/red}""")
   internal const val APP_MARKER = "{app} "
-  /** A change of the app written out instead of marked: "App: …", "App time sheets: …", "App-Zeitberichte: …". */
-  private val APP_PREFIX_REGEX = Regex("""^App\b[^:\n]{0,30}:""")
+  /** A change of the app written out instead of marked: "App: …", "App time sheets: …", "App-Zeitberichte: …", "**App**: …". */
+  private val APP_PREFIX_REGEX = Regex("""^(\*\*)?App\b[^:\n]{0,30}:""")
 
   /**
    * Generates all files. With `--check-release X.Y.Z` (used by `bin/pfDev.sh release`) it only checks that the

@@ -46,7 +46,7 @@
         "**CVE-Radar**: Massenimport von SBOMs, Bericht nach Paket, Bewertungen aller Quellen, Korrekturen bei Schweregrad und Maven-Versionen",
         "**Backup**: Die Quelldaten des CVE-Radars werden nicht mehr gesichert",
         "**Benachrichtigungen**: Push-Nachrichten zeigen ihren Inhalt",
-        "**App**: Seitenmenü mit Gruppen, SSO-Erneuerung in Safari behoben, Verbesserungen der Buchungsmaske",
+        "{app} Seitenmenü mit Gruppen, SSO-Erneuerung in Safari behoben, Verbesserungen der Buchungsmaske",
         "**Rechnungen**: übersichtlichere Rechnungsadresse und Kundenreferenz"
       ],
       "overview": [
@@ -121,7 +121,7 @@
         "**Chat**: Linkvorschauen, anklickbare URLs in allen Rich-Texten",
         "**CVE-Radar**: Findings je Knoten und Bibliothek, weniger Fehltreffer durch Advisories von Debian/Ubuntu, Anbindung an Dependency-Track, eigener Backup-Dump",
         "**Neues Logo**: Weboberfläche, Webseite, App-Icon",
-        "**App**: Changelog, zuletzt genutzter Tab, Menü für breite Bildschirme",
+        "{app} Changelog, zuletzt genutzter Tab, Menü für breite Bildschirme",
         "**Sicherheit**: kürzere Lebensdauer des CSRF-Tokens, Bibliotheksupdates (freemarker, jsoup)",
         "**Docker**: Image auf Ubuntu 24.04, Compose-Beispiel mit PostgreSQL 17"
       ],
@@ -204,7 +204,7 @@
       "title": "ProjectForge 9.2.7 veröffentlicht",
       "summary": [
         "**CVE-Radar**: EUVD als zusätzliche Quelle, Team-Prüfungen je Person beantwortet",
-        "**App**: Pushes aller Server, neues Menü des ProjectForge-Tabs, Browserfunktionen in Web-Tabs",
+        "{app} Pushes aller Server, neues Menü des ProjectForge-Tabs, Browserfunktionen in Web-Tabs",
         "**Bearbeitet von**: neue Spalte in vielen Listen",
         "**E-Rechnung**: Selbstprüfung der erzeugten Datei, getrennte Kontakt-E-Mails",
         "**Visitenkarten**: Foto über öffentliche URL mit zufälligem Token verlinkt"

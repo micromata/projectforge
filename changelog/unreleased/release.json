@@ -5,14 +5,16 @@
       "**Login**: password spraying is slowed down",
       "**Two-factor setup** revised: passkeys and security keys",
       "**Docker**: fewer known vulnerabilities in the images",
-      "**E-invoice**: ZUGFeRD check no longer fails without a buyer reference"
+      "**E-invoice**: ZUGFeRD check no longer fails without a buyer reference",
+      "{app} Version 1.1.1 in the App Store"
     ],
     "de": [
       "**CVE-Clinic**: Status-Workflow der Befunde mit Risikoakzeptanz",
       "**Login**: Password-Spraying wird gebremst",
       "**2FA-Einrichtung** überarbeitet: Passkeys und Sicherheitsschlüssel",
       "**Docker**: weniger bekannte Schwachstellen in den Images",
-      "**E-Rechnung**: ZUGFeRD-Prüfung meldet fehlende Käufer-Referenz nicht mehr als Fehler"
+      "**E-Rechnung**: ZUGFeRD-Prüfung meldet fehlende Käufer-Referenz nicht mehr als Fehler",
+      "{app} Version 1.1.1 im App Store"
     ]
   },
   "overview": {
@@ -23,6 +25,7 @@
       "**Docker:** the image no longer contains curl, wget and gnupg, the compose examples run nginx on Alpine; this removes many known vulnerabilities.",
       "**E-invoice:** a ZUGFeRD invoice without a buyer reference is no longer reported as faulty; the XRechnung export names the missing reference beforehand.",
       "**Order notifications:** the daily summary shows status, net sum, customer, project and the changed properties of each order.",
+      "{app} Version 1.1.1 of the app is in the App Store (since November 12): pages menu, push messages with content, shared timer and time grid, favorite star of addresses and a booking form the keyboard no longer covers.",
       "**Fixes:** Kotlin scripts find the entities of the CVE-Clinic plugin again, the horizontal scrollbar of tables no longer hides the last row, and time sheet templates are applied again in the mobile app."
     ],
     "de": [
@@ -32,6 +35,7 @@
       "**Docker:** Das Image enthält curl, wget und gnupg nicht mehr, die Compose-Beispiele betreiben nginx auf Alpine; das beseitigt viele bekannte Schwachstellen.",
       "**E-Rechnung:** Eine ZUGFeRD-Rechnung ohne Käufer-Referenz wird nicht mehr als fehlerhaft gemeldet; der XRechnung-Export nennt die fehlende Referenz vorab.",
       "**Auftragsbenachrichtigungen:** Die tägliche Zusammenfassung zeigt je Auftrag Status, Nettosumme, Kunde, Projekt und die geänderten Eigenschaften.",
+      "{app} Version 1.1.1 der App ist im App Store (seit 12.11.): Seitenmenü, Push-Nachrichten mit Inhalt, gemeinsamer Timer und Zeitraster, Favoriten-Stern bei Adressen und eine Buchungsmaske, die die Tastatur nicht mehr verdeckt.",
       "**Korrekturen:** Kotlin-Skripte finden die Entitäten des CVE-Clinic-Plugins wieder, die horizontale Scrollleiste von Tabellen verdeckt die letzte Zeile nicht mehr, und Zeitberichtsvorlagen werden in der mobilen App wieder übernommen."
     ]
   }

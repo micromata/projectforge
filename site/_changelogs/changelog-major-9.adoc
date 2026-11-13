@@ -70,7 +70,7 @@ __2026-11-11, tag https://github.com/micromata/projectforge/tree/9.2.9-RELEASE[9
 - **CVE-Radar**: bulk import of SBOMs, report by package, ratings of all sources, fixes for severity and Maven versions
 - **Backup**: the CVE-Radar source data is no longer backed up
 - **Notifications**: push messages show their content
-- **App**: grouped pages menu, SSO renewal in Safari fixed, booking form improvements
+- [changelog-app]##App## grouped pages menu, SSO renewal in Safari fixed, booking form improvements
 - **Invoices**: cleaner invoice address and customer reference
 
 .Overview
@@ -141,7 +141,7 @@ __2026-11-09, tag https://github.com/micromata/projectforge/tree/9.2.8-RELEASE[9
 - **Chat**: link previews, clickable urls in all rich texts
 - **CVE-Radar**: findings per node and library, fewer false positives with Debian/Ubuntu advisories, Dependency-Track connection, own backup dump
 - **New logo**: web interface, website, app icon
-- **App**: changelog, last used tab, wide-screen menu
+- [changelog-app]##App## changelog, last used tab, wide-screen menu
 - **Security**: shorter CSRF token lifetime, library updates (freemarker, jsoup)
 - **Docker**: image on Ubuntu 24.04, compose example on PostgreSQL 17
 
@@ -220,7 +220,7 @@ __2026-11-09, tag https://github.com/micromata/projectforge/tree/9.2.8-RELEASE[9
 __2026-11-08, tag https://github.com/micromata/projectforge/tree/9.2.7-RELEASE[9.2.7-RELEASE]__ +++{% include release-pills.html tag="9.2.7-RELEASE" docker="9.2.7" mini=true %}+++
 
 - **CVE-Radar**: EUVD as an additional source, team checks answered per person
-- **App**: pushes from all servers, new menu of the ProjectForge tab, browser functions in web tabs
+- [changelog-app]##App## pushes from all servers, new menu of the ProjectForge tab, browser functions in web tabs
 - **Edited by**: new column in many lists
 - **E-invoice**: self-check of the generated file, separate contact emails
 - **Business cards**: photo linked by a public url with a random token

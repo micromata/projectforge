@@ -68,6 +68,8 @@ class GenerateChangelogMainTest {
     assertEquals(1, errors("App: the menu.").size)
     assertEquals(1, errors("App time sheets: the menu.").size)
     assertEquals(1, errors("App-Zeitberichte: Das Menü.").size)
+    assertEquals(1, errors("**App**: the menu.").size)
+    assertTrue(errors("**Backup**: the menu.").isEmpty())
     assertTrue(errors("App and server warn each other.").isEmpty())
   }
 
