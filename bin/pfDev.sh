@@ -948,7 +948,10 @@ slot_run() {
   fi
   hotswap_setup
   "$GRADLEW" -p "$ROOT" build -x test
-  [[ -n "${PF_HOTSWAP_AGENT:-}" ]] && touch "$(hotswap_stamp)"
+  if [[ -n "${PF_HOTSWAP_AGENT:-}" ]]; then
+    mkdir -p "$PF_HOME" # Missing on the very first start.
+    touch "$(hotswap_stamp)"
+  fi
   # First start after `setup`: fill the fresh database as soon as the instance answers.
   [[ -f "$PF_HOME/$SETUP_PENDING" ]] && init_database &
   JAVA_TOOL_OPTIONS="$opts" \
