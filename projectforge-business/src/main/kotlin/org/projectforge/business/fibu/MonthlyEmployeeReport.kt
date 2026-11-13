@@ -45,6 +45,7 @@ import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.formatFraction2
 import org.projectforge.framework.SpringBeans
 import org.slf4j.Logger
@@ -162,6 +163,30 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     var totalTimeSavedByAI: Long = 0
         private set
 
+    /**
+     * The booked duration (in ms) of all time sheets of the month, before working time fractions and the overlap split:
+     * the base of [sharedCostPercentage].
+     */
+    var totalBookedDuration: Long = 0
+        private set
+
+    /**
+     * The booked duration (in ms) of the time sheets that overlaps other ones (shared costs actually used, see
+     * [TimesheetOverlapUtils.overlapDurations]), before working time fractions and the overlap split, as the time
+     * sheet list counts it.
+     */
+    var totalSharedCostDuration: Long = 0
+        private set
+
+    /** [totalSharedCostDuration] per row, key is kost2.id (see [kost2Durations]). */
+    val kost2SharedCostDurations = mutableMapOf<Long, Long>()
+
+    /**
+     * [totalSharedCostDuration] per row, key is task.id (see [taskDurations]). Sheets without select access (the pseudo
+     * task) count only in the total.
+     */
+    val taskSharedCostDurations = mutableMapOf<Long, Long>()
+
     var invoicingQuota: BigDecimal? = null
         private set
 
@@ -277,6 +302,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         // covered by n time sheets each of them gets 1/n. The sum of all split durations equals the union of the
         // intervals (overlapping time counted once). Non-overlapping time sheets keep their full duration.
         val splitDurations = TimesheetOverlapUtils.splitDurations(bufferedSheets.map { it.first })
+        val overlapDurations = TimesheetOverlapUtils.overlapDurations(bufferedSheets.map { it.first })
         for ((sheet, hasSelectAccess) in bufferedSheets) {
             val attendanceDuration = sheet.id?.let { splitDurations[it] } ?: sheet.duration
             var added = false
@@ -285,6 +311,19 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
                     week.addEntry(sheet, hasSelectAccess, attendanceDuration)
                     added = true
                     break
+                }
+            }
+            if (added) {
+                totalBookedDuration += sheet.duration
+                sheet.id?.let { overlapDurations[it] }?.let { overlap ->
+                    totalSharedCostDuration += overlap
+                    // The row the week put the sheet in (see MonthlyEmployeeReportWeek.addEntry).
+                    val rowDurations = when {
+                        !hasSelectAccess -> null
+                        sheet.kost2Id != null -> kost2SharedCostDurations to sheet.kost2Id!!
+                        else -> sheet.taskId?.let { taskSharedCostDurations to it }
+                    }
+                    rowDurations?.let { (map, id) -> map[id] = (map[id] ?: 0L) + overlap }
                 }
             }
             if (!added) {
@@ -451,6 +490,15 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
     val formattedTimeSavedByAIPercentage: String
         get() = AITimeSavings.getFormattedPercentage(totalGrossDuration, totalTimeSavedByAI)
+
+    val formattedTotalSharedCostDuration: String
+        get() = getFormattedDuration(totalSharedCostDuration)
+
+    /** Share of [totalSharedCostDuration] in [totalBookedDuration], e.g. "25 %". */
+    val formattedSharedCostPercentage: String
+        get() = AITimeSavings.getFormattedPercentage(
+            if (totalBookedDuration > 0) NumberHelper.getPercent(totalSharedCostDuration, totalBookedDuration) else null
+        )
 
     val formattedInvoicingQuota: String?
         get() = invoicingQuota?.formatFractionAsPercent(true)

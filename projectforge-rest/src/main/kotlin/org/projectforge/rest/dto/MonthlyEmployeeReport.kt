@@ -78,6 +78,15 @@ class MonthlyEmployeeReportData(
     val totalTimeSavedByAI: String,
     /** Percentage of gross time saved by AI (only meaningful when [timeSavingsByAIEnabled]). */
     val timeSavedByAIPercentage: String,
+    /**
+     * Booked hours overlapping other time sheets (shared costs actually used, before working time fractions and the
+     * overlap split), formatted, or null if there are none.
+     */
+    val totalSharedCostDuration: String? = null,
+    /** Share of [totalSharedCostDuration] in all booked hours of the month, e.g. "25 %", or null with it. */
+    val sharedCostPercentage: String? = null,
+    /** True if some booked hours overlap (drives showing the shared cost column). */
+    val hasSharedCosts: Boolean = false,
     /** Whether the vacation figures may be shown to the logged-in user. */
     val vacationAvailable: Boolean,
     val vacationCount: String?,
@@ -141,6 +150,8 @@ class MonthlyEmployeeReportRow(
     val sum: String,
     /** Monthly time saved by AI for this row (formatted). */
     val aiTimeSavings: String,
+    /** Booked hours of this row overlapping other time sheets (formatted, as booked, not split), "" if none. */
+    val sharedCostDuration: String = "",
     /**
      * A task row booked without Kost2, marked only while the db-param `timesheet.warnMissingKost2` is on
      * (see [org.projectforge.framework.configuration.Configuration.isWarnMissingKost2]).

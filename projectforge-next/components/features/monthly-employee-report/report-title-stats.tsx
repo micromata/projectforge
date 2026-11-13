@@ -16,7 +16,8 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 
 /**
  * The report's key figures repeated prominently in the page title row (top-right): working days, target
- * ("Soll") working hours and the net/gross totals — a compact right-aligned summary next to the actions,
+ * ("Soll") working hours, the net/gross totals, the AI savings and the overlapping (shared cost) hours (in the
+ * colors of their table columns) — a compact right-aligned summary next to the actions,
  * mirroring the invoice edit page's sums line (invoice-sums-line.tsx). The fuller statistics stay in the
  * ReportHeader below; this line is the at-a-glance version.
  */
@@ -44,6 +45,13 @@ export function ReportTitleStats({ report }: { report: MonthlyReport }) {
       {report.hasTimeSavingsByAI && (
         <Stat label={t("timesheet.ai.timeSavedByAI._")}>
           <span className="text-ai-savings">{report.totalTimeSavedByAI}</span>
+        </Stat>
+      )}
+      {report.totalSharedCostDuration && (
+        <Stat label={t("fibu.kost2.sharedCost._")}>
+          <span className="text-shared-cost">
+            {report.totalSharedCostDuration} ({report.sharedCostPercentage})
+          </span>
         </Stat>
       )}
     </dl>

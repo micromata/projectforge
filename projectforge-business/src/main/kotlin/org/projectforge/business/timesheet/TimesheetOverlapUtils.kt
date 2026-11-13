@@ -90,6 +90,42 @@ object TimesheetOverlapUtils {
     }
 
     /**
+     * The booked time of each sheet that overlaps another one (shared costs actually used): the part of its interval
+     * covered by at least one other sheet, counted in full, not split. Example: 1h on project A fully overlapping 1h
+     * on project B => 1h each; a: 0..60min, b: 30..90min => 30min each.
+     *
+     * Unlike the setting of a cost unit or task, an overlap is a fact of the booking itself, so this also holds
+     * looking back: time sheets could only overlap where shared costs were allowed at the time of booking.
+     *
+     * @param sheets the time sheets of a single user (start/stop must be set; deleted sheets should be filtered out).
+     * @return map of `timesheet.id` -> overlapping millis, only for sheets that overlap at all. Sheets without an id
+     *   or without start/stop are ignored.
+     */
+    fun overlapDurations(sheets: Collection<TimesheetDO>): Map<Long, Long> {
+        val valid = sheets.filter { it.id != null && it.startTime != null && it.stopTime != null }
+            .sortedBy { it.startTime!!.time }
+        // The overlapping parts of each sheet, as intervals: several partners may cover the same time of a sheet.
+        val covered = HashMap<Long, MutableList<TimesheetDO>>()
+        // Sweep over the sheets sorted by start: only sheets still running at the current start can overlap it.
+        val active = mutableListOf<TimesheetDO>()
+        valid.forEach { sheet ->
+            val start = sheet.startTime!!
+            active.removeAll { it.stopTime!!.time <= start.time }
+            active.forEach { other ->
+                // other started before (or with) sheet, so both share start..min(stop).
+                val part = TimesheetDO().also {
+                    it.startTime = start
+                    it.stopTime = if (other.stopTime!! < sheet.stopTime!!) other.stopTime else sheet.stopTime
+                }
+                covered.getOrPut(sheet.id!!) { mutableListOf() }.add(part)
+                covered.getOrPut(other.id!!) { mutableListOf() }.add(part)
+            }
+            active.add(sheet)
+        }
+        return covered.mapValues { (_, parts) -> unionDurationMillis(parts) }.filterValues { it > 0 }
+    }
+
+    /**
      * The gross working time (Brutto-Arbeitszeit) per time sheet: overlapping time is counted once (see
      * [splitDurations]) but the cost-type work fraction is NOT applied as a weight — every sheet whose work
      * fraction is greater than zero counts in full (e.g. travel time counts fully), while sheets with a work

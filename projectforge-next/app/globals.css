@@ -43,6 +43,7 @@
   --color-status-bar: var(--status-bar);
   --color-status-bar-foreground: var(--status-bar-foreground);
   --color-ai-savings: var(--ai-savings);
+  --color-shared-cost: var(--shared-cost);
   --color-warning: var(--warning);
   --color-development: var(--development);
   --color-development-foreground: var(--development-foreground);
@@ -119,6 +120,9 @@
   /* Time saved by AI, the purple emphasis of the monthly employee report's AI column/rows (the legacy
      Wicket page used inline "color:purple"). Chosen for readable contrast on white. */
   --ai-savings: #7c3aed;
+  /* Hours booked on shared cost elements, the orange emphasis of the monthly employee report's shared cost
+     column and statistic. Chosen for readable contrast on white. */
+  --shared-cost: #c2410c;
 
   /* The Wicket-style footer strip: a dark bar with muted light text, the same in either theme. */
   --status-bar: oklch(0.28 0 0);
@@ -316,6 +320,8 @@
   --destructive: oklch(0.704 0.191 22.216);
   /* A lighter purple on the dark background, matching --ai-savings' intent (see the light theme). */
   --ai-savings: #a78bfa;
+  /* A lighter orange on the dark background, matching --shared-cost's intent (see the light theme). */
+  --shared-cost: #fb923c;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   /* Focus ring follows primary, as in the light theme */

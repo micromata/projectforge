@@ -128,8 +128,8 @@ class TimesheetMassUpdateRest : AbstractMassUpdateRest<TimesheetDO>() {
     }
 
     private fun buildStatistics(selectedIds: Collection<Serializable>?): TimesheetEntityRest.TimesheetListStatistics {
-        // Lean four-column projection, not a full select: this runs live on every debounced selection
-        // change, and buildStatistics reads only duration and the AI fields (see TimesheetEntityRest
+        // Lean six-column projection, not a full select: this runs live on every debounced selection
+        // change, and buildStatistics reads only id, user, duration and the AI fields (see TimesheetEntityRest
         // .aggregate, which sums the whole list the same way).
         val ids = selectedIds?.mapNotNull { (it as? Number)?.toLong() }.orEmpty()
         return timesheetEntityRest.buildStatistics(timesheetDao.selectStatisticsData(ids))

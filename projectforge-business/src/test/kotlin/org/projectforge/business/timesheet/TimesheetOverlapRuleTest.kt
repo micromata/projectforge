@@ -212,6 +212,13 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
                 setOf(collision1, collision2, collision3, collision4),
                 timesheetDao.getCollidingTimesheetIds(user.id!!, date(1, 0), date(31, 0)),
             )
+
+            // The list statistics count the overlapping time of a sheet also if its partner isn't part of the
+            // result (e.g. filtered by project): collision1 (24th, 8-16) overlaps collision2 (15-18) by 1h.
+            Assertions.assertEquals(
+                mapOf(collision1 to 3_600_000L),
+                timesheetDao.getOverlapDurations(timesheetDao.selectStatisticsData(listOf(collision1))),
+            )
             null
         }
     }

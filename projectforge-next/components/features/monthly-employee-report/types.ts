@@ -22,6 +22,8 @@ export interface MonthlyReportRow {
   perWeek: MonthlyReportCell[];
   sum: string;
   aiTimeSavings: string;
+  /** Booked hours of this row overlapping other time sheets (as booked, not split), "" if none. */
+  sharedCostDuration?: string;
   /** A task row booked without Kost2; only set while the db-param `timesheet.warnMissingKost2` is on. */
   missingKost2?: boolean;
 }
@@ -86,6 +88,12 @@ export interface MonthlyReport {
   totalGrossDuration: string;
   totalTimeSavedByAI: string;
   timeSavedByAIPercentage: string;
+  /** Booked hours overlapping other time sheets (shared costs actually used, not split); absent if none. */
+  totalSharedCostDuration?: string | null;
+  /** Their share of all booked hours of the month, e.g. "25 %"; absent with them. */
+  sharedCostPercentage?: string | null;
+  /** True if some booked hours overlap — gates the shared cost column. */
+  hasSharedCosts?: boolean;
   vacationAvailable: boolean;
   vacationCount?: string | null;
   vacationPlannedCount?: string | null;

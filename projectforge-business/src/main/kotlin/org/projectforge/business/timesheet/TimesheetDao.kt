@@ -163,11 +163,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     /**
      * The data the list statistics need for the given time sheets, as a lean projection instead of the whole
-     * entities: only the four columns [AITimeSavings.buildStats] reads — start and stop for the duration, the
-     * AI amount and its unit. Returned as detached [TimesheetDO] stubs (nothing else set) so the existing
-     * [AITimeSavings.buildStats] can consume them unchanged.
+     * entities: only the columns [AITimeSavings.buildStats] and [getOverlapDurations] read — id and user (as id-only
+     * stub), start and stop for the duration, the AI amount and its unit. Returned as detached [TimesheetDO] stubs
+     * (nothing else set) so the existing [AITimeSavings.buildStats] can consume them unchanged.
      *
-     * One `SELECT` of four columns, no lazy relations and no row hydration: the id list of a server-side paged
+     * One `SELECT` of six columns, no lazy relations and no row hydration: the id list of a server-side paged
      * list can be thousands of sheets, and loading them whole (all columns, in `IN` batches) only to sum
      * durations is exactly what this avoids (see `TimesheetEntityRest.aggregate`). Access is already checked -
      * the ids come from the access-filtered id list of the paged result.
@@ -180,18 +180,63 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         // would push past PostgreSQL's 65535 bind-parameter limit. buildStatistics sums the whole returned
         // list afterwards, so batching is transparent to the caller (see executeQueryBatched).
         return persistenceService.executeQueryBatched(
-            "SELECT t.startTime AS startTime, t.stopTime AS stopTime, t.timeSavedByAI AS timeSavedByAI, t.timeSavedByAIUnit AS timeSavedByAIUnit FROM TimesheetDO t WHERE t.id IN :ids",
+            "SELECT t.id AS id, t.user.id AS userId, t.startTime AS startTime, t.stopTime AS stopTime, t.timeSavedByAI AS timeSavedByAI, t.timeSavedByAIUnit AS timeSavedByAIUnit" +
+                    " FROM TimesheetDO t WHERE t.id IN :ids",
             Tuple::class.java,
             batchParam = "ids",
             batchValues = ids,
         ).map { tuple ->
             TimesheetDO().also {
+                it.id = tuple.get("id") as Long?
+                it.user = (tuple.get("userId") as Long?)?.let { id -> PFUserDO().also { user -> user.id = id } }
                 it.startTime = tuple.get("startTime") as Date?
                 it.stopTime = tuple.get("stopTime") as Date?
                 it.timeSavedByAI = tuple.get("timeSavedByAI") as BigDecimal?
                 it.timeSavedByAIUnit = tuple.get("timeSavedByAIUnit") as TimesheetDO.TimeSavedByAIUnit?
             }
         }
+    }
+
+    /**
+     * The booked time of each of the given sheets that overlaps another sheet of its user (shared costs actually used,
+     * see [TimesheetOverlapUtils.overlapDurations]). The partners are loaded here (id, user, start and stop only), not
+     * taken from [sheets]: a filtered list (e.g. by project) holds only one side of an overlap.
+     *
+     * No access check: only durations of the given (access-checked) sheets are returned, the partners are only
+     * compared.
+     *
+     * @param sheets with id, user (id) and start/stop set, e.g. from [selectStatisticsData].
+     * @return map of `timesheet.id` -> overlapping millis, only for sheets of [sheets] that overlap at all.
+     */
+    open fun getOverlapDurations(sheets: Collection<TimesheetDO>): Map<Long, Long> {
+        val valid = sheets.filter { it.id != null && it.user?.id != null && it.startTime != null && it.stopTime != null }
+        if (valid.isEmpty()) {
+            return emptyMap()
+        }
+        val ids = valid.mapTo(HashSet()) { it.id!! }
+        val result = HashMap<Long, Long>()
+        valid.groupBy { it.user!!.id!! }.forEach { (userId, userSheets) ->
+            val from = userSheets.minOf { it.startTime!! }
+            val to = userSheets.maxOf { it.stopTime!! }
+            val all = persistenceService.executeQuery(
+                "SELECT t.id AS id, t.startTime AS startTime, t.stopTime AS stopTime FROM TimesheetDO t" +
+                        " WHERE t.user.id = :userId AND t.deleted = false AND t.startTime < :to AND t.stopTime > :from",
+                Tuple::class.java,
+                Pair("userId", userId), Pair("from", from), Pair("to", to),
+            ).map { tuple ->
+                TimesheetDO().also {
+                    it.id = tuple.get("id") as Long?
+                    it.startTime = tuple.get("startTime") as Date?
+                    it.stopTime = tuple.get("stopTime") as Date?
+                }
+            }
+            TimesheetOverlapUtils.overlapDurations(all).forEach { (id, millis) ->
+                if (id in ids) {
+                    result[id] = millis
+                }
+            }
+        }
+        return result
     }
 
     /**
