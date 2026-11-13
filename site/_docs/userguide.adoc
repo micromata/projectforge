@@ -1336,6 +1336,8 @@ user's access are removed by the DAOs from the result lists.
 
 You may create charts using https://www.jfree.org/jfreechart/[JFreeChart,window=_blank].
 
+A chart is shown directly on the output tab of the script execution; the download stays available.
+
 image::/uploads/userguide/ExportJFreeChart.png[image]
 
 [cols="1,4",]
@@ -1343,21 +1345,42 @@ image::/uploads/userguide/ExportJFreeChart.png[image]
 |Figure 10: |Example of a script producing a chart
 |===
 
-[source,groovy,linenums]
+[source,kotlin,linenums]
 ----
+import java.awt.Color
+import java.awt.Font
 import org.jfree.chart.*
+import org.jfree.chart.labels.*
+import org.jfree.chart.plot.*
 import org.jfree.data.general.*
 import org.projectforge.export.*
 
-DefaultPieDataset dataset = new DefaultPieDataset()
+val dataset = DefaultPieDataset<String>()
 dataset.setValue("Linux", 15)
 dataset.setValue("Mac", 8)
 dataset.setValue("Windows", 70)
 dataset.setValue("Others", 7)
-JFreeChart chart = ChartFactory.createPieChart("Operating systems of our users", dataset, true, true, false)
+val chart = ChartFactory.createRingChart("Users on www.heise.de", dataset, true, true, false)
+chart.backgroundPaint = Color.WHITE
+chart.title.font = Font("SansSerif", Font.BOLD, 22)
 
-ExportJFreeChart export = new ExportJFreeChart(chart, 800, 600)
-return export
+val plot = chart.plot as RingPlot
+plot.backgroundPaint = null
+plot.isOutlineVisible = false
+plot.setShadowPaint(null)
+plot.sectionDepth = 0.35
+plot.separatorsVisible = false
+plot.setLabelBackgroundPaint(null)
+plot.setLabelOutlinePaint(null)
+plot.setLabelShadowPaint(null)
+plot.setLabelGenerator(StandardPieSectionLabelGenerator("{0}: {2}"))
+plot.setSectionPaint("Linux", Color(0xF59E0B))
+plot.setSectionPaint("Mac", Color(0x8B5CF6))
+plot.setSectionPaint("Windows", Color(0x3B82F6))
+plot.setSectionPaint("Others", Color(0x9CA3AF))
+
+// PNG is crisper than the default JPEG for charts:
+ExportJFreeChart(chart, 800, 600).setImageType(JFreeChartImageType.PNG)
 ----
 
 [[creation_of_zip_archives_containing_multiple_files]]

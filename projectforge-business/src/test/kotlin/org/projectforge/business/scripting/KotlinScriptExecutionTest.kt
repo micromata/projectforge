@@ -27,6 +27,7 @@ package org.projectforge.business.scripting
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -44,6 +45,17 @@ class KotlinScriptExecutionTest : AbstractTestBase() {
             val source = this::class.java.getResource("/example-scripts/$filename")!!.readText()
             val result = execute(source)
             assertSuccess(filename, result)
+        }
+    }
+
+    @Test
+    fun `demo scripts of the test data compile and run`() {
+        logon(TEST_FINANCE_USER)
+        mapOf(
+            "JFreeChart" to DatabaseInitTestDataService.exportJFreeChartScript,
+            "Excel export of all user" to DatabaseInitTestDataService.exportUsersScript,
+        ).forEach { (name, source) ->
+            assertSuccess(name, execute(source))
         }
     }
 

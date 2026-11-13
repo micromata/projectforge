@@ -1,0 +1,10 @@
+{
+  "type": "fixed",
+  "en": "Scripts",
+  "de": "Scripte",
+  "items": [
+    { "en": "JFreeChart scripts run again in the release jar (the library was missing in the script class path).", "de": "JFreeChart-Scripte laufen im Release-Jar wieder (die Bibliothek fehlte im Script-Classpath)." },
+    { "en": "A chart produced by a script is shown directly on the output tab, the demo script draws a modern donut chart.", "de": "Ein von einem Script erzeugtes Diagramm wird direkt im Reiter „Ausgabe“ angezeigt, das Demo-Script zeichnet ein modernes Donut-Diagramm." },
+    { "en": "The demo script \"Excel export of all user\" works again.", "de": "Das Demo-Script „Excel export of all user“ läuft wieder." }
+  ]
+}

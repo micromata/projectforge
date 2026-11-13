@@ -1371,6 +1371,8 @@ Entitäten ohne Zugriff des Benutzers entfernen die DAOs aus den Ergebnislisten.
 
 Diagramme lassen sich mit https://www.jfree.org/jfreechart/[JFreeChart,window=_blank] erstellen.
 
+Ein Diagramm wird direkt im Reiter "Ausgabe" der Script-Ausführung angezeigt; der Download bleibt weiterhin möglich.
+
 image::/uploads/userguide/ExportJFreeChart.png[Bild]
 
 [cols="1,4",]
@@ -1378,21 +1380,42 @@ image::/uploads/userguide/ExportJFreeChart.png[Bild]
 |Abbildung 10: |Beispiel für ein Script, das ein Diagramm erzeugt
 |===
 
-[source,groovy,linenums]
+[source,kotlin,linenums]
 ----
+import java.awt.Color
+import java.awt.Font
 import org.jfree.chart.*
+import org.jfree.chart.labels.*
+import org.jfree.chart.plot.*
 import org.jfree.data.general.*
 import org.projectforge.export.*
 
-DefaultPieDataset dataset = new DefaultPieDataset()
+val dataset = DefaultPieDataset<String>()
 dataset.setValue("Linux", 15)
 dataset.setValue("Mac", 8)
 dataset.setValue("Windows", 70)
 dataset.setValue("Others", 7)
-JFreeChart chart = ChartFactory.createPieChart("Operating systems of our users", dataset, true, true, false)
+val chart = ChartFactory.createRingChart("Users on www.heise.de", dataset, true, true, false)
+chart.backgroundPaint = Color.WHITE
+chart.title.font = Font("SansSerif", Font.BOLD, 22)
 
-ExportJFreeChart export = new ExportJFreeChart(chart, 800, 600)
-return export
+val plot = chart.plot as RingPlot
+plot.backgroundPaint = null
+plot.isOutlineVisible = false
+plot.setShadowPaint(null)
+plot.sectionDepth = 0.35
+plot.separatorsVisible = false
+plot.setLabelBackgroundPaint(null)
+plot.setLabelOutlinePaint(null)
+plot.setLabelShadowPaint(null)
+plot.setLabelGenerator(StandardPieSectionLabelGenerator("{0}: {2}"))
+plot.setSectionPaint("Linux", Color(0xF59E0B))
+plot.setSectionPaint("Mac", Color(0x8B5CF6))
+plot.setSectionPaint("Windows", Color(0x3B82F6))
+plot.setSectionPaint("Others", Color(0x9CA3AF))
+
+// PNG is crisper than the default JPEG for charts:
+ExportJFreeChart(chart, 800, 600).setImageType(JFreeChartImageType.PNG)
 ----
 
 [[creation_of_zip_archives_containing_multiple_files]]
