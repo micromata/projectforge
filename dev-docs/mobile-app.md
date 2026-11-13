@@ -167,8 +167,11 @@ app has only its token:
   - The navigation is cancelled, and the app asks the proxy itself (`ApiClient.proxyRefuses`: `GET /next/` with the
     proxy cookies only, no token, no session, redirects not followed; `/next/` is static, the server never redirects
     it, and a proxy that lets `/rs` through but guards the pages is told apart too): only if the proxy refuses it, it
-    is its login. Otherwise the other site (e.g. an
-    open redirect of the server) opens in the system browser, without a login of the app and never in the WebView.
+    is its login. If it lets the app through, the WebView lost the proxy cookies: they are session cookies, gone when
+    iOS kills the processes of the WebView in the background. The WebView is restarted with a new web session, which
+    sets them again (once per 30 s; a terminated content process restarts with a new web session anyway). Redirected
+    again within 30 s, the other site (e.g. an open redirect of the server) opens in the system browser, without a
+    login of the app and never in the WebView.
   - The login of the app is renewed in the system browser
     (`AuthController.reauthenticate`): `ASWebAuthenticationSession` shares the proxy's login session with Safari
     (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
