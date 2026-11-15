@@ -5917,7 +5917,8 @@
         "edit": "Variable bearbeiten",
         "mapping": {
           "_": "Zuordnung",
-          "info": "Die Zuordnung wird kommasepariert, z. B. eins, zwei, drei..."
+          "info": "Der Wert dieser Variablen zu jedem Wert ihrer Mastervariablen. Ein Wert darf ein Komma enthalten, er wird automatisch in Anführungszeichen gesetzt.",
+          "notWritable": "Ein Wert mit einem Trennzeichen (, ; :) oder einem Anführungszeichen am Anfang kann nicht zugleich einfache und doppelte Anführungszeichen enthalten."
         },
         "master": {
           "_": "Mastervariable",

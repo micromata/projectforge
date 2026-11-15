@@ -5917,7 +5917,8 @@
         "edit": "Edit variable",
         "mapping": {
           "_": "Mapping",
-          "info": "Mapping values may be given in comma separated form, e.g., one, two, three..."
+          "info": "The value of this variable for each value of its master variable. A value may contain a comma, it is quoted automatically.",
+          "notWritable": "A value containing a separator (, ; :) or starting with a quote can't contain both single and double quotes."
         },
         "master": {
           "_": "Master variable",

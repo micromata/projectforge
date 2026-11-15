@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.11",
-    "date" : "2026-11-13",
+    "date" : "2026-11-15",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -13,7 +13,10 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Verfügbarkeiten: Die Typen werden in der Sprache der Benutzer:innen angezeigt. Sie sind jetzt als Codes konfiguriert (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), die Texte bestehender Einträge werden umgestellt. Installationen mit eigener Liste stellen sie auf die Codes um; ein eigener Code bekommt seine Texte in CustomerI18nResources (`availability.types.code`), jeder andere Wert wird wie eingegeben angezeigt." ]
+      "items" : [ "Verfügbarkeiten: Die Typen werden in der Sprache der Benutzer:innen angezeigt. Sie sind jetzt als Codes konfiguriert (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), die Texte bestehender Einträge werden umgestellt. Installationen mit eigener Liste stellen sie auf die Codes um; ein eigener Code bekommt seine Texte in CustomerI18nResources (`availability.types.code`), jeder andere Wert wird wie eingegeben angezeigt.", {
+        "title" : "Merlin",
+        "items" : [ "Die Zuordnung einer abhängigen Variablen wird in einer Tabelle bearbeitet, ein Wert je Wert ihrer Mastervariablen; ein Wert darf ein Komma enthalten.", "Ein leerer Wert oder einer mit Semikolon oder Doppelpunkt verschiebt die folgenden Werte einer Zuordnung nicht mehr." ]
+      } ]
     }, {
       "type" : "fixed",
       "items" : [ {

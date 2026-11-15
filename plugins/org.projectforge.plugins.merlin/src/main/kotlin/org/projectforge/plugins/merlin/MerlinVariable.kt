@@ -261,6 +261,21 @@ class MerlinVariable : MerlinVariableBase() {
       return variable
     }
 
+    /**
+     * A value as read back by [de.micromata.merlin.csv.CSVStringUtils.parseStringList]: quoted, if it is empty (an empty unquoted value
+     * is skipped, shifting the following ones), contains a separator (`,`, `;`, `:`) or starts with a quote. As
+     * there is no escaping, a value containing double quotes is quoted with single ones.
+     */
+    private fun csvValue(value: String): String {
+      val str = value.trim()
+      val needsQuotes = str.isEmpty() || str.any { it in ",;:" } || str.first() in "‚'’`´„\"“”"
+      return when {
+        !needsQuotes -> str
+        str.none { it in "“”\"" } -> "\"$str\""
+        else -> "'$str'"
+      }
+    }
+
     internal fun writeAsCSV(values: Collection<Any?>?): String {
       values ?: return ""
       val sb = StringBuilder()
@@ -269,12 +284,7 @@ class MerlinVariable : MerlinVariableBase() {
         if (!first) {
           sb.append(", ")
         }
-        val str = it?.toString() ?: ""
-        if (str.contains(',') || str.trim() != it) {
-          sb.append("\"$str\"")
-        } else {
-          sb.append(str)
-        }
+        sb.append(csvValue(it?.toString() ?: ""))
         first = false
       }
       return sb.toString()
