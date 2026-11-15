@@ -218,3 +218,33 @@ test('an older server has no push settings, a refused choice is taken back', asy
   await expect(store.choosePushContent(false)).rejects.toBeDefined();
   expect(store.get().pushSettings?.content).toBe(true);
 });
+
+test('a refusal of the SSO proxy is shown until a status is loaded again, offline it stays', async () => {
+  let answer: 'ok' | 'proxy' | 'offline' = 'ok';
+  const { client } = api(() => {
+    if (answer === 'offline') throw new TypeError('Network request failed');
+    if (answer === 'proxy') return { status: 302, headers: { location: 'https://sso.example.org/login' } };
+    return { body: { chatUnread: 1, theme: 'light' } };
+  });
+  const store = await started(client);
+  expect(store.get().proxyExpired).toBe(false);
+  answer = 'proxy';
+  await store.refresh();
+  expect(store.get().proxyExpired).toBe(true);
+  expect(store.get().status?.chatUnread).toBe(1);
+  answer = 'offline';
+  await store.refresh();
+  expect(store.get().proxyExpired).toBe(true);
+  answer = 'ok';
+  await store.refresh();
+  expect(store.get().proxyExpired).toBe(false);
+});
+
+test('an error of the server is no refusal of the SSO proxy', async () => {
+  let failing = false;
+  const { client } = api(() => (failing ? { status: 500, body: 'error' } : { body: { theme: 'light' } }));
+  const store = await started(client);
+  failing = true;
+  await store.refresh();
+  expect(store.get().proxyExpired).toBe(false);
+});

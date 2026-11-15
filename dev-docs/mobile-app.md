@@ -108,7 +108,10 @@ request and puts them into the WebView. A refusal of the proxy (a 401 without a 
 logout: the app logs in again in the browser, which brings fresh cookies, and repeats the request once. If that doesn't
 satisfy the proxy either, it isn't tried again by itself while the app has these cookies (`app.proxy.refused`; a
 login that brings others may, and the "retry" of the pages logs in anyway). Requests the app makes on
-its own (the badge of the chat) never open the browser (`renewLogin: false`), only something the user does. After each
+its own (the badge of the chat) never open the browser (`renewLogin: false`), only something the user does. Refused
+by the proxy, the polling of the user status (`UserStatusStore.proxyExpired`) shows a banner above the tabs
+(`ProxyExpiredBanner`, `app.proxy.expired`) with "Renew" (the login in the browser), until a status is loaded again;
+offline it stays. After each
 expiry of the proxy session (the token validity of the Authentik provider) the user logs in again in the browser, with
 a second factor of ProjectForge.
 
@@ -200,9 +203,10 @@ app has only its token:
   cookie.
 - **Downloads** (`onDownloadStartRequest`, e.g. a chat file): `WebDownload` loads the file with the WebView's session
   cookie, never with the app token (the url is chosen by the page), only from the own server and without following
-  redirects, and offers it in the share sheet (also "save to files"). Open: downloads built in the page as a `blob:`
-  url (the Excel exports, `lib/rs/download.ts`) can't be loaded by the app and fail with a message; they need the
-  blob's bytes from the page (`onDownloadStartRequest` gives only the url).
+  redirects, and offers it in the share sheet (also "save to files"). Files the page builds itself as a `blob:` url
+  (the Excel exports, `lib/rs/download.ts`) can't be loaded by url: `BLOB_SCRIPT` reads their bytes in the page and
+  posts them (`{"pf":"blob"}`, base64, at most `MAX_BLOB_BYTES` = 30 MB), the app takes them only from a page of the own
+  server and offers them in the share sheet too.
 - **Browser functions** (the WebView has no address bar): the WebView tabs (pages, chat) have browser entries in the
   "more" menu (⋮) of the navigation, above the account entries, so the bar keeps its slots on every tab (`browserMenuEntries`, driven by a
   `WebScreenController` per tab): back, forward, reload, find in the page, share the link, open the page in the system browser (no web session there, it may ask for the login) and
@@ -359,5 +363,3 @@ FCM follows).
 
 - Store presence: app icons, privacy declarations, review notes (the chat is user generated content: reporting a message and blocking a user exist, see PF-CHAT MSG-12 and DM-07).
 - User and admin guide (EN+DE) once the app is distributed, with the SSO proxy (`projectforge.app.proxyCookies`).
-- Behind an SSO proxy, background polling (`renewLogin: false`) stays refused after the proxy session expired until
-  the user opens a web page or does something in a native tab (both renew the login in the browser).

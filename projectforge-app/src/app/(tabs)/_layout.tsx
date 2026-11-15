@@ -40,6 +40,7 @@ import { useColors } from '../../core/ui/colors';
 import { tabSheets } from '../../core/ui/tabSheets';
 import { CompatibilityBanner } from '../../features/home/CompatibilityBanner';
 import { MoreMenu } from '../../features/home/MoreMenu';
+import { ProxyExpiredBanner } from '../../features/home/ProxyExpiredBanner';
 import { askToSwitch } from '../../features/home/switchServer';
 import { TabBar } from '../../features/home/TabBar';
 import { ServerSwitchSheet } from '../../features/home/ServerSwitchSheet';
@@ -55,7 +56,7 @@ import { webTabs } from '../../features/web/webTabs';
 export default function TabsLayout() {
   const auth = useAuth();
   const colors = useColors();
-  const { status } = useUserStatus();
+  const { status, proxyExpired } = useUserStatus();
   const issue = compatibilityIssue({
     appVersion,
     serverVersion: status?.systemData?.version,
@@ -142,6 +143,7 @@ export default function TabsLayout() {
       {issue && issueKey !== confirmedIssue && (
         <CompatibilityBanner issue={issue} onConfirm={() => setConfirmedIssue(issueKey)} />
       )}
+      {proxyExpired && <ProxyExpiredBanner />}
       <View style={styles.fill}>
         <Tabs
           key={auth.generation}

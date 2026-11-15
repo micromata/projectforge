@@ -11,6 +11,8 @@
   "app.businessCard.createOnDesktop": "Visitenkarten erstellen und bearbeiten",
   "app.businessCard.photoUnavailable": "Foto kann nicht geladen werden",
   "app.offline": "Keine Verbindung zum Server: die Karten nach dem letzten Stand.",
+  "app.proxy.expired": "Die Anmeldung am SSO-Proxy ist abgelaufen: Badges und Benachrichtigungen werden nicht aktualisiert.",
+  "app.proxy.renew": "Erneuern",
   "app.proxy.refused": "Der Server ist über sein Anmelde-Gateway (SSO-Proxy) nicht erreichbar. Bitte neu anmelden; hilft das nicht, muss das Gateway die App durchlassen.",
   "app.server.httpsRequired": "Der Server muss über https erreichbar sein.",
   "app.server.invalid": "Das ist keine gültige Server-Adresse.",
