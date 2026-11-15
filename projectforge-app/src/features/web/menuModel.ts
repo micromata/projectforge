@@ -21,6 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import { balanceColumns } from "@projectforge/shared/menu-columns";
 import type { MenuItem, Menus } from "@projectforge/shared/rs/menu";
 
 /** A menu entry the menu of the pages tab can open: a page of the server or another site. */
@@ -55,6 +56,8 @@ export type MenuRow =
       key: string;
       title: string;
       open: boolean;
+      /** The rows of the opened category (its own and its entries), also when closed: the columns don't move on a tap. */
+      size: number;
       badgeCounter?: number;
     }
   /** Searching all data (next's search page) for the term. */
@@ -299,22 +302,24 @@ export function menuRows(
     .forEach((category) => {
       const id = category.key ?? category.title ?? "";
       const open = opts.groupStates[id] ?? opts.groupsOpenByDefault;
-      rows.push({
-        kind: "group",
-        key: id,
-        title: category.title ?? "",
-        open,
-        badgeCounter: category.badge?.counter ?? undefined,
-      });
-      if (!open) return;
-      flattenMenuEntries(
+      const entries = flattenMenuEntries(
         {
           mainMenu: { menuItems: [category] },
           favoritesMenu: { menuItems: [] },
           myAccountMenu: { menuItems: [] },
         },
         labels,
-      ).forEach((entry) =>
+      );
+      rows.push({
+        kind: "group",
+        key: id,
+        title: category.title ?? "",
+        open,
+        size: 1 + entries.length,
+        badgeCounter: category.badge?.counter ?? undefined,
+      });
+      if (!open) return;
+      entries.forEach((entry) =>
         rows.push({
           kind: "entry",
           key: `main:${id}:${entry.key}`,
@@ -327,8 +332,9 @@ export function menuRows(
 }
 
 /**
- * [rows] in at most [count] columns of about the same height, read top to bottom and then left to right. A heading or a
- * category stays together with its entries; no column is empty.
+ * [rows] in at most [count] columns, read top to bottom and then left to right, the tallest column as low as possible
+ * (balanceColumns). A heading or a category stays together with its entries; no column is empty. A category counts with
+ * its entries also when closed, so opening or closing one doesn't move the others.
  */
 export function menuColumns(rows: MenuRow[], count: number): MenuRow[][] {
   if (count <= 1) return [rows];
@@ -338,23 +344,9 @@ export function menuColumns(rows: MenuRow[], count: number): MenuRow[][] {
     if (row.kind === "entry" && last != null) last.push(row);
     else blocks.push([row]);
   });
-  const target = Math.ceil(rows.length / count);
-  const columns: MenuRow[][] = [];
-  let current: MenuRow[] = [];
-  blocks.forEach((block, index) => {
-    // A new column, if this block would exceed the target and enough columns are left for the remaining blocks.
-    if (
-      current.length > 0 &&
-      current.length + block.length > target &&
-      columns.length < count - 1
-    ) {
-      columns.push(current);
-      current = [];
-    }
-    current.push(...block);
-    if (index === blocks.length - 1) columns.push(current);
-  });
-  return columns;
+  return balanceColumns(blocks, count, (block) =>
+    block[0].kind === "group" ? block[0].size : block.length,
+  ).map((column) => column.flat());
 }
 
 /** The path the WebView opens for [url] of a menu entry: the server's urls have no leading slash. */

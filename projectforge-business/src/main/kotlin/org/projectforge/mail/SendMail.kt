@@ -32,11 +32,13 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.scripting.GroovyEngine
 import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.configuration.properties.ReloadableProperties
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.*
@@ -61,7 +63,7 @@ private val log = KotlinLogging.logger {}
  */
 // Open needed for mocking.
 @Service
-open class SendMail {
+open class SendMail : ReloadableProperties {
   @Autowired
   private lateinit var configurationService: ConfigurationService
 
@@ -138,6 +140,26 @@ open class SendMail {
   @PostConstruct
   private fun postConstruct() {
     log.info { info }
+  }
+
+  /** The session is built on every send (see [session]), so the mail server settings take effect without a restart. */
+  override val reloadableKeys = listOf(MAIL_SESSION_PREFIX)
+
+  override fun reload(environment: Environment) {
+    fun get(key: String) = environment.getProperty("$MAIL_SESSION_PREFIX$key")
+    mailingEnabled = get("emailEnabled")
+    mailFromStandardEmailSender = get("standardEmailSender")
+    mailSmtpEncryptionProtocol = get("encryption")
+    mailLocalHost = get("smtp.localhost")
+    mailSmtpHost = get("smtp.host")
+    mailSmtpPort = get("smtp.port")
+    mailSmtpAuth = get("smtp.auth") == "true"
+    mailSmtpUser = get("smtp.user")
+    mailSmtpPassword = get("smtp.password")
+    mailSmtpConnectionTimeout = get("smtp.connectionTimeout")
+    mailSmtpTimeout = get("smtp.timeout")
+    mailSmtpWriteTimeout = get("smtp.writeTimeout")
+    log.info { "Mail settings reloaded: $info" }
   }
 
   /**
@@ -561,6 +583,8 @@ open class SendMail {
 
     /** Fallback for the three SMTP timeouts, used when the property is not set at all. */
     private const val DEFAULT_TIMEOUT_MS = "10000"
+
+    private const val MAIL_SESSION_PREFIX = "mail.session.pfmailsession."
 
     /**
      * Get the ProjectForge standard subject: "[ProjectForge] ..."

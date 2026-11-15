@@ -38,7 +38,6 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.TwoFactorRequired
 import org.projectforge.security.My2FARequestConfiguration
-import org.projectforge.security.My2FAService
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -70,9 +69,6 @@ class AppAuthRest {
     private lateinit var loginService: LoginService
 
     @Autowired
-    private lateinit var my2FAService: My2FAService
-
-    @Autowired
     private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
 
     class AuthorizeRequest(
@@ -82,6 +78,11 @@ class AppAuthRest {
         val platform: String? = null,
         /** The app is already registered and needs a new second factor: its device id. */
         val deviceId: Long? = null,
+        /**
+         * The second factor must be fresher than this (a page of the app's WebView asked for one of `expiryMillis`,
+         * e.g. one minute); never older than [AppAuthService.MAX_2FA_AGE_MINUTES] minutes.
+         */
+        val max2FAAgeMillis: Long? = null,
     )
 
     class AuthorizeResponse(
@@ -98,7 +99,8 @@ class AppAuthRest {
      * Issues the one-time code for the app. Only for a browser session (a rest client or another app can't
      * register an app) and only after a second factor of at most [AppAuthService.MAX_2FA_AGE_MINUTES] minutes: the
      * token of the app is good for the 2FA protected urls as long as this second factor. Without a fresh one the
-     * answer is the 403 of [TwoFactorRequired], so projectforge-next opens its 2FA dialog and repeats the call.
+     * answer is the 403 of [TwoFactorRequired], so projectforge-next opens its 2FA dialog and repeats the call. A shorter
+     * [AuthorizeRequest.max2FAAgeMillis] asks for a fresher one.
      */
     @AccessChecked("Logged-in user of a browser session (no token clients, no web session of an app), fresh 2FA required. CSRF token required")
     @PostMapping("authorize")
@@ -114,13 +116,15 @@ class AppAuthRest {
         accessChecker.checkRestrictedOrDemoUser()
         // An exempt account (the app review) has no second factor to show: its login counts as one.
         val exempt = my2FARequestConfiguration.isExempt(user.username)
-        if (!exempt && !my2FAService.checklastSuccessful2FA(AppAuthService.MAX_2FA_AGE_MINUTES, My2FAService.Unit.MINUTES)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(TwoFactorRequired(expiryMillis = AppAuthService.MAX_2FA_AGE_MINUTES * TimeUnit.MINUTE.millis))
+        val maxAgeMillis = AppAuthService.MAX_2FA_AGE_MINUTES * TimeUnit.MINUTE.millis
+        val max2FAAgeMillis = body.max2FAAgeMillis?.takeIf { it > 0 }?.coerceAtMost(maxAgeMillis) ?: maxAgeMillis
+        val last2FA = userContext.lastSuccessful2FA
+        if (!exempt && (last2FA == null || System.currentTimeMillis() - max2FAAgeMillis >= last2FA)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(TwoFactorRequired(expiryMillis = max2FAAgeMillis))
         }
         val redirectUrl = appAuthService.authorize(
             user = user,
-            lastSuccessful2FA = if (exempt) System.currentTimeMillis() else userContext.lastSuccessful2FA!!,
+            lastSuccessful2FA = if (exempt) System.currentTimeMillis() else last2FA!!,
             challenge = body.challenge,
             state = body.state,
             deviceName = body.deviceName,

@@ -29,7 +29,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   customers or internal teams), its German translation for the app in `changelog/changelog.de.json` (same
   structure, texts only, by version/id; every entry must be translated). A new change in a branch goes into
   its own file `changelog/unreleased/yyyyMMdd-<slug>.json` with English and German text (see the README
-  there; a change of the app starts with the badge marker `{app} `, not "App:"), not into these two files; `bin/pfDev.sh release` moves them into the release entry. `site/_changelogs/*.adoc`,
+  there; a change of the app starts with the badge marker `{app} `, not "App:"; one that needs a new app version
+  waits in `changelog/unreleased/app/` until `bin/pfDev.sh app-release`), not into these two files; `bin/pfDev.sh release` moves them into the release entry. `site/_changelogs/*.adoc`,
   `site/changelog-posts.adoc` and `projectforge-next/lib/generated/changelog{,.de}.json` are generated from
   them by the same `gen` run (`GenerateChangelogMain`) and never edited by hand.
 
@@ -59,7 +60,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   needs its German version or this marker.
 
 ## External plugins
-- The backend of the CVE-Clinic is developed in a repository of its own and joins the release jar as a binary
+- The backend of the CVE-Pilot is developed in a repository of its own and joins the release jar as a binary
   (`pf.extraPlugins`, `PF_EXTRA_PLUGINS`; the release pins it in `plugins-bin/`, a GitHub release asset); here are only its next pages, its texts
   (`plugins/org.projectforge.plugins.cveradar`: `CveRadarI18nResources*`), the generated `lib/metadata/cvr-*` and its
   changelog entries. Without the plugin (no pin) its pages are switched off. Details: `dev-docs/external-plugins.md`.

@@ -18,6 +18,7 @@ describe("readAppLoginParams", () => {
       device: "Jörgs iPhone",
       platform: "ios",
       deviceId: 42,
+      max2FAAge: 60000,
     });
     expect(
       readAppLoginParams(new URLSearchParams(`login=${login}&challenge=c`))
@@ -27,6 +28,7 @@ describe("readAppLoginParams", () => {
       deviceName: "Jörgs iPhone",
       platform: "ios",
       deviceId: 42,
+      max2FAAgeMillis: 60000,
     });
   });
 
@@ -38,6 +40,7 @@ describe("readAppLoginParams", () => {
       deviceName: "Phone",
       platform: null,
       deviceId: null,
+      max2FAAgeMillis: null,
     });
     expect(
       readAppLoginParams(
@@ -65,6 +68,7 @@ describe("readAppLoginParams", () => {
       deviceName: "Phone",
       platform: "android",
       deviceId: null,
+      max2FAAgeMillis: null,
     });
   });
 

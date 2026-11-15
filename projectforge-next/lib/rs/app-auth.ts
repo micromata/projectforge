@@ -16,6 +16,8 @@ export interface AppAuthorizeRequest {
   platform?: string | null;
   /** The app is already registered and logs in again (new second factor). */
   deviceId?: number | null;
+  /** The second factor must be fresher than this (a page of the app asked for it); at most 10 minutes. */
+  max2FAAgeMillis?: number | null;
 }
 
 /** Mirror of `AppAuthRest.AuthorizeResponse`. */

@@ -61,6 +61,7 @@ internal object JarExtractor {
      */
     private val copyJars = listOf(
         "merlin-core",
+        "jfreechart", // Charts of scripts (ExportJFreeChart).
         // All plugins: the script header declares the scripting DAOs of every registered plugin.
         """org\.projectforge\.plugins\.[a-z]+""",
         // External plugins (binary from a repository of its own, see dev-docs/external-plugins.md).

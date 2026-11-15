@@ -25,6 +25,7 @@ export function TwoFactorProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<TwoFactorState | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [expiryMillis, setExpiryMillis] = useState<number | null>(null);
   // Resolves the pending requests' promises: true = retry, false = give up.
   // Several requests may be interrupted by the same expiry, so this is a list.
   const resolversRef = useRef<((success: boolean) => void)[]>([]);
@@ -47,6 +48,7 @@ export function TwoFactorProvider({ children }: { children: React.ReactNode }) {
       });
       if (resolversRef.current.length === 1) {
         setIsOpen(true);
+        setExpiryMillis(expiryMillis ?? null);
         fetchTwoFactorState(expiryMillis)
           .then(setState)
           .catch(() => setLoadError(t("user.My2FACode.error.validation")));
@@ -78,6 +80,7 @@ export function TwoFactorProvider({ children }: { children: React.ReactNode }) {
               context="session"
               methods={state.methods}
               hint={state.expiryMessage}
+              expiryMillis={expiryMillis}
               onSuccess={() => settle(true)}
               onCancel={() => settle(false)}
             />

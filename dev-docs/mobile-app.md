@@ -108,7 +108,10 @@ request and puts them into the WebView. A refusal of the proxy (a 401 without a 
 logout: the app logs in again in the browser, which brings fresh cookies, and repeats the request once. If that doesn't
 satisfy the proxy either, it isn't tried again by itself while the app has these cookies (`app.proxy.refused`; a
 login that brings others may, and the "retry" of the pages logs in anyway). Requests the app makes on
-its own (the badge of the chat) never open the browser (`renewLogin: false`), only something the user does. After each
+its own (the badge of the chat) never open the browser (`renewLogin: false`), only something the user does. Refused
+by the proxy, the polling of the user status (`UserStatusStore.proxyExpired`) shows a banner above the tabs
+(`ProxyExpiredBanner`, `app.proxy.expired`) with "Renew" (the login in the browser), until a status is loaded again;
+offline it stays. After each
 expiry of the proxy session (the token validity of the Authentik provider) the user logs in again in the browser, with
 a second factor of ProjectForge.
 
@@ -167,8 +170,11 @@ app has only its token:
   - The navigation is cancelled, and the app asks the proxy itself (`ApiClient.proxyRefuses`: `GET /next/` with the
     proxy cookies only, no token, no session, redirects not followed; `/next/` is static, the server never redirects
     it, and a proxy that lets `/rs` through but guards the pages is told apart too): only if the proxy refuses it, it
-    is its login. Otherwise the other site (e.g. an
-    open redirect of the server) opens in the system browser, without a login of the app and never in the WebView.
+    is its login. If it lets the app through, the WebView lost the proxy cookies: they are session cookies, gone when
+    iOS kills the processes of the WebView in the background. The WebView is restarted with a new web session, which
+    sets them again (once per 30 s; a terminated content process restarts with a new web session anyway). Redirected
+    again within 30 s, the other site (e.g. an open redirect of the server) opens in the system browser, without a
+    login of the app and never in the WebView.
   - The login of the app is renewed in the system browser
     (`AuthController.reauthenticate`): `ASWebAuthenticationSession` shares the proxy's login session with Safari
     (often no password), the token exchange brings fresh proxy cookies, also into the WebView, and the page asked for
@@ -197,9 +203,10 @@ app has only its token:
   cookie.
 - **Downloads** (`onDownloadStartRequest`, e.g. a chat file): `WebDownload` loads the file with the WebView's session
   cookie, never with the app token (the url is chosen by the page), only from the own server and without following
-  redirects, and offers it in the share sheet (also "save to files"). Open: downloads built in the page as a `blob:`
-  url (the Excel exports, `lib/rs/download.ts`) can't be loaded by the app and fail with a message; they need the
-  blob's bytes from the page (`onDownloadStartRequest` gives only the url).
+  redirects, and offers it in the share sheet (also "save to files"). Files the page builds itself as a `blob:` url
+  (the Excel exports, `lib/rs/download.ts`) can't be loaded by url: `BLOB_SCRIPT` reads their bytes in the page and
+  posts them (`{"pf":"blob"}`, base64, at most `MAX_BLOB_BYTES` = 30 MB), the app takes them only from a page of the own
+  server and offers them in the share sheet too.
 - **Browser functions** (the WebView has no address bar): the WebView tabs (pages, chat) have browser entries in the
   "more" menu (⋮) of the navigation, above the account entries, so the bar keeps its slots on every tab (`browserMenuEntries`, driven by a
   `WebScreenController` per tab): back, forward, reload, find in the page, share the link, open the page in the system browser (no web session there, it may ask for the login) and
@@ -216,9 +223,16 @@ app has only its token:
   - **No connection** (a main frame failing with a network error): the app's error with a retry of the failed page,
     not the WebView's own error page.
 
-Open: the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
-for self-hosted servers (OTP does): in app mode it should offer "confirm in the browser" (the app's renewal, then a
-new web session).
+**Second factor of a page:** WebAuthn doesn't work in the WebView (no associated domain for self-hosted servers), OTP,
+SMS and mail do. So next's 2FA dialog (`two-factor-form.tsx`, context `session`) shows no WebAuthn in the app, but
+"Confirm in the browser" if the app can (`(browser2FA)` after the version in its user agent, `appConfirms2FAInBrowser`):
+
+1. The page posts `{"pf":"twoFactor","maxAgeMillis":…}` (`lib/app-bridge.ts`; `expiryMillis` of the refused request).
+2. The app (`WebScreen.confirm2FA`, same origin only) renews its login in the system browser with
+   `max2FAAge` (`AppAuthRest.authorize` then asks for a second factor that fresh, at most 10 minutes), and opens a new
+   web session, which carries the new `last2FA` of the device into all tabs (one cookie jar).
+3. It answers with the event `pf-app-2fa` `{ok}` (`twoFactorScript.ts`); next repeats the refused request (the CSRF
+   token of the new session follows by the retry of `client.ts`). No reload, the page keeps its state.
 
 ## Client log
 
@@ -349,5 +363,3 @@ FCM follows).
 
 - Store presence: app icons, privacy declarations, review notes (the chat is user generated content: reporting a message and blocking a user exist, see PF-CHAT MSG-12 and DM-07).
 - User and admin guide (EN+DE) once the app is distributed, with the SSO proxy (`projectforge.app.proxyCookies`).
-- Behind an SSO proxy, background polling (`renewLogin: false`) stays refused after the proxy session expired until
-  the user opens a web page or does something in a native tab (both renew the login in the browser).

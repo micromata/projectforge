@@ -85,6 +85,11 @@ import kotlin.system.exitProcess
  * `changelog/unreleased/release.json` (see [parseReleaseSummary]). `bin/pfDev.sh release` moves all of it into the
  * release in `changelog.json` and `changelog.de.json` (`--fold`, see [fold]).
  *
+ * Changes that reach the users only with a new version of the mobile app wait in `changelog/unreleased/app/`
+ * ([APP_FRAGMENTS_DIR], every text with a leading `{app} `): a server release leaves them there, `/next/changelog`
+ * shows them as not yet released, and `bin/pfDev.sh app-release` moves them to `changelog/unreleased/` once the app
+ * version is in the store, so the next server release publishes them.
+ *
  * The generated files are never edited by hand — [GenerateChangelogMainTest] fails if they differ from
  * what [generate] produces.
  */
@@ -92,6 +97,8 @@ object GenerateChangelogMain {
   internal const val SOURCE = "changelog/changelog.json"
   internal const val SOURCE_DE = "changelog/changelog.de.json"
   internal const val FRAGMENTS_DIR = "changelog/unreleased"
+  /** The changes of the next app version, folded only after its release (see `bin/pfDev.sh app-release`). */
+  internal const val APP_FRAGMENTS_DIR = "$FRAGMENTS_DIR/app"
 
   /** The id of the release of the not yet folded fragments, shown by `/next/changelog` only. */
   internal const val UNRELEASED_ID = "unreleased"
@@ -190,8 +197,8 @@ object GenerateChangelogMain {
   private val ITALIC_REGEX = Regex("""(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])""")
   private val RED_REGEX = Regex("""\{red}(.*?)\{/red}""")
   internal const val APP_MARKER = "{app} "
-  /** A change of the app written out instead of marked: "App: …", "App time sheets: …", "App-Zeitberichte: …". */
-  private val APP_PREFIX_REGEX = Regex("""^App\b[^:\n]{0,30}:""")
+  /** A change of the app written out instead of marked: "App: …", "App time sheets: …", "App-Zeitberichte: …", "**App**: …". */
+  private val APP_PREFIX_REGEX = Regex("""^(\*\*)?App\b[^:\n]{0,30}:""")
 
   /**
    * Generates all files. With `--check-release X.Y.Z` (used by `bin/pfDev.sh release`) it only checks that the
@@ -585,7 +592,7 @@ object GenerateChangelogMain {
     val translationErrors = validateTranslation(root, translation)
     require(translationErrors.isEmpty()) { "$SOURCE_DE is invalid:\n${translationErrors.joinToString("\n")}" }
     val (nextRoot, nextTranslation) =
-      withUnreleased(root, translation, readFragments(rootDir), readReleaseSummary(rootDir))
+      withUnreleased(root, translation, readFragments(rootDir) + readAppFragments(rootDir), readReleaseSummary(rootDir))
     val result = linkedMapOf<String, String>()
     listOf(SITE_EN to root, SITE_DE to translate(root, translation)).forEach { (language, siteRoot) ->
       val releases = siteRoot["releases"].toList()
@@ -607,9 +614,12 @@ object GenerateChangelogMain {
    */
   internal class Fragment(val name: String, val date: LocalDate, val type: String, val en: JsonNode, val de: JsonNode)
 
-  /** The fragment files, sorted by name, so by date. Other files (README.md, [RELEASE_SUMMARY_FILE]) are ignored. */
-  internal fun fragmentFiles(rootDir: File): List<File> =
-    File(rootDir, FRAGMENTS_DIR).listFiles()
+  /**
+   * The fragment files of [dir], sorted by name, so by date. Other files (README.md, [RELEASE_SUMMARY_FILE]) and
+   * directories ([APP_FRAGMENTS_DIR]) are ignored.
+   */
+  internal fun fragmentFiles(rootDir: File, dir: String = FRAGMENTS_DIR): List<File> =
+    File(rootDir, dir).listFiles()
       ?.filter { it.isFile && it.name.endsWith(".json") && it.name != RELEASE_SUMMARY_FILE }?.sortedBy { it.name }
       ?: emptyList()
 
@@ -683,14 +693,34 @@ object GenerateChangelogMain {
     return fragments
   }
 
+  /** The fragments of the next app version ([APP_FRAGMENTS_DIR]), throws [IllegalArgumentException] like [readFragments]. */
+  internal fun readAppFragments(rootDir: File): List<Fragment> {
+    val errors = mutableListOf<String>()
+    val fragments = fragmentFiles(rootDir, APP_FRAGMENTS_DIR).mapNotNull {
+      parseFragment(it.name, it.readText(ENCODING), errors, APP_FRAGMENTS_DIR)
+    }
+    require(errors.isEmpty()) { "$APP_FRAGMENTS_DIR is invalid:\n${errors.joinToString("\n")}" }
+    return fragments
+  }
+
   /**
    * Parses the fragment file [name] (`yyyyMMdd-<slug>.json`, the date orders the entries). An item:
    * `{"type": "added", "en": "Text", "de": "Text"}`, a group: `{"type": "changed", "en": "Title", "de": "Titel",
    * "items": [{"en": "Text", "de": "Text"}]}`. The texts follow the rules of the items of a release. Null if
-   * invalid, the problems are added to [errors].
+   * invalid, the problems are added to [errors]. In [APP_FRAGMENTS_DIR] every text (of a group: every item) starts
+   * with [APP_MARKER].
    */
-  internal fun parseFragment(name: String, content: String, errors: MutableList<String>): Fragment? {
-    val where = "$FRAGMENTS_DIR/$name"
+  internal fun parseFragment(
+    name: String,
+    content: String,
+    errors: MutableList<String>,
+    dir: String = FRAGMENTS_DIR,
+  ): Fragment? {
+    val where = "$dir/$name"
+    val app = dir == APP_FRAGMENTS_DIR
+    fun requireApp(text: String, textWhere: String) {
+      if (app && !text.startsWith(APP_MARKER)) errors.add("$textWhere: a change of the next app version starts with {app}.")
+    }
     val errorCount = errors.size
     val date = FRAGMENT_NAME_REGEX.matchEntire(name)?.let {
       try {
@@ -721,8 +751,8 @@ object GenerateChangelogMain {
     val enItem: JsonNode
     val deItem: JsonNode
     if (children == null) {
-      en?.let { validateText(it, "$where.en", errors, item = true) }
-      de?.let { validateText(it, "$where.de", errors, item = true) }
+      en?.let { validateText(it, "$where.en", errors, item = true); requireApp(it, "$where.en") }
+      de?.let { validateText(it, "$where.de", errors, item = true); requireApp(it, "$where.de") }
       if (en != null && de != null && en.split('\n').size != de.split('\n').size) {
         errors.add("$where: 'en' and 'de' must have the same number of sub list lines.")
       }
@@ -747,10 +777,12 @@ object GenerateChangelogMain {
           }
           requireText(child, "en", childWhere, errors)?.let {
             validateText(it, "$childWhere.en", errors, inline = true)
+            requireApp(it, "$childWhere.en")
             enChildren.add(it)
           }
           requireText(child, "de", childWhere, errors)?.let {
             validateText(it, "$childWhere.de", errors, inline = true)
+            requireApp(it, "$childWhere.de")
             deChildren.add(it)
           }
         }

@@ -23,12 +23,15 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.framework.configuration.properties.ReloadableProperties
+import org.projectforge.framework.configuration.properties.bindFresh
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 
 @Configuration
-@ConfigurationProperties(prefix = "projectforge.einvoice.seller")
-open class EInvoiceSellerConfig {
+@ConfigurationProperties(prefix = EInvoiceSellerConfig.PREFIX)
+open class EInvoiceSellerConfig : ReloadableProperties {
     var name: String = ""
     var street: String = ""
     var zip: String = ""
@@ -55,6 +58,29 @@ open class EInvoiceSellerConfig {
     fun findBankAccount(iban: String?): BankAccountConfig? {
         if (iban.isNullOrBlank()) return null
         return bankAccounts.find { it.iban == iban }
+    }
+
+    /** Read on every use (e-invoice export, invoice and account forms), so it takes effect without a restart. */
+    override val reloadableKeys = listOf("$PREFIX.")
+
+    override fun reload(environment: Environment) {
+        val fresh = environment.bindFresh(PREFIX, EInvoiceSellerConfig::class.java)
+        name = fresh.name
+        street = fresh.street
+        zip = fresh.zip
+        city = fresh.city
+        country = fresh.country
+        vatId = fresh.vatId
+        taxNumber = fresh.taxNumber
+        email = fresh.email
+        contactEmail = fresh.contactEmail
+        phone = fresh.phone
+        contactName = fresh.contactName
+        bankAccounts = fresh.bankAccounts
+    }
+
+    companion object {
+        const val PREFIX = "projectforge.einvoice.seller"
     }
 }
 

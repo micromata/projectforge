@@ -98,9 +98,6 @@ class SystemStatusRest {
             scmIdFull = systemStatus.scmIdFull,
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = systemStatus.copyRightYears,
-            logoUrl = LogoServiceRest.logoUrl,
-            logoUrlDark = LogoServiceRest.logoUrlDark,
-            logoHeight = LogoServiceRest.logoHeight,
             developmentMode = systemStatus.developmentMode,
             testsystemMode = systemStatus.testsystemMode,
             testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,
@@ -128,9 +125,6 @@ class SystemStatusRest {
             scmIdFull = "<scmIdFull>",
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = "2001-${Year.now()}",
-            logoUrl = LogoServiceRest.logoUrl,
-            logoUrlDark = LogoServiceRest.logoUrlDark,
-            logoHeight = LogoServiceRest.logoHeight,
             developmentMode = systemStatus.developmentMode,
             testsystemMode = systemStatus.testsystemMode,
             testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,
@@ -153,9 +147,19 @@ class SystemStatusRest {
             publicSystemData.setupRedirectUrl = null
         }
         return if (LoginService.getUserContext(request)?.user != null) {
-            systemData
+            currentSystemData
         } else {
-            publicSystemData
+            publicSystemData.withCurrentLogo()
         }
     }
+
+    /** [systemData] with the logo of now: the logo parameters take effect without a restart (see LogoServiceRest). */
+    val currentSystemData: SystemData
+        get() = systemData.withCurrentLogo()
+
+    private fun SystemData.withCurrentLogo() = copy(
+        logoUrl = LogoServiceRest.logoUrl,
+        logoUrlDark = LogoServiceRest.logoUrlDark,
+        logoHeight = LogoServiceRest.logoHeight,
+    )
 }

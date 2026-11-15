@@ -16,7 +16,7 @@ import { JobProgressToast } from "./job-progress-toast";
 const POLL_INTERVAL_MS = 2000;
 
 /** Toasts are addressed by the job they show, so a poll updates one instead of stacking a new one. */
-function toastId(jobId: number): string {
+function jobToastId(jobId: number): string {
   return `job-${jobId}`;
 }
 
@@ -55,7 +55,7 @@ export function JobToasts() {
           continue;
         }
         // Seen before and gone now: the backend forgets terminated jobs after an hour.
-        toast.dismiss(toastId(id));
+        toast.dismiss(jobToastId(id));
         shown.current.delete(id);
         unwatchJob(id);
         continue;
@@ -68,10 +68,18 @@ export function JobToasts() {
         // Once per job: the toast keeps itself up to date from the query cache, and a second call
         // would not replace sonner's already rendered element anyway.
         shown.current.add(id);
-        toast.custom(() => <JobProgressToast initialJob={job} />, {
-          id: toastId(id),
-          duration: Infinity,
-        });
+        toast.custom(
+          () => (
+            <JobProgressToast
+              initialJob={job}
+              onClose={() => toast.dismiss(jobToastId(id))}
+            />
+          ),
+          {
+            id: jobToastId(id),
+            duration: Infinity,
+          }
+        );
       }
     }
   }, [data, watchedJobIds, unwatchJob]);
@@ -87,7 +95,7 @@ export function JobToasts() {
  * (now stale) progress bar on screen forever — its duration is Infinity.
  */
 export function showJobResult(job: JobInfo): void {
-  toast.dismiss(toastId(job.id));
+  toast.dismiss(jobToastId(job.id));
   if (isJobFailed(job)) {
     // The reason, not the counters: a refused job never ran, so its numbers are meaningless.
     toast.error(job.errorMessage ?? job.progressTitle ?? job.title ?? "", {

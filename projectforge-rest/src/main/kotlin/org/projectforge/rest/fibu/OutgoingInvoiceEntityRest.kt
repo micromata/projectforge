@@ -1334,7 +1334,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
     }
 
     /**
-     * The filtered list as the Excel file Wicket's "Excel export" produces (`RechnungListPage`).
+     * The filtered list as the Excel file Wicket's "Excel export" produced (`RechnungListPage`, removed in 9.0):
+     * the fields of the invoice itself - its period of performance, payment terms and discount, the billing
+     * address and e-invoice data -, the sums and the account. Wicket exported every `@PropertyInfo` field by
+     * reflection; this list is explicit, so a new field of [RechnungDO] belongs here, too.
      *
      * The rows come from [getResultList], i.e. through the same pipeline the list itself uses (the
      * synthetic payment state filter, then [filterList]) - `getObjectList` directly would export invoices
@@ -1368,19 +1371,44 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
                 sheet.registerColumn(translate("fibu.projectGroup"), COL_PROJECT_GROUP).withSize(25)
             }
             ExcelUtils.registerColumn(sheet, RechnungDO::betreff, 40)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerref1, 20)
             ExcelUtils.registerColumn(sheet, RechnungDO::datum)
             ExcelUtils.registerColumn(sheet, RechnungDO::faelligkeit)
             ExcelUtils.registerColumn(sheet, RechnungDO::bezahlDatum)
+            ExcelUtils.registerColumn(sheet, RechnungDO::periodOfPerformanceBegin)
+            ExcelUtils.registerColumn(sheet, RechnungDO::periodOfPerformanceEnd)
             sheet.registerColumn(translate("fibu.rechnung.status"), COL_STATUS).withSize(16)
+            sheet.registerColumn(translate("fibu.rechnung.typ"), COL_TYPE).withSize(16)
             sheet.registerColumn(translate("fibu.common.netto"), COL_NET_SUM).withSize(14)
             sheet.registerColumn(translate("fibu.common.brutto"), COL_GROSS_SUM).withSize(14)
             ExcelUtils.registerColumn(sheet, RechnungDO::zahlBetrag, 14)
+            ExcelUtils.registerColumn(sheet, RechnungDO::currency, 8)
+            ExcelUtils.registerColumn(sheet, RechnungDO::zahlungsZielInTagen, 10)
+            ExcelUtils.registerColumn(sheet, RechnungDO::discountZahlungsZielInTagen, 10)
+            ExcelUtils.registerColumn(sheet, RechnungDO::discountPercent, 10)
+            ExcelUtils.registerColumn(sheet, RechnungDO::discountMaturity)
             sheet.registerColumn(translate("fibu.konto.nummer"), COL_ACCOUNT).withSize(10)
             sheet.registerColumn(translate("fibu.konto.bezeichnung"), COL_ACCOUNT_TEXT).withSize(30)
             ExcelUtils.registerColumn(sheet, RechnungDO::bemerkung, 40)
+            ExcelUtils.registerColumn(sheet, RechnungDO::besonderheiten, 40)
+            // The billing address and the e-invoice data stored with the invoice.
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerContactPerson, 25)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerAddress, 30)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerZipCode, 10)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerCity, 20)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerCountry, 15)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerVatId, 15)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerLeitwegId, 20)
+            ExcelUtils.registerColumn(sheet, RechnungDO::customerEInvoiceEmail, 25)
+            ExcelUtils.registerColumn(sheet, RechnungDO::sellerBankAccount, 25)
+            ExcelUtils.registerColumn(sheet, RechnungDO::attachment, 20)
+            ExcelUtils.registerColumn(sheet, RechnungDO::id)
+            sheet.registerColumn(translate("lastUpdate"), COL_LAST_UPDATE).withSize(12)
             ExcelUtils.addHeadRow(sheet)
             invoices.forEach { invoice ->
                 val row = sheet.createRow()
+                // The payment terms in days are transient, calculated from the dates - not set on a loaded invoice.
+                invoice.recalculate()
                 row.autoFillFromObject(invoice)
                 if (invoice.typ == RechnungTyp.CANCELLATION) {
                     // No number of its own, the derived one ("16956-S") instead.
@@ -1397,6 +1425,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
                     row.getCell(COL_PROJECT_GROUP)?.setCellValue(projectGroupOf(invoice))
                 }
                 row.getCell(COL_STATUS)?.setCellValue(invoice.status?.let { translate(it.i18nKey) })
+                row.getCell(COL_TYPE)?.setCellValue(invoice.typ?.let { translate(it.i18nKey) })
+                invoice.lastUpdate?.let { row.getCell(COL_LAST_UPDATE)?.setCellValue(it) }
                 val info = invoice.ensuredInfo
                 row.getCell(COL_NET_SUM)?.setCellValue(info.netSum)?.setCellStyle(currencyStyle)
                 row.getCell(COL_GROSS_SUM)?.setCellValue(info.grossSum)?.setCellStyle(currencyStyle)
@@ -1798,6 +1828,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Spring.
         private const val COL_PROJECT = "project"
         private const val COL_PROJECT_GROUP = "projectGroup"
         private const val COL_STATUS = "statusAsString"
+        private const val COL_TYPE = "typAsString"
+        private const val COL_LAST_UPDATE = "lastUpdateAsDate"
         private const val COL_NET_SUM = "netSum"
         private const val COL_GROSS_SUM = "grossSum"
         private const val COL_ACCOUNT = "kontoNummer"

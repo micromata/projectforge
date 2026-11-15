@@ -19,7 +19,10 @@ See [README.md](README.md) for setup, [AGENTS.md](AGENTS.md) for Expo (versioned
 - Security: the app token stays in the `SessionStore` (key chain/keystore), nothing personal in logs (`appLog`
   masks). The WebView: every navigation is decided by `WebNavigation` (`originWhitelist={['*']}` stays), no
   JavaScript bridge beyond the commit and find messages, the files a page of the own server made itself
-  (`BLOB_SCRIPT`, to the share sheet only) and next's status signal (no data, the user status is loaded again). Into the page only the find script and the theme (`themeScript`, next-themes' storage key). Access is checked by the server; hiding a button protects nothing.
+  (`BLOB_SCRIPT`, to the share sheet only), next's status signal (no data, the user status is loaded again) and
+  next's request for a second factor (`twoFactor`: renewal of the login in the browser). Into the page only the find
+  script, the theme (`themeScript`, next-themes' storage key) and the answer to that request (`twoFactorScript`).
+  Access is checked by the server; hiding a button protects nothing.
 - License header of ProjectForge on top of every source file.
 - Quality gates before reporting done: `bin/pfApp.sh check` (tsc for app and shared, eslint, jest). UI changes: try
   them in the simulator (`bin/pfApp.sh run <slot>`), or say that you couldn't.

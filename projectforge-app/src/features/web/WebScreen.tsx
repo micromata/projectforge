@@ -47,6 +47,7 @@ import { showWalletPass, walletAvailable, WalletException } from '../../core/wal
 import { FindBar, FindResult } from './FindBar';
 import { findScript } from './findInPage';
 import { themeScript } from './themeScript';
+import { twoFactorAnswerScript } from './twoFactorScript';
 import { BLOB_SCRIPT, blobFile, DownloadedFile, isWalletPass, WebDownload } from './webDownload';
 import { NativePage, WebNavigation } from './webNavigation';
 
@@ -141,6 +142,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   const handedOver = useRef<string | null>(null);
   const canGoBack = useRef(false);
   const lastProxyRenewal = useRef<number | null>(null);
+  /** The last new web session for a redirect to the SSO proxy that lets the app through (its cookies were gone). */
+  const lastProxyCookieRestore = useRef<number | null>(null);
   const renewingProxy = useRef(false);
   const openings = useRef(0);
   const stallTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -276,8 +279,10 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
 
   /**
    * The SSO proxy refused a page and redirects to its login: the login of the app is renewed in the system browser,
-   * then the page is loaded again. Only if the proxy refuses the app too (ApiClient.proxyRefuses): another site the
-   * server redirects to is opened outside the app.
+   * then the page is loaded again. Only if the proxy refuses the app too (ApiClient.proxyRefuses). If it lets the app
+   * through, the WebView lost the proxy cookies (session cookies, gone with the processes of the WebView killed in the
+   * background): a new web session sets them again. Redirected again right after that, it is another site the server
+   * redirects to, opened outside the app.
    */
   const renewForProxy = async (target: string) => {
     if (renewingProxy.current) return;
@@ -286,6 +291,15 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     try {
       const api = authController.api;
       if (api == null || !(await api.proxyRefuses())) {
+        if (
+          api != null &&
+          (lastProxyCookieRestore.current == null || Date.now() - lastProxyCookieRestore.current >= RENEWAL_INTERVAL)
+        ) {
+          lastProxyCookieRestore.current = Date.now();
+          appLog.info('web', 'The SSO proxy lets the app through: new web session with its cookies');
+          restart(true);
+          return;
+        }
         appLog.warn(
           'web',
           `Redirected to ${LogSanitizer.url(target)}, but the SSO proxy lets the app through: opened outside the app`,
@@ -415,7 +429,16 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   };
 
   const onMessage = (event: WebViewMessageEvent) => {
-    let data: { pf?: string; count?: number; index?: number; supported?: boolean; name?: unknown; mime?: unknown; data?: unknown };
+    let data: {
+      pf?: string;
+      count?: number;
+      index?: number;
+      supported?: boolean;
+      name?: unknown;
+      mime?: unknown;
+      data?: unknown;
+      maxAgeMillis?: unknown;
+    };
     try {
       data = JSON.parse(event.nativeEvent.data);
     } catch {
@@ -430,7 +453,32 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     } else if (data?.pf === 'status' && navigation.isSameOrigin(event.nativeEvent.url)) {
       // next's badges changed (a chat read, a notification done): the tab bar's follow (useAppStatusSignal of next).
       userStatus.changed();
+    } else if (data?.pf === 'twoFactor' && navigation.isSameOrigin(event.nativeEvent.url)) {
+      void confirm2FA(data.maxAgeMillis);
     }
+  };
+
+  /**
+   * next's 2FA dialog asked for a second factor (its WebAuthn doesn't work in the WebView): the login of the app is
+   * renewed in the system browser, a new web session takes its second factor to all tabs (one cookie jar), and the page
+   * is told, so it repeats its refused request. No reload: the page keeps what it had open.
+   */
+  const confirm2FA = async (maxAgeMillis: unknown) => {
+    const sessions = authController.webSessions;
+    let ok = false;
+    try {
+      appLog.info('web', 'Second factor asked by the page: renewal of the login in the system browser');
+      const max = typeof maxAgeMillis === 'number' && maxAgeMillis > 0 ? maxAgeMillis : undefined;
+      if (sessions != null && (await authController.reauthenticate(max))) {
+        await sessions.renew(false);
+        lastOpened.current = Date.now();
+        ok = true;
+      }
+    } catch (e) {
+      appLog.warn('web', `Second factor of the page not confirmed: ${String(e)}`);
+    }
+    appLog.info('web', `Second factor of the page ${ok ? 'confirmed' : 'not confirmed'}`);
+    webView.current?.injectJavaScript(twoFactorAnswerScript(ok));
   };
 
   /** A file the page made itself (an export of next): offered as a download, only from a page of the server. */
@@ -628,8 +676,9 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         // another scheme itself (Linking.openURL), before asking it.
         originWhitelist={['*']}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-        // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
-        applicationNameForUserAgent={`ProjectForgeApp/${appVersion}`}
+        // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout; `(browser2FA)`: it confirms a
+        // second factor in the browser (confirm2FA).
+        applicationNameForUserAgent={`ProjectForgeApp/${appVersion} (browser2FA)`}
         injectedJavaScriptBeforeContentLoaded={COMMIT_SCRIPT + BLOB_SCRIPT}
         injectedJavaScriptBeforeContentLoadedForMainFrameOnly
         onMessage={onMessage}
@@ -640,14 +689,15 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         renderError={() => <View />}
         onHttpError={onHttpError}
         onFileDownload={onFileDownload}
-        // The content process is gone (iOS: killed in the background; Android: crashed): a new WebView.
+        // The content process is gone (iOS: killed in the background; Android: crashed): a new WebView with a new web
+        // session, since the session cookies (web session, SSO proxy) may be gone with it.
         onContentProcessDidTerminate={() => {
           appLog.warn('web', 'Content process of the WebView terminated');
-          restart(false);
+          restart(true);
         }}
         onRenderProcessGone={(event) => {
           appLog.warn('web', `Render process of the WebView gone (crashed: ${event.nativeEvent.didCrash})`);
-          restart(false);
+          restart(true);
         }}
         allowsBackForwardNavigationGestures
         javaScriptCanOpenWindowsAutomatically={false}

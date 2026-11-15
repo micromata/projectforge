@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -10,9 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ReadOnlyValue } from "@/components/shared/form/read-only-value";
 import type { MerlinVariable } from "@/lib/rs/merlin";
 import { MerlinDialogField as Field } from "./merlin-dialog-field";
+import { MerlinVariableMapping } from "./merlin-variable-mapping";
 import { MerlinVariableRulesFields } from "./merlin-variable-rules-fields";
 
 /** No master variable: the value of the select's empty entry (Radix forbids ""). */
@@ -20,23 +19,27 @@ const NONE = "__none__";
 
 /**
  * The fields of a variable, by its kind (as the legacy dialog): an input variable has a type, its rules and a
- * description (see MerlinVariableRulesFields); a dependent one maps the values of its master variable.
+ * description (see MerlinVariableRulesFields); a dependent one maps the values of its master variable
+ * (see MerlinVariableMapping).
  */
 export function MerlinVariableDialogFields({
   draft,
   set,
   masterCandidates,
+  setMappingValid,
 }: {
   draft: MerlinVariable;
   set: (patch: Partial<MerlinVariable>) => void;
   /** The variables with allowed values this one may depend on. */
   masterCandidates: readonly MerlinVariable[];
+  /** Whether every value of the mapping can be written into its csv. */
+  setMappingValid: (valid: boolean) => void;
 }) {
   const t = useTranslations();
   const dependent = !!draft.dependsOnName;
-  const masterValues = masterCandidates
-    .find((it) => it.name === draft.dependsOnName)
-    ?.allowedValues?.join(", ");
+  const masterValues =
+    masterCandidates.find((it) => it.name === draft.dependsOnName)
+      ?.allowedValues ?? [];
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Field label={t("plugins.merlin.variable.name")}>
@@ -73,26 +76,16 @@ export function MerlinVariableDialogFields({
         </Field>
       )}
       {dependent ? (
-        <>
-          <ReadOnlyValue
-            label={t("plugins.merlin.variable.master.values")}
-            className="sm:col-span-2"
-          >
-            {masterValues}
-          </ReadOnlyValue>
-          <Field
-            label={t("plugins.merlin.variable.mapping._")}
-            hint={t("plugins.merlin.variable.mapping.info")}
-          >
-            {(id) => (
-              <Textarea
-                id={id}
-                value={draft.mappingValues ?? ""}
-                onChange={(e) => set({ mappingValues: e.target.value || null })}
-              />
-            )}
-          </Field>
-        </>
+        <MerlinVariableMapping
+          masterName={draft.dependsOnName ?? ""}
+          name={draft.name}
+          masterValues={masterValues}
+          csv={draft.mappingValues}
+          onChange={(mappingValues, valid) => {
+            set({ mappingValues });
+            setMappingValid(valid);
+          }}
+        />
       ) : (
         <MerlinVariableRulesFields draft={draft} set={set} />
       )}

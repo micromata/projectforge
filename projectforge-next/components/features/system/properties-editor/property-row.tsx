@@ -22,10 +22,10 @@ import { hasPropertyInfo, PropertyInfo } from "./property-info";
 import { PropertyValueInput } from "./property-value-input";
 
 /**
- * One parameter on one line: key with its explanation behind an info icon (see [PropertyInfo]), the
- * input, undo / reset to default (an undocumented key has no default, it is deleted). Below it only
- * what needs attention: the running system uses another value than the file (restart pending, or
- * overridden by the environment).
+ * One parameter on one line: key with its explanation behind an info icon (see [PropertyInfo]) and a
+ * "live" pill if a change takes effect on saving, the input, undo / reset to default (an undocumented
+ * key has no default, it is deleted). Below it only what needs attention: the running system uses
+ * another value than the file (restart pending, or overridden by the environment).
  */
 export function PropertyRow({
   param,
@@ -58,6 +58,16 @@ export function PropertyRow({
             hint={<PropertyInfo param={param} query={query} />}
             label={param.key}
           />
+        )}
+        {param.live && (
+          <HintTooltip
+            text={t("system.propertiesEditor.live.tooltip")}
+            openOnTap
+          >
+            <Badge variant="outline" className="shrink-0">
+              {t("system.propertiesEditor.live._")}
+            </Badge>
+          </HintTooltip>
         )}
         {modified && (
           <Badge variant="secondary" className="shrink-0">

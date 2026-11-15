@@ -3,6 +3,9 @@
 TypeScript shared by the app ([`projectforge-app`](../projectforge-app/README.md)) and the web frontend
 ([`projectforge-next`](../projectforge-next)). Consumed as `"@projectforge/shared": "file:../projectforge-shared"`
 (a symlink, as a workspace would be) and imported by path: `@projectforge/shared/base64url`, `@projectforge/shared/rs/app-auth`.
+Next's Turbopack follows the symlink only into an additional root (`turbopackAdditionalRoots` in `next.config.ts`),
+and its Gradle build (`npmBuild`) has this directory as an input. Shared code is tested by the consumers (jest in the
+app, vitest in next), there is no test runner here.
 
 - `src/rs/`: the types of the `/rs` api the clients read, named after the Kotlin classes (in the comment). The app reads
   server data only through them: `AppApiContractTest` (projectforge-application) checks every field of these

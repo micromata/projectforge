@@ -17,6 +17,7 @@ import { ScriptDownloadBanner } from "./script-download-banner";
 import { ScriptExecuteParameters } from "./script-execute-parameters";
 import { ScriptExecuteResult } from "./script-execute-result";
 import { ScriptLogTable } from "./script-log-table";
+import { ScriptResultImage } from "./script-result-image";
 
 /** The tabs of the execution page, see [scriptExecuteTabs]. */
 export type ScriptExecuteTab = "execute" | "output" | "executableBy";
@@ -117,6 +118,7 @@ export function ScriptExecuteBody({
         <TabsContent value="output" className="space-y-4 pt-2">
           {banner}
           <ScriptExecuteResult result={result} />
+          <ScriptResultImage endpoint={endpoint} download={download} />
           {log && log.length > 0 && (
             <ScriptLogTable entries={log} isFetching={logFetching} />
           )}

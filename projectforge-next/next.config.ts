@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import { BASE_PATH, PUBLIC_ASSET_PREFIX } from "./lib/config";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -44,6 +45,11 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
   experimental: {
+    // @projectforge/shared (TypeScript shared with the app) is a symlink into ../projectforge-shared, outside the
+    // root; Turbopack follows it only into an additional root. Not the repository as root: it would watch all of it.
+    turbopackAdditionalRoots: {
+      shared: { path: path.join(__dirname, "../projectforge-shared") },
+    },
     // Dev-only, for the rewrites below: the proxy gives up after 30s by default and answers 500,
     // while the forecast export of the whole order book takes just over that on a large database
     // (ForecastExport walks every order and every invoice of three years). Prod has no proxy — Spring
@@ -51,7 +57,7 @@ const nextConfig: NextConfig = {
     proxyTimeout: 300_000,
     // Dev-only as well: the dev server buffers a request body for the rewrites below and passes on only the first
     // 10 MB by default, while the content length stays the full one; Spring then waits for the rest until the read
-    // times out. As the cap of a bulk import of SBOMs (CveClinicConfig.SbomImport.maxSizeLimitMb).
+    // times out. As the cap of a bulk import of SBOMs (CveRadarConfig.SbomImport.maxSizeLimitMb).
     proxyClientMaxBodySize: "1gb",
   },
   // Dev-only: proxy backend calls to Spring, on :8080 or wherever PF_BACKEND_URL points (a dev

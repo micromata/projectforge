@@ -154,6 +154,29 @@ class AppWebSessionTest : AbstractTestBase() {
         }
     }
 
+    /** A page of the WebView asked for a second factor of one minute: a browser 2FA of five minutes is too old. */
+    @Test
+    fun `authorize asks for a fresher second factor`() {
+        val authorize = AppAuthRest.AuthorizeRequest(challenge = "a".repeat(43), state = "s".repeat(16), deviceName = "x")
+        val oneMinute = AppAuthRest.AuthorizeRequest(
+            challenge = "a".repeat(43), state = "s".repeat(16), deviceName = "x", max2FAAgeMillis = TimeUnit.MINUTE.millis,
+        )
+        logon(TEST_USER)
+        ThreadLocalUserContext.userContext!!.lastSuccessful2FA = System.currentTimeMillis() - 5 * TimeUnit.MINUTE.millis
+        val refused = appAuthRest.authorize(MockHttpServletRequest(), oneMinute)
+        Assertions.assertEquals(HttpStatus.FORBIDDEN, refused.statusCode)
+        Assertions.assertEquals(TimeUnit.MINUTE.millis, (refused.body as TwoFactorRequired).expiryMillis)
+        Assertions.assertEquals(HttpStatus.OK, appAuthRest.authorize(MockHttpServletRequest(), authorize).statusCode)
+        // Never longer than the maximum of the app login:
+        val day = AppAuthRest.AuthorizeRequest(
+            challenge = "a".repeat(43), state = "s".repeat(16), deviceName = "x", max2FAAgeMillis = TimeUnit.DAY.millis,
+        )
+        ThreadLocalUserContext.userContext!!.lastSuccessful2FA = System.currentTimeMillis() - 20 * TimeUnit.MINUTE.millis
+        Assertions.assertEquals(HttpStatus.FORBIDDEN, appAuthRest.authorize(MockHttpServletRequest(), day).statusCode)
+        ThreadLocalUserContext.userContext!!.updateLastSuccessful2FA()
+        Assertions.assertEquals(HttpStatus.OK, appAuthRest.authorize(MockHttpServletRequest(), oneMinute).statusCode)
+    }
+
     @Test
     fun `second factor of the app too old for a login`() {
         val old = Date(System.currentTimeMillis() - 2 * TimeUnit.DAY.millis)

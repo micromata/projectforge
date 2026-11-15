@@ -28,7 +28,7 @@ export function AppLoginPage({
   packedLogin?: string | null;
 } = {}) {
   const t = useTranslations();
-  const { challenge, state, deviceName, platform, deviceId } =
+  const { challenge, state, deviceName, platform, deviceId, max2FAAgeMillis } =
     readAppLoginParams(useSearchParams(), packedLogin);
   const [status, setStatus] = useState<Status>(
     challenge && state ? "ask" : "invalid"
@@ -42,6 +42,7 @@ export function AppLoginPage({
         deviceName,
         platform,
         deviceId,
+        max2FAAgeMillis,
       }),
     onSuccess: ({ redirectUrl }) => {
       setStatus("done");

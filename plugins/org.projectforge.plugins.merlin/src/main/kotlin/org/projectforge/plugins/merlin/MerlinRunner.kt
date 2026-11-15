@@ -43,6 +43,7 @@ import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.renderer.LibreOfficeService
 import org.projectforge.framework.renderer.PdfFontProvider
 import org.projectforge.framework.renderer.PdfFontService
 import org.projectforge.framework.time.DateFormats
@@ -79,6 +80,9 @@ open class MerlinRunner {
 
     @Autowired
     private lateinit var pdfFontService: PdfFontService
+
+    @Autowired
+    private lateinit var libreOfficeService: LibreOfficeService
 
     /**
      * @return Pair of filename and byte array representing the Word file.
@@ -182,12 +186,15 @@ open class MerlinRunner {
                     DateHelper.getFilenameFormatTimestamp(ThreadLocalUserContext.timeZone).format(Date())
                 }_${runner.zipFilename}"
                 val description = translate("plugins.merlin.template.dataTransferUsage.resultZip")
-                dataTransferBridge.putFileInUsersInBox(
-                    receiver = receiver,
-                    filename = personalBoxFilename,
-                    content = zipByteArray,
-                    description = description,
-                )
+                if (!dataTransferBridge.putFileInUsersInBox(
+                        receiver = receiver,
+                        filename = personalBoxFilename,
+                        content = zipByteArray,
+                        description = description,
+                    )
+                ) {
+                    log.error { "Can't put the result '$personalBoxFilename' in your personal box, it's only offered as download." }
+                }
             }
             return Pair(runner.zipFilename, zipByteArray)
         }
@@ -260,16 +267,58 @@ open class MerlinRunner {
     }
 
     /**
+     * Converts with LibreOffice, if installed (layout much closer to Word's), otherwise with the built-in converter.
      * @return Pair of filename and pdf byte array.
+     * @throws Throwable if the built-in converter fails (a StackOverflowError may occur).
      */
     fun convertToPdf(wordBytes: ByteArray, filename: String): PDFDocument {
+        libreOfficeService.convertDocxToPdf(wordBytes)?.let { pdf ->
+            return PDFDocument(pdfFilename(filename), pdf).also { log.info { "Converted to pdf: ${it.filename}" } }
+        }
+        return convertToPdfBuiltIn(wordBytes, filename)
+    }
+
+    /**
+     * Converts the given Word documents in one LibreOffice run, if installed. What LibreOffice doesn't convert is
+     * converted by the built-in converter, one by one.
+     * @param documents Word documents by filename.
+     * @return The PDF documents by filename of the Word document. Missing, if the conversion failed (logged), so the
+     * Word document is delivered without pdf.
+     */
+    private fun convertToPdf(documents: Map<String, ByteArray>): Map<String, PDFDocument> {
+        if (documents.isEmpty()) {
+            return emptyMap()
+        }
+        log.info { "Converting ${documents.size} document(s) to pdf..." }
+        val result = mutableMapOf<String, PDFDocument>()
+        val filenames = documents.keys.toList()
+        libreOfficeService.convertDocxToPdf(filenames.map { documents[it]!! })?.forEachIndexed { index, pdf ->
+            if (pdf != null) {
+                result[filenames[index]] = PDFDocument(pdfFilename(filenames[index]), pdf)
+            }
+        }
+        filenames.filter { !result.containsKey(it) }.forEach { filename ->
+            try {
+                result[filename] = convertToPdfBuiltIn(documents[filename]!!, filename)
+            } catch (ex: Throwable) {
+                // Stackoverflow may occur.
+                log.error(ex) { "Error while converting '$filename' to pdf, only the Word document is delivered: ${ex.message}" }
+            }
+        }
+        log.info { "Converted ${result.size} of ${documents.size} document(s) to pdf." }
+        return result
+    }
+
+    private fun pdfFilename(filename: String): String = "${FilenameUtils.getBaseName(filename)}.pdf"
+
+    private fun convertToPdfBuiltIn(wordBytes: ByteArray, filename: String): PDFDocument {
         ByteArrayInputStream(wordBytes).use { bais ->
             WordDocument(bais, filename).use { word ->
                 val options = PdfOptions.create()
                 options.fontProvider(PdfFontProvider(pdfFontService))
                 ByteArrayOutputStream().use { baos ->
                     PdfConverter.getInstance().convert(word.document, baos, options)
-                    val pdfFilename = "${FilenameUtils.getBaseName(filename)}.pdf"
+                    val pdfFilename = pdfFilename(filename)
                     log.info { "Converted to pdf: $pdfFilename" }
                     return PDFDocument(pdfFilename, baos.toByteArray())
                 }
@@ -290,80 +339,91 @@ open class MerlinRunner {
         lastLogNumber: Long?,
         pdfExport: Boolean,
     ): ByteArray {
-        val convertedPdfDocuments = processPersonalBoxOfReceivers(zipByteArray, serialData, dto)
-        ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
-            ByteArrayOutputStream().use { baos ->
-                ZipOutputStream(baos).use { zipOut ->
-                    var zipEntry = zipInputStream.nextEntry
-                    while (zipEntry != null) {
-                        val clonedZipEntry = zipEntry.clone() as ZipEntry
-                        zipOut.putNextEntry(clonedZipEntry)
-                        if (!zipEntry.isDirectory) {
-                            val ba = zipInputStream.readAllBytes()
-                            zipOut.write(ba)
-                            if (zipEntry.name.endsWith(".docx")) {
-                                // Test if filename was already generated to put in user's personal data transfer box:
-                                var pdfFile = convertedPdfDocuments.find {
-                                    FilenameUtils.getBaseName(it.filename) == FilenameUtils.getBaseName(zipEntry.name)
-                                }
-                                if (pdfFile == null && pdfExport) {
-                                    // pdfExport is demanded, so generate it:
-                                    pdfFile = convertToPdf(ba, zipEntry.name)
-                                }
-                                if (pdfFile != null) {
-                                    zipOut.closeEntry()
-                                    zipOut.putNextEntry(ZipEntry(pdfFile.filename))
-                                    zipOut.write(pdfFile.content)
-                                }
-                            }
-                        }
+        val documents = readZipEntries(zipByteArray)
+        // All pdfs in one run, if pdfExport is demanded:
+        val pdfDocuments = if (pdfExport) {
+            convertToPdf(documents.filter { it.name.endsWith(".docx") }.associate { it.name to it.content })
+        } else {
+            emptyMap()
+        }
+        val allPdfDocuments = pdfDocuments + processPersonalBoxOfReceivers(documents, serialData, dto, pdfDocuments)
+        ByteArrayOutputStream().use { baos ->
+            ZipOutputStream(baos).use { zipOut ->
+                documents.forEach { document ->
+                    zipOut.putNextEntry(ZipEntry(document.name).also { it.time = document.time })
+                    zipOut.write(document.content)
+                    zipOut.closeEntry()
+                    allPdfDocuments[document.name]?.let { pdfFile ->
+                        zipOut.putNextEntry(ZipEntry(pdfFile.filename))
+                        zipOut.write(pdfFile.content)
                         zipOut.closeEntry()
-                        zipEntry = zipInputStream.nextEntry
                     }
-                    zipInputStream.closeEntry()
+                }
 
-                    ExcelUtils.prepareWorkbook().use { workbook ->
-                        val sheet =
-                            workbook.createOrGetSheet(translate("plugins.merlin.export.logging.excel.sheetName"))
-                        ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "isoTimestamp", 20)
-                        ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "level", 6)
-                        ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "message", 100)
-                        ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "loggerName", 60)
-                        val boldStyle = workbook.createOrGetCellStyle(ExcelUtils.BOLD_STYLE)
-                        val headRow = sheet.createRow() // second row as head row.
-                        sheet.columnDefinitions.forEachIndexed { index, it ->
-                            headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
-                        }
-                        val logs =
-                            MerlinPlugin.ensureUserLogSubscription()
-                                .query(LogFilter(lastReceivedLogOrderNumber = lastLogNumber, maxSize = 10000))
-                                .sortedBy { it.id } // In ascending order.
-                        logs.forEach { logEntry ->
-                            val row = sheet.createRow()
-                            ExcelUtils.autoFill(row, logEntry)
-                        }
-                        val logViewerBytes = workbook.asByteArrayOutputStream.toByteArray()
-                        val logViewerEntry =
-                            ZipEntry("${translate("plugins.merlin.export.logging.excel.logBaseFilename")}.xlsx")
-                        zipOut.putNextEntry(logViewerEntry)
-                        zipOut.write(logViewerBytes)
-                        zipOut.closeEntry()
+                ExcelUtils.prepareWorkbook().use { workbook ->
+                    val sheet =
+                        workbook.createOrGetSheet(translate("plugins.merlin.export.logging.excel.sheetName"))
+                    ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "isoTimestamp", 20)
+                    ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "level", 6)
+                    ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "message", 100)
+                    ExcelUtils.registerColumn(sheet, LoggingEventData::class.java, "loggerName", 60)
+                    val boldStyle = workbook.createOrGetCellStyle(ExcelUtils.BOLD_STYLE)
+                    val headRow = sheet.createRow() // second row as head row.
+                    sheet.columnDefinitions.forEachIndexed { index, it ->
+                        headRow.getCell(index).setCellValue(it.columnHeadname).setCellStyle(boldStyle)
                     }
-                    zipOut.putNextEntry(ZipEntry(excelFilename))
-                    zipOut.write(excelByteArray)
+                    val logs =
+                        MerlinPlugin.ensureUserLogSubscription()
+                            .query(LogFilter(lastReceivedLogOrderNumber = lastLogNumber, maxSize = 10000))
+                            .sortedBy { it.id } // In ascending order.
+                    logs.forEach { logEntry ->
+                        val row = sheet.createRow()
+                        ExcelUtils.autoFill(row, logEntry)
+                    }
+                    val logViewerBytes = workbook.asByteArrayOutputStream.toByteArray()
+                    val logViewerEntry =
+                        ZipEntry("${translate("plugins.merlin.export.logging.excel.logBaseFilename")}.xlsx")
+                    zipOut.putNextEntry(logViewerEntry)
+                    zipOut.write(logViewerBytes)
                     zipOut.closeEntry()
                 }
-                return baos.toByteArray()
+                zipOut.putNextEntry(ZipEntry(excelFilename))
+                zipOut.write(excelByteArray)
+                zipOut.closeEntry()
             }
+            return baos.toByteArray()
         }
     }
 
+    private class ZipDocument(val name: String, val time: Long, val content: ByteArray)
+
+    /**
+     * @return The files of the zip archive in their order (directories are skipped).
+     */
+    private fun readZipEntries(zipByteArray: ByteArray): List<ZipDocument> {
+        val result = mutableListOf<ZipDocument>()
+        ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
+            generateSequence { zipInputStream.nextEntry }.forEach { zipEntry ->
+                if (!zipEntry.isDirectory) {
+                    result.add(ZipDocument(zipEntry.name, zipEntry.time, zipInputStream.readAllBytes()))
+                }
+            }
+        }
+        return result
+    }
+
+    /**
+     * @param documents The generated Word documents, in the order of the serial data entries.
+     * @param convertedPdfDocuments Already converted pdfs by filename of the Word document (they aren't converted again).
+     * @return The pdfs converted for the personal boxes by filename of the Word document.
+     */
     private fun processPersonalBoxOfReceivers(
-        zipByteArray: ByteArray,
+        documents: List<ZipDocument>,
         serialData: SerialData,
-        dto: MerlinTemplate
-    ): List<PDFDocument> {
-        val pdfDocuments = mutableListOf<PDFDocument>()
+        dto: MerlinTemplate,
+        convertedPdfDocuments: Map<String, PDFDocument>,
+    ): Map<String, PDFDocument> {
+        val pdfDocuments = emptyMap<String, PDFDocument>()
         if (serialData.entries.none {
                 val personalBoxVariable = it.get(PERSONAL_BOX_VARIABLE)
                 val personalBoxUsed =
@@ -418,63 +478,42 @@ open class MerlinRunner {
             log.error { "Errors for personal box users occurred. No document will be send to any personal user box. Aborting." }
             return pdfDocuments
         }
-        var counter = 0
-        ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
-            var zipEntry = zipInputStream.nextEntry
-            while (zipEntry != null) {
-                if (zipEntry.isDirectory) {
-                    continue
-                }
-                zipEntry = zipInputStream.nextEntry
-                ++counter
-            }
-            zipInputStream.closeEntry()
-        }
-        if (counter != docReceivers.size || pdfReceivers.size != counter) {
+        if (documents.size != docReceivers.size || pdfReceivers.size != documents.size) {
             log.warn { "Oups, number of generated Word documents doesn't match number of personal box receivers. Aborting: Don't send any document to any personal user's box." }
             return pdfDocuments
         }
-        counter = 0
-        ZipInputStream(ByteArrayInputStream(zipByteArray)).use { zipInputStream ->
-            var zipEntry = zipInputStream.nextEntry
-            while (zipEntry != null) {
-                if (zipEntry.isDirectory) {
-                    continue
-                }
-                val docReceiver = docReceivers[counter]
-                val pdfReceiver = pdfReceivers[counter++]
-                if (docReceiver.user != null || pdfReceiver.user != null) {
-                    val receiver = if (docReceiver.user != null) {
-                        docReceiver
-                    } else {
-                        pdfReceiver
-                    }
-                    zipEntry.name
-                    val wordBytes = zipInputStream.readAllBytes()
-                    if (docReceiver.user != null) {
-                        dataTransferBridge.putFileInUsersInBox(
-                            filename = zipEntry.name,
-                            content = wordBytes,
-                            description = docReceiver.attachmentDescription,
-                            receiver = receiver.user!!,
-                        )
-                    }
-                    if (pdfReceiver.user != null) {
-                        val pdfDocument = convertToPdf(wordBytes, zipEntry.name)
-                        pdfDocuments.add(pdfDocument)
-                        dataTransferBridge.putFileInUsersInBox(
-                            receiver = pdfReceiver.user,
-                            filename = pdfDocument.filename,
-                            content = pdfDocument.content,
-                            description = pdfReceiver.attachmentDescription,
-                        )
-                    }
-                }
-                zipEntry = zipInputStream.nextEntry
+        // All missing pdfs in one run:
+        val newPdfDocuments = convertToPdf(
+            documents.filterIndexed { index, document ->
+                pdfReceivers[index].user != null && !convertedPdfDocuments.containsKey(document.name)
+            }.associate { it.name to it.content }
+        )
+        documents.forEachIndexed { index, document ->
+            val docReceiver = docReceivers[index]
+            val pdfReceiver = pdfReceivers[index]
+            docReceiver.user?.let { user ->
+                dataTransferBridge.putFileInUsersInBox(
+                    filename = document.name,
+                    content = document.content,
+                    description = docReceiver.attachmentDescription,
+                    receiver = user,
+                )
             }
-            zipInputStream.closeEntry()
+            pdfReceiver.user?.let { user ->
+                val pdfDocument = convertedPdfDocuments[document.name] ?: newPdfDocuments[document.name]
+                if (pdfDocument == null) {
+                    log.error { "No pdf of '${document.name}', nothing put in the personal box of '${user.getFullname()}'." }
+                } else {
+                    dataTransferBridge.putFileInUsersInBox(
+                        receiver = user,
+                        filename = pdfDocument.filename,
+                        content = pdfDocument.content,
+                        description = pdfReceiver.attachmentDescription,
+                    )
+                }
+            }
         }
-        return pdfDocuments
+        return newPdfDocuments
     }
 
     private fun getUser(userObject: Any?): Pair<Boolean, PFUserDO?> {

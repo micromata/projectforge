@@ -34,8 +34,9 @@ export function AvailabilityUserField({ className }: { className?: string }) {
 }
 
 /**
- * The type, one of the configured ones (`projectforge.availability.types`, `Availability.availableTypes`). Personal
- * data like the internal comment (AvailabilityDao.afterLoad), as the hint tells.
+ * The type, one of the configured ones (`projectforge.availability.types`, `Availability.availableTypes`): a code
+ * shown in the user's language. Personal data like the internal comment (AvailabilityDao.afterLoad), as the hint
+ * tells.
  */
 export function AvailabilityTypeField({ className }: { className?: string }) {
   const t = useTranslations();
@@ -52,8 +53,8 @@ export function AvailabilityTypeField({ className }: { className?: string }) {
       placeholder={t("availability.notSpecified")}
       className={className}
       options={(data?.availableTypes ?? []).map((type) => ({
-        value: type,
-        label: type,
+        value: type.value,
+        label: type.label,
       }))}
     />
   );

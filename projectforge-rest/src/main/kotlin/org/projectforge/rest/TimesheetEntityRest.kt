@@ -46,6 +46,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.*
 import org.projectforge.framework.utils.MarkdownBuilder
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jira.JiraUtils
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalendarServicesRest
@@ -171,8 +172,10 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     /**
      * The aggregates of the whole timesheet list for a hand-built page that formats nothing itself: the summed
      * duration (already formatted in the user's locale, taken as-is), its raw millis for a client that wants to
-     * add it up itself, and — only where the installation tracks it — the share of time saved by AI. The typed
-     * counterpart of the [resultInfo] markdown the legacy React list reads (see [ResultSet.statistics]).
+     * add it up itself, — only where the installation tracks it — the share of time saved by AI, and the booked
+     * time overlapping other sheets of the same user (shared costs actually used, see
+     * [TimesheetDao.getOverlapDurations]) with its share of the total duration (both null if there is none). The typed counterpart of the [resultInfo] markdown the legacy React list reads (see
+     * [ResultSet.statistics]).
      */
     @Suppress("unused")
     class TimesheetListStatistics(
@@ -180,6 +183,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         val totalDuration: String,
         val aiEnabled: Boolean,
         val aiPercentage: String?,
+        val sharedCostDurationMillis: Long = 0,
+        val sharedCostDuration: String? = null,
+        val sharedCostPercentage: String? = null,
     )
 
     /**
@@ -425,39 +431,57 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
      * counterpart of computing them there over the whole non-paged result.
      */
     override fun aggregate(ids: LongArray, filter: MagicFilter): Any {
-        // A lean four-column projection, not getListByIds: the whole id list can be thousands of sheets, and
-        // buildStatistics reads only the duration and the AI fields, so hydrating the entities (all columns, in
+        // A lean six-column projection, not getListByIds: the whole id list can be thousands of sheets, and
+        // buildStatistics reads only id, user, the duration and the AI fields, so hydrating the entities (all columns, in
         // IN batches) just to sum them is pure waste (see TimesheetDao.selectStatisticsData). The result is
         // cached with the id list, so this runs once per filter, not per page (see getListPage).
         return buildStatistics(timesheetDao.selectStatisticsData(ids.toList()))
     }
 
     /**
-     * The summed duration and — where the installation tracks it — the AI share over the given time sheets, in
-     * one pass so the footer's two numbers can never disagree (see [AITimeSavings.buildStats]). Reads only the
-     * duration and AI fields of each sheet, so it needs no cache-populated task.
+     * The summed duration, — where the installation tracks it — the AI share (in one pass, so these two numbers
+     * can never disagree, see [AITimeSavings.buildStats]) and the booked time overlapping other sheets (shared
+     * costs) over the given time sheets. Reads only id, user, the duration and the AI fields of each sheet (see
+     * [TimesheetDao.selectStatisticsData]); the overlap partners are loaded by [TimesheetDao.getOverlapDurations].
      */
     internal fun buildStatistics(list: List<TimesheetDO>): TimesheetListStatistics {
         val stats = AITimeSavings.buildStats(list)
         val aiEnabled = baseDao.timeSavingsByAIEnabled
+        val sharedCostMillis = timesheetDao.getOverlapDurations(list).values.sum()
         return TimesheetListStatistics(
             totalDurationMillis = stats.totalDurationMillis,
             totalDuration = dateTimeFormatter.getPrettyFormattedDuration(stats.totalDurationMillis),
             aiEnabled = aiEnabled,
             aiPercentage = if (aiEnabled) stats.percentageString else null,
+            sharedCostDurationMillis = sharedCostMillis,
+            sharedCostDuration = if (sharedCostMillis > 0) {
+                dateTimeFormatter.getPrettyFormattedDuration(sharedCostMillis)
+            } else null,
+            sharedCostPercentage = if (sharedCostMillis > 0) {
+                AITimeSavings.getFormattedPercentage(
+                    NumberHelper.getPercent(part = sharedCostMillis, total = stats.totalDurationMillis)
+                )
+            } else null,
         )
     }
 
     /**
-     * The footer markdown for a client that renders no typed statistics itself: the summed duration and —
-     * where the installation tracks it — the AI share of the given [stats], in the same two-column layout the
-     * legacy React list reads.
+     * The footer markdown for a client that renders no typed statistics itself: the summed duration, — where
+     * the installation tracks it — the AI share and, if any, the overlapping (shared cost) part of the given [stats], in the
+     * same two-column layout the legacy React list reads.
      */
     private fun buildStatisticsMarkdown(stats: TimesheetListStatistics): String {
         val md = MarkdownBuilder()
         md.appendPipedValue("timesheet.totalDuration", stats.totalDuration, MarkdownBuilder.Color.BLUE)
         if (stats.aiEnabled) {
             md.appendPipedValue("timesheet.ai.timeSavedByAI", stats.aiPercentage ?: "", MarkdownBuilder.Color.BLUE)
+        }
+        stats.sharedCostDuration?.let {
+            md.appendPipedValue(
+                "fibu.kost2.sharedCost",
+                "$it (${stats.sharedCostPercentage})",
+                MarkdownBuilder.Color.BLUE,
+            )
         }
         return md.toString()
     }

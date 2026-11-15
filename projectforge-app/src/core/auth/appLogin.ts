@@ -63,6 +63,8 @@ export class AppLogin {
    * @param deviceId The id of this app at the server if it is already registered (a new second factor): the server
    * keeps its device and only renews its token.
    * @param loginPath The server takes the packed parameters in the path too ([Session.appLoginPath]).
+   * @param max2FAAgeMillis A page of the WebView asked for a second factor fresher than this (an older server ignores
+   * it and asks for one of at most 10 minutes).
    */
   async login(opts: {
     serverUrl: string;
@@ -70,8 +72,9 @@ export class AppLogin {
     platform: string;
     deviceId?: number;
     loginPath?: boolean;
+    max2FAAgeMillis?: number;
   }): Promise<Session> {
-    const { serverUrl, deviceName, platform, deviceId, loginPath = false } = opts;
+    const { serverUrl, deviceName, platform, deviceId, loginPath = false, max2FAAgeMillis } = opts;
     const pkce = await createPkce(this.crypto);
     const loginParams: Record<string, string> = {
       challenge: pkce.challenge,
@@ -79,6 +82,7 @@ export class AppLogin {
       device: deviceName,
       platform,
       ...(deviceId != null ? { deviceId: String(deviceId) } : {}),
+      ...(max2FAAgeMillis != null ? { max2FAAge: String(max2FAAgeMillis) } : {}),
     };
     const packed = packParams(loginParams);
     const url = new SafeURL(`${serverUrl}/next/appLogin${loginPath ? `/${packed}` : ''}`);

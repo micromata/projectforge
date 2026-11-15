@@ -195,6 +195,19 @@ class AvailabilityDaoTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a type code is shown translated, any other value as given`() {
+        Assertions.assertEquals(translate("availability.types.parentalLeave"), translateAvailabilityType("parentalLeave"))
+        Assertions.assertNotEquals("parentalLeave", translateAvailabilityType("parentalLeave"))
+        Assertions.assertEquals("Own free text", translateAvailabilityType("Own free text"))
+        Assertions.assertNull(translateAvailabilityType(null))
+        val entry = AvailabilityDO().also {
+            it.type = "parentalLeave"
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+        }
+        Assertions.assertEquals(translate("availability.types.parentalLeave"), entry.label)
+    }
+
+    @Test
     fun `members of the user's groups see the entries as vacations, not those ended before today`() {
         val user = createUser("past-user")
         val colleague = createUser("past-colleague")

@@ -37,12 +37,14 @@ import org.projectforge.framework.json.JsonUtils
 import org.projectforge.jira.JiraConfig
 import org.projectforge.framework.configuration.*
 import org.projectforge.framework.configuration.entities.ConfigurationDO
+import org.projectforge.framework.configuration.properties.ReloadableProperties
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.common.FileUtils
 import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
+import org.springframework.core.env.Environment
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import java.io.*
@@ -59,7 +61,7 @@ import javax.net.ssl.*
 private val log = KotlinLogging.logger {}
 
 @Service
-open class ConfigurationService {
+open class ConfigurationService : ReloadableProperties {
   @Autowired
   private lateinit var applicationContext: ApplicationContext
 
@@ -247,6 +249,20 @@ open class ConfigurationService {
 
   @Value("\${projectforge.dir.backup:}")
   private var backupDir: String? = null
+
+  /**
+   * The customized logo of the web app takes effect without a restart: it is read on every use (LogoServiceRest, the
+   * system status, mails, pdf exports), only the resolved files are cached and dropped here.
+   */
+  override val reloadableKeys = listOf(LOGO_FILE_KEY, LOGO_FILE_DARK_KEY, LOGO_HEIGHT_KEY)
+
+  override fun reload(environment: Environment) {
+    logoFileName = environment.getProperty(LOGO_FILE_KEY)
+    logoFileNameDark = environment.getProperty(LOGO_FILE_DARK_KEY, "")
+    logoHeightString = environment.getProperty(LOGO_HEIGHT_KEY, "")
+    logoFileObject = null
+    logoFileObjectDark = null
+  }
 
   @PostConstruct
   private fun init() {
@@ -706,6 +722,12 @@ open class ConfigurationService {
 
     const val MIN_LOGO_HEIGHT = 12
     const val MAX_LOGO_HEIGHT = 48
+
+    private const val LOGO_FILE_KEY = "projectforge.logoFile"
+
+    private const val LOGO_FILE_DARK_KEY = "projectforge.logoFileDark"
+
+    private const val LOGO_HEIGHT_KEY = "projectforge.logoHeight"
 
     private const val ENVIRONMENT_FILE = "environment.sh"
     private const val ENVIRONMENT_FILE_INITIAL_CONTENT = "#!/bin/bash\n\n" +

@@ -36,6 +36,7 @@ import { AppState, AppStateStatus, Appearance } from 'react-native';
 import { parseTimeGrid } from '@projectforge/shared/booking-time';
 
 import { ApiClient } from '../api/apiClient';
+import { ApiException, PROXY_REFUSED_KEY } from '../api/apiException';
 import { JsonCache } from '../cache/jsonCache';
 import { appLog } from '../log/appLog';
 
@@ -72,9 +73,21 @@ interface State {
   timeGrid: number;
   /** Loaded by the settings ([loadPushSettings]); null before, offline and for an older server without them. */
   pushSettings: PushSettings | null;
+  /**
+   * The SSO proxy refuses the polling (its session expired): the status stays as it was until the login is renewed in
+   * the browser, which the polling never opens by itself (ProxyExpiredBanner offers it).
+   */
+  proxyExpired: boolean;
 }
 
-const INITIAL: State = { status: null, theme: 'system', firstDayOfWeek: 1, timeGrid: 5, pushSettings: null };
+const INITIAL: State = {
+  status: null,
+  theme: 'system',
+  firstDayOfWeek: 1,
+  timeGrid: 5,
+  pushSettings: null,
+  proxyExpired: false,
+};
 
 /**
  * The user status (`GET /rs/userStatus`) for the badge of the chat tab, the bell of the notifications, the message of
@@ -139,7 +152,7 @@ export class UserStatusStore {
     try {
       const status = await api.get<UserStatusResult>('/rs/userStatus', { renewLogin: false });
       if (this.api !== api) return;
-      this.state = { ...this.state, status };
+      this.state = { ...this.state, status, proxyExpired: false };
       if (status.theme != null) {
         this.setTheme(parseTheme(status.theme), true);
       } else {
@@ -154,6 +167,13 @@ export class UserStatusStore {
       this.emit();
     } catch (e) {
       appLog.debug('status', `User status not loaded: ${String(e)}`);
+      // Only a loaded status ends it: offline it stays as it was.
+      const refused = e instanceof ApiException && e.messageKey === PROXY_REFUSED_KEY;
+      if (refused && this.api === api && !this.state.proxyExpired) {
+        appLog.info('status', 'Polling refused by the SSO proxy: renewal of the login offered');
+        this.state = { ...this.state, proxyExpired: true };
+        this.emit();
+      }
     }
   };
 

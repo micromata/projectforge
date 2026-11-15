@@ -14,6 +14,8 @@ export interface AppLoginParams {
   deviceName: string | null;
   platform: string | null;
   deviceId: number | null;
+  /** A page of the app's WebView asked for a second factor fresher than this (ms). */
+  max2FAAgeMillis: number | null;
 }
 
 /** The fields of the packed parameter, as the app writes them. */
@@ -23,6 +25,7 @@ interface PackedLogin {
   device?: unknown;
   platform?: unknown;
   deviceId?: unknown;
+  max2FAAge?: unknown;
 }
 
 export function readAppLoginParams(
@@ -36,16 +39,19 @@ export function readAppLoginParams(
       ? value
       : params.get(single) || null;
   };
-  const packedDeviceId = Number(packed?.deviceId);
+  const positive = (key: keyof PackedLogin, single: string) => {
+    const value = Number(packed?.[key]);
+    return Number.isInteger(value) && value > 0
+      ? value
+      : Number(params.get(single)) || null;
+  };
   return {
     challenge: text("challenge", "challenge"),
     state: text("state", "state"),
     deviceName: text("device", "device"),
     platform: text("platform", "platform"),
-    deviceId:
-      Number.isInteger(packedDeviceId) && packedDeviceId > 0
-        ? packedDeviceId
-        : Number(params.get("deviceId")) || null,
+    deviceId: positive("deviceId", "deviceId"),
+    max2FAAgeMillis: positive("max2FAAge", "max2FAAge"),
   };
 }
 

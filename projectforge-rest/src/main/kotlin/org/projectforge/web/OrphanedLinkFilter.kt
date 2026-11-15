@@ -373,10 +373,11 @@ class OrphanedLinkFilter : Filter {
 
         /**
          * Former route -> current route of renamed sections of next pages (without `next/`), whose sub pages move
-         * with them, see [redirectRenamedNextSection]: the CVE-Radar became the CVE-Clinic.
+         * with them, see [redirectRenamedNextSection]: the CVE-Radar became the CVE-Clinic, then the CVE-Pilot.
          */
         private val RENAMED_NEXT_SECTIONS = mapOf(
-            "cveradar" to "cveclinic",
+            "cveradar" to "cvepilot",
+            "cveclinic" to "cvepilot",
         )
 
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */

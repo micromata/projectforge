@@ -44,6 +44,7 @@ export function MerlinVariableDialog({
   const shortcutHint = useSubmitShortcutHint();
   const { variables, currentTemplate, apply } = useMerlinVariables();
   const [draft, setDraft] = useState<MerlinVariable>(variable);
+  const [mappingValid, setMappingValid] = useState(true);
   const set = (patch: Partial<MerlinVariable>) =>
     setDraft((prev) => ({ ...prev, ...patch }));
   const masterCandidates = variables.filter(
@@ -61,7 +62,10 @@ export function MerlinVariableDialog({
       onClose();
     },
   });
-  const canApply = !write.isPending && draft.name.trim().length > 0;
+  const canApply =
+    !write.isPending &&
+    draft.name.trim().length > 0 &&
+    (mappingValid || !draft.dependsOnName);
   const submitShortcut = useSubmitShortcut(() => write.mutate(false), canApply);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     // Return on one of the dialog's own buttons (cancel, delete) is that button's click.
@@ -91,6 +95,7 @@ export function MerlinVariableDialog({
             draft={draft}
             set={set}
             masterCandidates={masterCandidates}
+            setMappingValid={setMappingValid}
           />
           <DialogFooter className="sm:justify-between">
             <div>

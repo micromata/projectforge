@@ -23,8 +23,11 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.framework.configuration.properties.ReloadableProperties
+import org.projectforge.framework.configuration.properties.bindFresh
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 
 /**
  * What an installation expects of an invoice beyond what the database enforces - the rules of its own
@@ -38,8 +41,8 @@ import org.springframework.context.annotation.Configuration
  * @author Kai Reinhard
  */
 @Configuration
-@ConfigurationProperties(prefix = "projectforge.fibu.invoices")
-open class InvoiceConfiguration {
+@ConfigurationProperties(prefix = InvoiceConfiguration.PREFIX)
+open class InvoiceConfiguration : ReloadableProperties {
     /**
      * Whether an invoice is expected to name a DATEV account ([AbstractRechnungDO.konto]).
      *
@@ -52,4 +55,15 @@ open class InvoiceConfiguration {
      * (`KontoCache.getKonto(invoice)`), as that is the account the export uses.
      */
     var accountRequired: Boolean = false
+
+    /** Read on every use (invoice list filter, edit form), so it takes effect without a restart. */
+    override val reloadableKeys = listOf("$PREFIX.")
+
+    override fun reload(environment: Environment) {
+        accountRequired = environment.bindFresh(PREFIX, InvoiceConfiguration::class.java).accountRequired
+    }
+
+    companion object {
+        const val PREFIX = "projectforge.fibu.invoices"
+    }
 }

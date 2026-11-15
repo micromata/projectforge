@@ -87,26 +87,52 @@ open class DatabaseInitTestDataService : TestDataContributor {
     }
 
     companion object {
-        private val exportJFreeChartScript = """
+        internal val exportJFreeChartScript = """
+            |import java.awt.Color
+            |import java.awt.Font
             |import org.jfree.chart.*
+            |import org.jfree.chart.labels.*
             |import org.jfree.chart.plot.*
             |import org.jfree.data.general.*
             |import org.projectforge.export.*
             |
+            |// A modern, flat donut chart: white background, no outline, soft colors, percentages as labels.
             |val dataset = DefaultPieDataset<String>()
             |dataset.setValue("Linux", 15)
             |dataset.setValue("Mac", 8)
             |dataset.setValue("Windows", 70)
             |dataset.setValue("Others", 7)
-            |val chart = ChartFactory.createPieChart3D("Users on www.heise.de", dataset, true, true, false)
-            |val plot = chart.getPlot() as PiePlot3D
+            |val chart = ChartFactory.createRingChart("Users on www.heise.de", dataset, true, true, false)
+            |chart.backgroundPaint = Color.WHITE
+            |chart.title.font = Font("SansSerif", Font.BOLD, 22)
+            |chart.title.paint = Color(0x1F2937)
+            |chart.legend.frame = org.jfree.chart.block.BlockBorder.NONE
+            |chart.legend.itemFont = Font("SansSerif", Font.PLAIN, 14)
             |
-            |val export = ExportJFreeChart(chart, 800, 600)
-            |export
+            |val plot = chart.plot as RingPlot
+            |plot.backgroundPaint = null
+            |plot.isOutlineVisible = false
+            |plot.setShadowPaint(null)
+            |plot.sectionDepth = 0.35
+            |plot.separatorsVisible = false
+            |plot.setSectionOutlinesVisible(false)
+            |plot.setLabelFont(Font("SansSerif", Font.PLAIN, 14))
+            |plot.setLabelPaint(Color(0x374151))
+            |plot.setLabelBackgroundPaint(null)
+            |plot.setLabelOutlinePaint(null)
+            |plot.setLabelShadowPaint(null)
+            |plot.setLabelLinkPaint(Color(0x9CA3AF))
+            |plot.setLabelGenerator(StandardPieSectionLabelGenerator("{0}: {2}"))
+            |plot.setSectionPaint("Linux", Color(0xF59E0B))
+            |plot.setSectionPaint("Mac", Color(0x8B5CF6))
+            |plot.setSectionPaint("Windows", Color(0x3B82F6))
+            |plot.setSectionPaint("Others", Color(0x9CA3AF))
+            |
+            |ExportJFreeChart(chart, 800, 600).setImageType(JFreeChartImageType.PNG)
         """.trimMargin()
 
-        private val exportUsersScript = """
-            |val users = userDao.getList().filter { it.hasSystemAccess() }.sortedBy { it.username }
+        internal val exportUsersScript = """
+            |val users = userDao.list.filter { it.hasSystemAccess() }.sortedBy { it.username }
             |val workbook = ExcelUtils.prepareWorkbook("Userlist.xlsx")
             |val sheet = workbook.createOrGetSheet("Users")
             |workbook.createOrGetCellStyle("integer").dataFormat = workbook.createDataFormat().getFormat("#0")

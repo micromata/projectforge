@@ -79,7 +79,12 @@ export const AVAILABILITY_PAGE = definePage<
         />
       ),
     },
-    { name: "type", size: 140 },
+    {
+      // The code in the user's language, sorted as displayed (AvailabilityEntityRest.computedSortProperties).
+      name: "type",
+      size: 140,
+      cell: ({ row }) => row.original.typeAsString ?? null,
+    },
     // Sorted as displayed, by their translation (AvailabilityEntityRest.computedSortProperties).
     { name: "status", size: 170 },
     { name: "location", size: 110 },
@@ -111,7 +116,7 @@ export const AVAILABILITY_PAGE = definePage<
     defaultValues: emptyAvailabilityValues,
     toFormValues,
     title: (availability) =>
-      [availability.user?.displayName, availability.type]
+      [availability.user?.displayName, availability.typeAsString]
         .filter(Boolean)
         .join(", "),
     newTitleKey: "availability.title.add",

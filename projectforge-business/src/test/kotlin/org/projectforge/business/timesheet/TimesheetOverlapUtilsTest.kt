@@ -82,6 +82,38 @@ class TimesheetOverlapUtilsTest {
     }
 
     @Test
+    fun `overlap durations are empty for disjoint and touching sheets`() {
+        val a = createTimesheet(1, 0, 60)
+        val b = createTimesheet(2, 60, 60) // Starts when a ends: no overlap.
+        val c = createTimesheet(3, 180, 60)
+        Assertions.assertEquals(emptyMap<Long, Long>(), TimesheetOverlapUtils.overlapDurations(listOf(a, b, c)))
+    }
+
+    @Test
+    fun `overlap durations count the overlapping time of each sheet in full`() {
+        // a: 0..60min, b: 30..90min -> 30min each; c: 200..260 alone.
+        val a = createTimesheet(1, 0, 60)
+        val b = createTimesheet(2, 30, 60)
+        val c = createTimesheet(3, 200, 60)
+        Assertions.assertEquals(
+            mapOf(1L to 30 * MINUTE, 2L to 30 * MINUTE),
+            TimesheetOverlapUtils.overlapDurations(listOf(c, b, a)),
+        )
+    }
+
+    @Test
+    fun `overlap durations count time covered by several partners once`() {
+        // a: 0..120min, b: 0..60min, c: 30..90min -> a is overlapped 0..90 (90min), b 0..60, c 30..90.
+        val a = createTimesheet(1, 0, 120)
+        val b = createTimesheet(2, 0, 60)
+        val c = createTimesheet(3, 30, 60)
+        Assertions.assertEquals(
+            mapOf(1L to 90 * MINUTE, 2L to 60 * MINUTE, 3L to 60 * MINUTE),
+            TimesheetOverlapUtils.overlapDurations(listOf(a, b, c)),
+        )
+    }
+
+    @Test
     fun `gross working time counts every sheet with a positive work fraction in full`() {
         // Two disjoint sheets (both full working time) each keep their whole hour.
         val a = createTimesheet(1, 0, 60)

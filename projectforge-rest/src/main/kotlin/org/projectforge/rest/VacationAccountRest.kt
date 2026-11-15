@@ -273,7 +273,7 @@ class VacationAccountRest {
                     id = entry.id,
                     startDateFormatted = PFDayUtils.format(entry.startDate, DateFormatType.DATE),
                     endDateFormatted = PFDayUtils.format(entry.endDate, DateFormatType.DATE),
-                    type = entry.type?.takeIf { availabilityDao.isInternalCommentVisibleFor(viewer, entry) },
+                    type = dto.typeAsString?.takeIf { availabilityDao.isInternalCommentVisibleFor(viewer, entry) },
                     statusString = entry.status?.let { translate(it.i18nKey) },
                     locationString = entry.location?.let { translate(it.i18nKey) },
                     comment = entry.comment,

@@ -160,7 +160,7 @@ open class AddressbookCache : AbstractCache() {
             SELECT a.id as addressId,b.id as addressbookId
             FROM ${AddressDO::class.simpleName} a
             JOIN a.addressbookList b
-            WHERE a.deleted = false
+            WHERE a.deleted = false AND b.deleted = false
         """.trimIndent()
 
     }

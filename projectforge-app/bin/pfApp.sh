@@ -171,6 +171,10 @@ cmd_publish() {
   fi
   echo "App Store Connect: wait for the processing (TestFlight), then assign the build to the version and submit it" \
     "for review (APPLE-SETUP.md, 8)."
+  if [[ "$profile" == production ]]; then
+    echo "Released in the App Store: bin/pfDev.sh app-release $version moves the changes of changelog/unreleased/app/" \
+      "into the next server release."
+  fi
 }
 
 # Shows the booted simulator: Simulator.app up to Xcode 26, DeviceHub.app since Xcode 27. A window that doesn't open
