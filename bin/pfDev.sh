@@ -44,6 +44,12 @@ Commands:
                    English and German) into the release id of changelog/changelog{,.de}.json,
                    by default the newest one, and regenerates the changelog. Done by
                    release itself, by hand only for a snapshot entry
+  app-release <version>
+                   The app version is in the store: moves its changes of
+                   changelog/unreleased/app/ (they wait there, a server release leaves
+                   them) to changelog/unreleased/ with an entry "Version <version> of the
+                   app is available in the App Store", runs gen; the next server release
+                   publishes them. Commit afterwards
   release <X.Y.Z> [--skip-tests]
                    Release X.Y.Z: checks changelog/changelog.json (the release on top,
                    tagged X.Y.Z-RELEASE, its sections may come from changelog/unreleased/
@@ -515,6 +521,38 @@ push_external_plugins() {
 }
 
 RELEASE_USAGE="Usage: pfDev.sh release X.Y.Z [--skip-tests] / pfDev.sh publish X.Y.Z / pfDev.sh github-release X.Y.Z..."
+
+# The changes of an app version released to the store go into the next server release (see app-release in usage).
+app_release() {
+  local version="${1:-}" dir="$ROOT/changelog/unreleased"
+  if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "Usage: bin/pfDev.sh app-release <version of the app, e.g. 1.1.2>" >&2
+    exit 1
+  fi
+  local files=("$dir"/app/*.json) entry
+  if [[ ! -e "${files[0]}" ]]; then
+    echo "No changes of the app in changelog/unreleased/app/." >&2
+    exit 1
+  fi
+  entry="$dir/$(date +%Y%m%d)-app-${version//./-}.json"
+  if [[ -e "$entry" ]]; then
+    echo "$entry exists already." >&2
+    exit 1
+  fi
+  git -C "$ROOT" mv "${files[@]}" "$dir/"
+  cat >"$entry" <<JSON
+{
+  "type": "added",
+  "en": "{app} Version $version of the app is available in the App Store.",
+  "de": "{app} Version $version der App ist im App Store verfügbar."
+}
+JSON
+  git -C "$ROOT" add "$entry"
+  echo "Moved ${#files[@]} change(s) of the app to changelog/unreleased/, added $(basename "$entry")."
+  use_external_plugins
+  "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease
+  echo "Check and commit: git status"
+}
 
 release() {
   local version="${1:-}" skip_tests=false
@@ -1077,6 +1115,9 @@ case "$cmd" in
     ;;
   changelog-fold)
     exec "$GRADLEW" -p "$ROOT" :projectforge-application:foldChangelog ${1:+-PreleaseId="$1"}
+    ;;
+  app-release)
+    app_release "$@"
     ;;
   release)
     release "$@"

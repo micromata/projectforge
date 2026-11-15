@@ -75,6 +75,10 @@ published app reads (dev-docs/mobile-app.md). By hand: `bin/pfApp.sh eas build -
 `bin/pfApp.sh eas submit --platform ios --profile preview --latest`, and tag the commit of the build
 (`eas build:list` names it).
 
+Changes that need the new app version are collected in `changelog/unreleased/app/` (see the README of
+`changelog/unreleased/`). Once the version is released in the App Store, `bin/pfDev.sh app-release <version>` moves
+them to `changelog/unreleased/`, so the next server release publishes them; commit the result.
+
 - Before every build, raise `ios.buildNumber` (and `android.versionCode`) in `app.config.ts` (`appVersionSource`
   `local`): App Store Connect refuses a build number twice per version.
 - The signing (distribution certificate, provisioning profile) and the App Store Connect API key of the submit

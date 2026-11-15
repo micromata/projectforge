@@ -13,19 +13,19 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "{app} When a page asks for a second factor, it can be confirmed in the browser, where WebAuthn (security key, passkey) works too; the page keeps what it had open.", "{app} Behind an SSO proxy, the app says when the proxy's login has expired and badges and notifications aren't updated, and offers to renew it.", {
+      "items" : [ {
         "title" : "Order statistics",
         "items" : [ "The monthly values also show the forecast of the current year as a blue line." ]
-      } ]
+      }, "{app} When a page asks for a second factor, it can be confirmed in the browser, where WebAuthn (security key, passkey) works too; the page keeps what it had open.", "{app} Behind an SSO proxy, the app says when the proxy's login has expired and badges and notifications aren't updated, and offers to renew it." ]
     }, {
       "type" : "fixed",
-      "items" : [ "{app} Behind an SSO proxy, a page no longer opens the proxy's login in the browser after the app was in the background for a long time.", {
+      "items" : [ {
         "title" : "Merlin",
         "items" : [ "The PDF export of templates uses LibreOffice, if installed on the server, like the invoice PDF: the layout is closer to Word, and serial documents with PDF export no longer take minutes per document.", "A document of a serial execution that can't be converted to PDF is delivered as Word document instead of aborting the whole run." ]
       }, {
         "title" : "Scripts",
         "items" : [ "JFreeChart scripts run again in the release jar (the library was missing in the script class path).", "A chart produced by a script is shown directly on the output tab, the demo script draws a modern donut chart.", "The demo script \"Excel export of all user\" works again." ]
-      } ]
+      }, "{app} Behind an SSO proxy, a page no longer opens the proxy's login in the browser after the app was in the background for a long time." ]
     } ]
   },
   "groups" : [ {

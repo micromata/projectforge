@@ -38,6 +38,17 @@ on the changelog pages; don't write "App: …" (the generator refuses it):
   "de": "{app} Der Changelog öffnet sich über das „Mehr“-Menü."
 }
 ```
+## Changes of the app: `app/`
+
+The app reaches the users with its own releases in the store, not with the server. A change that takes effect only
+with a new app version goes into `changelog/unreleased/app/` (same file format, every text, in a group every item,
+starts with `{app} `). A server release leaves these files there; `/next/changelog` shows them as "Not yet
+released" too. Once the app version is in the store, `bin/pfDev.sh app-release <version>` moves them here with an
+entry "Version <version> of the app is available in the App Store", and the next server release publishes them.
+
+A change of the app that a current server brings to the app already in the store (a setting of the server, a page in
+its WebView) goes here directly, with `{app} ` as well.
+
 ## The levels of a release: `release.json`
 
 On the website and on `/next/changelog` a release shows three levels: the `summary` (keywords and

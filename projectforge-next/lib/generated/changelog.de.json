@@ -13,19 +13,19 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "{app} Fragt eine Seite nach einem zweiten Faktor, lässt er sich im Browser bestätigen, wo auch WebAuthn (Sicherheitsschlüssel, Passkey) funktioniert; die Seite behält, was sie offen hatte.", "{app} Hinter einem SSO-Proxy zeigt die App an, wenn die Anmeldung am Proxy abgelaufen ist und Badges und Benachrichtigungen nicht aktualisiert werden, und bietet an, sie zu erneuern.", {
+      "items" : [ {
         "title" : "Auftragsstatistik",
         "items" : [ "Die Monatswerte zeigen auch den Forecast des aktuellen Jahres als blaue Linie." ]
-      } ]
+      }, "{app} Fragt eine Seite nach einem zweiten Faktor, lässt er sich im Browser bestätigen, wo auch WebAuthn (Sicherheitsschlüssel, Passkey) funktioniert; die Seite behält, was sie offen hatte.", "{app} Hinter einem SSO-Proxy zeigt die App an, wenn die Anmeldung am Proxy abgelaufen ist und Badges und Benachrichtigungen nicht aktualisiert werden, und bietet an, sie zu erneuern." ]
     }, {
       "type" : "fixed",
-      "items" : [ "{app} Hinter einem SSO-Proxy öffnet eine Seite nicht mehr den Login des Proxys im Browser, nachdem die App lange im Hintergrund war.", {
+      "items" : [ {
         "title" : "Merlin",
         "items" : [ "Der PDF-Export von Vorlagen nutzt wie das Rechnungs-PDF LibreOffice, wenn es auf dem Server installiert ist: Das Layout ist näher an Word, und Serienbriefe mit PDF-Export brauchen nicht mehr Minuten pro Dokument.", "Ein Dokument eines Serienbriefs, das sich nicht in PDF umwandeln lässt, wird als Word-Dokument geliefert, statt den ganzen Lauf abzubrechen." ]
       }, {
         "title" : "Scripte",
         "items" : [ "JFreeChart-Scripte laufen im Release-Jar wieder (die Bibliothek fehlte im Script-Classpath).", "Ein von einem Script erzeugtes Diagramm wird direkt im Reiter „Ausgabe“ angezeigt, das Demo-Script zeichnet ein modernes Donut-Diagramm.", "Das Demo-Script „Excel export of all user“ läuft wieder." ]
-      } ]
+      }, "{app} Hinter einem SSO-Proxy öffnet eine Seite nicht mehr den Login des Proxys im Browser, nachdem die App lange im Hintergrund war." ]
     } ]
   },
   "groups" : [ {

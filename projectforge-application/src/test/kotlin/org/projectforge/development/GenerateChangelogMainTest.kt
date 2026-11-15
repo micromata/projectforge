@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
@@ -515,6 +516,36 @@ class GenerateChangelogMainTest {
     assertTrue(
       error("20261006-a.json", """{"type": "added", "en": "G", "de": "G", "items": [{"en": "a"}]}""")
         .contains("'de' is missing")
+    )
+  }
+
+  @Test
+  fun changesOfTheNextAppVersionWaitInTheirOwnDirectory(@TempDir rootDir: File) {
+    val dir = File(rootDir, GenerateChangelogMain.FRAGMENTS_DIR).also { it.mkdirs() }
+    File(dir, "20261006-server.json").writeText("""{"type": "added", "en": "a", "de": "b"}""")
+    val appDir = File(rootDir, GenerateChangelogMain.APP_FRAGMENTS_DIR).also { it.mkdirs() }
+    File(appDir, "20261007-app.json").writeText("""{"type": "fixed", "en": "{app} a", "de": "{app} b"}""")
+    // A server release folds only the changes of the server.
+    assertEquals(listOf("20261006-server.json"), GenerateChangelogMain.readFragments(rootDir).map { it.name })
+    assertEquals(listOf("20261007-app.json"), GenerateChangelogMain.readAppFragments(rootDir).map { it.name })
+
+    fun errors(content: String) = mutableListOf<String>().also {
+      GenerateChangelogMain.parseFragment("20261007-app.json", content, it, GenerateChangelogMain.APP_FRAGMENTS_DIR)
+    }
+    assertEquals(emptyList<String>(), errors("""{"type": "fixed", "en": "{app} a", "de": "{app} b"}"""))
+    assertEquals(
+      emptyList<String>(),
+      errors("""{"type": "fixed", "en": "G", "de": "G", "items": [{"en": "{app} a", "de": "{app} b"}]}""")
+    )
+    assertTrue(errors("""{"type": "fixed", "en": "{app} a", "de": "b"}""").single().contains("app/20261007-app.json.de"))
+    assertTrue(
+      errors("""{"type": "fixed", "en": "G", "de": "G", "items": [{"en": "a", "de": "{app} b"}]}""").single()
+        .contains("starts with {app}")
+    )
+    // Outside of it the marker stays optional.
+    assertEquals(
+      emptyList<String>(),
+      mutableListOf<String>().also { GenerateChangelogMain.parseFragment("20261007-a.json", """{"type": "fixed", "en": "a", "de": "b"}""", it) }
     )
   }
 
