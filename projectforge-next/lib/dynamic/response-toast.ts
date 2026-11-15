@@ -25,7 +25,7 @@ export function showResponseMessage(message: ResponseActionMessage): void {
  * Such a message accompanies an operation that otherwise succeeded (an order saved whose notification
  * mail could not be sent), so it appears next to a success toast and would otherwise be read as part
  * of it and vanish with it after a few seconds — the one toast the user must not miss being the one
- * they had the least time for. Hence the explicit close button: without a timeout there has to be
- * something to click.
+ * they had the least time for. Closed with the close button every toast has (the `Toaster`'s in
+ * app/layout.tsx).
  */
-const STICKY = { duration: Infinity, closeButton: true } as const;
+const STICKY = { duration: Infinity } as const;

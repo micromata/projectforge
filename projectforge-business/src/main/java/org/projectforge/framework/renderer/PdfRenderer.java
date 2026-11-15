@@ -31,6 +31,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.properties.ReloadableProperties;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -38,12 +39,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.xml.transform.*;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,7 +58,7 @@ import java.util.Map;
  * @author Kai Reinhard
  */
 @Service
-public class PdfRenderer {
+public class PdfRenderer implements ReloadableProperties {
   private static final Logger log = LoggerFactory.getLogger(PdfRenderer.class);
 
   public final static String DEFAULT_FO_STYLE = "default-style-fo.xsl";
@@ -63,8 +66,21 @@ public class PdfRenderer {
   @Autowired
   private ConfigurationService configurationService;
 
-  @Value("${projectforge.export.logoFile}")
+  private static final String LOGO_FILE_KEY = "projectforge.export.logoFile";
+
+  @Value("${" + LOGO_FILE_KEY + "}")
   private String logoFileName;
+
+  /** The logo of the exports is read on every rendering, so it takes effect without a restart. */
+  @Override
+  public List<String> getReloadableKeys() {
+    return List.of(LOGO_FILE_KEY);
+  }
+
+  @Override
+  public void reload(final Environment environment) {
+    logoFileName = environment.getProperty(LOGO_FILE_KEY);
+  }
 
   private String fontResourcePath;
 

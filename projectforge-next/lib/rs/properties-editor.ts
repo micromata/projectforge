@@ -2,7 +2,7 @@
  * The properties editor on the System page (`org.projectforge.rest.admin.PropertiesEditorRest`): the
  * parameters of the admin's projectforge.properties, grouped like the bundled application.properties.
  * Values of secrets never reach the client (only whether they are set). Admin-only, self-checked on
- * the backend; saving writes a backup first, changes take effect only after a restart.
+ * the backend; saving writes a backup first, changes take effect only after a restart (except [live]).
  */
 
 import { request } from "./client";
@@ -33,6 +33,8 @@ export interface PropertyParam {
   activeValue?: string | null;
   activeSource?: string | null;
   activeDiffers: boolean;
+  /** A change takes effect on saving, without a restart (`ReloadableProperties`). */
+  live: boolean;
 }
 
 export interface PropertyBlock {

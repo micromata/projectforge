@@ -26,6 +26,7 @@ package org.projectforge.rest.admin
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
@@ -61,6 +62,21 @@ class PropertiesEditorRestTest : AbstractTestBase() {
         assertNotNull(propertiesEditorRest.getBackups())
         // Nothing to change, so nothing is written, but the access checks are passed:
         assertFalse(propertiesEditorRest.save(saveRequest).success)
+    }
+
+    @Test
+    fun `the parameters of reloadable beans are marked as live, the others need a restart`() {
+        logon(TEST_ADMIN_USER)
+        val params = propertiesEditorRest.getData().groups.flatMap { it.blocks }.flatMap { it.params }.associateBy { it.key }
+        listOf(
+            "projectforge.availability.types",
+            "mail.session.pfmailsession.smtp.host",
+            "projectforge.einvoice.seller.name",
+            "projectforge.logoFile",
+            "projectforge.logoHeight",
+            "projectforge.export.logoFile",
+        ).forEach { assertTrue(params[it]!!.live, it) }
+        assertFalse(params["spring.datasource.url"]!!.live)
     }
 
     @Test

@@ -50,8 +50,9 @@ class SystemStatus {
   val scmId = ProjectForgeVersion.SCM_ID
   var messageOfTheDay: String? = null
     private set
-  var logoFile: String? = null
-    private set
+  /** Determined on every call: `projectforge.logoFile` takes effect without a restart (see ConfigurationService). */
+  val logoFile: String?
+    get() = configurationService.syntheticLogoName
   val copyRightYears = ProjectForgeVersion.COPYRIGHT_YEARS
 
   @Value("\${projectforge.development.mode}")
@@ -87,7 +88,6 @@ class SystemStatus {
   private fun postConstruct() {
     messageOfTheDay = Configuration.instance
       .getStringValue(ConfigurationParam.MESSAGE_OF_THE_DAY)
-    logoFile = configurationService.syntheticLogoName
     if (!databaseService.databaseTablesWithEntriesExist())
       setupRequiredFirst = true
     devMode = developmentMode

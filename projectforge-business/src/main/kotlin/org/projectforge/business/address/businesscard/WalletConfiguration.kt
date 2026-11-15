@@ -25,9 +25,11 @@
 package org.projectforge.business.address.businesscard
 
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.framework.configuration.properties.ReloadableProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 import java.io.File
 
 /**
@@ -35,7 +37,7 @@ import java.io.File
  * offered if [isConfigured]; the certificate stays on the main instance, never on the gateway.
  */
 @Configuration
-open class WalletConfiguration {
+open class WalletConfiguration : ReloadableProperties {
     /** The Pass Type ID certificate with its private key (.p12). */
     @Value("\${wallet.passcertificate.path:}")
     open var passCertificatePath: String = ""
@@ -70,8 +72,15 @@ open class WalletConfiguration {
     private var configurationService: ConfigurationService? = null
 
     /** Logo (png) of the pass; blank: the logo of the installation (`projectforge.logoFile`), else the bundled one. */
-    @Value("\${wallet.logoFile:}")
+    @Value("\${$LOGO_FILE_KEY:}")
     open var logoFile: String = ""
+
+    /** The logo is read for every pass, so it takes effect without a restart (the certificates need one). */
+    override val reloadableKeys = listOf(LOGO_FILE_KEY)
+
+    override fun reload(environment: Environment) {
+        logoFile = environment.getProperty(LOGO_FILE_KEY, "")
+    }
 
     /**
      * The customized logo: `wallet.logoFile`, else the logo of the installation (`projectforge.logoFile`). Null, if
@@ -86,5 +95,9 @@ open class WalletConfiguration {
         return listOf(passCertificatePath, passCertificatePassword, wwdrCertificatePath, teamIdentifier,
             passTypeIdentifier, organizationName).none { it.isBlank() } &&
                 File(passCertificatePath).isFile && File(wwdrCertificatePath).isFile
+    }
+
+    companion object {
+        private const val LOGO_FILE_KEY = "wallet.logoFile"
     }
 }

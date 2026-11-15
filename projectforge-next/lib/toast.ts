@@ -35,9 +35,9 @@ function dismissStandingErrorToasts(message: string): void {
 }
 
 /**
- * Sonner's `toast`, with the defaults every failure of this app is reported with: [ERROR_TOAST_DURATION],
- * a close button so a message that stays that long can be got rid of, and only ever one toast per text on
- * screen ([dismissStandingErrorToasts]).
+ * Sonner's `toast`, with the defaults every failure of this app is reported with: [ERROR_TOAST_DURATION]
+ * and only ever one toast per text on screen ([dismissStandingErrorToasts]). The close button, which a
+ * message staying that long needs, is the `Toaster`'s (app/layout.tsx): every toast has one.
  *
  * Wrapped rather than passed at the call sites, and rather than set on the `Toaster`: there are two dozen
  * places reporting a failure and there will be more, `Toaster` has one duration for all types (which
@@ -54,7 +54,7 @@ export const toast: typeof sonnerToast = Object.assign(
   sonnerToast,
   {
     error: ((message, options) => {
-      const defaults = { duration: ERROR_TOAST_DURATION, closeButton: true };
+      const defaults = { duration: ERROR_TOAST_DURATION };
       // A JSX message can't be keyed by text: show it as sonner would, with our defaults only.
       if (typeof message !== "string") {
         return sonnerToast.error(message, { ...defaults, ...options });

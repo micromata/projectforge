@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Excel export of outgoing invoices: the period of performance and the other fields of the invoice are back (missing since 9.0.0): type, customer reference, special features, payment terms, discount, currency, billing address, e-invoice data, id and last update.",
+  "de": "Excel-Export der Debitorenrechnungen: Leistungszeitraum und die übrigen Felder der Rechnung sind wieder enthalten (fehlten seit 9.0.0): Typ, Kundenreferenz, Besonderheiten, Zahlungsziel, Skonto, Währung, Rechnungsadresse, E-Rechnungsdaten, Id und letzte Änderung."
+}

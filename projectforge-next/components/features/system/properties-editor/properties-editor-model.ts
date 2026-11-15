@@ -85,6 +85,7 @@ export function newParam(key: string): PropertyParam {
     secret: false,
     inFile: false,
     activeDiffers: false,
+    live: false,
   };
 }
 

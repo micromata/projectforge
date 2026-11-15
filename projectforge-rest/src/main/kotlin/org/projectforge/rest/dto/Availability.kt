@@ -26,6 +26,7 @@ package org.projectforge.rest.dto
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityLocation
 import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.availability.translateAvailabilityType
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.framework.i18n.translate
@@ -37,7 +38,10 @@ class Availability(
     var user: User? = null,
     var startDate: LocalDate? = null,
     var endDate: LocalDate? = null,
+    /** A code of the configuration (AvailabilityConfig) or a value of an older one. */
     var type: String? = null,
+    /** The type in the user's language (translateAvailabilityType). Read-only. */
+    var typeAsString: String? = null,
     var status: AvailabilityStatus? = null,
     var statusAsString: String? = null,
     var location: AvailabilityLocation? = null,
@@ -48,8 +52,8 @@ class Availability(
     var userEditable: Boolean? = null,
     /** Whether the internal comment is offered (to the user and HR staff only). Read-only, edit view only. */
     var internalCommentVisible: Boolean? = null,
-    /** The configured types (and the stored one). Read-only, edit view only. */
-    var availableTypes: List<String>? = null,
+    /** The configured types (and the stored one), in the user's language. Read-only, edit view only. */
+    var availableTypes: List<TypeOption>? = null,
     /** Optional: who stands in for the user during the period. */
     var substitutes: List<User>? = null,
     /** On a day of the period all substitutes are away (ConflictingAvailabilitiesCache). Read-only. */
@@ -73,9 +77,12 @@ class Availability(
     /** The days of the chart of the substitutes' absences. Read-only, edit view only. */
     var chartDays: List<VacationChartDay>? = null,
 ) : BaseDTO<AvailabilityDO>() {
+    /** A type offered: its code ([value]) and its label in the user's language. */
+    class TypeOption(val value: String, val label: String)
 
     override fun copyFrom(src: AvailabilityDO) {
         super.copyFrom(src)
+        typeAsString = translateAvailabilityType(type)
         status?.let { statusAsString = translate(it.i18nKey) }
         location?.let { locationAsString = translate(it.i18nKey) }
         val start = startDate

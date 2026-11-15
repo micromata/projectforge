@@ -21,7 +21,8 @@ import { usePropertiesEditor } from "./use-properties-editor";
 /**
  * The properties editor: all known parameters of projectforge.properties grouped by topic, with
  * their descriptions from application.properties. Saving writes a timestamped backup first; changes
- * take effect only after a restart, which the dialog says permanently and the save toast repeats.
+ * take effect only after a restart, except those of parameters marked as live — the dialog says so
+ * permanently, the confirmation and the save toast for the changes at hand.
  */
 export function PropertiesEditorDialog({ onClose }: { onClose: () => void }) {
   const t = useTranslations();
@@ -48,7 +49,7 @@ export function PropertiesEditorDialog({ onClose }: { onClose: () => void }) {
           </DialogDescription>
           <FormAlert tone="info">
             <p className="font-medium">
-              {t("system.propertiesEditor.restartRequired")}
+              {t("system.propertiesEditor.effectInfo")}
             </p>
             <p>{t("system.propertiesEditor.backupInfo")}</p>
           </FormAlert>
@@ -127,7 +128,9 @@ export function PropertiesEditorDialog({ onClose }: { onClose: () => void }) {
                 ))}
               </span>
               <span className="font-medium">
-                {t("system.propertiesEditor.restartRequired")}
+                {editor.restartNeeded
+                  ? t("system.propertiesEditor.restartRequired")
+                  : t("system.propertiesEditor.applied")}
               </span>
             </span>
           }

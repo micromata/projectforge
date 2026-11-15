@@ -45,7 +45,8 @@ private val log = KotlinLogging.logger {}
 /**
  * The **properties editor** (`/next/propertiesEditor`): edits the admin's projectforge.properties with the
  * parameters, groups and descriptions of the bundled application.properties ([ProjectForgePropertiesService]).
- * A backup is written before every save; changes take effect only after a restart.
+ * A backup is written before every save; changes of the parameters marked as live take effect at once
+ * ([ProjectForgePropertiesService.applySaved]), all others only after a restart.
  *
  * **Access:** admin group; saving also checks that the user is neither restricted nor a demo user. The whole path is
  * gated by the ADMIN_WRITE 2FA period (see ProjectForge2FAInitialization), because the file contains the database
@@ -120,13 +121,25 @@ class PropertiesEditorRest {
             } else {
                 translate("system.propertiesEditor.savedWithoutBackup")
             }
-            SaveResponse(true, "$message ${translate("system.propertiesEditor.restartRequired")}")
+            SaveResponse(true, "$message ${translate(effectKey(changes))}")
         } catch (_: ProjectForgePropertiesFile.ConflictException) {
             SaveResponse(false, translate("system.propertiesEditor.conflict"), conflict = true)
         } catch (ex: Exception) {
             log.error(ex) { "Error while writing projectforge.properties: ${ex.message}" }
             SaveResponse(false, translateMsg("system.propertiesEditor.saveFailed", ex.message ?: ex::class.simpleName))
         }
+    }
+
+    /**
+     * Reloads the saved file and tells what took effect: all changes (only parameters of reloadable beans), some, or
+     * none (a restart is needed, also if the reload failed).
+     */
+    private fun effectKey(changes: List<PropertyChange>): String {
+        val liveCount = changes.count { propertiesService.isLive(it.key) }
+        if (liveCount == 0 || !propertiesService.applySaved()) {
+            return "system.propertiesEditor.restartRequired"
+        }
+        return if (liveCount == changes.size) "system.propertiesEditor.applied" else "system.propertiesEditor.partlyApplied"
     }
 
     private fun checkAdminAccess() {

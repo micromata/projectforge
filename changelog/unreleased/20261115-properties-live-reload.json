@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Properties editor: some parameters take effect on saving, without a restart, and are marked as \"live\": the logos and their height, the availability types, the mail server, the expectations of invoices and the seller of e-invoices. The default (or example) of a parameter can be copied to the clipboard.",
+  "de": "Properties-Editor: Einige Parameter werden beim Speichern ohne Neustart wirksam und sind mit „sofort wirksam“ markiert: die Logos und ihre Höhe, die Verfügbarkeitstypen, der Mailserver, die Erwartungen an Rechnungen und der Verkäufer der E-Rechnungen. Der Standardwert (oder das Beispiel) eines Parameters lässt sich in die Zwischenablage kopieren."
+}

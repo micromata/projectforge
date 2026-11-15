@@ -260,7 +260,7 @@ open class UserStatusRest {
     userData.jsTimestampFormatMinutes = convertToJavascriptFormat(userData.timestampFormatMinutes)
     userData.jsTimestampFormatSeconds = convertToJavascriptFormat(userData.timestampFormatSeconds)
 
-    val systemData = systemStatusRest.systemData
+    val systemData = systemStatusRest.currentSystemData
     // Rest clients authenticated by token have no session and need no CSRF token (see RestCsrfProtection).
     val csrfToken = request.getSession(false)?.let { sessionCsrfService.createServerData(request).csrfToken }
     return ResponseEntity<Result>(

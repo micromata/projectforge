@@ -40,7 +40,10 @@ export interface AvailabilityDetail extends AvailabilityFormStats {
    * told (AbsenceVisibility). The list and the form leave the begin empty.
    */
   startHidden?: boolean | null;
+  /** A code of the configuration (AvailabilityConfig) or a value of an older one. */
   type?: string | null;
+  /** The type in the user's language. Read-only. */
+  typeAsString?: string | null;
   status?: AvailabilityStatus | null;
   location?: AvailabilityLocation | null;
   /** Visible to everybody who may see the entry. */
@@ -51,8 +54,8 @@ export interface AvailabilityDetail extends AvailabilityFormStats {
   userEditable?: boolean;
   /** Whether the internal comment is offered (the user and HR staff). Read-only, edit view only. */
   internalCommentVisible?: boolean;
-  /** The configured types and the stored one. Read-only, edit view only. */
-  availableTypes?: string[] | null;
+  /** The configured types and the stored one, in the user's language. Read-only, edit view only. */
+  availableTypes?: { value: string; label: string }[] | null;
   /** Optional: who stands in for the user during the period. */
   substitutes?: UserRef[] | null;
   deleted?: boolean;

@@ -55,6 +55,9 @@ class MerlinVariableTest {
     variable.allowedValues = listOf("one a, one b", "two")
     Assertions.assertEquals("\"one a, one b\", two", variable.allowedValuesFormatted)
     variable.allowedValues = listOf("one a, one b", "", "three")
-    Assertions.assertEquals("\"one a, one b\", , three", variable.allowedValuesFormatted)
+    Assertions.assertEquals("\"one a, one b\", \"\", three", variable.allowedValuesFormatted)
+    variable.allowedValues = listOf("a: b", "", "say \"hi\", you", "\"quoted\"", "x")
+    variable.mappingValues = variable.allowedValuesFormatted
+    Assertions.assertArrayEquals(arrayOf("a: b", "", "say \"hi\", you", "\"quoted\"", "x"), variable.mappingValuesArray)
   }
 }

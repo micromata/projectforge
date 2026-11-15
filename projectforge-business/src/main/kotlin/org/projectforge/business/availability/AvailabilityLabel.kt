@@ -27,6 +27,19 @@ package org.projectforge.business.availability
 import org.projectforge.framework.i18n.translate
 
 /**
+ * The type in the user's language: a code of the configuration ([AvailabilityConfig]) by its key
+ * `availability.types.<code>`, any other value (free text of an installation's own list) as given.
+ */
+fun translateAvailabilityType(type: String?): String? {
+    if (type.isNullOrBlank()) {
+        return type
+    }
+    val key = "availability.types.$type"
+    // A key not found comes back as such.
+    return translate(key).takeIf { it != key } ?: type
+}
+
+/**
  * What an entry is called for everybody else but the user and HR staff (see [AvailabilityDao.labelFor]): only its
  * status (e.g. "Not available"), as the type may be personal (e.g. sickness).
  */
@@ -39,7 +52,7 @@ val AvailabilityDO.neutralLabel: String
  */
 val AvailabilityDO.label: String
     get() {
-        val type = type
+        val type = translateAvailabilityType(type)
         val status = status
         return if (!type.isNullOrBlank()) {
             if (status != null && status != AvailabilityStatus.NOT_AVAILABLE) {
