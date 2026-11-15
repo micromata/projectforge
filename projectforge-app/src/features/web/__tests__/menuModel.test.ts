@@ -21,6 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+import { balanceColumns } from "@projectforge/shared/menu-columns";
 import type { Menus } from "@projectforge/shared/rs/menu";
 
 import {
@@ -319,8 +320,8 @@ describe("menuColumns", () => {
 
   test("the blocks in order, a heading with its entries", () => {
     expect(keys(menuColumns(rows, 2))).toEqual([
-      ["A", "a1", "a2"],
-      ["B", "b1", "C", "c1", "c2"],
+      ["A", "a1", "a2", "B", "b1"],
+      ["C", "c1", "c2"],
     ]);
     expect(keys(menuColumns(rows, 3))).toEqual([
       ["A", "a1", "a2"],
@@ -337,6 +338,69 @@ describe("menuColumns", () => {
     ]);
     expect(menuColumns([heading("A"), entry("a1")], 3)).toHaveLength(1);
     expect(menuColumns([], 3)).toEqual([]);
+  });
+
+  test("a closed category counts with its entries: the columns don't move", () => {
+    const group = (key: string, size: number, open: boolean): MenuRow => ({
+      kind: "group",
+      key,
+      title: key,
+      open,
+      size,
+    });
+    const opened = [
+      group("A", 3, true),
+      entry("a1"),
+      entry("a2"),
+      group("B", 2, true),
+      entry("b1"),
+      group("C", 3, true),
+      entry("c1"),
+      entry("c2"),
+    ];
+    expect(keys(menuColumns(opened, 2))).toEqual([
+      ["A", "a1", "a2", "B", "b1"],
+      ["C", "c1", "c2"],
+    ]);
+    const closed = [
+      group("A", 3, false),
+      group("B", 2, false),
+      opened[5],
+      opened[6],
+      opened[7],
+    ];
+    expect(keys(menuColumns(closed, 2))).toEqual([
+      ["A", "B"],
+      ["C", "c1", "c2"],
+    ]);
+  });
+});
+
+describe("balanceColumns", () => {
+  const heights = (columns: number[][]) =>
+    columns.map((column) => column.reduce((sum, it) => sum + it, 0));
+  const balance = (items: number[], count: number) =>
+    balanceColumns(items, count, (it) => it);
+
+  test("the main menu: in order, the tallest column as low as possible", () => {
+    // Allgemein, Projektmanagement, Menschen & Kultur, Fibu, Kost, Reporting, Organisation, Administration, Verschiedenes
+    const menu = [12, 11, 4, 11, 6, 6, 6, 17, 6];
+    const columns = balance(menu, 4);
+    expect(columns.flat()).toEqual(menu);
+    expect(columns).toHaveLength(4);
+    expect(Math.max(...heights(columns))).toBe(23);
+  });
+
+  test("every column used, none empty", () => {
+    expect(balance([5, 1, 1, 1], 4)).toEqual([[5], [1], [1], [1]]);
+    expect(balance([5, 1, 1, 1], 2)).toEqual([[5], [1, 1, 1]]);
+    expect(balance([2, 3], 4)).toEqual([[2], [3]]);
+  });
+
+  test("one column or no items", () => {
+    expect(balance([1, 2, 3], 1)).toEqual([[1, 2, 3]]);
+    expect(balance([4], 3)).toEqual([[4]]);
+    expect(balance([], 3)).toEqual([]);
   });
 });
 
