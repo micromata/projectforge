@@ -69,10 +69,11 @@ Commands:
   doctor           expo-doctor
   eas [args…]      eas-cli (npx eas-cli@latest) with EXPO_OWNER and EAS_PROJECT_ID of .env.local
                    (gitignored), e.g. eas build --platform ios --profile preview
-  publish [production|preview]
+  publish [production|preview] [--local]
                    iOS store build (default production): from a clean tree, check, eas build,
                    tag app-<version>+<build> on the built commit (asks, Enter = yes), eas submit. The tag must not
-                   exist yet (raise ios.buildNumber first); push it afterwards
+                   exist yet (raise ios.buildNumber first); push it afterwards. --local: built on this
+                   Mac (no EAS build quota; needs Xcode, CocoaPods and fastlane), the ipa in build/
   logs             The log of the app in the booted iOS simulator
   help             Show this help
 
@@ -132,12 +133,30 @@ eas_env() {
 
 # Store build of iOS by EAS, its upload to App Store Connect and the git tag app-<version>+<build> of the built commit
 # (what the published app reads: dev-docs/mobile-app.md). Built from a clean tree only, so the tag names the build.
+# --local builds on this Mac (eas build --local): no quota of EAS cloud builds, but Xcode, CocoaPods and fastlane of
+# the Mac instead of the fixed image of EAS.
 cmd_publish() {
-  local profile="${1:-production}"
-  [[ "$profile" == production || "$profile" == preview ]] || {
-    echo "Unknown profile: $profile (production or preview)" >&2
-    exit 1
-  }
+  local profile=production local=false arg
+  for arg in "$@"; do
+    case "$arg" in
+      production | preview) profile="$arg" ;;
+      --local) local=true ;;
+      *)
+        echo "Unknown argument: $arg (production, preview or --local)" >&2
+        exit 1
+        ;;
+    esac
+  done
+  if $local; then
+    command -v fastlane >/dev/null || {
+      echo "The local build needs fastlane: brew install fastlane" >&2
+      exit 1
+    }
+    command -v pod >/dev/null || {
+      echo "The local build needs CocoaPods: brew install cocoapods" >&2
+      exit 1
+    }
+  fi
   if [[ -n "$(git -C "$ROOT" status --porcelain)" ]]; then
     echo "The working tree isn't clean: commit or discard the changes first." >&2
     git -C "$ROOT" status --short >&2
@@ -154,15 +173,28 @@ cmd_publish() {
     exit 1
   fi
   "$APP/bin/pfApp.sh" check
-  confirm "Publish $version (build $build) from $(git -C "$ROOT" branch --show-current)@$(git -C "$ROOT" rev-parse --short HEAD) with profile $profile?" || exit 1
-  npx --yes eas-cli@latest build --platform ios --profile "$profile" --wait
+  local where="in the EAS cloud" ipa="$APP/build/ProjectForge-$version-$build.ipa"
+  $local && where="locally"
+  confirm "Publish $version (build $build) from $(git -C "$ROOT" branch --show-current)@$(git -C "$ROOT" rev-parse --short HEAD) with profile $profile, built $where?" || exit 1
+  if $local; then
+    # Built from a copy of the committed tree; the signing comes from EAS. Not listed in eas build:list, so the
+    # submit takes the file.
+    mkdir -p "$APP/build"
+    npx --yes eas-cli@latest build --platform ios --profile "$profile" --local --output "$ipa"
+  else
+    npx --yes eas-cli@latest build --platform ios --profile "$profile" --wait
+  fi
   # Tagged only after a successful build, as bin/pfDev.sh release does.
   local tagged=false
   if confirm_yes "Tag the built commit $tag?"; then
     git -C "$ROOT" tag -a "$tag" -m "ProjectForge app $version (build $build)"
     tagged=true
   fi
-  npx --yes eas-cli@latest submit --platform ios --profile "$profile" --latest
+  if $local; then
+    npx --yes eas-cli@latest submit --platform ios --profile "$profile" --path "$ipa"
+  else
+    npx --yes eas-cli@latest submit --platform ios --profile "$profile" --latest
+  fi
   echo
   if $tagged; then
     echo "Tagged $tag. Push it: git push origin $tag"
