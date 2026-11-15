@@ -19,6 +19,7 @@
     "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@projectforge/shared": "file:../projectforge-shared",
     "@codemirror/commands": "^6.11.1",
     "@codemirror/language": "^6.13.1",
     "@codemirror/legacy-modes": "^6.5.5",

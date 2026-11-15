@@ -83,6 +83,9 @@ tasks {
                 )
             }
         ).withPropertyName("projectSources")
+        // The TypeScript shared with the app (@projectforge/shared, a symlink in node_modules), compiled into the export.
+        inputs.files(rootProject.fileTree("projectforge-shared") { exclude("node_modules/**", "**/*.md") })
+            .withPropertyName("sharedSources")
         outputs.dir("out")
     }
 

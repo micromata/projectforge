@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import { BASE_PATH, PUBLIC_ASSET_PREFIX } from "./lib/config";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -44,6 +45,11 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
   experimental: {
+    // @projectforge/shared (TypeScript shared with the app) is a symlink into ../projectforge-shared, outside the
+    // root; Turbopack follows it only into an additional root. Not the repository as root: it would watch all of it.
+    turbopackAdditionalRoots: {
+      shared: { path: path.join(__dirname, "../projectforge-shared") },
+    },
     // Dev-only, for the rewrites below: the proxy gives up after 30s by default and answers 500,
     // while the forecast export of the whole order book takes just over that on a large database
     // (ForecastExport walks every order and every invoice of three years). Prod has no proxy — Spring
