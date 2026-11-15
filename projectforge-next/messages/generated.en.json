@@ -7639,6 +7639,10 @@
         "info": "Code from your authenticator app or the one time password (OTP) you received by e-mail of text message.",
         "validate": "Validate"
       },
+      "confirmInBrowser": {
+        "_": "Confirm in the browser",
+        "failed": "The second factor was not confirmed in the browser."
+      },
       "error": {
         "timePenalty": {
           "message": "You have been blocked until {arg0} ({arg1}) after {arg2} failed code checks. Please note, that your account might be deactivated after {arg3} failed OTP checks."

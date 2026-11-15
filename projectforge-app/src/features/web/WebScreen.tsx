@@ -47,6 +47,7 @@ import { showWalletPass, walletAvailable, WalletException } from '../../core/wal
 import { FindBar, FindResult } from './FindBar';
 import { findScript } from './findInPage';
 import { themeScript } from './themeScript';
+import { twoFactorAnswerScript } from './twoFactorScript';
 import { BLOB_SCRIPT, blobFile, DownloadedFile, isWalletPass, WebDownload } from './webDownload';
 import { NativePage, WebNavigation } from './webNavigation';
 
@@ -428,7 +429,16 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   };
 
   const onMessage = (event: WebViewMessageEvent) => {
-    let data: { pf?: string; count?: number; index?: number; supported?: boolean; name?: unknown; mime?: unknown; data?: unknown };
+    let data: {
+      pf?: string;
+      count?: number;
+      index?: number;
+      supported?: boolean;
+      name?: unknown;
+      mime?: unknown;
+      data?: unknown;
+      maxAgeMillis?: unknown;
+    };
     try {
       data = JSON.parse(event.nativeEvent.data);
     } catch {
@@ -443,7 +453,32 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     } else if (data?.pf === 'status' && navigation.isSameOrigin(event.nativeEvent.url)) {
       // next's badges changed (a chat read, a notification done): the tab bar's follow (useAppStatusSignal of next).
       userStatus.changed();
+    } else if (data?.pf === 'twoFactor' && navigation.isSameOrigin(event.nativeEvent.url)) {
+      void confirm2FA(data.maxAgeMillis);
     }
+  };
+
+  /**
+   * next's 2FA dialog asked for a second factor (its WebAuthn doesn't work in the WebView): the login of the app is
+   * renewed in the system browser, a new web session takes its second factor to all tabs (one cookie jar), and the page
+   * is told, so it repeats its refused request. No reload: the page keeps what it had open.
+   */
+  const confirm2FA = async (maxAgeMillis: unknown) => {
+    const sessions = authController.webSessions;
+    let ok = false;
+    try {
+      appLog.info('web', 'Second factor asked by the page: renewal of the login in the system browser');
+      const max = typeof maxAgeMillis === 'number' && maxAgeMillis > 0 ? maxAgeMillis : undefined;
+      if (sessions != null && (await authController.reauthenticate(max))) {
+        await sessions.renew(false);
+        lastOpened.current = Date.now();
+        ok = true;
+      }
+    } catch (e) {
+      appLog.warn('web', `Second factor of the page not confirmed: ${String(e)}`);
+    }
+    appLog.info('web', `Second factor of the page ${ok ? 'confirmed' : 'not confirmed'}`);
+    webView.current?.injectJavaScript(twoFactorAnswerScript(ok));
   };
 
   /** A file the page made itself (an export of next): offered as a download, only from a page of the server. */
@@ -641,8 +676,9 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         // another scheme itself (Linking.openURL), before asking it.
         originWhitelist={['*']}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-        // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout.
-        applicationNameForUserAgent={`ProjectForgeApp/${appVersion}`}
+        // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout; `(browser2FA)`: it confirms a
+        // second factor in the browser (confirm2FA).
+        applicationNameForUserAgent={`ProjectForgeApp/${appVersion} (browser2FA)`}
         injectedJavaScriptBeforeContentLoaded={COMMIT_SCRIPT + BLOB_SCRIPT}
         injectedJavaScriptBeforeContentLoadedForMainFrameOnly
         onMessage={onMessage}

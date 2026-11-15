@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormAlert } from "@/components/shared/form-alert";
 import { WebAuthnButton } from "@/components/shared/web-authn-button";
+import { AppBrowser2FAButton } from "@/components/shared/app-browser-2fa-button";
+import { appConfirms2FAInBrowser, isInApp } from "@/lib/app-mode";
 
 interface TwoFactorFormProps {
   context: TwoFactorContext;
@@ -27,6 +29,8 @@ interface TwoFactorFormProps {
    * Hint why a factor is needed now (in-session 2FA: "your last check is old").
    */
   hint?: string | null;
+  /** In-session 2FA: how fresh the factor must be (`expiryMillis` of the refused request). */
+  expiryMillis?: number | null;
   onSuccess: (result: TwoFactorResult) => void;
   onCancel?: () => void;
 }
@@ -35,6 +39,7 @@ export function TwoFactorForm({
   context,
   methods,
   hint,
+  expiryMillis,
   onSuccess,
   onCancel,
 }: TwoFactorFormProps) {
@@ -46,6 +51,9 @@ export function TwoFactorForm({
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // The WebView of the app can't do WebAuthn (no associated domain): the app confirms in the browser instead. The
+  // login and reset pages of the app login run in the browser itself.
+  const inAppSession = context === "session" && isInApp();
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
@@ -146,7 +154,14 @@ export function TwoFactorForm({
             {tb("user.My2FACode.sendCode.mail._")}
           </Button>
         )}
-        {methods.webAuthn && (
+        {inAppSession && appConfirms2FAInBrowser() && (
+          <AppBrowser2FAButton
+            maxAgeMillis={expiryMillis}
+            onSuccess={() => onSuccess({ success: true })}
+            onError={setError}
+          />
+        )}
+        {methods.webAuthn && !inAppSession && (
           <WebAuthnButton
             context={context}
             autoStart={context === "login"}

@@ -240,11 +240,14 @@ export class AuthController {
     return (await this.sessions()).filter((it) => active == null || loginKey(it) !== loginKey(active));
   };
 
-  /** A new login in the browser (second factor too old, SSO proxy refused); false if cancelled or failed. */
-  reauthenticate = (): Promise<boolean> =>
-    (this.reauthentication ??= this.doReauthenticate().finally(() => (this.reauthentication = null)));
+  /**
+   * A new login in the browser (second factor too old, SSO proxy refused, a page asked for a second factor fresher
+   * than [max2FAAgeMillis]); false if cancelled or failed.
+   */
+  reauthenticate = (max2FAAgeMillis?: number): Promise<boolean> =>
+    (this.reauthentication ??= this.doReauthenticate(max2FAAgeMillis).finally(() => (this.reauthentication = null)));
 
-  private async doReauthenticate(): Promise<boolean> {
+  private async doReauthenticate(max2FAAgeMillis?: number): Promise<boolean> {
     const session = this.state.session;
     if (session == null) return false;
     appLog.info('auth', 'Renewal of the login');
@@ -261,6 +264,7 @@ export class AuthController {
         platform: platformName,
         deviceId: session.deviceId,
         loginPath,
+        max2FAAgeMillis,
       });
       LogSanitizer.addSecretNames(Object.keys(renewed.proxyCookies));
       if (renewed.userId !== session.userId || renewed.deviceId !== session.deviceId) {
@@ -364,7 +368,7 @@ export class AuthController {
         http: this.deps.http,
         current: () => this.state.session,
         onUnauthorized: this.onUnauthorized,
-        onReauthenticate: this.reauthenticate,
+        onReauthenticate: () => this.reauthenticate(),
       });
       this.api = api;
       this.webSessions = new WebSessionRepository(api, this.webCookies, () => this.ownProxyCookies(session));

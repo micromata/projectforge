@@ -219,9 +219,16 @@ app has only its token:
   - **No connection** (a main frame failing with a network error): the app's error with a retry of the failed page,
     not the WebView's own error page.
 
-Open: the 2FA dialog of next offers WebAuthn, which doesn't work in a WebView
-for self-hosted servers (OTP does): in app mode it should offer "confirm in the browser" (the app's renewal, then a
-new web session).
+**Second factor of a page:** WebAuthn doesn't work in the WebView (no associated domain for self-hosted servers), OTP,
+SMS and mail do. So next's 2FA dialog (`two-factor-form.tsx`, context `session`) shows no WebAuthn in the app, but
+"Confirm in the browser" if the app can (`(browser2FA)` after the version in its user agent, `appConfirms2FAInBrowser`):
+
+1. The page posts `{"pf":"twoFactor","maxAgeMillis":…}` (`lib/app-bridge.ts`; `expiryMillis` of the refused request).
+2. The app (`WebScreen.confirm2FA`, same origin only) renews its login in the system browser with
+   `max2FAAge` (`AppAuthRest.authorize` then asks for a second factor that fresh, at most 10 minutes), and opens a new
+   web session, which carries the new `last2FA` of the device into all tabs (one cookie jar).
+3. It answers with the event `pf-app-2fa` `{ok}` (`twoFactorScript.ts`); next repeats the refused request (the CSRF
+   token of the new session follows by the retry of `client.ts`). No reload, the page keeps its state.
 
 ## Client log
 

@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ {
+      "items" : [ "{app} Fragt eine Seite nach einem zweiten Faktor, lässt er sich im Browser bestätigen, wo auch WebAuthn (Sicherheitsschlüssel, Passkey) funktioniert; die Seite behält, was sie offen hatte.", {
         "title" : "Auftragsstatistik",
         "items" : [ "Die Monatswerte zeigen auch den Forecast des aktuellen Jahres als blaue Linie." ]
       } ]

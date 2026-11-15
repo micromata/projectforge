@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ {
+      "items" : [ "{app} When a page asks for a second factor, it can be confirmed in the browser, where WebAuthn (security key, passkey) works too; the page keeps what it had open.", {
         "title" : "Order statistics",
         "items" : [ "The monthly values also show the forecast of the current year as a blue line." ]
       } ]

@@ -7639,6 +7639,10 @@
         "info": "Code aus der Authenticator-App oder der Code (Einmalpasswort), welches per E-Mail oder SMS versendet wurde.",
         "validate": "Prüfen"
       },
+      "confirmInBrowser": {
+        "_": "Im Browser bestätigen",
+        "failed": "Der zweite Faktor wurde im Browser nicht bestätigt."
+      },
       "error": {
         "timePenalty": {
           "message": "Die Funktion ist aus Sicherheitsgründen blockiert bis {arg0} ({arg1}) nach {arg2} Fehlversuchen. Bitte beachten, dass dieser Account nach {arg3} Fehlversuchen gesperrt wird."
