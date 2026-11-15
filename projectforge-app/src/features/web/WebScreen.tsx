@@ -141,6 +141,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   const handedOver = useRef<string | null>(null);
   const canGoBack = useRef(false);
   const lastProxyRenewal = useRef<number | null>(null);
+  /** The last new web session for a redirect to the SSO proxy that lets the app through (its cookies were gone). */
+  const lastProxyCookieRestore = useRef<number | null>(null);
   const renewingProxy = useRef(false);
   const openings = useRef(0);
   const stallTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -276,8 +278,10 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
 
   /**
    * The SSO proxy refused a page and redirects to its login: the login of the app is renewed in the system browser,
-   * then the page is loaded again. Only if the proxy refuses the app too (ApiClient.proxyRefuses): another site the
-   * server redirects to is opened outside the app.
+   * then the page is loaded again. Only if the proxy refuses the app too (ApiClient.proxyRefuses). If it lets the app
+   * through, the WebView lost the proxy cookies (session cookies, gone with the processes of the WebView killed in the
+   * background): a new web session sets them again. Redirected again right after that, it is another site the server
+   * redirects to, opened outside the app.
    */
   const renewForProxy = async (target: string) => {
     if (renewingProxy.current) return;
@@ -286,6 +290,15 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     try {
       const api = authController.api;
       if (api == null || !(await api.proxyRefuses())) {
+        if (
+          api != null &&
+          (lastProxyCookieRestore.current == null || Date.now() - lastProxyCookieRestore.current >= RENEWAL_INTERVAL)
+        ) {
+          lastProxyCookieRestore.current = Date.now();
+          appLog.info('web', 'The SSO proxy lets the app through: new web session with its cookies');
+          restart(true);
+          return;
+        }
         appLog.warn(
           'web',
           `Redirected to ${LogSanitizer.url(target)}, but the SSO proxy lets the app through: opened outside the app`,
@@ -640,14 +653,15 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         renderError={() => <View />}
         onHttpError={onHttpError}
         onFileDownload={onFileDownload}
-        // The content process is gone (iOS: killed in the background; Android: crashed): a new WebView.
+        // The content process is gone (iOS: killed in the background; Android: crashed): a new WebView with a new web
+        // session, since the session cookies (web session, SSO proxy) may be gone with it.
         onContentProcessDidTerminate={() => {
           appLog.warn('web', 'Content process of the WebView terminated');
-          restart(false);
+          restart(true);
         }}
         onRenderProcessGone={(event) => {
           appLog.warn('web', `Render process of the WebView gone (crashed: ${event.nativeEvent.didCrash})`);
-          restart(false);
+          restart(true);
         }}
         allowsBackForwardNavigationGestures
         javaScriptCanOpenWindowsAutomatically={false}
