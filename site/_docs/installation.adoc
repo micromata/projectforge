@@ -216,17 +216,12 @@ h|User name | The user name of the initial administrator (default: `admin`).
 h|Password | The administrator's password (entered twice).
 h|Default time zone | Default time zone for all users who haven't chosen their own in _My account_.
 h|Calendar domain | Used for world-wide unique ids of calendar events, e.g. your domain name (default: `local`).
-h|System administrator e-mail | ProjectForge sends e-mails to this address (or these comma-separated addresses) in case of special errors.
-h|Feedback e-mail | Optional address for user feedback (e.g. your help desk).
+h|Administrators | ProjectForge sends e-mails to this address (or these comma-separated addresses) in case of special errors.
+h|Feed-back | Optional address for user feedback (e.g. your help desk).
 |===
 
 Click *Finish*. ProjectForge initializes the database and takes you to the login page, where you sign in with the
 administrator account you've just created.
-
-[#img-setup-webpage-finished]
-.After initialization you can log in. Enjoy it!
-[link=/uploads/setup-webpage-finished.png]
-image::/uploads/setup-webpage-finished.png[Setup finished,400]
 
 Now continue with the link:/docs/quickstart/[Quick start] to set up your users, groups and first project.
 
