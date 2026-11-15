@@ -135,7 +135,7 @@ open class InvoiceService {
             val type = if (variant.isNullOrEmpty()) {
                 I18nHelper.getLocalizedMessage(data.typ?.i18nKey)
             } else {
-                val locale = Locale(variant)
+                val locale = Locale.of(variant)
                 I18nHelper.getLocalizedMessage(locale, data.typ?.i18nKey)
             }
             variables.put("Typ", type)

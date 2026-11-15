@@ -56,7 +56,7 @@ object TestSetup {
         user.timeZone = TimeZone.getTimeZone("Europe/Berlin")
         user.excelDateFormat = "YYYY-MM-DD"
         user.dateFormat = "dd.MM.yyyy"
-        user.locale = Locale("de", "DE")
+        user.locale = Locale.of("de", "DE")
         user.firstDayOfWeek = DayOfWeek.MONDAY
         ThreadLocalUserContext.userContext = UserContext.Companion.createTestInstance(user)
         TestConfigurationParams.init()

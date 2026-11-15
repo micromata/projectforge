@@ -298,9 +298,9 @@ class ChatNotifier {
     private fun mutedUserIds(conversationId: Long): Set<Long> {
         return persistenceService.executeQuery(
             "select s.userId from ChatMemberStateDO s where s.conversationId = :conversationId and s.muted = true",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("conversationId", conversationId),
-        ).mapTo(mutableSetOf()) { it.toLong() }
+        ).toSet()
     }
 
     companion object {

@@ -100,7 +100,7 @@ class ProjectKost2ArtsMassUpdateTest : AbstractTestBase() {
 
         val excel = MultiSelectionExcelExport.export(context, projectMassUpdateRest)
         ExcelWorkbook(ByteArrayInputStream(excel), "protocol.xlsx").use { workbook ->
-            val sheet = workbook.getSheet(0)!!.poiSheet
+            val sheet = workbook.getSheet(0).poiSheet
             val row = sheet.getRow(2)
             assertEquals("91", row.getCell(1)?.stringCellValue, "old value")
             assertEquals("91, 92", row.getCell(2)?.stringCellValue, "new value")

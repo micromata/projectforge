@@ -638,7 +638,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             orderTitle = auftrag.titel,
             customerProject = auftrag.projektKundeAsString,
             status = auftrag.status?.name,
-            amount = auftrag.nettoSumme,
+            amount = auftrag.info.netSum,
             changes = changes,
         )
     }

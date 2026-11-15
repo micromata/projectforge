@@ -1253,7 +1253,7 @@ constructor(
         } else {
             // Labels starting with the first typed word first, the rest of the primary hits in their default order.
             // Both normalized like the index, so "mueller" ranks "Müller" first.
-            val firstWord = SearchStringTokenizer.normalize(words!!.first().removePrefix("+"))
+            val firstWord = SearchStringTokenizer.normalize(words.first().removePrefix("+"))
             val primary = queryAutocompleteObjects(request, modifiedSearchString, primaryFields, maxResults)
                 .sortedBy { obj ->
                     val label = autoCompleteLabel(obj)

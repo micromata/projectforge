@@ -197,7 +197,7 @@ class I18nServiceImpl : I18nService {
 
         // Fall back to language-only locale (e.g., de from de_DE)
         if (!locale.country.isNullOrBlank() || !locale.variant.isNullOrBlank()) {
-            val languageOnlyLocale = Locale(locale.language)
+            val languageOnlyLocale = Locale.of(locale.language)
             log.debug { "#### I18N SERVICE: Trying language-only fallback: $languageOnlyLocale" }
             localeResourceBundleMap!![Pair(languageOnlyLocale, name)]?.let {
                 log.debug { "#### I18N SERVICE: Found language-only match for ($languageOnlyLocale, $name)" }

@@ -131,7 +131,7 @@ class ChatSecretRelayTest : AbstractTestBase() {
         val prefix = ChatNotifier.secretPrefix(conversationId, recipientId)
         val notification = notificationDao.findPendingByDedupPrefix(recipientId, prefix).single()
         assertTrue(notification.title!!.startsWith(getUser("chatSecret1-sender").getFullname()), notification.title)
-        assertFalse(notification.body.orEmpty().contains(getUser("chatSecret1-sender").getFullname()!!), "Not repeating the title.")
+        assertFalse(notification.body.orEmpty().contains(getUser("chatSecret1-sender").getFullname()), "Not repeating the title.")
 
         logon("chatSecret1-recipient")
         assertEquals(listOf(session.id), relay.pending(conversationId).map { it.id })

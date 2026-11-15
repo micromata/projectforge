@@ -71,7 +71,7 @@ class ChatNotificationPreviewTest : AbstractTestBase() {
         val text = preview.preview(notification, user2)!!
         val expectedStart = "${owner.getFullname()}: Hello all, word word"
         assertEquals(expectedStart, text.take(expectedStart.length))
-        assertEquals(owner.getFullname()!!.length + 2 + ChatNotificationPreview.MAX_LENGTH, text.length)
+        assertEquals(owner.getFullname().length + 2 + ChatNotificationPreview.MAX_LENGTH, text.length)
         // Not shown to somebody else, nor once the message is deleted.
         assertNull(preview.preview(notification, getUser(TEST_FINANCE_USER)))
         chatService.delete(message.id!!)

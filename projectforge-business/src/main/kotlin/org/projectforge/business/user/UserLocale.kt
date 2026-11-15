@@ -108,7 +108,7 @@ object UserLocale {
       request: HttpServletRequest? = null
   ): String {
     val locale = determineUserLocale(user, defaultLocale, request)
-    return if (Locale(locale.language) == Locale.GERMAN) {
+    return if (Locale.of(locale.language) == Locale.GERMAN) {
       "de"
     } else {
       "en"

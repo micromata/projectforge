@@ -96,8 +96,7 @@ class WebAuthnSupport {
         displayName: String? = null,
     ): Result {
         // Server properties
-        val tokenBindingId: ByteArray? = null // Not yet supported
-        val serverProperty = ServerProperty(origin, rpId, challenge, tokenBindingId)
+        val serverProperty = ServerProperty.builder().origin(origin).rpId(rpId).challenge(challenge).build()
 
         val registrationRequest =
             RegistrationRequest(attestationObject, clientDataJSON, clientExtensionJSON, transports)
@@ -146,8 +145,7 @@ class WebAuthnSupport {
         challenge: Challenge? = null, /* set challenge */
         userHandle: ByteArray? = null, /* set userHandle */
     ): Result {
-        val tokenBindingId: ByteArray? = null // Not yet supported.
-        val serverProperty = ServerProperty(origin, rpId, challenge, tokenBindingId)
+        val serverProperty = ServerProperty.builder().origin(origin).rpId(rpId).challenge(challenge).build()
 
         // expectations
         val allowCredentials: List<ByteArray>? = null

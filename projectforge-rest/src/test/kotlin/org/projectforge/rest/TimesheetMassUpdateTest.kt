@@ -591,10 +591,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         assertKost2(ts2, 5, 55, 1, 2)
         Assertions.assertEquals(1, massUpdateContext!!.errorCounter)
         // The remapped ones count as modified, with the old and new cost unit for the Excel export.
-        Assertions.assertEquals(2, massUpdateContext!!.modifiedCounter)
-        Assertions.assertTrue(MultiSelectionExcelExport.columnFields(massUpdateContext!!).contains("kost2"))
+        Assertions.assertEquals(2, massUpdateContext.modifiedCounter)
+        Assertions.assertTrue(MultiSelectionExcelExport.columnFields(massUpdateContext).contains("kost2"))
         // The message names what the task offers instead, the cause being in the task's settings.
-        val message = massUpdateContext!!.errorMessages.first().message
+        val message = massUpdateContext.errorMessages.first().message
         Assertions.assertTrue(message.contains("5.055.03.00") && message.contains("5.055.03.01"), message)
         // Still valid at its task: unchanged.
         Assertions.assertEquals(getTask(prefix + "2").id, ts3.taskId)

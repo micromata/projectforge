@@ -127,8 +127,8 @@ class ContributionMarginAllocatorTest {
     assertEquals(BigDecimal("400.00"), residual.series.sums.profit)
     assertEquals(BigDecimal("200.00"), residual.series.sums.prevYearProfit, "Nothing assigned the year before.")
     assertEquals(BigDecimal("400.00"), residual.residual!!.invoicesWithoutAssignment)
-    assertEquals(BigDecimal("50.00"), residual.residual!!.timesheetsWithoutAssignment)
-    assertEquals(BigDecimal("50.00"), residual.residual!!.accountingDifference, "400 - (400 - 50)")
+    assertEquals(BigDecimal("50.00"), residual.residual.timesheetsWithoutAssignment)
+    assertEquals(BigDecimal("50.00"), residual.residual.accountingDifference, "400 - (400 - 50)")
     // Month by month, too.
     val orders = listOf("p1/o1", "p1/o2", "p1/r").map { byId[it]!!.series }
     project.profit.indices.forEach { i ->

@@ -199,16 +199,16 @@ class TestDataSeederTest : AbstractTestBase() {
             persistenceService.runReadOnly { context ->
                 context.em.createQuery(
                     "select count(p) from RechnungsPositionDO p where p.auftragsPosition is null",
-                    java.lang.Long::class.java,
-                ).singleResult.toLong()
+                    Long::class.javaObjectType,
+                ).singleResult
             },
         )
     }
 
     private fun count(entity: String, where: String? = null): Long = persistenceService.runReadOnly { context ->
         val condition = where?.let { " where $it" } ?: ""
-        context.em.createQuery("select count(e) from $entity e$condition", java.lang.Long::class.java)
-            .singleResult.toLong()
+        context.em.createQuery("select count(e) from $entity e$condition", Long::class.javaObjectType)
+            .singleResult
     }
 
     private companion object {

@@ -93,7 +93,7 @@ class TaskTreeRefreshRaceTest : AbstractTestBase() {
             dbTask.title = "refreshRace.order.task (changed)"
             taskDao.update(dbTask, checkAccess = false)
             newParent = insertTask("refreshRace.order.parent", root)
-            taskDao.setParentTask(dbTask, newParent!!.id!!)
+            taskDao.setParentTask(dbTask, newParent.id!!)
             taskDao.update(dbTask, checkAccess = false)
         }
         Assertions.assertEquals(newParent!!.id, taskTree.getTaskNodeById(task.id)!!.getParent().id)
@@ -124,7 +124,7 @@ class TaskTreeRefreshRaceTest : AbstractTestBase() {
         Assertions.assertThrows(IllegalStateException::class.java) {
             persistenceService.runInTransaction { _ ->
                 inserted = insertTask("refreshRace.rollback.child", parent)
-                Assertions.assertNotNull(taskTree.getTaskNodeById(inserted!!.id, checkRefresh = false))
+                Assertions.assertNotNull(taskTree.getTaskNodeById(inserted.id, checkRefresh = false))
                 throw IllegalStateException("Rollback")
             }
         }

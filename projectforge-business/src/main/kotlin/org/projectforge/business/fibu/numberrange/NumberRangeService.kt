@@ -97,8 +97,8 @@ open class NumberRangeService {
     internal fun countLegacyKost2(): Long =
         persistenceService.selectSingleResult(
             "SELECT COUNT(k.id) FROM Kost2DO k WHERE k.projekt IS NOT NULL AND k.nummernkreis IN (4, 5)",
-            java.lang.Long::class.java,
-        )?.toLong() ?: 0L
+            Long::class.javaObjectType,
+        ) ?: 0L
 
     /**
      * Logs the mode once the database is ready (detecting the use of the former ranges), and the projects without
@@ -112,8 +112,8 @@ open class NumberRangeService {
             log.info { "Number ranges: mode $mode." }
             val unnumbered = persistenceService.selectSingleResult(
                 "SELECT COUNT(p.id) FROM ProjektDO p WHERE p.projektnummer IS NULL AND p.deleted = false",
-                java.lang.Long::class.java,
-            )?.toLong() ?: 0L
+                Long::class.javaObjectType,
+            ) ?: 0L
             if (unnumbered > 0) {
                 log.warn {
                     "$unnumbered projects have no project number yet (not numbered by the migration: customer above" +

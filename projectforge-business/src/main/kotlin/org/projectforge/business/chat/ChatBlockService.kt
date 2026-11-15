@@ -105,10 +105,10 @@ open class ChatBlockService {
         return persistenceService.selectSingleResult(
             "select count(b) from ChatUserBlockDO b where (b.blockerId = :userId and b.blockedId = :otherUserId)" +
                 " or (b.blockerId = :otherUserId and b.blockedId = :userId)",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("userId", userId),
             Pair("otherUserId", otherUserId),
-        )?.toLong().let { it != null && it > 0 }
+        ).let { it != null && it > 0 }
     }
 
     /** Has [blockerId] blocked [blockedId]? */
@@ -123,18 +123,18 @@ open class ChatBlockService {
     open fun blockedIds(blockerId: Long): List<Long> {
         return persistenceService.executeQuery(
             "select b.blockedId from ChatUserBlockDO b where b.blockerId = :blockerId",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("blockerId", blockerId),
-        ).map { it.toLong() }
+        )
     }
 
     /** The users who have blocked [blockedId]. */
     open fun blockerIds(blockedId: Long): Set<Long> {
         return persistenceService.executeQuery(
             "select b.blockerId from ChatUserBlockDO b where b.blockedId = :blockedId",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("blockedId", blockedId),
-        ).mapTo(mutableSetOf()) { it.toLong() }
+        ).toSet()
     }
 
     private fun find(blockerId: Long, blockedId: Long): ChatUserBlockDO? {

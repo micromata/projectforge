@@ -132,7 +132,7 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     }
 
     override fun refresh() {
-        log.info("Refreshing AvailabilityCache ...")
+        log.info { "Refreshing AvailabilityCache ..." }
         // runReadOnlyForCacheMaintenance, not runIsolatedReadOnly: a refresh triggered from within a write transaction
         // (e.g. a cache getter called mid-insert) mustn't open a second connection.
         synchronized(lock) {
@@ -163,7 +163,7 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
                 modifiedDuringRefresh = null
             }
         }
-        log.info("Refreshing of AvailabilityCache done.")
+        log.info { "Refreshing of AvailabilityCache done." }
     }
 
     private fun <T> withoutLoggedInUser(block: () -> T): T {

@@ -492,7 +492,7 @@ class ForecastExportTest : AbstractTestBase() {
         )
         try {
             val errors = customerGroupService.save(
-                CustomerGroupConfig(projectGroups = mutableListOf(projectGroup(null, "Parent", listOf(projektId!!)))),
+                CustomerGroupConfig(projectGroups = mutableListOf(projectGroup(null, "Parent", listOf(projektId)))),
                 customerGroupService.lastUpdate,
             )
             Assertions.assertEquals(emptyList<String>(), errors.map { it.messageKey })
@@ -921,7 +921,7 @@ class ForecastExportTest : AbstractTestBase() {
 
         assertAmounts(before.plan!!, withDeleted.plan!!, "Plan with the deleted order")
         Assertions.assertTrue(
-            withoutDeleted.plan!!.sumOf { it } < withDeleted.plan!!.sumOf { it },
+            withoutDeleted.plan!!.sumOf { it } < withDeleted.plan.sumOf { it },
             "Without its id the deleted order is missing in the plan.",
         )
         assertAmounts(withoutDeleted.total, withDeleted.total, "Current forecast without the deleted order")

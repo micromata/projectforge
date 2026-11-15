@@ -203,9 +203,9 @@ open class ChatService {
     open fun currentSeq(conversationId: Long): Long {
         return persistenceService.selectSingleResult(
             "select c.changeSeq from ChatConversationDO c where c.id = :id",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("id", conversationId),
-        )?.toLong() ?: 0
+        ) ?: 0
     }
 
     /**
@@ -661,9 +661,9 @@ open class ChatService {
     open fun newestMessageId(conversationId: Long): Long? {
         return persistenceService.selectSingleResult(
             "select max(m.id) from ChatMessageDO m where m.conversationId = :conversationId",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("conversationId", conversationId),
-        )?.toLong()
+        )
     }
 
     /**
@@ -675,12 +675,12 @@ open class ChatService {
         return persistenceService.selectSingleResult(
             "select count(m) from ChatMessageDO m where m.conversationId = :conversationId and m.id > :lastRead" +
                     " and $UNREAD_CLAUSE",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("conversationId", conversationId),
             Pair("lastRead", lastRead),
             Pair("userId", userId),
             Pair("userCsv", csvPattern(userId)),
-        )?.toLong() ?: 0
+        ) ?: 0
     }
 
     /**
@@ -1020,9 +1020,9 @@ open class ChatService {
         )
         return pc.selectSingleResult(
             "select c.changeSeq from ChatConversationDO c where c.id = :id",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("id", conversationId),
-        )!!.toLong()
+        )!!
     }
 
     private fun setSeq(pc: PfPersistenceContext, messageId: Long, seq: Long) {

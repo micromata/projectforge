@@ -180,9 +180,9 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
         val id = obj.id ?: return emptySet()
         return persistenceService.executeQuery(
             "SELECT p.task.id FROM TaskBookingGrantTaskDO p WHERE p.grant.id = :id",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("id", id),
-        ).mapTo(mutableSetOf()) { it.toLong() }
+        ).toSet()
     }
 
     override fun onInsert(obj: TaskBookingGrantDO) {
@@ -255,10 +255,10 @@ open class TaskBookingGrantDao : BaseDao<TaskBookingGrantDO>(TaskBookingGrantDO:
     open fun selectByTasks(taskIds: Collection<Long>): List<TaskBookingGrantDO> {
         val ids = persistenceService.executeQueryBatched(
             "SELECT DISTINCT p.grant.id FROM TaskBookingGrantTaskDO p WHERE p.task.id IN :taskIds",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             batchParam = "taskIds",
             batchValues = taskIds,
-        ).mapTo(mutableSetOf()) { it.toLong() }
+        ).toSet()
         return persistenceService.executeQueryBatched(
             "SELECT DISTINCT g FROM TaskBookingGrantDO g LEFT JOIN FETCH g.positions WHERE g.id IN :ids",
             TaskBookingGrantDO::class.java,

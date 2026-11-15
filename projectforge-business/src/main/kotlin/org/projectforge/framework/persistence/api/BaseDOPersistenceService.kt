@@ -184,7 +184,7 @@ class BaseDOPersistenceService {
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = useDbObj,
-                ignoreProperties = *IGNORE_ON_EXISTING,
+                ignoreProperties = IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.Update,
             )
             val modStatus = candHContext.currentCopyStatus
@@ -275,7 +275,7 @@ class BaseDOPersistenceService {
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
-                ignoreProperties = *IGNORE_ON_EXISTING,
+                ignoreProperties = IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.MarkAsDeleted
             ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus
@@ -338,7 +338,7 @@ class BaseDOPersistenceService {
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
-                ignoreProperties = *IGNORE_ON_EXISTING,
+                ignoreProperties = IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.Undelete
             ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus

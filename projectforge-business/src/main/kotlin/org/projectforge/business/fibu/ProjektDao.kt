@@ -239,7 +239,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         }
         val other = persistenceService.selectSingleResult(
             "SELECT p.id FROM ProjektDO p WHERE p.projektnummer = :projektnummer",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("projektnummer", obj.projektnummer),
         )
         // Scalar query: doesn't load (and detach) another project instance inside the update.
@@ -328,8 +328,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         }
         val used = persistenceService.executeQuery(
             "SELECT p.projektnummer FROM ProjektDO p WHERE p.projektnummer IS NOT NULL",
-            Integer::class.java,
-        ).map { it.toInt() }
+            Int::class.javaObjectType,
+        )
         var next = (used.filter { numberRanges.rangeForProjectNumber(it) == null }.maxOrNull() ?: 0) + 1
         val localNumbers = localNumbersOfCustomer(obj)
         while (localNumbers.contains(next)) {

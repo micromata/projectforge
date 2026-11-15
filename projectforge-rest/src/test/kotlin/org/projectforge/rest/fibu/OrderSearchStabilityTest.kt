@@ -86,7 +86,7 @@ class OrderSearchStabilityTest : AbstractTestBase() {
         projektDao.insert(projekt, checkAccess = false)
         val projektId = projekt.id!!
 
-        val id = auftragDao.insert(posted(null, projektId, "first"), checkAccess = false)!!
+        val id = auftragDao.insert(posted(null, projektId, "first"), checkAccess = false)
         assertFound(id, "insert")
 
         auftragDao.update(posted(id, projektId, "second"), checkAccess = false)

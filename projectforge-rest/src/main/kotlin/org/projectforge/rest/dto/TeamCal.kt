@@ -63,7 +63,7 @@ class TeamCal(
     /**
      * Feed urls of an existing calendar, set in edit mode only (see TeamCalEntityRest). Never read from a client.
      */
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @param:JsonProperty(access = JsonProperty.Access.READ_ONLY)
     var subscriptionInfo: CalendarSubscriptionInfo? = null,
     // Only owners and admins may save a calendar (BaseUserGroupRight.hasUpdateAccess), not users with full access.
     override var writeAccess: Boolean? = null,

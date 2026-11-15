@@ -433,9 +433,9 @@ class ChatServiceTest : AbstractTestBase() {
     private fun historyCount(messageId: Long): Long {
         return persistenceService.selectSingleResult(
             "select count(h) from HistoryEntryDO h where h.entityName = :entityName and h.entityId = :id",
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("entityName", ChatMessageDO::class.java.name),
             Pair("id", messageId),
-        )!!.toLong()
+        )!!
     }
 }

@@ -1020,7 +1020,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             // an earlier assignment would show them a tree without children, durations or bookability.
             // The nodes for the bookability below: once published, the map may get new nodes while iterated.
             val nodes = synchronized(changesSincePublishLock) {
-                changesSincePublish.values.forEach { task -> applyChange(nTaskMap, newRoot!!, task) }
+                changesSincePublish.values.forEach { task -> applyChange(nTaskMap, newRoot, task) }
                 changesSincePublish = mutableMapOf()
                 projectChangesSincePublish.forEach { (taskId, projekt) -> nTaskMap[taskId]?.projekt = projekt }
                 projectChangesSincePublish = mutableMapOf()

@@ -62,7 +62,7 @@ open class I18nCustomerNextRest {
     fun getOverrides(
         @RequestParam("locale", required = false) locale: String?,
     ): Map<String, String> {
-        val effectiveLocale = locale?.takeIf { it.isNotBlank() }?.let { Locale(it) }
+        val effectiveLocale = locale?.takeIf { it.isNotBlank() }?.let { Locale.of(it) }
             ?: ThreadLocalUserContext.locale
         return i18nService.getCustomerI18nOverrides(effectiveLocale)
     }

@@ -91,7 +91,7 @@ class ChatRestTest : AbstractTestBase() {
         }
         assertEquals(
             listOf(getUserId(TEST_USER), getUserId(TEST_USER2)).sorted(),
-            chatRest.members(result.conversationId!!).map { it.id }.sorted(),
+            chatRest.members(result.conversationId).map { it.id }.sorted(),
             "the owner and the users, the logged-in user included",
         )
         suppressErrorLogs {
@@ -105,14 +105,14 @@ class ChatRestTest : AbstractTestBase() {
 
         logon(TEST_USER2)
         assertFalse(chatRoomRest.get(result.id).canEdit)
-        assertFalse(chatRest.getConversation(result.conversationId!!).isModerator)
+        assertFalse(chatRest.getConversation(result.conversationId).isModerator)
         suppressErrorLogs {
             assertThrows(AccessException::class.java) { chatRoomRest.save(room.also { it.name = "taken over" }) }
             logon(TEST_FINANCE_USER)
             assertThrows(AccessException::class.java) { chatRoomRest.get(result.id) }
             assertTrue(chatRoomRest.list().none { it.id == result.id })
-            assertThrows(AccessException::class.java) { chatRest.getConversation(result.conversationId!!) }
-            assertThrows(AccessException::class.java) { chatRest.members(result.conversationId!!) }
+            assertThrows(AccessException::class.java) { chatRest.getConversation(result.conversationId) }
+            assertThrows(AccessException::class.java) { chatRest.members(result.conversationId) }
         }
     }
 
@@ -158,19 +158,19 @@ class ChatRestTest : AbstractTestBase() {
         val original = chatRest.send(conversationId, ChatSendRequest(html = "<p>the <b>original</b></p>"))
         val quoting = chatRest.send(conversationId, ChatSendRequest(html = "<p>agreed</p>", quotedMessageId = original.id))
         assertEquals(original.id, quoting.quote!!.id)
-        assertEquals("the original", quoting.quote!!.excerpt)
-        assertEquals(getUserId(TEST_USER2), quoting.quote!!.author.id)
+        assertEquals("the original", quoting.quote.excerpt)
+        assertEquals(getUserId(TEST_USER2), quoting.quote.author.id)
         assertNull(original.quote)
 
         logon(TEST_USER)
         chatRest.hide(original.id, ChatHideRequest(true, "spam"))
         val seenByModerator = chatRest.getMessages(conversationId, null, null).messages.single { it.id == quoting.id }
         assertEquals("the original", seenByModerator.quote!!.excerpt, "moderators see the content")
-        assertTrue(seenByModerator.quote!!.hidden)
+        assertTrue(seenByModerator.quote.hidden)
         logon(TEST_USER2)
         val seenByMember = chatRest.getChanges(conversationId, 0).messages.single { it.id == quoting.id }
         assertTrue(seenByMember.quote!!.hidden)
-        assertNull(seenByMember.quote!!.excerpt, "no content of a hidden message in a quote")
+        assertNull(seenByMember.quote.excerpt, "no content of a hidden message in a quote")
 
         logon(TEST_USER)
         chatRest.hide(original.id, ChatHideRequest(false, null))
@@ -178,7 +178,7 @@ class ChatRestTest : AbstractTestBase() {
         chatRest.delete(original.id)
         val deleted = chatRest.getMessages(conversationId, null, null).messages.single { it.id == quoting.id }
         assertTrue(deleted.quote!!.deleted)
-        assertNull(deleted.quote!!.excerpt)
+        assertNull(deleted.quote.excerpt)
     }
 
     @Test

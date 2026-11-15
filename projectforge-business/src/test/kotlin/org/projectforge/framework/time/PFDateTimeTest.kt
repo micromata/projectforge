@@ -136,12 +136,12 @@ class PFDateTimeTest {
     @Test
     fun weekOfYearTest() {
         val storedDefaultLocale = ConfigurationServiceAccessor.get().defaultLocale
-        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("de", "DE"))
+        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale.of("de", "DE"))
         PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
 
         checkISOWeeks()
 
-        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale("en", "US"))
+        ConfigurationServiceAccessor.internalSetLocaleForJunitTests(Locale.of("en", "US"))
         PFDay.resetWeekFieldsForTest() // Force recalculation of weekFields
         // US weeks:
         var dateTime = PFDateTimeUtils.parseAndCreateDateTime("2020-12-31 10:00")

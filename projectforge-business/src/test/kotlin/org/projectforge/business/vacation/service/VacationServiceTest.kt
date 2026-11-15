@@ -670,13 +670,13 @@ class VacationServiceTest : AbstractTestBase() {
         val end = LocalDate.of(2021, Month.MARCH, 31)
         Assertions.assertEquals(
             listOf(VacationStatus.APPROVED),
-            vacationService.getVacationsListForPeriod(employee.id, begin, end, status = *arrayOf(VacationStatus.APPROVED))
+            vacationService.getVacationsListForPeriod(employee.id, begin, end, status = arrayOf(VacationStatus.APPROVED))
                 .map { it.status },
         )
         Assertions.assertEquals(
             setOf(VacationStatus.APPROVED, VacationStatus.REJECTED),
             vacationService.getVacationsListForPeriod(
-                employee.id, begin, end, status = *arrayOf(VacationStatus.APPROVED, VacationStatus.REJECTED)
+                employee.id, begin, end, status = arrayOf(VacationStatus.APPROVED, VacationStatus.REJECTED)
             ).map { it.status }.toSet(),
         )
     }

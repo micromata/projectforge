@@ -108,7 +108,7 @@ class ChatDirectTest : AbstractTestBase() {
             .single()
         assertEquals(NotificationDisplay.BANNER, notification.display)
         assertTrue(notification.title!!.startsWith(getUser("chatDirect-1").getFullname()), notification.title)
-        assertFalse(notification.body.orEmpty().contains(getUser("chatDirect-1").getFullname()!!), "Not repeating the title.")
+        assertFalse(notification.body.orEmpty().contains(getUser("chatDirect-1").getFullname()), "Not repeating the title.")
         assertEquals("<p>${I18nHelper.getLocalizedMessage(getUser("chatDirect-2"), "chat.notification.read")}</p>", notification.body, "Without the content: the hint only.")
 
         assertEquals(0, chatDirectService.countUnread(user2), "own message")

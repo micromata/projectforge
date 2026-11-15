@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.sql.Connection
 
 private val log = KotlinLogging.logger {}
 
@@ -285,7 +286,7 @@ open class PfPersistenceService {
         try {
             // One statement for all settings: a single round trip per context.
             val sql = "select " + settings.joinToString(", ") { "set_config(?, ?, true)" }
-            context.em.unwrap(Session::class.java).doWork { connection ->
+            context.em.unwrap(Session::class.java).doWork { connection: Connection ->
                 connection.prepareStatement(sql).use { statement ->
                     settings.forEachIndexed { index, (name, value) ->
                         statement.setString(2 * index + 1, name)

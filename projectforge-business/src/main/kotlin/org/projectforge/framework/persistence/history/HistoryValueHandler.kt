@@ -219,7 +219,7 @@ class ByteArrayHistoryValueHandler : HistoryValueHandler<ByteArray> {
 
 class LocaleHistoryValueHandler : HistoryValueHandler<Locale> {
     override fun deserialize(value: String): Locale? {
-        return Locale(value)
+        return Locale.of(value)
     }
 
     override fun format(value: Locale): String {

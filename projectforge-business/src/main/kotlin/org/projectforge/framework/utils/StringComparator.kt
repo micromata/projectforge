@@ -42,7 +42,7 @@ object StringComparator {
         Collator.getInstance(locale)
     }
 
-    private val german = Locale("de")
+    private val german = Locale.of("de")
     
     /**
      * Using ascending order.

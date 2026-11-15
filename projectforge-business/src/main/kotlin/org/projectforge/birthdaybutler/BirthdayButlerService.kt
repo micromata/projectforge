@@ -113,7 +113,7 @@ class BirthdayButlerService {
             var locale = ThreadLocalUserContext.getLocale(null)
             birthdayButlerConfiguration.locale?.let {
                 if (it.isNotBlank()) {
-                    locale = Locale(it)
+                    locale = Locale.of(it)
                 }
             }
             val month = PFDateTime.now().plusMonths(1).month // Use next month.

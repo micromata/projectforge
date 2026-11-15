@@ -32,8 +32,12 @@ tasks.withType<KotlinCompile> {
     }
 }*/
 
-tasks.withType<Test> {
+// Mockito as java agent instead of self-attaching at runtime (dynamic agent loading will be disallowed by the JDK).
+val mockitoAgent = configurations.create("mockitoAgent")
+
+tasks.withType<Test>().configureEach {
     useJUnitPlatform() // JUnit Jupiter
+    jvmArgs("-javaagent:${mockitoAgent.asPath}")
 }
 
 tasks.withType<Javadoc>() {
@@ -62,4 +66,5 @@ dependencies {
     testImplementation(libs.findLibrary("org-junit-jupiter-api").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-engine").get())
     testImplementation(libs.findLibrary("org-junit-platform-launcher").get())
+    mockitoAgent(libs.findLibrary("org-mockito-core").get()) { isTransitive = false }
 }
