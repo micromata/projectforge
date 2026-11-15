@@ -7074,7 +7074,7 @@
         "tooltip": "Entfernt den Parameter aus der projectforge.properties, sodass wieder der Standardwert gilt."
       },
       "restartRequired": "Änderungen werden erst nach einem Neustart von ProjectForge wirksam!",
-      "search": "Schlüssel oder Beschreibung suchen",
+      "search": "Schlüssel, Wert oder Beschreibung suchen",
       "secret": {
         "notSet": "Nicht gesetzt",
         "set": "Gesetzt (der Wert wird nicht angezeigt)"

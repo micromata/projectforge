@@ -7074,7 +7074,7 @@
         "tooltip": "Removes the parameter from projectforge.properties, so the default applies again."
       },
       "restartRequired": "Changes take effect only after a restart of ProjectForge!",
-      "search": "Search key or description",
+      "search": "Search key, value or description",
       "secret": {
         "notSet": "Not set",
         "set": "Set (the value is not shown)"

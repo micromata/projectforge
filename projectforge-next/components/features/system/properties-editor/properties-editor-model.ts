@@ -116,10 +116,16 @@ export function withAddedParams(
 function matchesQuery(
   param: PropertyParam,
   blockDescription: string | null | undefined,
-  words: string[]
+  words: string[],
+  edit: PropertyEdit | undefined
 ): boolean {
+  // The backend sends no value of a secret; a new one typed in isn't searchable either.
   const text = [
     param.key,
+    param.secret ? null : currentValue(param, edit),
+    param.defaultValue,
+    param.example,
+    param.activeValue,
     param.description,
     blockDescription,
     param.fileComment,
@@ -149,7 +155,12 @@ export function filterGroups(
               (!filter.onlyModified ||
                 isEffectiveEdit(param, edits[param.key])) &&
               (words.length === 0 ||
-                matchesQuery(param, block.description, words) ||
+                matchesQuery(
+                  param,
+                  block.description,
+                  words,
+                  edits[param.key]
+                ) ||
                 group.title.toLowerCase().includes(words.join(" ")))
           ),
         }))
