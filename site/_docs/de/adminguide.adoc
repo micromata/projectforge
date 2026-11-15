@@ -219,13 +219,16 @@ https://github.com/micromata/projectforge/blob/master/projectforge-business/src/
 [[properties_editor]]
 ==== Properties-Editor
 
-Administratoren bearbeiten die `projectforge.properties` auf der Seite *Administration -> System* (Menü
-_Konfiguration_ -> _Konfigurationsdatei_). Der Editor zeigt alle Parameter der `application.properties` nach Themen
+Administratoren bearbeiten die `projectforge.properties` direkt in ProjectForge: auf der Seite
+*Administration -> Konfiguration* (Schaltfläche _projectforge.properties_) oder auf der Seite *Administration -> System*
+(Menü _Konfiguration_). Der Editor zeigt alle Parameter der `application.properties` nach Themen
 gruppiert mit ihren Beschreibungen und Standardwerten. Parameter der eigenen Datei, die ProjectForge nicht kennt, sind
 gekennzeichnet: Die im Namensraum von ProjectForge (`projectforge.*`, `pf.*`) werden nicht mehr verwendet (oder sind
 vertippt) und stehen in der Gruppe _Nicht mehr verwendet_, wo sie sich auf einmal entfernen lassen; andere (z. B.
 Einstellungen von Spring Boot) in der Gruppe _Sonstige_. Passwörter, Schlüssel und Tokens werden nie angezeigt: Ein Geheimnis kann
 nur mit einem neuen Wert überschrieben werden.
+
+image::/uploads/adminguide/properties-editor.png[Properties-Editor]
 
 * Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt
   (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). Die Datei wird nach Gruppen sortiert geschrieben;
@@ -237,6 +240,12 @@ nur mit einem neuen Wert überschrieben werden.
   Verfügbarkeitstypen (`projectforge.availability.types`), der Mailserver (`mail.session.pfmailsession.*`), die
   Erwartungen an Rechnungen (`projectforge.fibu.invoices.*`) und der Verkäufer der E-Rechnungen
   (`projectforge.einvoice.seller.*`).
+* Zu jedem Parameter wird sein Standardwert angezeigt; _Auf Standard zurücksetzen_ entfernt ihn aus der Datei, sodass
+  wieder der Standardwert gilt.
+* _projectforge.properties vergleichen_ (neben dem Editor) vergleicht die aktuelle Datei mit ihren Sicherungskopien oder
+  zwei Sicherungskopien miteinander, z. B. um herauszufinden, was sich seit einem älteren Stand geändert hat.
+  Standardmäßig wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare übrig bleiben. Werte von
+  Secrets werden nicht angezeigt, nur ob sie sich geändert haben.
 * Ein Wert, den das laufende System anders verwendet (ein Neustart steht aus oder der Wert kommt aus
   einer Umgebungsvariablen oder der Kommandozeile), wird markiert.
 
