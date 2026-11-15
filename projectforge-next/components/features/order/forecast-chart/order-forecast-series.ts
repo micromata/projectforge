@@ -9,7 +9,7 @@ import {
 /**
  * The shaping of the forecast chart data (see `order-forecast-charts-view.tsx`) for its two charts, the
  * counterparts of sheet "Grafiken 1" of the forecast Excel export: the monthly stacked bars by position
- * status with the invoiced/plan/previous-year lines, and the cumulated curves.
+ * status with the forecast/plan/previous-year lines, and the cumulated curves.
  */
 
 /** The i18n keys of the position statuses, spelled out so the i18n key scanner finds them. */
@@ -62,11 +62,14 @@ export function monthlyBarKeys(
   ];
 }
 
-/** The line keys of the monthly chart; the plan only if one was calculated. */
+/**
+ * The line keys of the monthly chart: the forecast (invoiced plus remaining forecast, the top of the stacked
+ * bars), the plan only if one was calculated, and the previous years.
+ */
 export function monthlyLineKeys(data: ForecastChartData): SeriesKey[] {
   return data.plan
-    ? ["plan", "prevYear", "prevPrevYear"]
-    : ["prevYear", "prevPrevYear"];
+    ? ["total", "plan", "prevYear", "prevPrevYear"]
+    : ["total", "prevYear", "prevPrevYear"];
 }
 
 /** The line keys of the cumulated chart; the plan only if one was calculated. */
@@ -97,7 +100,7 @@ export function buildForecastChartConfig(
     color: SERIES_COLORS.ist,
   };
   config.total = {
-    label: t("fibu.auftrag.forecast.chart.total"),
+    label: t("fibu.auftrag.forecast.chart.totalLegend"),
     color: SERIES_COLORS.total,
   };
   config.plan = {
@@ -128,6 +131,7 @@ export function monthlyRows(
       }
     });
     row.ist = data.ist[i] ?? 0;
+    row.total = data.total[i] ?? 0;
     row.prevYear = data.prevYear[i] ?? 0;
     row.prevPrevYear = data.prevPrevYear[i] ?? 0;
     if (data.plan) {

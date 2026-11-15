@@ -3,13 +3,19 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.11",
-    "date" : "2026-11-13",
+    "date" : "2026-11-15",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
       "items" : [ {
         "title" : "Geteilte Kosten: die Stunden von Zeitberichten, die sich mit anderen überlappen (nur bei geteilten Kosten möglich)",
         "items" : [ "Zeitberichtsliste: in der Statistik, absolut und als Anteil an der Gesamtdauer.", "Monatsbericht: in der Statistik und als eigene Spalte je Kostenträger, mit Summe." ]
+      } ]
+    }, {
+      "type" : "improved",
+      "items" : [ {
+        "title" : "Auftragsstatistik",
+        "items" : [ "Die Monatswerte zeigen auch den Forecast des aktuellen Jahres als blaue Linie." ]
       } ]
     }, {
       "type" : "fixed",

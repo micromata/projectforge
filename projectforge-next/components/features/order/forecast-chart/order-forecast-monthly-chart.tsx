@@ -30,8 +30,9 @@ import {
 
 /**
  * The monthly forecast ('Umsatzprognose Monatswerte' of the Excel export, in its colours): the remaining
- * forecast of each position status and the invoiced sums (IST) as stacked, outlined bars, with the plan (if
- * a planning date is set) and the invoiced sums of the two previous years as lines.
+ * forecast of each position status and the invoiced sums (IST) as stacked, outlined bars, with the forecast
+ * of the current year (invoiced plus remaining forecast, blue), the plan (if a planning date is set) and the
+ * invoiced sums of the two previous years as lines.
  */
 export function OrderForecastMonthlyChart({
   data,
