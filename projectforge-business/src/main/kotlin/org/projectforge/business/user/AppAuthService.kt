@@ -233,6 +233,10 @@ class AppAuthService {
      * mail never fails the login.
      */
     private fun sendConnectedMail(user: PFUserDO, device: AppDeviceDO) {
+        if (user.email.isNullOrBlank()) {
+            log.info { "No mail about the new app device #${device.id} of user #${user.id}: the user has no e-mail address." }
+            return
+        }
         try {
             val mail = Mail()
             val locale = UserLocale.determineUserLocale(user)
