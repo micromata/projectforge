@@ -300,7 +300,8 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         addressbookList.forEach { ab ->
             val addressBook = addressbookCache.getAddressbook(ab)
             if (addressBook == null) {
-                log.error("Addressbook not found: $ab")
+                // A deleted address book (the cache holds only the non-deleted ones), e.g. of a deleted address.
+                log.debug("Addressbook not found: $ab")
                 return@forEach // Skip this addressbook.
             }
             when (operationType) {
