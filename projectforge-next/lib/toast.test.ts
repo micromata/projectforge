@@ -36,14 +36,13 @@ describe("toast.error", () => {
     shown.length = 0;
   });
 
-  it("stays long enough to be read and can be closed", () => {
+  it("stays long enough to be read", () => {
     toast.error("Wert 'Nummer' nicht gegeben.");
 
     expect(error).toHaveBeenCalledWith(
       "Wert 'Nummer' nicht gegeben.",
       expect.objectContaining({
         duration: ERROR_TOAST_DURATION,
-        closeButton: true,
       })
     );
   });

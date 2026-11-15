@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { cancelJob, fetchJobs, type JobInfo } from "@/lib/rs/jobs";
+import { NotificationCloseButton } from "@/components/shared/notifications/notification-close-button";
 import { JobProgress } from "./job-progress";
 
 /**
@@ -16,8 +17,18 @@ import { JobProgress } from "./job-progress";
  *
  * Everything but the cancel button is text the server already translated: `title` names the job, the
  * bar and the counters below it are JobProgress.
+ *
+ * `onClose` only hides the toast, it doesn't stop the job (that is the cancel button): the result still
+ * comes as a toast of its own once the job is over (showJobResult). Without it there is no close button
+ * (the import page shows the progress inline, not as a toast).
  */
-export function JobProgressToast({ initialJob }: { initialJob: JobInfo }) {
+export function JobProgressToast({
+  initialJob,
+  onClose,
+}: {
+  initialJob: JobInfo;
+  onClose?: () => void;
+}) {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const [cancelling, setCancelling] = useState(false);
@@ -57,6 +68,11 @@ export function JobProgressToast({ initialJob }: { initialJob: JobInfo }) {
           >
             {t("cancel")}
           </Button>
+        )}
+        {/* Sonner gives a custom toast no close button of its own, and this one stays until the job is
+            over — possibly minutes in front of what it covers. */}
+        {onClose && (
+          <NotificationCloseButton onClose={onClose} className="-my-1 -mr-2" />
         )}
       </div>
       <JobProgress job={job} />
