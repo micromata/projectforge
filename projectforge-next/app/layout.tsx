@@ -74,9 +74,13 @@ export default function RootLayout({
                     Radix modal sets `body { pointer-events: none }` (react-dismissable-layer), which
                     would otherwise swallow the toast's close button and let the click fall through to
                     the overlay behind it — closing the dialog while the toast stayed (see
-                    EntityEditModal's onInteractOutside, which then keeps the dialog open). */}
+                    EntityEditModal's onInteractOutside, which then keeps the dialog open).
+                    `closeButton` for every toast, the short ones too: top right, a "saved" covers the
+                    title-row buttons and menus beneath it for seconds. Custom toasts (jobs, notifications)
+                    don't get sonner's button and bring their own. */}
                 <Toaster
                   richColors
+                  closeButton
                   position="top-right"
                   visibleToasts={5}
                   toastOptions={{ className: "pointer-events-auto" }}
