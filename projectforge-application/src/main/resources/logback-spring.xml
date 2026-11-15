@@ -2,6 +2,8 @@
 <configuration>
     <!-- Hikari's leak warnings for Hibernate Search's long running mass indexer threads are false positives. -->
     <turboFilter class="org.projectforge.common.logging.MassIndexingLeakWarningFilter"/>
+    <!-- HSQLDB's "no data" warnings for migration statements touching no row (fresh installation) are harmless. -->
+    <turboFilter class="org.projectforge.common.logging.FlywayNoDataWarningFilter"/>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <property name="LOG_HOME" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
