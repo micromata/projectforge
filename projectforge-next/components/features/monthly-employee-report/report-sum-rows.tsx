@@ -11,6 +11,7 @@ import type { MonthlyReport } from "./types";
 /**
  * The footer sum rows of the matrix: the net total (red), the gross total (only when it differs from the
  * net) and the time saved by AI (only when some non-zero saving exists), mirroring the legacy page's three closing rows.
+ * The shared cost column (only when some booked hours overlap) carries its total in the net row.
  * Clicking the net total drills down into the time sheet list filtered by the reported user and the month
  * range only (no cost unit / task) — all of the user's sheets for the displayed month; clicking a single
  * week cell of that row narrows the window to just the week.
@@ -40,6 +41,7 @@ export function ReportSumRows({ report }: { report: MonthlyReport }) {
         perWeek={report.weeks.map((w) => w.totalDuration)}
         sum={report.totalNetDuration}
         sumClassName="font-bold text-destructive"
+        sharedCost={report.totalSharedCostDuration ?? ""}
         onClick={() => drillDownAll()}
         onWeekClick={drillDownAll}
       />
@@ -76,6 +78,7 @@ function SumRow({
   sum,
   sumClassName,
   trailing,
+  sharedCost,
   accent,
   onClick,
   onWeekClick,
@@ -88,6 +91,8 @@ function SumRow({
   sumClassName: string;
   /** The value of the trailing AI column; when omitted it repeats the net total there, as the legacy page. */
   trailing?: string;
+  /** The value of the shared cost column (only the net row has one). */
+  sharedCost?: string;
   /** Whether the whole row carries the AI (purple) accent. */
   accent?: boolean;
   /** When set, the row is clickable and drills down (net total → all of the user's sheets for the month). */
@@ -131,6 +136,11 @@ function SumRow({
       {report.hasTimeSavingsByAI && (
         <TableCell className={cn("text-right tabular-nums", sumClassName)}>
           {trailing ?? report.totalTimeSavedByAI}
+        </TableCell>
+      )}
+      {report.hasSharedCosts && (
+        <TableCell className="text-right font-bold tabular-nums text-shared-cost">
+          {sharedCost}
         </TableCell>
       )}
     </TableRow>

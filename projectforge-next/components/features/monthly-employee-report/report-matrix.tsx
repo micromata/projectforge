@@ -1,8 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert02Icon } from "@hugeicons/core-free-icons";
 import {
   Table,
   TableBody,
@@ -14,6 +12,7 @@ import {
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { monthlyReportDrillDownHref } from "@/lib/timesheet-links";
+import { ReportLabelCells } from "./report-label-cells";
 import { ReportSumRows } from "./report-sum-rows";
 import type {
   MonthlyReport,
@@ -24,7 +23,8 @@ import type {
 
 /**
  * The report matrix: rows are cost units / tasks, columns the calendar weeks, plus a monthly sum and — when
- * some non-zero saving exists — the time saved by AI. A data row drills down into the time sheet list filtered by the reported
+ * some non-zero saving exists — the time saved by AI and — when some booked hours overlap other time
+ * sheets (shared costs) — those hours. A data row drills down into the time sheet list filtered by the reported
  * user, the exact cost unit (or task) and the month range; clicking a single week cell narrows that window
  * to just the week (see lib/timesheet-links.ts).
  */
@@ -89,6 +89,11 @@ export function ReportMatrix({ report }: { report: MonthlyReport }) {
                 {t("timesheet.ai.timeSavedByAI._")}
               </TableHead>
             )}
+            {report.hasSharedCosts && (
+              <TableHead className="text-right">
+                {t("fibu.kost2.sharedCost._")}
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -98,7 +103,7 @@ export function ReportMatrix({ report }: { report: MonthlyReport }) {
               className="cursor-pointer"
               onClick={() => drillDown(row)}
             >
-              <LabelCells row={row} />
+              <ReportLabelCells row={row} />
               {row.perWeek.map((cell, j) => (
                 <TableCell
                   key={j}
@@ -133,59 +138,16 @@ export function ReportMatrix({ report }: { report: MonthlyReport }) {
                   {row.aiTimeSavings}
                 </TableCell>
               )}
+              {report.hasSharedCosts && (
+                <TableCell className="text-right tabular-nums text-shared-cost">
+                  {row.sharedCostDuration}
+                </TableCell>
+              )}
             </TableRow>
           ))}
           <ReportSumRows report={report} />
         </TableBody>
       </Table>
     </div>
-  );
-}
-
-/** The one-to-four label columns of a data row (see the legacy page's addLabelCols). */
-function LabelCells({ row }: { row: MonthlyReportRow }) {
-  const t = useTranslations();
-  if (row.type !== "kost2") {
-    // A task or the pseudo task ("******"): the label takes all four columns.
-    if (!row.missingKost2) {
-      return <TableCell colSpan={4}>{row.label}</TableCell>;
-    }
-    // Booked without Kost2 while the db-param asks to report such sheets. The row is itself actionable
-    // (drill-down), so openOnTap is left off (see HintTooltip).
-    return (
-      <TableCell colSpan={4}>
-        <HintTooltip
-          text={t("fibu.monthlyEmployeeReport.missingKost2.tooltip")}
-          plain
-        >
-          <span className="flex items-center gap-1.5">
-            <HugeiconsIcon
-              icon={Alert02Icon}
-              size={16}
-              className="shrink-0 text-warning"
-              aria-label={t("fibu.monthlyEmployeeReport.missingKost2._")}
-            />
-            <span>{row.label}</span>
-          </span>
-        </HintTooltip>
-      </TableCell>
-    );
-  }
-  return (
-    <>
-      <TableCell className="whitespace-nowrap tabular-nums">
-        {row.label}
-      </TableCell>
-      {row.project != null ? (
-        <>
-          <TableCell>{row.customer}</TableCell>
-          <TableCell>{row.project}</TableCell>
-        </>
-      ) : (
-        // No project: the cost unit's description takes the customer+project span.
-        <TableCell colSpan={2}>{row.description}</TableCell>
-      )}
-      <TableCell>{row.kost2Art}</TableCell>
-    </>
   );
 }
