@@ -12,6 +12,9 @@
         "items" : [ "Time sheet list: in the statistics, absolute and as a share of the total duration.", "Monthly employee report: in the statistics and as a column of their own per cost unit, with their total." ]
       } ]
     }, {
+      "type" : "improved",
+      "items" : [ "Availability entries: the types are shown in the user's language. They are configured as codes now (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), the texts of existing entries are converted. Installations with their own list switch it to the codes; an own code gets its texts in CustomerI18nResources (`availability.types.code`), any other value is shown as entered." ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Merlin",

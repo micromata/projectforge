@@ -34,6 +34,7 @@ import org.projectforge.business.availability.AvailabilityLocation
 import org.projectforge.business.availability.AvailabilityConflictsFilter
 import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.availability.ConflictingAvailabilitiesCache
+import org.projectforge.business.availability.translateAvailabilityType
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.service.VacationService
@@ -135,14 +136,14 @@ class AvailabilityEntityRest :
     )
 
     /**
-     * Status and location are shown translated: sorted as displayed, not by the enum's name. The working days are
+     * Type, status and location are shown translated: sorted as displayed, not by the enum's name or the code. The working days are
      * computed from the period. The type and the begin as shown, too: the order of the database would reveal the types
      * hidden from the viewer ([AvailabilityDao.afterLoad]) and the real begin of an entry clipped for the viewer
      * ([AbsenceService.shownTo]).
      */
     override val computedSortProperties: Map<String, (AvailabilityDO) -> Comparable<*>?>
         get() = mapOf(
-            "type" to { obj -> obj.type },
+            "type" to { obj -> translateAvailabilityType(obj.type) },
             "startDate" to { obj -> shown(obj).startDate },
             // Computed from the period shown, as the list shows them.
             "workingDaysFormatted" to { obj ->
@@ -288,6 +289,7 @@ class AvailabilityEntityRest :
         // The stored type is always offered, also one removed from the configuration meanwhile.
         availability.availableTypes = (availabilityConfig.getTypes() + listOfNotNull(obj.type?.takeIf { it.isNotBlank() }))
             .distinct()
+            .map { Availability.TypeOption(it, translateAvailabilityType(it) ?: it) }
     }
 
     /**

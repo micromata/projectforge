@@ -27,11 +27,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
- * Configuration for availability types. The types are configurable via application.properties.
+ * Configuration for availability types. The types are configurable via application.properties: codes, stored as such
+ * and shown in the user's language by the key `availability.types.<code>` (see [translateAvailabilityType]), e.g.
+ * of CustomerI18nResources for a code of an installation's own. A value without such a key is shown as given.
  */
 @Component
 open class AvailabilityConfig {
-    @Value("\${projectforge.availability.types:Elternzeit;Krankheit;Abwesenheit;Zeitausgleich;Mobile Tätigkeit;Workation}")
+    @Value("\${projectforge.availability.types:parentalLeave;sickness;absence;compensatoryTimeOff;mobileWork;workation}")
     private lateinit var typesString: String
 
     /**

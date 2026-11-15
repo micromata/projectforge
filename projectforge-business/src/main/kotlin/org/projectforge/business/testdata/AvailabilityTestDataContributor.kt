@@ -63,28 +63,28 @@ open class AvailabilityTestDataContributor : TestDataContributor {
         listOf(
             Entry(
                 "julia", ctx.week(2026, 10, 12), ctx.week(2026, 10, 16), AvailabilityStatus.REMOTE_REACHABLE,
-                "Workation", "Workation in Lisbon, reachable by chat and phone", AvailabilityLocation.REMOTE,
+                "workation", "Workation in Lisbon, reachable by chat and phone", AvailabilityLocation.REMOTE,
             ),
             Entry(
                 "ann", ctx.week(2026, 10, 15), ctx.week(2026, 10, 16), AvailabilityStatus.REACHABLE_IF_NEEDED,
-                "Zeitausgleich", "By phone if needed",
+                "compensatoryTimeOff", "By phone if needed",
             ),
             Entry(
                 "max", ctx.week(2026, 10, 21), ctx.week(2026, 10, 23), AvailabilityStatus.NOT_AVAILABLE,
-                "Abwesenheit", "Training in Berlin", internalComment = "Booked by HR, costs covered",
+                "absence", "Training in Berlin", internalComment = "Booked by HR, costs covered",
                 substitutes = listOf("alex"),
             ),
             Entry(
                 "joe", ctx.week(2026, 10, 26), ctx.week(2026, 10, 28), AvailabilityStatus.REACHABLE_IF_NEEDED,
-                "Abwesenheit", "Customer workshop at Alpine Insurance, Innsbruck", AvailabilityLocation.ON_SITE,
+                "absence", "Customer workshop at Alpine Insurance, Innsbruck", AvailabilityLocation.ON_SITE,
             ),
             Entry(
                 "max", ctx.week(2026, 11, 9), ctx.week(2026, 11, 13), AvailabilityStatus.REMOTE_REACHABLE,
-                "Workation", "Working from the Black Forest", AvailabilityLocation.REMOTE,
+                "workation", "Working from the Black Forest", AvailabilityLocation.REMOTE,
             ),
             Entry(
                 "chris", ctx.week(2026, 11, 23), ctx.week(2027, 1, 29), AvailabilityStatus.NOT_AVAILABLE,
-                "Elternzeit", "Parental leave, back at the end of January",
+                "parentalLeave", "Parental leave, back at the end of January",
                 internalComment = "Parental allowance applied for",
                 substitutes = listOf("max", "laura"),
             ),

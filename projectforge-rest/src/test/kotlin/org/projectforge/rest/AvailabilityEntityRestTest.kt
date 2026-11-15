@@ -96,7 +96,9 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
         assertEquals("internal", hrView.internalComment)
         assertTrue(hrView.internalCommentVisible == true && hrView.userEditable == true)
         // A type removed from the configuration meanwhile is still offered.
-        assertTrue(hrView.availableTypes!!.contains("Removed type"))
+        assertTrue(hrView.availableTypes!!.any { it.value == "Removed type" && it.label == "Removed type" })
+        // The configured codes in the user's language.
+        assertTrue(hrView.availableTypes!!.any { it.value == "workation" && it.label == "Workation" })
 
         logon(own)
         val ownView = item(entry.id!!)

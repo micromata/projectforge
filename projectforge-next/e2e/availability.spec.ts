@@ -224,7 +224,7 @@ test.describe("availability", () => {
         })
       ).json()) as {
         user?: { id: number; displayName?: string };
-        availableTypes?: string[];
+        availableTypes?: { value: string; label: string }[];
       };
     // The own user — also without an employee record (a freelancer), which the full access user may lack.
     const preset = await newEntry();
@@ -248,9 +248,11 @@ test.describe("availability", () => {
       .getByRole("combobox", { name: label(format, "availability.type") })
       .click();
     for (const type of types) {
-      await expect(page.getByRole("option", { name: type })).toBeVisible();
+      await expect(
+        page.getByRole("option", { name: type.label })
+      ).toBeVisible();
     }
-    await page.getByRole("option", { name: types[0] }).click();
+    await page.getByRole("option", { name: types[0].label }).click();
 
     const year = new Date().getFullYear() + 3;
     const start = page.getByLabel(label(format, "availability.startDate"), {

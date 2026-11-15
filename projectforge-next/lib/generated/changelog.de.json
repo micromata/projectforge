@@ -12,6 +12,9 @@
         "items" : [ "Zeitberichtsliste: in der Statistik, absolut und als Anteil an der Gesamtdauer.", "Monatsbericht: in der Statistik und als eigene Spalte je Kostenträger, mit Summe." ]
       } ]
     }, {
+      "type" : "improved",
+      "items" : [ "Verfügbarkeiten: Die Typen werden in der Sprache der Benutzer:innen angezeigt. Sie sind jetzt als Codes konfiguriert (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), die Texte bestehender Einträge werden umgestellt. Installationen mit eigener Liste stellen sie auf die Codes um; ein eigener Code bekommt seine Texte in CustomerI18nResources (`availability.types.code`), jeder andere Wert wird wie eingegeben angezeigt." ]
+    }, {
       "type" : "fixed",
       "items" : [ {
         "title" : "Merlin",
