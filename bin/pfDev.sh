@@ -603,7 +603,7 @@ release() {
       published=-PreleasePublished=false
     fi
   fi
-  # A published release ships the jar, which must contain the external plugins (e.g. the CVE-Clinic).
+  # A published release ships the jar, which must contain the external plugins (e.g. the CVE-Pilot).
   local is_published
   if [[ -n "$published" ]]; then
     [[ "$published" == *=true ]] && is_published=true || is_published=false

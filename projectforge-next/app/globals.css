@@ -477,7 +477,7 @@
   background-image: linear-gradient(var(--row-grey), var(--row-grey));
 }
 
-/* CVE-Clinic: an instance deviating from its system's baseline (INV-11) — another version, an added or a
+/* CVE-Pilot: an instance deviating from its system's baseline (INV-11) — another version, an added or a
  * missing technology, in the comparison matrix and wherever a deviation is marked. */
 .cve-deviation,
 .cve-matrix-version {

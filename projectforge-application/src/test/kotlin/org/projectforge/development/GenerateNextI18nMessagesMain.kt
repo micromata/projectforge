@@ -157,7 +157,7 @@ object GenerateNextI18nMessagesMain {
     // forecast tab and its two charts reference these; several keys are passed to t() as variables (chart
     // series, forecast field labels), so no scan finds them.
     "plugins.liquidityplanning.",
-    // CVE-Clinic prototype (components/features/cve-clinic/): read under the "plugins.cveradar" namespace, and
+    // CVE-Pilot prototype (components/features/cve-pilot/): read under the "plugins.cveradar" namespace, and
     // status, priority and role names are picked by value, so no scan finds them.
     "plugins.cveradar.",
     // System configuration (components/features/configuration/): the label and description of every

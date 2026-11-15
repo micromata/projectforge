@@ -485,23 +485,23 @@ object PageRoutes {
             editRoute = "skillentry/$ID_PLACEHOLDER",
             newEntryRoute = "skillentry/new",
         ),
-        // Hand built list and edit page of the cases of the CVE-Clinic (plugin cveradar, CvrCaseEntityRest,
-        // components/features/cve-clinic/cases), new in next: no legacy page, so no way back and no redirect
-        // (legacyApp = null). A row opens the closure overview (`cveclinic/closure/<id>`).
+        // Hand built list and edit page of the cases of the CVE-Pilot (plugin cveradar, CvrCaseEntityRest,
+        // components/features/cve-pilot/cases), new in next: no legacy page, so no way back and no redirect
+        // (legacyApp = null). A row opens the closure overview (`cvepilot/closure/<id>`).
         "cvrcase" to Page(
             route = "cvrcase",
             editRoute = "cvrcase/$ID_PLACEHOLDER",
             newEntryRoute = "cvrcase/new",
             legacyApp = null,
         ),
-        // The vulnerabilities imported from the NVD by the CVE-Clinic (plugin cveradar, CvrVulnerabilityEntityRest),
-        // listed on its start page (components/features/cve-clinic/vulnerabilities). A row opens the file of the
-        // vulnerability (`cveclinic/vulnerability/<id>`); new in next: no legacy page, so no way back and no redirect
+        // The vulnerabilities imported from the NVD by the CVE-Pilot (plugin cveradar, CvrVulnerabilityEntityRest),
+        // listed on its start page (components/features/cve-pilot/vulnerabilities). A row opens the file of the
+        // vulnerability (`cvepilot/vulnerability/<id>`); new in next: no legacy page, so no way back and no redirect
         // (legacyApp = null).
         "cvrvulnerability" to Page(
-            route = "cveclinic",
-            editRoute = "cveclinic/vulnerability/$ID_PLACEHOLDER",
-            newEntryRoute = "cveclinic/new",
+            route = "cvepilot",
+            editRoute = "cvepilot/vulnerability/$ID_PLACEHOLDER",
+            newEntryRoute = "cvepilot/new",
             legacyApp = null,
         ),
         // Hand built list and edit page of the memos (plugin memo, MemoEntityRest, components/features/memo), migrated

@@ -13,10 +13,16 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ {
+      "items" : [ "Availability entries: the types are shown in the user's language. They are configured as codes now (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), the texts of existing entries are converted. Installations with their own list switch it to the codes; an own code gets its texts in CustomerI18nResources (`availability.types.code`), any other value is shown as entered.", {
         "title" : "Order statistics",
         "items" : [ "The monthly values also show the forecast of the current year as a blue line." ]
-      }, "{app} When a page asks for a second factor, it can be confirmed in the browser, where WebAuthn (security key, passkey) works too; the page keeps what it had open.", "{app} Behind an SSO proxy, the app says when the proxy's login has expired and badges and notifications aren't updated, and offers to renew it." ]
+      }, {
+        "title" : "Merlin",
+        "items" : [ "The mapping of a dependent variable is edited in a table, one value per value of its master variable; a value may contain a comma.", "An empty value, or one with a semicolon or colon, no longer shifts the following values of a mapping." ]
+      }, "Properties editor: some parameters take effect on saving, without a restart, and are marked as \"live\": the logos and their height, the availability types, the mail server, the expectations of invoices and the seller of e-invoices. The default (or example) of a parameter can be copied to the clipboard.", "Every message box (toast) can be closed, including the ones closing by themselves after a few seconds and the progress of a running job, so they no longer cover buttons and menus.", "{app} When a page asks for a second factor, it can be confirmed in the browser, where WebAuthn (security key, passkey) works too; the page keeps what it had open.", "{app} Behind an SSO proxy, the app says when the proxy's login has expired and badges and notifications aren't updated, and offers to renew it." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "The CVE-Clinic is now called CVE-Pilot. Old links to its pages are redirected; the plugin id, settings (`projectforge.plugin.cveradar.*`) and database tables keep their names." ]
     }, {
       "type" : "fixed",
       "items" : [ {
@@ -25,7 +31,7 @@
       }, {
         "title" : "Scripts",
         "items" : [ "JFreeChart scripts run again in the release jar (the library was missing in the script class path).", "A chart produced by a script is shown directly on the output tab, the demo script draws a modern donut chart.", "The demo script \"Excel export of all user\" works again." ]
-      }, "{app} Behind an SSO proxy, a page no longer opens the proxy's login in the browser after the app was in the background for a long time." ]
+      }, "Excel export of outgoing invoices: the period of performance and the other fields of the invoice are back (missing since 9.0.0): type, customer reference, special features, payment terms, discount, currency, billing address, e-invoice data, id and last update.", "{app} Behind an SSO proxy, a page no longer opens the proxy's login in the browser after the app was in the background for a long time." ]
     } ]
   },
   "groups" : [ {

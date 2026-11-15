@@ -3815,9 +3815,9 @@
     "ruleName": "Regel",
     "ruleTypes": {
       "CREDITOR_INVOICES_DUE": "Fällige Kreditorenrechnungen",
-      "CVERADAR_FINDINGS": "Neue Befunde der CVE-Clinic",
-      "CVERADAR_STALE_LISTS": "Veraltete Bibliothekslisten der CVE-Clinic",
-      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unbeantwortete Teamabfragen eines Falls der CVE-Clinic",
+      "CVERADAR_FINDINGS": "Neue Befunde des CVE-Pilots",
+      "CVERADAR_STALE_LISTS": "Veraltete Bibliothekslisten des CVE-Pilots",
+      "CVERADAR_TEAM_CHECK_UNANSWERED": "Unbeantwortete Teamabfragen eines Falls des CVE-Pilots",
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
@@ -3865,7 +3865,7 @@
     "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
     "template": {
       "findingsSubject": "Mögliche Updates für eure Systeme",
-      "findingsText": "<p>Für ein System in eurer Verantwortung gibt es möglicherweise Updates. Details stehen im CVE-Clinic: [cvrListLink]</p>",
+      "findingsText": "<p>Für ein System in eurer Verantwortung gibt es möglicherweise Updates. Details stehen im CVE-Pilot: [cvrListLink]</p>",
       "staleListsSubject": "Bibliotheksliste möglicherweise veraltet",
       "staleListsText": "<p>Die Bibliotheksliste von [cvrStaleCount] Komponente(n) in eurer Verantwortung wurde zuletzt vor mehr als [cvrMaxAgeDays] Tagen aktualisiert. Neue Schwachstellen werden dann nicht erkannt. Bitte eine aktuelle Liste hochladen: [cvrListLink]</p><p>[cvrStaleList]</p>",
       "teamCheckUnansweredSubject": "Deine Antwort zu [cvrCaseCode] fehlt noch",
@@ -3895,7 +3895,7 @@
       "cvrStaleList": "Komponenten mit veralteter Liste (System, Instanz, Komponente, Tag der letzten Liste)",
       "cvrSystemList": "Betroffene Systeme (Anzahl Schwachstellen)",
       "cvrTeamCheckCount": "Anzahl der vom Empfänger nicht beantworteten Teamabfragen",
-      "cvrTeamCheckLink": "Link zur Teamabfrage (zu Mein CVE-Clinic, wenn es mehrere sind)",
+      "cvrTeamCheckLink": "Link zur Teamabfrage (zu Mein CVE-Pilot, wenn es mehrere sind)",
       "cvrTeamCheckList": "Vom Empfänger nicht beantwortete Teamabfragen (geprüftes Projekt oder System)",
       "cvrVulnerabilityCount": "Anzahl Schwachstellen",
       "cvrVulnerabilityList": "Schwachstellen (CVE, Schweregrad, Systeme und Instanzen, Technologie; ? nur möglich)",
@@ -4404,7 +4404,7 @@
         "OSV": "OSV-Ökosystemliste"
       },
       "chat": {
-        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Clinic mit. Bitte keine Details zu Projekten oder Systemen nennen, weder im Text noch in Anhängen (Screenshots, Logs, Konfigurationen): Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
+        "caseNotice": "Hier lesen alle mit Zugang zum CVE-Pilot mit. Bitte keine Details zu Projekten oder Systemen nennen, weder im Text noch in Anhängen (Screenshots, Logs, Konfigurationen): Die gehören in die Akte der Team-Prüfung, die nur die gefragte Gruppe, das Security-Team und der Security Officer sehen."
       },
       "clientAnswer": {
         "DONE": "Erledigt",
@@ -4903,7 +4903,7 @@
           "hint": "Die zu bestätigenden Maßnahmen, die offenen Prüfungen der eigenen Gruppen und die eigenen Geräte, wie der Log-Server sie meldet.",
           "noDevices": "Für dich sind keine Geräte gemeldet.",
           "teamChecks": "Prüfungen meiner Gruppen",
-          "title": "Mein CVE-Clinic"
+          "title": "Mein CVE-Pilot"
         },
         "nav": {
           "adhoc": "Ad-hoc-Prüfung",
@@ -4911,7 +4911,7 @@
           "catalog": "Technologien",
           "devices": "Geräte",
           "inventory": "Systeme",
-          "my": "Mein CVE-Clinic",
+          "my": "Mein CVE-Pilot",
           "prototype": "Demo",
           "vulnerabilities": "Schwachstellen"
         },
@@ -4948,7 +4948,7 @@
         "techMeasures": "Maßnahmen für Techies",
         "workaround": "Workaround"
       },
-      "menu": "CVE-Clinic",
+      "menu": "CVE-Pilot",
       "my": {
         "answeredByTeamCheck": "Deine Antwort zur Prüfung oben gilt zugleich als deine Antwort zu diesem Fall. Ist etwas unklar, kannst du hier nachfragen.",
         "confirm": {
@@ -5183,7 +5183,7 @@
         "teamcheck": "Mitglieder der geprüften Gruppe und das {arg1} antworten. Teamprüfungen anlegen und löschen nur das {arg1}."
       },
       "role": {
-        "CA": "CVE-Clinic-Admin",
+        "CA": "CVE-Pilot-Admin",
         "EMPLOYEE": "Mitarbeiter:in",
         "MG": "Geschäftsleitung",
         "SO": "Security Officer",
@@ -5292,7 +5292,7 @@
       },
       "start": {
         "demo": {
-          "hint": "Alle geplanten Funktionen der CVE-Clinic als klickbarer Prototyp mit fiktiven Testdaten.",
+          "hint": "Alle geplanten Funktionen des CVE-Pilots als klickbarer Prototyp mit fiktiven Testdaten.",
           "link": "Demo öffnen",
           "title": "Demo"
         },
@@ -5370,7 +5370,7 @@
       },
       "teamCheck": {
         "add": "Team-Prüfung anfordern",
-        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Clinic“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
+        "addInfo": "Die Gruppe prüft, ob das Projekt oder System betroffen ist, und antwortet wie beim Team-Feedback. Ihre Mitglieder finden die Prüfung unter „Mein CVE-Pilot“ („Prüfungen meiner Gruppen“); eine Benachrichtigung per Mail gibt es noch nicht, die Gruppe also bitte informieren.",
         "answer": "Antwort",
         "answerNow": "Jetzt antworten",
         "answeredBy": "Beantwortet von",
@@ -5411,7 +5411,7 @@
         "ECOSYSTEM": "Ökosystem",
         "PRODUCT": "Produkt"
       },
-      "title": "CVE-Clinic",
+      "title": "CVE-Pilot",
       "tree": {
         "collapse": "Zuklappen",
         "expand": "Aufklappen"
@@ -5918,7 +5918,8 @@
         "edit": "Variable bearbeiten",
         "mapping": {
           "_": "Zuordnung",
-          "info": "Die Zuordnung wird kommasepariert, z. B. eins, zwei, drei..."
+          "info": "Der Wert dieser Variablen zu jedem Wert ihrer Mastervariablen. Ein Wert darf ein Komma enthalten, er wird automatisch in Anführungszeichen gesetzt.",
+          "notWritable": "Ein Wert mit einem Trennzeichen (, ; :) oder einem Anführungszeichen am Anfang kann nicht zugleich einfache und doppelte Anführungszeichen enthalten."
         },
         "master": {
           "_": "Mastervariable",
@@ -7027,6 +7028,7 @@
         "key": "Schlüssel",
         "value": "Wert"
       },
+      "applied": "Die Änderungen sind sofort wirksam.",
       "backupInfo": "Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt (z. B. projectforge.properties.2026-10-20_09-30-15.bak). Die Datei wird nach Gruppen sortiert neu geschrieben; eigene Kommentare bleiben über ihrem Parameter.",
       "cardInfo": "Bearbeitet die Parameter der projectforge.properties im Home-Verzeichnis von ProjectForge: nach Themen gruppiert, mit Beschreibungen und Standardwerten.",
       "changeCount": "{arg0} geändert",
@@ -7044,6 +7046,7 @@
         "info": "Vergleicht die projectforge.properties mit ihren Sicherungskopien oder zwei Sicherungskopien miteinander. Werte von Secrets werden nicht angezeigt, nur ob sie sich geändert haben.",
         "title": "projectforge.properties vergleichen"
       },
+      "effectInfo": "Änderungen werden erst nach einem Neustart von ProjectForge wirksam, außer bei den Parametern mit „sofort wirksam“, die beim Speichern gelten.",
       "example": "Beispiel",
       "expertWarning": "Interne Einstellungen: Nur ändern, wenn genau klar ist, was sie bewirken. Ein falscher Wert kann den Start von ProjectForge verhindern.",
       "fileComment": "Eigener Kommentar in der projectforge.properties",
@@ -7056,6 +7059,10 @@
         "other": "Sonstige"
       },
       "inFileCount": "{arg0} gesetzt",
+      "live": {
+        "_": "sofort wirksam",
+        "tooltip": "Wird beim Speichern wirksam, ohne Neustart von ProjectForge."
+      },
       "noResults": "Keine Parameter gefunden.",
       "notWritable": "Die projectforge.properties existiert nicht oder kann nicht geschrieben werden (fehlende Schreibrechte für die Datei oder ihr Verzeichnis). Die Parameter werden nur lesend angezeigt.",
       "obsoleteInfo": "Im Namensraum von ProjectForge (projectforge.*, pf.*), wird aber von ProjectForge nicht (mehr) verwendet: eine entfallene Option oder ein Tippfehler. Der Parameter hat keine Wirkung.",
