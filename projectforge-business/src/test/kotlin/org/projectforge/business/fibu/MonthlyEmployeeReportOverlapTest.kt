@@ -124,6 +124,12 @@ class MonthlyEmployeeReportOverlapTest : AbstractTestBase() {
             )
             // The union of the two overlapping hours is one hour, so the net total must be 1h, not 2h.
             Assertions.assertEquals(HOUR, report.totalNetDuration, "Net total is the union (1h), not the sum (2h).")
+            // Shared costs are the overlapping time as booked, not split: both hours overlap, per row and in total.
+            Assertions.assertEquals(2 * HOUR, report.totalBookedDuration)
+            Assertions.assertEquals(2 * HOUR, report.totalSharedCostDuration)
+            Assertions.assertEquals(HOUR, report.kost2SharedCostDurations[kost2A.id])
+            Assertions.assertEquals(HOUR, report.kost2SharedCostDurations[kost2B.id])
+            Assertions.assertTrue(report.formattedSharedCostPercentage.startsWith("100"))
             null
         }
     }

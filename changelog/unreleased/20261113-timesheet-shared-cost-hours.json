@@ -1,0 +1,9 @@
+{
+  "type": "added",
+  "en": "Shared costs: the hours of time sheets overlapping other ones (only possible with shared costs)",
+  "de": "Geteilte Kosten: die Stunden von Zeitberichten, die sich mit anderen überlappen (nur bei geteilten Kosten möglich)",
+  "items": [
+    { "en": "Time sheet list: in the statistics, absolute and as a share of the total duration.", "de": "Zeitberichtsliste: in der Statistik, absolut und als Anteil an der Gesamtdauer." },
+    { "en": "Monthly employee report: in the statistics and as a column of their own per cost unit, with their total.", "de": "Monatsbericht: in der Statistik und als eigene Spalte je Kostenträger, mit Summe." }
+  ]
+}

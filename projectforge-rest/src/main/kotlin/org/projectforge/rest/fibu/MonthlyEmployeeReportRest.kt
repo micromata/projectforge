@@ -330,6 +330,9 @@ class MonthlyEmployeeReportRest {
                     perWeek = report.weeks.map { toCell(it.kost2Entries[kost2Id]) },
                     sum = total?.formattedDuration ?: "",
                     aiTimeSavings = total?.getFormattedTimeSavedByAI ?: "",
+                    sharedCostDuration = MonthlyEmployeeReport.getFormattedDuration(
+                        kost2Id?.let { report.kost2SharedCostDurations[it] } ?: 0L
+                    ),
                 )
             )
         }
@@ -348,6 +351,9 @@ class MonthlyEmployeeReportRest {
                     perWeek = report.weeks.map { toCell(it.taskEntries[taskId]) },
                     sum = total?.formattedDuration ?: "",
                     aiTimeSavings = total?.getFormattedTimeSavedByAI ?: "",
+                    sharedCostDuration = MonthlyEmployeeReport.getFormattedDuration(
+                        report.taskSharedCostDurations[taskId] ?: 0L
+                    ),
                     missingKost2 = warnMissingKost2 && !pseudo,
                 )
             )
@@ -399,6 +405,13 @@ class MonthlyEmployeeReportRest {
             totalGrossDuration = report.formattedTotalGrossDuration,
             totalTimeSavedByAI = report.formattedTotalTimeSavedByAI,
             timeSavedByAIPercentage = report.formattedTimeSavedByAIPercentage,
+            totalSharedCostDuration = if (report.totalSharedCostDuration > 0) {
+                report.formattedTotalSharedCostDuration
+            } else null,
+            sharedCostPercentage = if (report.totalSharedCostDuration > 0) {
+                report.formattedSharedCostPercentage
+            } else null,
+            hasSharedCosts = report.totalSharedCostDuration > 0,
             vacationAvailable = vacationAvailable,
             vacationCount = if (vacationAvailable) report.formattedVacationCount else null,
             vacationPlannedCount = if (vacationAvailable) report.formattedVacationPlandCount else null,

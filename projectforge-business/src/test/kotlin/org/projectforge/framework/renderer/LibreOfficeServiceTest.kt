@@ -25,7 +25,9 @@
 package org.projectforge.framework.renderer
 
 import org.apache.pdfbox.Loader
+import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.poi.xwpf.usermodel.XWPFDocument
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -68,9 +70,29 @@ class LibreOfficeServiceTest {
         }
     }
 
-    private fun createDocx(): ByteArray = ByteArrayOutputStream().use { baos ->
+    /**
+     * Skipped where LibreOffice isn't installed.
+     */
+    @Test
+    fun `several Word documents are converted in one run, in their order`() {
+        val service = LibreOfficeService(configurationService, null)
+        assumeTrue(service.isAvailable, "LibreOffice isn't installed.")
+        assertEquals(emptyList<ByteArray?>(), service.convertDocxToPdf(emptyList()))
+        val texts = listOf("Erstes Dokument", "Zweites Dokument", "Drittes Dokument")
+        val pdfs = service.convertDocxToPdf(texts.map { createDocx(it) })
+        assertNotNull(pdfs)
+        assertEquals(texts.size, pdfs!!.size)
+        pdfs.forEachIndexed { index, pdf ->
+            assertNotNull(pdf)
+            Loader.loadPDF(pdf!!).use { document ->
+                assertTrue(PDFTextStripper().getText(document).contains(texts[index]), "PDF #$index has '${texts[index]}'.")
+            }
+        }
+    }
+
+    private fun createDocx(text: String = "Stornorechnung"): ByteArray = ByteArrayOutputStream().use { baos ->
         XWPFDocument().use { doc ->
-            doc.createParagraph().createRun().setText("Stornorechnung")
+            doc.createParagraph().createRun().setText(text)
             doc.write(baos)
         }
         baos.toByteArray()
