@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.11",
-    "date" : "2026-11-13",
+    "date" : "2026-11-15",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Verfügbarkeiten: Die Typen werden in der Sprache der Benutzer:innen angezeigt. Sie sind jetzt als Codes konfiguriert (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), die Texte bestehender Einträge werden umgestellt. Installationen mit eigener Liste stellen sie auf die Codes um; ein eigener Code bekommt seine Texte in CustomerI18nResources (`availability.types.code`), jeder andere Wert wird wie eingegeben angezeigt." ]
+      "items" : [ "Verfügbarkeiten: Die Typen werden in der Sprache der Benutzer:innen angezeigt. Sie sind jetzt als Codes konfiguriert (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), die Texte bestehender Einträge werden umgestellt. Installationen mit eigener Liste stellen sie auf die Codes um; ein eigener Code bekommt seine Texte in CustomerI18nResources (`availability.types.code`), jeder andere Wert wird wie eingegeben angezeigt.", "Properties-Editor: Einige Parameter werden beim Speichern ohne Neustart wirksam und sind mit „sofort wirksam“ markiert: die Logos und ihre Höhe, die Verfügbarkeitstypen, der Mailserver, die Erwartungen an Rechnungen und der Verkäufer der E-Rechnungen. Der Standardwert (oder das Beispiel) eines Parameters lässt sich in die Zwischenablage kopieren." ]
     }, {
       "type" : "fixed",
       "items" : [ {

@@ -231,7 +231,12 @@ nur mit einem neuen Wert überschrieben werden.
   (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). Die Datei wird nach Gruppen sortiert geschrieben;
   eigene Kommentare bleiben über dem Parameter, über dem sie standen.
 * Die Beschreibungen enthalten Links auf die passenden Abschnitte dieses Handbuchs.
-* Änderungen werden erst nach einem Neustart von ProjectForge wirksam.
+* Änderungen werden erst nach einem Neustart von ProjectForge wirksam, außer bei den Parametern mit der Markierung
+  _sofort wirksam_: Diese gelten beim Speichern. Das sind die Logos und die Logohöhe (`projectforge.logoFile`,
+  `projectforge.logoFileDark`, `projectforge.logoHeight`, `projectforge.export.logoFile`, `wallet.logoFile`), die
+  Verfügbarkeitstypen (`projectforge.availability.types`), der Mailserver (`mail.session.pfmailsession.*`), die
+  Erwartungen an Rechnungen (`projectforge.fibu.invoices.*`) und der Verkäufer der E-Rechnungen
+  (`projectforge.einvoice.seller.*`).
 * Ein Wert, den das laufende System anders verwendet (ein Neustart steht aus oder der Wert kommt aus
   einer Umgebungsvariablen oder der Kommandozeile), wird markiert.
 

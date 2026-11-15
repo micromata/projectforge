@@ -32,8 +32,9 @@ import java.time.ZoneId
 
 /**
  * The properties editor (Administration → Properties editor): the known parameters of [PropertiesMetadata] with
- * the values of the admin's projectforge.properties and the values the running system uses. Changes take effect
- * only after a restart. Values of secrets ([PropertiesMetadata.isSecret]) never leave this service.
+ * the values of the admin's projectforge.properties and the values the running system uses. Changes of the parameters
+ * of a [ReloadableProperties] bean take effect on saving ([ProjectForgePropertiesReloader]), all others only after a
+ * restart. Values of secrets ([PropertiesMetadata.isSecret]) never leave this service.
  */
 @Service
 class ProjectForgePropertiesService {
@@ -42,6 +43,9 @@ class ProjectForgePropertiesService {
 
     @Autowired
     private lateinit var environment: ConfigurableEnvironment
+
+    @Autowired
+    private lateinit var reloader: ProjectForgePropertiesReloader
 
     class Data(
         val filePath: String,
@@ -81,6 +85,8 @@ class ProjectForgePropertiesService {
          * a restart is pending or the value is overridden, e.g. by an environment variable.
          */
         val activeDiffers: Boolean,
+        /** A change takes effect on saving, without a restart ([ReloadableProperties]). */
+        val live: Boolean,
     )
 
     private val metadata: PropertiesMetadata
@@ -139,6 +145,15 @@ class ProjectForgePropertiesService {
         return propertiesFile.save(changes, fileVersion)
     }
 
+    /** Whether a change of [key] takes effect on saving, see [applySaved]. */
+    fun isLive(key: String): Boolean = reloader.isLive(key)
+
+    /**
+     * Reloads the saved file, so the parameters of [isLive] take effect.
+     * @return false if they couldn't (see [ProjectForgePropertiesReloader.reload]): a restart is needed.
+     */
+    fun applySaved(): Boolean = reloader.reload(propertiesFile.file)
+
     /** A backup of projectforge.properties for the diff: [key] is its file name, [timestamp] in epoch millis. */
     class BackupData(val key: String, val timestamp: Long)
 
@@ -172,7 +187,7 @@ class ProjectForgePropertiesService {
     ): ParamData {
         val secret = param?.secret ?: PropertiesMetadata.isSecret(key)
         val fileValue = snapshot.values[key]
-        val activeValue = runCatching { environment.getProperty(key) }.getOrNull()
+        val activeValue = reloader.activeValue(key)
         val configuredValue = fileValue ?: param?.defaultValue
         val expectedActive = configuredValue?.let { runCatching { environment.resolvePlaceholders(it) }.getOrDefault(it) }
         val activeSource = if (activeValue != null) findSource(key) else null
@@ -192,6 +207,7 @@ class ProjectForgePropertiesService {
             activeValue = if (secret) null else activeValue,
             activeSource = activeSource,
             activeDiffers = (activeValue ?: "") != (expectedActive ?: ""),
+            live = reloader.isLive(key),
         )
     }
 

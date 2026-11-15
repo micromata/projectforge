@@ -7026,6 +7026,7 @@
         "key": "Schlüssel",
         "value": "Wert"
       },
+      "applied": "Die Änderungen sind sofort wirksam.",
       "backupInfo": "Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt (z. B. projectforge.properties.2026-10-20_09-30-15.bak). Die Datei wird nach Gruppen sortiert neu geschrieben; eigene Kommentare bleiben über ihrem Parameter.",
       "cardInfo": "Bearbeitet die Parameter der projectforge.properties im Home-Verzeichnis von ProjectForge: nach Themen gruppiert, mit Beschreibungen und Standardwerten.",
       "changeCount": "{arg0} geändert",
@@ -7043,6 +7044,7 @@
         "info": "Vergleicht die projectforge.properties mit ihren Sicherungskopien oder zwei Sicherungskopien miteinander. Werte von Secrets werden nicht angezeigt, nur ob sie sich geändert haben.",
         "title": "projectforge.properties vergleichen"
       },
+      "effectInfo": "Änderungen werden erst nach einem Neustart von ProjectForge wirksam, außer bei den Parametern mit „sofort wirksam“, die beim Speichern gelten.",
       "example": "Beispiel",
       "expertWarning": "Interne Einstellungen: Nur ändern, wenn genau klar ist, was sie bewirken. Ein falscher Wert kann den Start von ProjectForge verhindern.",
       "fileComment": "Eigener Kommentar in der projectforge.properties",
@@ -7055,6 +7057,10 @@
         "other": "Sonstige"
       },
       "inFileCount": "{arg0} gesetzt",
+      "live": {
+        "_": "sofort wirksam",
+        "tooltip": "Wird beim Speichern wirksam, ohne Neustart von ProjectForge."
+      },
       "noResults": "Keine Parameter gefunden.",
       "notWritable": "Die projectforge.properties existiert nicht oder kann nicht geschrieben werden (fehlende Schreibrechte für die Datei oder ihr Verzeichnis). Die Parameter werden nur lesend angezeigt.",
       "obsoleteInfo": "Im Namensraum von ProjectForge (projectforge.*, pf.*), wird aber von ProjectForge nicht (mehr) verwendet: eine entfallene Option oder ein Tippfehler. Der Parameter hat keine Wirkung.",

@@ -107,41 +107,52 @@ class LogoServiceRest {
     }
 
     companion object {
+        /**
+         * Rest url for downloading the logo if configured. Determined on every call, as `projectforge.logoFile` takes
+         * effect without a restart; the version parameter (the file's modification time) lets browsers load a changed
+         * logo instead of the cached one.
+         */
         @JvmStatic
-        val logoUrl: String? by lazy {// Rest url for downloading the logo if configured.
-            val configurationService =
-                ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-            configurationService.syntheticLogoName.also { url ->
-                if (url.isNullOrBlank() && !configurationService.isLogoFileValid) {
-                    log.error { "Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'." }
-                }
-            }
-        }
+        val logoUrl: String?
+            get() = configurationService.let { versionedUrl(it.syntheticLogoName, it.logoFileObject, it.isLogoFileValid) }
 
         /** Rest url for the optional dark-mode logo; null when no dark variant is configured. */
         @JvmStatic
-        val logoUrlDark: String? by lazy {
-            val configurationService =
-                ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
-            configurationService.syntheticLogoNameDark.also { url ->
-                if (url.isNullOrBlank() && !configurationService.isLogoFileDarkValid && logoFileDark != null) {
-                    log.error { "Dark logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFileDark)}'." }
-                }
+        val logoUrlDark: String?
+            get() = configurationService.let {
+                versionedUrl(it.syntheticLogoNameDark, it.logoFileObjectDark, it.isLogoFileDarkValid)
             }
-        }
 
         /** Configured height in px of the logo in the header; null where the client's default applies. */
         @JvmStatic
-        val logoHeight: Int? by lazy {
-            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoHeight
-        }
+        val logoHeight: Int?
+            get() = configurationService.logoHeight
 
-        private val logoFile: File? by lazy {
-            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoFileObject
-        }
+        private val logoFile: File?
+            get() = configurationService.logoFileObject
 
-        private val logoFileDark: File? by lazy {
-            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoFileObjectDark
+        private val logoFileDark: File?
+            get() = configurationService.logoFileObjectDark
+
+        private val configurationService: ConfigurationService
+            get() = ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
+
+        /** The last unreadable logo logged, so a broken configuration is logged once, not on every status request. */
+        @Volatile
+        private var loggedUnreadable: File? = null
+
+        private fun versionedUrl(url: String?, file: File?, valid: Boolean): String? {
+            if (url.isNullOrBlank() || file == null) {
+                return url
+            }
+            if (!valid) {
+                if (loggedUnreadable != file) {
+                    loggedUnreadable = file
+                    log.error { "Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(file)}'." }
+                }
+                return url
+            }
+            return "$url?v=${file.lastModified()}"
         }
     }
 }

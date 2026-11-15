@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.11",
-    "date" : "2026-11-13",
+    "date" : "2026-11-15",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Availability entries: the types are shown in the user's language. They are configured as codes now (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), the texts of existing entries are converted. Installations with their own list switch it to the codes; an own code gets its texts in CustomerI18nResources (`availability.types.code`), any other value is shown as entered." ]
+      "items" : [ "Availability entries: the types are shown in the user's language. They are configured as codes now (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), the texts of existing entries are converted. Installations with their own list switch it to the codes; an own code gets its texts in CustomerI18nResources (`availability.types.code`), any other value is shown as entered.", "Properties editor: some parameters take effect on saving, without a restart, and are marked as \"live\": the logos and their height, the availability types, the mail server, the expectations of invoices and the seller of e-invoices. The default (or example) of a parameter can be copied to the clipboard." ]
     }, {
       "type" : "fixed",
       "items" : [ {

@@ -7026,6 +7026,7 @@
         "key": "Key",
         "value": "Value"
       },
+      "applied": "The changes take effect immediately.",
       "backupInfo": "Before every save, a copy of the file with a timestamp is placed next to it (e.g. projectforge.properties.2026-10-20_09-30-15.bak). The file is rewritten sorted by groups; own comments stay above their parameter.",
       "cardInfo": "Edits the parameters of projectforge.properties in ProjectForge's home directory: grouped by topic, with descriptions and defaults.",
       "changeCount": "{arg0} changed",
@@ -7043,6 +7044,7 @@
         "info": "Compares projectforge.properties with its backups, or two backups with each other. Values of secrets are not shown, only whether they changed.",
         "title": "Compare projectforge.properties"
       },
+      "effectInfo": "Changes take effect only after a restart of ProjectForge, except for the parameters marked as \"live\", which apply on saving.",
       "example": "Example",
       "expertWarning": "Internal settings: only change them if you know exactly what you are doing. A wrong value may prevent ProjectForge from starting.",
       "fileComment": "Own comment in projectforge.properties",
@@ -7055,6 +7057,10 @@
         "other": "Other"
       },
       "inFileCount": "{arg0} set",
+      "live": {
+        "_": "live",
+        "tooltip": "Takes effect on saving, without a restart of ProjectForge."
+      },
       "noResults": "No parameters found.",
       "notWritable": "projectforge.properties doesn't exist or can't be written (missing write permission for the file or its directory). The parameters are shown read-only.",
       "obsoleteInfo": "In ProjectForge's namespace (projectforge.*, pf.*), but not known to ProjectForge (any more): a removed option or a typo. It has no effect.",

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { SYSTEM_STATUS_QUERY_KEY } from "@/hooks/use-system-status";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import {
   fetchPropertiesEditor,
@@ -49,6 +50,10 @@ export function usePropertiesEditor() {
   );
   const params = useMemo(() => allParams(groups), [groups]);
   const changes = useMemo(() => buildChanges(params, edits), [params, edits]);
+  // A change of a parameter not marked as live (the server decides finally, see PropertiesEditorRest.save).
+  const restartNeeded = changes.some(
+    (change) => !params.find((param) => param.key === change.key)?.live
+  );
   const visibleGroups = useMemo(
     () => filterGroups(groups, filter, edits),
     [groups, filter, edits]
@@ -67,6 +72,12 @@ export function usePropertiesEditor() {
       }
       if (res.success || res.conflict) {
         await queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      }
+      // A changed logo takes effect at once (ConfigurationService.reload): show it in this tab, too.
+      if (res.success) {
+        await queryClient.invalidateQueries({
+          queryKey: SYSTEM_STATUS_QUERY_KEY,
+        });
       }
     },
     onError: (err) =>
@@ -102,6 +113,7 @@ export function usePropertiesEditor() {
     setFilter,
     visibleGroups,
     changes,
+    restartNeeded,
     save: () => mutation.mutate(),
     saving: mutation.isPending,
   };
