@@ -31,6 +31,8 @@ interface TwoFactorFormProps {
   hint?: string | null;
   /** In-session 2FA: how fresh the factor must be (`expiryMillis` of the refused request). */
   expiryMillis?: number | null;
+  /** Start WebAuthn right away (default: in the login context only). */
+  autoStartWebAuthn?: boolean;
   onSuccess: (result: TwoFactorResult) => void;
   onCancel?: () => void;
 }
@@ -40,6 +42,7 @@ export function TwoFactorForm({
   methods,
   hint,
   expiryMillis,
+  autoStartWebAuthn = context === "login",
   onSuccess,
   onCancel,
 }: TwoFactorFormProps) {
@@ -164,7 +167,7 @@ export function TwoFactorForm({
         {methods.webAuthn && !inAppSession && (
           <WebAuthnButton
             context={context}
-            autoStart={context === "login"}
+            autoStart={autoStartWebAuthn}
             onSuccess={onSuccess}
             onError={setError}
           />

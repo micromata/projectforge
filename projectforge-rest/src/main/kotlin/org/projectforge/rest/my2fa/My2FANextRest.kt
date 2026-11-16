@@ -36,6 +36,7 @@ import org.projectforge.rest.pub.next.NextTwoFactorResult
 import org.projectforge.rest.pub.next.NextTwoFactorState
 import org.projectforge.rest.pub.next.NextTwoFactorSupport
 import org.projectforge.rest.pub.next.NextWebAuthnPostData
+import org.projectforge.security.My2FARequestConfiguration
 import org.projectforge.security.My2FAService
 import org.projectforge.security.dto.WebAuthnPublicKeyCredentialCreationOptions
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,6 +67,9 @@ open class My2FANextRest {
     @Autowired
     private lateinit var twoFactorSupport: NextTwoFactorSupport
 
+    @Autowired
+    private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
+
     /**
      * @param expiryMillis The expiry period of the protected action (only for the message shown to the user).
      */
@@ -83,6 +87,7 @@ open class My2FANextRest {
                 lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo(),
             ),
             expiryMessage = expiryMessage,
+            exempt = my2FARequestConfiguration.isExempt(ThreadLocalUserContext.loggedInUser?.username),
         )
     }
 

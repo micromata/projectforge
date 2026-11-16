@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readAppLoginParams } from "./app-login-params";
+import { isSecondFactorRenewal, readAppLoginParams } from "./app-login-params";
 
 /** base64url without padding, as the app packs it. */
 function pack(json: object): string {
@@ -81,5 +81,22 @@ describe("readAppLoginParams", () => {
         new URLSearchParams(`login=${pack({ deviceId: "x" })}`)
       )
     ).toMatchObject({ challenge: null, deviceId: null });
+  });
+});
+
+describe("isSecondFactorRenewal", () => {
+  const params = (query: string) =>
+    readAppLoginParams(new URLSearchParams(query));
+
+  it("is the renewal for a page: device and max age of the second factor", () => {
+    expect(isSecondFactorRenewal(params("deviceId=42&max2FAAge=60000"))).toBe(
+      true
+    );
+  });
+
+  it("asks the question for a new login and a plain renewal", () => {
+    expect(isSecondFactorRenewal(params("challenge=c&state=s"))).toBe(false);
+    expect(isSecondFactorRenewal(params("deviceId=42"))).toBe(false);
+    expect(isSecondFactorRenewal(params("max2FAAge=60000"))).toBe(false);
   });
 });

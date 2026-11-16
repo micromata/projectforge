@@ -135,6 +135,11 @@ class NextTwoFactorState(
      * Localized hint, why a 2FA is required now ("Your last check is older than ...").
      */
     val expiryMessage: String? = null,
+    /**
+     * The user is exempt from the second factor (app review, [org.projectforge.security.My2FARequestConfiguration]): there
+     * is none to show, next doesn't demand one.
+     */
+    val exempt: Boolean = false,
 )
 
 /**

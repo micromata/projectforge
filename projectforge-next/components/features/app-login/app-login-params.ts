@@ -55,6 +55,14 @@ export function readAppLoginParams(
   };
 }
 
+/**
+ * The app renews its login only for the second factor a page of its WebView asked for: the page asks directly for
+ * the second factor, whose success is the confirmation (no question "connect the app").
+ */
+export function isSecondFactorRenewal(params: AppLoginParams): boolean {
+  return params.deviceId != null && params.max2FAAgeMillis != null;
+}
+
 /** The json object of the packed parameter, null if there is none or it isn't readable. */
 function unpack(value: string | null): PackedLogin | null {
   if (!value) return null;

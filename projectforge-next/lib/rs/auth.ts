@@ -63,6 +63,8 @@ export interface TwoFactorResult {
 export interface TwoFactorState {
   methods: TwoFactorMethods;
   expiryMessage?: string | null;
+  /** The user is exempt from the second factor (app review): there is none to show. */
+  exempt?: boolean;
 }
 
 export interface PasswordResetState {

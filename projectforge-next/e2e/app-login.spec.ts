@@ -36,6 +36,23 @@ test.describe("App login", { tag: "@parallel" }, () => {
     ).toBeVisible();
   });
 
+  test("asks for the second factor itself when a page of the app needs one", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(
+      page,
+      `/appLogin?challenge=${CHALLENGE}&state=${STATE}&device=Test%20phone&platform=ios&deviceId=1&max2FAAge=60000`
+    );
+    await expect(
+      page.getByText(t("mobileApp.login.secondFactor", { arg0: "Test phone" }))
+    ).toBeVisible();
+    await expect(page.getByTestId("app-login-question")).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: t("mobileApp.login.connect") })
+    ).toHaveCount(0);
+  });
+
   test("reads the packed parameter, the only one an SSO proxy kept", async ({
     loggedInPage: page,
   }) => {

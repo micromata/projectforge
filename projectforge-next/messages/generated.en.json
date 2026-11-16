@@ -3625,6 +3625,8 @@
       "invalid": "The link of the app is invalid. Please start the login in the app again.",
       "question": "Should the ProjectForge app on the device \"{arg0}\" get access to your account?",
       "questionUnknownDevice": "Should the ProjectForge app get access to your account?",
+      "secondFactor": "Confirm the second factor for the ProjectForge app on the device \"{arg0}\".",
+      "secondFactorUnknownDevice": "Confirm the second factor for the ProjectForge app.",
       "title": "Connect the ProjectForge app",
       "warning": "Only confirm if you have just started the login in the app yourself."
     }

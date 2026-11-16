@@ -10,7 +10,8 @@ import { AuthCard } from "@/components/shared/auth-card";
 import { RsError } from "@/lib/rs/client";
 import { appCancelUrl, authorizeApp } from "@/lib/rs/app-auth";
 import { toast } from "@/lib/toast";
-import { readAppLoginParams } from "./app-login-params";
+import { isSecondFactorRenewal, readAppLoginParams } from "./app-login-params";
+import { AppLoginSecondFactor } from "./app-login-second-factor";
 
 type Status = "ask" | "done" | "cancelled" | "invalid";
 
@@ -19,7 +20,8 @@ type Status = "ask" | "done" | "cancelled" | "invalid";
  * readAppLoginParams): after the normal login (AuthGuard) the user confirms the app, the server demands a
  * fresh second factor, and the browser hands the one-time code to the app via its callback url
  * (AppAuthService). The explicit
- * confirmation keeps a link sent by somebody else from connecting an app unnoticed.
+ * confirmation keeps a link sent by somebody else from connecting an app unnoticed. For the second factor of a
+ * page of the app (isSecondFactorRenewal) the second factor itself is that confirmation.
  */
 export function AppLoginPage({
   packedLogin = null,
@@ -28,8 +30,9 @@ export function AppLoginPage({
   packedLogin?: string | null;
 } = {}) {
   const t = useTranslations();
+  const params = readAppLoginParams(useSearchParams(), packedLogin);
   const { challenge, state, deviceName, platform, deviceId, max2FAAgeMillis } =
-    readAppLoginParams(useSearchParams(), packedLogin);
+    params;
   const [status, setStatus] = useState<Status>(
     challenge && state ? "ask" : "invalid"
   );
@@ -62,36 +65,48 @@ export function AppLoginPage({
     window.location.assign(appCancelUrl(state!));
   };
 
+  const question = (
+    <div className="flex flex-col gap-4">
+      <p data-testid="app-login-question">
+        {deviceName
+          ? t("mobileApp.login.question", { arg0: deviceName })
+          : t("mobileApp.login.questionUnknownDevice")}
+      </p>
+      <Alert>
+        <AlertDescription>{t("mobileApp.login.warning")}</AlertDescription>
+      </Alert>
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={authorize.isPending}
+          onClick={cancel}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          type="button"
+          disabled={authorize.isPending}
+          onClick={() => authorize.mutate()}
+        >
+          {t("mobileApp.login.connect")}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <AuthCard title={t("mobileApp.login.title")}>
-      {status === "ask" ? (
-        <div className="flex flex-col gap-4">
-          <p data-testid="app-login-question">
-            {deviceName
-              ? t("mobileApp.login.question", { arg0: deviceName })
-              : t("mobileApp.login.questionUnknownDevice")}
-          </p>
-          <Alert>
-            <AlertDescription>{t("mobileApp.login.warning")}</AlertDescription>
-          </Alert>
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={authorize.isPending}
-              onClick={cancel}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              type="button"
-              disabled={authorize.isPending}
-              onClick={() => authorize.mutate()}
-            >
-              {t("mobileApp.login.connect")}
-            </Button>
-          </div>
-        </div>
+      {status === "ask" && isSecondFactorRenewal(params) ? (
+        <AppLoginSecondFactor
+          deviceName={deviceName}
+          maxAgeMillis={max2FAAgeMillis!}
+          exemptFallback={question}
+          onSuccess={() => authorize.mutate()}
+          onCancel={cancel}
+        />
+      ) : status === "ask" ? (
+        question
       ) : (
         <p data-testid="app-login-status">
           {status === "done"

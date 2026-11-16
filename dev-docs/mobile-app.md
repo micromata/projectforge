@@ -230,7 +230,10 @@ SMS and mail do. So next's 2FA dialog (`two-factor-form.tsx`, context `session`)
 1. The page posts `{"pf":"twoFactor","maxAgeMillis":…}` (`lib/app-bridge.ts`; `expiryMillis` of the refused request).
 2. The app (`WebScreen.confirm2FA`, same origin only) renews its login in the system browser with
    `max2FAAge` (`AppAuthRest.authorize` then asks for a second factor that fresh, at most 10 minutes), and opens a new
-   web session, which carries the new `last2FA` of the device into all tabs (one cookie jar).
+   web session, which carries the new `last2FA` of the device into all tabs (one cookie jar). With `deviceId` and
+   `max2FAAge` the browser page (`AppLoginPage`, `isSecondFactorRenewal`) doesn't ask "connect the app" but shows the
+   second factor itself, WebAuthn started right away: its success is the confirmation and always a new factor, never
+   the older one of the browser session.
 3. It answers with the event `pf-app-2fa` `{ok}` (`twoFactorScript.ts`); next repeats the refused request (the CSRF
    token of the new session follows by the retry of `client.ts`). No reload, the page keeps its state.
 
