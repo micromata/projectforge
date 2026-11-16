@@ -667,7 +667,12 @@ test.describe("chat", { tag: "@parallel" }, () => {
       await page
         .getByRole("menuitem", { name: t("richTextEditor.color.red") })
         .click();
-      await editor.press("End");
+      // The menu returns no focus to the editor and the text stays selected: click into the editor once the
+      // menu has closed and collapse the selection to the end, or the next typing replaces the marker.
+      await expect(page.getByRole("menu")).toBeHidden();
+      await editor.click();
+      await expect(editor).toBeFocused();
+      await page.keyboard.press("ControlOrMeta+End");
       // Inline code by its markdown, then a code block from the toolbar: Enter is a new line there.
       await editor.pressSequentially(" run `ls -la` now");
       await editor.press("Shift+Enter");
