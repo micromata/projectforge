@@ -104,11 +104,31 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
     }
 
     override fun onInsert(obj: AvailabilityDO) {
+        resolveUsers(obj)
         validate(obj, throwException = true)
     }
 
     override fun onUpdate(obj: AvailabilityDO, dbObj: AvailabilityDO) {
+        resolveUsers(obj)
         validate(obj, throwException = true)
+    }
+
+    /**
+     * The next app posts the user and the substitutes as id-only stubs (`Availability.copyTo`). Both are embedded in
+     * the full-text index (their names), which Hibernate Search builds from the entity state at flush: with the stubs
+     * it would index empty names, and the entry wouldn't be found by its user's name until a later reindex. So the
+     * stubs are swapped for the cached, fully populated users.
+     *
+     * The lookup is by id and not [org.projectforge.business.PfCaches.initialize]: a hand built `PFUserDO` carrying
+     * nothing but an id passes `HibernateUtils.isFullyInitialized` and would be kept as it is.
+     */
+    private fun resolveUsers(obj: AvailabilityDO) {
+        obj.user?.id?.let { id -> userGroupCache.getUser(id)?.let { obj.user = it } }
+        // A lazy set not loaded (e.g. of a stored entry) is left as it is.
+        val substitutes = obj.substitutes
+        if (substitutes != null && Hibernate.isInitialized(substitutes)) {
+            obj.substitutes = substitutes.map { stub -> userGroupCache.getUser(stub.id) ?: stub }.toMutableSet()
+        }
     }
 
     /**
