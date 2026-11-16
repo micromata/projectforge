@@ -38,7 +38,7 @@ import { useWebMenuOpen, webTabs } from '../../features/web/webTabs';
 
 /**
  * The pages of the server (next, and the legacy pages it links to), with the menu over them when the tab is chosen
- * (the globe of the tab bar opens and closes it). The page loads below the menu, closing it shows the page as it was.
+ * (the menu icon of the tab bar opens it, the globe closes it). The page loads below the menu, closing it shows the page as it was.
  * The page shown last is the start page the next time (lastPage).
  */
 export default function PagesTab() {

@@ -63,7 +63,7 @@ export function compatibilityText(issue: CompatibilityIssue): string {
  * their own header). Both open a sheet over the tabs ([tabSheets]), the bar stays below it (also below the settings and
  * the server switch of the menu); the button again or a tab closes it. The "more" button counts the open notifications of the other logins (their servers push too).
  * The chat tab is missing if the chat is switched off on the server; tapped again it leads back to its rooms. The
- * pages tab opens with its menu, tapped again it closes or opens it.
+ * pages tab shows its page (the globe turns into a menu icon, which opens the menu; the globe then closes it again).
  * [rail]: in landscape a column at this side (as the Flutter app's navigation rail; left or right as chosen in the
  * settings), the bell and the menu at its bottom. [onSize]: the size of the bar, the sheets leave it free.
  */
@@ -125,7 +125,7 @@ export function TabBar({
             key={route.key}
             style={styles.item}
             accessibilityRole="tab"
-            accessibilityLabel={tab.label()}
+            accessibilityLabel={route.name === 'pages' && active && !webMenu ? t('menu.main.title') : tab.label()}
             accessibilityState={{ selected: active }}
             onPress={() => {
               // A sheet over the tabs closes, whichever tab is tapped.
@@ -134,14 +134,14 @@ export function TabBar({
                 webTabs.open('chat', CHAT_PATH);
                 return;
               }
-              // The pages tab starts with its menu (the web pages' navigation is small on a phone); tapped again it
-              // closes the menu, and opens it again over the page.
+              // The pages tab shows its page (the menu only if there is none yet); on the page the button is the
+              // menu button, opening the menu, and the globe closes it again.
               if (route.name === 'pages') {
                 if (active) {
                   webTabs.toggleMenu();
                   return;
                 }
-                webTabs.setMenu(true);
+                if (webTabs.getStates().pages.hasPage) webTabs.setMenu(false);
               }
               if (active) return;
               navigateToTab(route.key);
@@ -150,7 +150,7 @@ export function TabBar({
             }}
           >
             <Ionicons
-              name={route.name === 'pages' && active && webMenu ? 'globe' : tab.icon}
+              name={route.name === 'pages' && active ? (webMenu ? 'globe' : 'menu') : tab.icon}
               size={24}
               color={active ? colors.primary : colors.textMuted}
             />
