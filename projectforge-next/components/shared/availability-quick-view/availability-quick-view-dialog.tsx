@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { UserGroupIcon } from "@hugeicons/core-free-icons";
+import {
+  LeftToRightListBulletIcon,
+  UserGroupIcon,
+} from "@hugeicons/core-free-icons";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -34,7 +38,8 @@ const DEFAULT_WEEKS = 8;
  * A quick look at whether colleagues are available: pick one or more users (only those the team vacation calendar
  * would offer, freelancers included; shown as chips) and see their vacations and availability entries of the next
  * weeks as bars, a row each, weekends and holidays shaded. Nothing of the choice is stored. For groups and longer
- * periods its header links to the team vacation calendar, a page of its own.
+ * periods its header links to the team vacation calendar, a page of its own, and to the list of availability
+ * entries (not on that list itself).
  */
 export function AvailabilityQuickViewDialog({
   onClose,
@@ -45,6 +50,9 @@ export function AvailabilityQuickViewDialog({
   const [users, setUsers] = useState<EntityRef[]>([]);
   const [weeks, setWeeks] = useState<number>(DEFAULT_WEEKS);
   const me = useCurrentUserRef();
+  // `trailingSlash` is on (next.config): compared without it.
+  const onAvailabilityList =
+    usePathname()?.replace(/\/$/, "") === "/availability";
   const userIds = users.map((user) => user.id);
   const query = useQuery({
     queryKey: ["availabilityQuickView", userIds, weeks],
@@ -57,23 +65,37 @@ export function AvailabilityQuickViewDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         className="max-h-[90vh] overflow-y-auto sm:max-w-4xl"
-        // Not onto the team calendar's button, the first in the dialog (its tooltip would open): the picker's search,
+        // Not onto the first of the header's buttons (the team calendar's tooltip would open): the picker's search,
         // open at once, takes the focus.
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <DialogHeader>
-          {/* `pr-8`: the button keeps clear of the dialog's close button in the corner. A link in the body would
+          {/* `pr-8`: the buttons keep clear of the dialog's close button in the corner. A link in the body would
               be covered by the picker's popover, open as the dialog opens. */}
           <div className="flex items-center justify-between gap-2 pr-8">
             <DialogTitle>{t("vacation.quickView.title")}</DialogTitle>
-            <HintTooltip text={t("vacation.quickView.teamCalendarHint")}>
-              <Button asChild variant="outline" size="sm" className="gap-1.5">
-                <GuardedLink href="/vacationExport" onClick={onClose}>
-                  <HugeiconsIcon icon={UserGroupIcon} size={14} aria-hidden />
-                  {t("vacation.quickView.teamCalendar")}
-                </GuardedLink>
-              </Button>
-            </HintTooltip>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {!onAvailabilityList && (
+                <Button asChild variant="outline" size="sm" className="gap-1.5">
+                  <GuardedLink href="/availability" onClick={onClose}>
+                    <HugeiconsIcon
+                      icon={LeftToRightListBulletIcon}
+                      size={14}
+                      aria-hidden
+                    />
+                    {t("availability.title.list")}
+                  </GuardedLink>
+                </Button>
+              )}
+              <HintTooltip text={t("vacation.quickView.teamCalendarHint")}>
+                <Button asChild variant="outline" size="sm" className="gap-1.5">
+                  <GuardedLink href="/vacationExport" onClick={onClose}>
+                    <HugeiconsIcon icon={UserGroupIcon} size={14} aria-hidden />
+                    {t("vacation.quickView.teamCalendar")}
+                  </GuardedLink>
+                </Button>
+              </HintTooltip>
+            </div>
           </div>
           <DialogDescription>
             {t("vacation.quickView.selectHint")}
