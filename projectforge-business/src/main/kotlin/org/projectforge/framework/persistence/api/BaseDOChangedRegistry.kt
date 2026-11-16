@@ -37,8 +37,24 @@ class BaseDOChangedRegistry<O : ExtendedBaseDO<Long>>(val baseDao: BaseDao<O>) :
      * @see BaseDOModifiedListener
      */
     fun register(objectChangedListener: BaseDOModifiedListener<O>) {
-        log.info { javaClass.simpleName + ": Registering " + objectChangedListener.javaClass.name }
+        log.debug {
+            "Registering listener ${listenerName(objectChangedListener)} on ${
+                baseDao.javaClass.simpleName.substringBefore("$$")
+            } (entity ${baseDao.doClass.simpleName})."
+        }
         objectChangedListeners.add(objectChangedListener)
+    }
+
+    /**
+     * Anonymous listeners (e.g. `ListPageChangeCounter$registerListeners$1$1`) are named by their outer class.
+     */
+    private fun listenerName(listener: BaseDOModifiedListener<O>): String {
+        val clazz = listener.javaClass
+        return if (clazz.isAnonymousClass || clazz.simpleName.isEmpty()) {
+            "${clazz.name.substringAfterLast('.').substringBefore('$')} (anonymous)"
+        } else {
+            clazz.simpleName
+        }
     }
 
     /**
