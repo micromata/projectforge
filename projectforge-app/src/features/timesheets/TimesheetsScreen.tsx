@@ -306,14 +306,16 @@ export function TimesheetsScreen({
       <View style={styles.fabs} pointerEvents="box-none">
         {state.timer == null && (
           <Pressable
-            style={[styles.fabSmall, { backgroundColor: colors.surface }]}
+            style={[styles.fabOutlined, { backgroundColor: colors.background, borderColor: colors.primary }]}
+            accessibilityRole="button"
             accessibilityLabel={t('app.timesheet.timer.start')}
             onPress={() => startTimer()}
           >
             <Ionicons name="timer-outline" size={22} color={colors.primary} />
+            <Text style={[styles.fabText, { color: colors.primary }]}>{t('app.timesheet.timer.start')}</Text>
           </Pressable>
         )}
-        <Pressable style={[styles.fab, { backgroundColor: colors.primary }]} onPress={newBooking}>
+        <Pressable style={[styles.fab, { backgroundColor: colors.primary }]} accessibilityRole="button" onPress={newBooking}>
           <Ionicons name="add" size={22} color={colors.onPrimary} />
           <Text style={[styles.fabText, { color: colors.onPrimary }]}>{t('app.timesheet.book')}</Text>
         </Pressable>
@@ -395,6 +397,21 @@ export function bookingDone(saved: BookingDraft | null, fromTimer: boolean) {
 
 const PAGES = Array.from({ length: 2 * RANGE_DAYS + 1 }, (_, i) => i);
 
+/** The floating action buttons, "book" (filled) and "start timer" (outlined) as one pair. */
+const fabBase = {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+  height: 52,
+  borderRadius: 26,
+  paddingHorizontal: 20,
+  elevation: 3,
+  shadowColor: '#000',
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+  shadowOffset: { width: 0, height: 2 },
+} as const;
+
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   wide: { flex: 1, flexDirection: 'row' },
@@ -404,30 +421,8 @@ const styles = StyleSheet.create({
   titleLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: { fontSize: 16, fontWeight: '600' },
   fabs: { position: 'absolute', right: 16, bottom: 16, alignItems: 'flex-end', gap: 12 },
-  fabSmall: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  fab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    height: 52,
-    borderRadius: 26,
-    paddingHorizontal: 20,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
+  fab: fabBase,
+  // 2 px less padding: the border keeps the outlined button as wide as a filled one with the same text.
+  fabOutlined: { ...fabBase, borderWidth: 2, paddingHorizontal: 18 },
   fabText: { fontSize: 16, fontWeight: '600' },
 });
