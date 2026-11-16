@@ -7021,6 +7021,7 @@
       "activeDiffers": "Das laufende System verwendet einen anderen Wert: Ein Neustart steht aus oder der Wert wird überschrieben.",
       "activeSource": "Überschrieben durch: {arg0}",
       "activeValue": "Aktiver Wert",
+      "addListEntry": "Eintrag hinzufügen ({arg0})",
       "addParameter": {
         "_": "Parameter hinzufügen",
         "exists": "Dieser Parameter existiert bereits.",
@@ -7068,6 +7069,7 @@
       "obsoleteInfo": "Im Namensraum von ProjectForge (projectforge.*, pf.*), wird aber von ProjectForge nicht (mehr) verwendet: eine entfallene Option oder ein Tippfehler. Der Parameter hat keine Wirkung.",
       "optional": "optional",
       "otherInfo": "ProjectForge nicht bekannt, z. B. eine Einstellung von Spring Boot oder einer Bibliothek. Bitte prüfen, ob sie noch benötigt wird, und auf Tippfehler achten.",
+      "removeListEntry": "Eintrag entfernen",
       "removed": "entfernt (Standard gilt)",
       "reset": {
         "_": "Auf Standard zurücksetzen",

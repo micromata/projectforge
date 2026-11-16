@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "The projectforge.properties editor can add and remove entries of indexed lists (e.g. bank accounts of the e-invoice seller); empty fields of an entry are left out of the file and the entries are written one after the other.",
+  "de": "Der Editor der projectforge.properties kann Einträge indizierter Listen (z. B. Bankkonten des E-Rechnungs-Verkäufers) hinzufügen und entfernen; leere Felder eines Eintrags werden nicht in die Datei geschrieben und die Einträge werden nacheinander geschrieben."
+}

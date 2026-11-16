@@ -7021,6 +7021,7 @@
       "activeDiffers": "The running system uses another value: a restart is pending or the value is overridden.",
       "activeSource": "Overridden by: {arg0}",
       "activeValue": "Active value",
+      "addListEntry": "Add entry ({arg0})",
       "addParameter": {
         "_": "Add parameter",
         "exists": "This parameter exists already.",
@@ -7068,6 +7069,7 @@
       "obsoleteInfo": "In ProjectForge's namespace (projectforge.*, pf.*), but not known to ProjectForge (any more): a removed option or a typo. It has no effect.",
       "optional": "optional",
       "otherInfo": "Not known to ProjectForge, e.g. a setting of Spring Boot or of a library. Please check whether it is still needed and for typos.",
+      "removeListEntry": "Remove entry",
       "removed": "removed (default applies)",
       "reset": {
         "_": "Reset to default",

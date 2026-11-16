@@ -31,12 +31,15 @@ export function PropertyRow({
   param,
   edit,
   onEdit,
+  onRemoveEntry,
   query,
   readOnly,
 }: {
   param: PropertyParam;
   edit: PropertyEdit | undefined;
   onEdit: (edit: PropertyEdit | undefined) => void;
+  /** Set on the first row of a list entry: removes all its fields. */
+  onRemoveEntry?: () => void;
   query: string;
   readOnly: boolean;
 }) {
@@ -89,6 +92,13 @@ export function PropertyRow({
             icon={Undo02Icon}
             label={t("system.propertiesEditor.undo")}
             onClick={() => onEdit(undefined)}
+          />
+        )}
+        {onRemoveEntry && !readOnly && (
+          <RowAction
+            icon={Delete02Icon}
+            label={t("system.propertiesEditor.removeListEntry")}
+            onClick={onRemoveEntry}
           />
         )}
         {canReset && (

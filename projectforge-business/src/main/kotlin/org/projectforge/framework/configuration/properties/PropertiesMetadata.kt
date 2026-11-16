@@ -134,6 +134,34 @@ class PropertiesMetadata(
     companion object {
         private val indexRegex = Regex("""\[\d+]""")
 
+        /** A key of a list entry: the list before its last index, the index, the field after it (`a.list[2].iban`). */
+        private val listEntryRegex = Regex("""^(.*)\[(\d+)]([^\[\]]*)$""")
+
+        /**
+         * The keys of indexed lists entry by entry (`list[0].name`, `list[0].iban`, `list[1].name`, …) instead of field
+         * by field, as other indices following their documented key would be. The fields of an entry keep the order of
+         * their first appearance; keys of no list keep their positions.
+         */
+        fun <T> sortListEntries(items: List<T>, keyOf: (T) -> String): List<T> {
+            val entries = items.mapNotNull { item ->
+                listEntryRegex.matchEntire(keyOf(item))?.groupValues?.let { (_, list, index, field) ->
+                    ListEntry(item, list, index.toInt(), field)
+                }
+            }
+            if (entries.isEmpty()) {
+                return items
+            }
+            val listOrder = entries.map { it.list }.distinct()
+            val fieldOrder = entries.map { it.list to it.field }.distinct()
+            val sorted = entries.sortedWith(
+                compareBy({ listOrder.indexOf(it.list) }, { it.index }, { fieldOrder.indexOf(it.list to it.field) })
+            ).iterator()
+            val entryItems = entries.map { it.item }.toSet()
+            return items.map { if (it in entryItems) sorted.next().item else it }
+        }
+
+        private class ListEntry<T>(val item: T, val list: String, val index: Int, val field: String)
+
         private const val EXPERT_MARKER = "[expert]"
 
         private const val MAP_MARKER = "@map "

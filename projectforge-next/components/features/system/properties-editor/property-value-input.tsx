@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { CopyButton } from "@/components/shared/copy-button";
 import { SecretInput } from "@/components/shared/secret-input";
 import type { PropertyParam } from "@/lib/rs/properties-editor";
+import { parseListEntryKey } from "./list-entries";
 import { currentValue, type PropertyEdit } from "./properties-editor-model";
 
 /**
@@ -29,9 +30,12 @@ export function PropertyValueInput({
   const value = currentValue(param, edit);
 
   function change(newValue: string) {
+    if (newValue !== "") return onEdit({ kind: "set", value: newValue });
+    // An empty field of a list entry is no value: it is left out of the file, never written empty.
+    if (!param.inFile) return onEdit(undefined);
     onEdit(
-      !param.inFile && newValue === ""
-        ? undefined
+      parseListEntryKey(param.key)
+        ? { kind: "remove" }
         : { kind: "set", value: newValue }
     );
   }

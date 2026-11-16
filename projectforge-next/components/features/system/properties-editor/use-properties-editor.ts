@@ -20,6 +20,7 @@ import {
   type PropertyEdits,
   type PropertyFilter,
 } from "./properties-editor-model";
+import { listEntryKeys, nextListEntryKeys } from "./list-entries";
 
 const QUERY_KEY = ["propertiesEditor"];
 
@@ -104,11 +105,29 @@ export function usePropertiesEditor() {
     return null;
   }
 
+  /** Adds an empty entry to an indexed list; its keys are written only once a value is entered. */
+  function addListEntry(list: string) {
+    const keys = nextListEntryKeys(params, list);
+    setAddedKeys((prev) => [...prev, ...keys]);
+  }
+
+  /** Removes an entry of an indexed list: unsaved keys are dropped, the ones in the file are deleted on save. */
+  function removeListEntry(list: string, index: number) {
+    const keys = listEntryKeys(params, list, index);
+    const added = new Set(addedKeys);
+    setAddedKeys((prev) => prev.filter((key) => !keys.includes(key)));
+    keys.forEach((key) =>
+      setEdit(key, added.has(key) ? undefined : { kind: "remove" })
+    );
+  }
+
   return {
     query,
     edits,
     setEdit,
     addKey,
+    addListEntry,
+    removeListEntry,
     filter,
     setFilter,
     visibleGroups,
