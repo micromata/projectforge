@@ -173,6 +173,16 @@ test.describe("chat", { tag: "@parallel" }, () => {
       await goto(other, `/chat/${room.conversationId}`);
       await expect(other.getByText(text)).toBeVisible();
     } finally {
+      // The report notifies the admins with a banner that would stay above every page of later runs.
+      const notifications = (await (
+        await page.request.get("/rs/notification/my")
+      ).json()) as { id: number }[];
+      for (const notification of notifications) {
+        if (!JSON.stringify(notification).includes(name)) continue;
+        await page.request.post(`/rs/notification/${notification.id}/done`, {
+          headers: await writeHeaders(page.request),
+        });
+      }
       await page.request.delete(`/rs/chatBlock/${otherId}`, {
         headers: await writeHeaders(page.request),
       });
@@ -670,9 +680,13 @@ test.describe("chat", { tag: "@parallel" }, () => {
       // The menu returns no focus to the editor and the text stays selected: click into the editor once the
       // menu has closed and collapse the selection to the end, or the next typing replaces the marker.
       await expect(page.getByRole("menu")).toBeHidden();
-      await editor.click();
-      await expect(editor).toBeFocused();
-      await page.keyboard.press("ControlOrMeta+End");
+      await expect(async () => {
+        await editor.click();
+        await page.keyboard.press("ControlOrMeta+End");
+        expect(
+          await page.evaluate(() => window.getSelection()?.isCollapsed)
+        ).toBe(true);
+      }).toPass();
       // Inline code by its markdown, then a code block from the toolbar: Enter is a new line there.
       await editor.pressSequentially(" run `ls -la` now");
       await editor.press("Shift+Enter");
