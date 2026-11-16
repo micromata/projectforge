@@ -46,6 +46,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.AbstractEntityRest
+import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.Availability
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
@@ -55,6 +56,7 @@ import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpSession
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -73,6 +75,9 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var vacationEntityRest: VacationEntityRest
+
+    @Autowired
+    private lateinit var sessionCsrfService: SessionCsrfService
 
     @Test
     fun `the internal comment is offered to the user and HR staff, not to colleagues`() {
@@ -321,6 +326,45 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
         // Nothing was saved.
         assertTrue(availabilityDao.select(QueryFilter()).none { it.user?.id == own.user!!.id })
         assertTrue(vacationDao.select(QueryFilter()).none { it.employee?.id == own.id })
+    }
+
+    /**
+     * An entry saved in next is listed at once: in the list already opened in the same session (its paged id list is
+     * cached, see ListPageCache) and found by the name of its user, which the next app posts as an id-only reference.
+     */
+    @Test
+    fun `a saved entry is listed at once, also found by the user's name`() {
+        val user = createUser("Quorbix")
+        logon(TEST_HR_USER)
+        val year = LocalDate.now().year
+        val session = MockHttpSession()
+        fun listIds(search: String? = null): List<Long?> {
+            val filter = MagicFilter()
+            filter.searchString = search
+            filter.autoWildcardSearch = true // As the list endpoints set it.
+            filter.entries.add(MagicFilterEntry("period").also {
+                it.value.fromValue = "$year-01-01"; it.value.toValue = "$year-12-31"; it.value.periodKind = "year"
+            })
+            val request = MockHttpServletRequest().also { it.setSession(session) }
+            return availabilityEntityRest.listPage(request, AbstractEntityRest.ListPageRequest(filter = filter, limit = 1000))
+                .resultSet.map { (it as Availability).id }
+        }
+        val before = listIds()
+        val dto = Availability(
+            user = User().also { it.id = user.id },
+            startDate = LocalDate.of(year, 6, 1),
+            endDate = LocalDate.of(year, 6, 3),
+            status = AvailabilityStatus.REMOTE_REACHABLE,
+        )
+        val request = MockHttpServletRequest().also { it.setSession(session) }
+        val response = availabilityEntityRest.saveOrUpdate(
+            request, PostData(dto, watchFieldsTriggered = null, serverData = sessionCsrfService.createServerData(request))
+        )
+        assertEquals(200, response.statusCode.value(), "${response.body}")
+        val id = availabilityDao.selectAllNotDeleted().single { it.user?.id == user.id }.id
+        assertFalse(before.contains(id))
+        assertTrue(listIds().contains(id), "Listed in the already opened list.")
+        assertEquals(listOf(id), listIds(search = "quorbix"), "Found by the user's name.")
     }
 
     /** The prepared entry of a conversion, `variables.data` as the client reads it (the map is private). */

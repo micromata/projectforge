@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Availability: entries saved in the new interface were not found by the name of their user until the next search index rebuild. The quick view \"Who is available?\" links to the availability list.",
+  "de": "Verfügbarkeit: In der neuen Oberfläche gespeicherte Einträge wurden bis zum nächsten Neuaufbau des Suchindex nicht über den Namen ihrer Benutzer:innen gefunden. Die Schnellansicht „Wer ist verfügbar?“ verlinkt auf die Verfügbarkeitsliste."
+}
