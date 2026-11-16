@@ -3625,8 +3625,7 @@
       "invalid": "Der Link der App ist ungültig. Bitte die Anmeldung in der App neu starten.",
       "question": "Soll die ProjectForge-App auf dem Gerät „{arg0}“ Zugriff auf dein Konto erhalten?",
       "questionUnknownDevice": "Soll die ProjectForge-App Zugriff auf dein Konto erhalten?",
-      "secondFactor": "Zweiten Faktor für die ProjectForge-App auf dem Gerät „{arg0}“ bestätigen.",
-      "secondFactorUnknownDevice": "Zweiten Faktor für die ProjectForge-App bestätigen.",
+      "secondFactor": "Die ProjectForge-App benötigt einen aktuellen zweiten Faktor. Nach der Bestätigung geht es in der App weiter.",
       "title": "ProjectForge-App verbinden",
       "warning": "Nur bestätigen, wenn du die Anmeldung gerade selbst in der App gestartet hast."
     }
@@ -7023,6 +7022,7 @@
       "activeDiffers": "Das laufende System verwendet einen anderen Wert: Ein Neustart steht aus oder der Wert wird überschrieben.",
       "activeSource": "Überschrieben durch: {arg0}",
       "activeValue": "Aktiver Wert",
+      "addListEntry": "Eintrag hinzufügen ({arg0})",
       "addParameter": {
         "_": "Parameter hinzufügen",
         "exists": "Dieser Parameter existiert bereits.",
@@ -7070,13 +7070,14 @@
       "obsoleteInfo": "Im Namensraum von ProjectForge (projectforge.*, pf.*), wird aber von ProjectForge nicht (mehr) verwendet: eine entfallene Option oder ein Tippfehler. Der Parameter hat keine Wirkung.",
       "optional": "optional",
       "otherInfo": "ProjectForge nicht bekannt, z. B. eine Einstellung von Spring Boot oder einer Bibliothek. Bitte prüfen, ob sie noch benötigt wird, und auf Tippfehler achten.",
+      "removeListEntry": "Eintrag entfernen",
       "removed": "entfernt (Standard gilt)",
       "reset": {
         "_": "Auf Standard zurücksetzen",
         "tooltip": "Entfernt den Parameter aus der projectforge.properties, sodass wieder der Standardwert gilt."
       },
       "restartRequired": "Änderungen werden erst nach einem Neustart von ProjectForge wirksam!",
-      "search": "Schlüssel oder Beschreibung suchen",
+      "search": "Schlüssel, Wert oder Beschreibung suchen",
       "secret": {
         "notSet": "Nicht gesetzt",
         "set": "Gesetzt (der Wert wird nicht angezeigt)"
@@ -8136,8 +8137,8 @@
       },
       "button": {
         "authenticate": {
-          "_": "WebAuthn",
-          "info": "Du kannst hier registrierte WebAuthn-Token benutzen (z. B. Yubikey)."
+          "_": "Passkey",
+          "info": "Mit einem Passkey (Touch ID, Face ID, Windows Hello) oder einem Sicherheitsschlüssel (z. B. YubiKey) bestätigen."
         },
         "register": "Registrieren"
       },

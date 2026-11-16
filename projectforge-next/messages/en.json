@@ -44,7 +44,7 @@
     "submitting": "Signing in…",
     "twoFactor": {
       "verifying": "Verifying…",
-      "webAuthnRunning": "Waiting for token…",
+      "webAuthnRunning": "Waiting for confirmation…",
       "smsSent": "SMS code has been sent",
       "mailSent": "Email code has been sent"
     }

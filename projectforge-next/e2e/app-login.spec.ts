@@ -45,7 +45,7 @@ test.describe("App login", { tag: "@parallel" }, () => {
       `/appLogin?challenge=${CHALLENGE}&state=${STATE}&device=Test%20phone&platform=ios&deviceId=1&max2FAAge=60000`
     );
     await expect(
-      page.getByText(t("mobileApp.login.secondFactor", { arg0: "Test phone" }))
+      page.getByText(t("mobileApp.login.secondFactor"))
     ).toBeVisible();
     await expect(page.getByTestId("app-login-question")).toHaveCount(0);
     await expect(

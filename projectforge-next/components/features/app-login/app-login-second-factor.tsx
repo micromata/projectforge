@@ -12,13 +12,11 @@ import { TwoFactorForm } from "@/components/shared/two-factor-form";
  * user's confirmation, and it is always a new one, so the app gets a second factor as fresh as the page needs.
  */
 export function AppLoginSecondFactor({
-  deviceName,
   maxAgeMillis,
   exemptFallback,
   onSuccess,
   onCancel,
 }: {
-  deviceName: string | null;
   maxAgeMillis: number;
   /** Shown instead for a user exempt from the second factor (app review): there is none to confirm with. */
   exemptFallback: React.ReactNode;
@@ -49,11 +47,7 @@ export function AppLoginSecondFactor({
     <TwoFactorForm
       context="session"
       methods={state.data.methods}
-      hint={
-        deviceName
-          ? t("mobileApp.login.secondFactor", { arg0: deviceName })
-          : t("mobileApp.login.secondFactorUnknownDevice")
-      }
+      hint={t("mobileApp.login.secondFactor")}
       expiryMillis={maxAgeMillis}
       autoStartWebAuthn
       onSuccess={onSuccess}

@@ -99,7 +99,6 @@ export function AppLoginPage({
     <AuthCard title={t("mobileApp.login.title")}>
       {status === "ask" && isSecondFactorRenewal(params) ? (
         <AppLoginSecondFactor
-          deviceName={deviceName}
           maxAgeMillis={max2FAAgeMillis!}
           exemptFallback={question}
           onSuccess={() => authorize.mutate()}

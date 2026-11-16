@@ -3625,8 +3625,7 @@
       "invalid": "The link of the app is invalid. Please start the login in the app again.",
       "question": "Should the ProjectForge app on the device \"{arg0}\" get access to your account?",
       "questionUnknownDevice": "Should the ProjectForge app get access to your account?",
-      "secondFactor": "Confirm the second factor for the ProjectForge app on the device \"{arg0}\".",
-      "secondFactorUnknownDevice": "Confirm the second factor for the ProjectForge app.",
+      "secondFactor": "The ProjectForge app needs a current second factor. After the confirmation, the app goes on.",
       "title": "Connect the ProjectForge app",
       "warning": "Only confirm if you have just started the login in the app yourself."
     }
@@ -7023,6 +7022,7 @@
       "activeDiffers": "The running system uses another value: a restart is pending or the value is overridden.",
       "activeSource": "Overridden by: {arg0}",
       "activeValue": "Active value",
+      "addListEntry": "Add entry ({arg0})",
       "addParameter": {
         "_": "Add parameter",
         "exists": "This parameter exists already.",
@@ -7070,13 +7070,14 @@
       "obsoleteInfo": "In ProjectForge's namespace (projectforge.*, pf.*), but not known to ProjectForge (any more): a removed option or a typo. It has no effect.",
       "optional": "optional",
       "otherInfo": "Not known to ProjectForge, e.g. a setting of Spring Boot or of a library. Please check whether it is still needed and for typos.",
+      "removeListEntry": "Remove entry",
       "removed": "removed (default applies)",
       "reset": {
         "_": "Reset to default",
         "tooltip": "Removes the parameter from projectforge.properties, so the default applies again."
       },
       "restartRequired": "Changes take effect only after a restart of ProjectForge!",
-      "search": "Search key or description",
+      "search": "Search key, value or description",
       "secret": {
         "notSet": "Not set",
         "set": "Set (the value is not shown)"
@@ -8136,8 +8137,8 @@
       },
       "button": {
         "authenticate": {
-          "_": "WebAuthn",
-          "info": "You may use any of your registered WebAuthn tokens here (for example Yubikey)."
+          "_": "Passkey",
+          "info": "Confirm with a passkey (Touch ID, Face ID, Windows Hello) or a security key (e.g. YubiKey)."
         },
         "register": "Register"
       },
