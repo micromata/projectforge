@@ -131,6 +131,25 @@ eas_env() {
   export APP_VARIANT="${APP_VARIANT_GIVEN:-production}"
 }
 
+# What is left after the waiting for a cloud build was cancelled: the build id is the newest iOS build of this
+# version and build number on EAS.
+publish_resume_hint() {
+  local profile="$1" version="$2" build="$3" tag="$4" commit="$5" id
+  id="$(npx --yes eas-cli@latest build:list --platform ios --limit 5 --json --non-interactive 2>/dev/null |
+    node -e 'const [v, b] = process.argv.slice(1);
+      const x = JSON.parse(require("fs").readFileSync(0, "utf8")).find((x) => x.appVersion === v && x.appBuildVersion === b);
+      if (x) console.log(x.id);' "$version" "$build" 2>/dev/null)" || true
+  id="${id:-<build id from expo.dev>}"
+  cat <<EOF
+
+The build goes on in the EAS cloud. Left to do:
+  bin/pfApp.sh eas build:view $id  # wait for status finished
+  git tag -a '$tag' -m "ProjectForge app $version (build $build)" ${commit:0:10}
+  bin/pfApp.sh eas submit --platform ios --profile $profile --id $id
+  git push origin '$tag'
+EOF
+}
+
 # Store build of iOS by EAS, its upload to App Store Connect and the git tag app-<version>+<build> of the built commit
 # (what the published app reads: dev-docs/mobile-app.md). Built from a clean tree only, so the tag names the build.
 # --local builds on this Mac (eas build --local): no quota of EAS cloud builds, but Xcode, CocoaPods and fastlane of
@@ -182,7 +201,13 @@ cmd_publish() {
     mkdir -p "$APP/build"
     npx --yes eas-cli@latest build --platform ios --profile "$profile" --local --output "$ipa"
   else
+    # Ctrl+C (eas-cli offers it while waiting) stops only the waiting, the build goes on in the cloud: tag and submit
+    # are left to do by hand.
+    local commit
+    commit="$(git -C "$ROOT" rev-parse HEAD)"
+    trap 'publish_resume_hint "$profile" "$version" "$build" "$tag" "$commit"; exit 130' INT
     npx --yes eas-cli@latest build --platform ios --profile "$profile" --wait
+    trap - INT
   fi
   # Tagged only after a successful build, as bin/pfDev.sh release does.
   local tagged=false
