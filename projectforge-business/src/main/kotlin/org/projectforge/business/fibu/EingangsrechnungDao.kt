@@ -58,9 +58,6 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     @Autowired
     private lateinit var configurationService: org.projectforge.business.configuration.ConfigurationService
 
-    override val additionalSearchFields: Array<String>
-        get() = ADDITIONAL_SEARCH_FIELDS
-
     override val additionalHistoryEntityClasses: List<Class<*>> =
         listOf(EingangsrechnungsPositionDO::class.java, KostZuweisungDO::class.java)
 
@@ -286,8 +283,6 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
 
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_EINGANGSRECHNUNGEN
-        private val ADDITIONAL_SEARCH_FIELDS = arrayOf("positionen.text")
-
         private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("kreditor")
     }
 }

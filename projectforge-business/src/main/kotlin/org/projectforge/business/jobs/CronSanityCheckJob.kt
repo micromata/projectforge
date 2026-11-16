@@ -123,7 +123,7 @@ class CronSanityCheckJob {
     }
 
     fun registerJob(job: AbstractJob) {
-        log.info { "Registering sanity check job: ${job::class.simpleName}" }
+        log.debug { "Registering sanity check job: ${job::class.simpleName}" }
         jobs.add(job)
     }
 

@@ -413,10 +413,10 @@ internal class I18nKeysSourceAnalyzer {
                 json = this::class.java.classLoader.getResource(JSON_FILENAME)?.readText() ?: ""
             }
             val array = JsonUtils.fromJson(json, Array<I18nKeyUsageEntry>::class.java)
-            log.info { "${map.size} i18nKeys read." }
             array?.forEach {
                 map[it.i18nKey] = it
             }
+            log.info { "${map.size} i18nKeys read." }
             return map
         }
 

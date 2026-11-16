@@ -33,8 +33,8 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -62,10 +62,13 @@ open class AbsenceVisibility {
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
-    // Lazy: the cache reads the entries by the dao, whose access check asks this rule set.
+    // Provider (resolved on use): the cache reads the entries by the dao, whose access check asks this rule set. Not
+    // @Lazy, which would inject a CGLIB proxy running the final methods of AbstractCache with uninitialized fields.
     @Autowired
-    @Lazy
-    private lateinit var availabilityCache: AvailabilityCache
+    private lateinit var availabilityCacheProvider: ObjectProvider<AvailabilityCache>
+
+    private val availabilityCache: AvailabilityCache
+        get() = availabilityCacheProvider.getObject()
 
     @Autowired
     private lateinit var employeeCache: EmployeeCache

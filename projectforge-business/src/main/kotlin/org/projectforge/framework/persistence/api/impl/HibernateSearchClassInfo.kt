@@ -131,7 +131,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
             bridges.add(it)
         }
         this.classBridges = bridges.toTypedArray()
-        log.info { "SearchInfo for class ${
+        log.debug { "SearchInfo for class ${
                 ClassUtils.getProxiedClass(
                     baseDao::
                     class.java
