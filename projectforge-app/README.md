@@ -75,6 +75,13 @@ published app reads (dev-docs/mobile-app.md). By hand: `bin/pfApp.sh eas build -
 `bin/pfApp.sh eas submit --platform ios --profile preview --latest`, and tag the commit of the build
 (`eas build:list` names it).
 
+`publish --local` builds on this Mac instead (`eas build --local`), for when the cloud builds of the month run out (the
+free plan has 15 iOS builds a month, local builds are unlimited). It needs Xcode, CocoaPods and fastlane
+(`brew install fastlane`). It builds from a copy of the committed tree with the Xcode of the Mac, not the fixed image
+of EAS. The signing still comes from EAS, `EXPO_OWNER` and `EAS_PROJECT_ID` from `.env.local`. The ipa goes to
+`build/`, and the submit uploads it (`--path`; the build isn't listed on expo.dev). Before the upload, check that
+`Payload/*.app/Expo.plist` of the ipa has the update url: without it OTA updates don't reach the build.
+
 Changes that need the new app version are collected in `changelog/unreleased/app/` (see the README of
 `changelog/unreleased/`). Once the version is released in the App Store, `bin/pfDev.sh app-release <version>` moves
 them to `changelog/unreleased/`, so the next server release publishes them; commit the result.
