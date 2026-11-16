@@ -84,13 +84,14 @@ class MenuVisibility(val id: String, val visibiltyGroupsString: String?, val men
         } else if (allowedGroupIds.isEmpty()) {
             log.info { "No groups found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString" }
         } else {
-            log.info {
-                "Allowed groups for menu '${this.id}': ${
-                    allowedGroupIds.joinToString { userGroupCache.getGroup(it)?.name ?: "???" }
-                }"
+            log.debug {
+                "Allowed groups for menu '${this.id}': ${allowedGroupNames()}"
             }
         }
     }
+
+    /** Names of the allowed groups, comma separated. */
+    fun allowedGroupNames(): String = allowedGroupIds.joinToString { userGroupCache.getGroup(it)?.name ?: "???" }
 
     fun isVisible(): Boolean {
         if (allUsersAllowed) {

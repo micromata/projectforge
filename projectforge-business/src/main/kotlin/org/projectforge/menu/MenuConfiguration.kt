@@ -23,11 +23,14 @@
 
 package org.projectforge.menu
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
+
+private val log = KotlinLogging.logger {}
 
 @Configuration
 open class MenuConfiguration {
@@ -223,7 +226,16 @@ open class MenuConfiguration {
         registry.add(MenuVisibility("merlin", merlinVisibility))
         registry.add(MenuVisibility("skillmatrix", skillmatrixVisibility))
         registry.add(MenuVisibility("todo", todoVisibility))
-
+        registry.filter { !it.allUsersAllowed && it.allowedGroupIds.isNotEmpty() }
+            .groupBy({ it.allowedGroupNames() }, { it.id })
+            .takeIf { it.isNotEmpty() }
+            ?.let { byGroups ->
+                log.info {
+                    "Menus restricted to groups: " + byGroups.entries.joinToString("; ") { (groups, menus) ->
+                        "[$groups]: ${menus.joinToString()}"
+                    }
+                }
+            }
     }
 
     companion object {

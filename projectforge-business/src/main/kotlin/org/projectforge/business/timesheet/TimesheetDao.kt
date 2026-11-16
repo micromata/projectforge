@@ -1268,7 +1268,6 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             "user.username",
             "user.firstname",
             "user.lastname",
-            "kost2.nummer",
             "kost2.description",
             "kost2.projekt.name"
         )

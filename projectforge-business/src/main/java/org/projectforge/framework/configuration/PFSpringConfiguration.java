@@ -98,8 +98,12 @@ public class PFSpringConfiguration {
         return transactionManager;
     }
 
+    /**
+     * Static, so the post processor doesn't instantiate this configuration (and its dataSource) before the other
+     * BeanPostProcessors are registered.
+     */
     @Bean
-    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+    public static PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
         return new PersistenceExceptionTranslationPostProcessor();
     }
 

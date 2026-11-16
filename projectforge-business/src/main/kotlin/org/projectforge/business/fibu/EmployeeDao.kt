@@ -228,7 +228,6 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
             "user.firstname", "user.lastname", "user.username",
             "user.description",
             "user.organization",
-            "kost1.nummer", "kost1.name",
         )
         private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
         private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("abteilung", "position")
