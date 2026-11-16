@@ -93,10 +93,14 @@ class ProjectForgeEndpoints : SystemDiagnosticsExport {
     return out.toString()
   }
 
+  /**
+   * Development mode only, at debug level: the dump lists every endpoint (thousands of lines). It is part of the system
+   * diagnostics export anyway.
+   */
   @EventListener(ApplicationReadyEvent::class)
   fun onApplicationReady() {
     if (SystemStatus.isDevelopmentMode()) {
-      log.info { getInfo() }
+      log.debug { getInfo() }
     }
   }
 }

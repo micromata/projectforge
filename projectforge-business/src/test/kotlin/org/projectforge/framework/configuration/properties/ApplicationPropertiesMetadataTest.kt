@@ -127,6 +127,23 @@ class ApplicationPropertiesMetadataTest {
         })
     }
 
+    @Test
+    fun `list entries are sorted entry by entry`() {
+        // As the editor gets them: other indices following the documented key of their field.
+        val keys = listOf(
+            "a.title", "a.list[0].name", "a.list[0].iban", "a.list[1].name", "a.list[2].name", "a.list[1].iban",
+            "a.list[2].iban", "a.other",
+        )
+        assertEquals(
+            listOf(
+                "a.title", "a.list[0].name", "a.list[0].iban", "a.list[1].name", "a.list[1].iban", "a.list[2].name",
+                "a.list[2].iban", "a.other",
+            ),
+            PropertiesMetadata.sortListEntries(keys) { it },
+        )
+        assertEquals(listOf("b", "a"), PropertiesMetadata.sortListEntries(listOf("b", "a")) { it })
+    }
+
     private fun readResource(path: String): String =
         String(javaClass.getResourceAsStream(path)!!.readBytes(), Charsets.ISO_8859_1)
 }

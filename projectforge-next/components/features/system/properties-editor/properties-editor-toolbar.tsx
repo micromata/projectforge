@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { AddPropertyForm } from "./add-property-form";
 import type { PropertyFilter } from "./properties-editor-model";
 
-/** Search (key, description, own comments), the filters "set in file" / "modified" and "add". */
+/** Search (key, value, description, own comments), the filters "set in file" / "modified" and "add". */
 export function PropertiesEditorToolbar({
   filter,
   onFilterChange,

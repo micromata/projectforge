@@ -10,13 +10,15 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { FormAlert } from "@/components/shared/form-alert";
-import type { PropertyGroup } from "@/lib/rs/properties-editor";
+import type { PropertyGroup, PropertyParam } from "@/lib/rs/properties-editor";
 import { cn } from "@/lib/utils";
 import {
   isEffectiveEdit,
   type PropertyEdit,
   type PropertyEdits,
 } from "./properties-editor-model";
+import { AddListEntryButtons } from "./add-list-entry-buttons";
+import { parseListEntryKey } from "./list-entries";
 import { PropertyDescription } from "./property-description";
 import { PropertyRow } from "./property-row";
 import { PropertyStatusPills } from "./property-status-pills";
@@ -34,6 +36,8 @@ export function PropertyGroupSection({
   forceOpen,
   edits,
   onEdit,
+  onAddListEntry,
+  onRemoveListEntry,
   query,
   readOnly,
 }: {
@@ -41,6 +45,8 @@ export function PropertyGroupSection({
   forceOpen: boolean;
   edits: PropertyEdits;
   onEdit: (key: string, edit: PropertyEdit | undefined) => void;
+  onAddListEntry: (list: string) => void;
+  onRemoveListEntry: (list: string, index: number) => void;
   query: string;
   readOnly: boolean;
 }) {
@@ -99,10 +105,15 @@ export function PropertyGroupSection({
               <PropertyDescription text={block.description} query={query} />
             )}
             <div className="flex flex-col divide-y">
-              {block.params.map((param) => (
+              {block.params.map((param, i) => (
                 <PropertyRow
                   key={param.key}
                   param={param}
+                  onRemoveEntry={removeEntryHandler(
+                    block.params,
+                    i,
+                    onRemoveListEntry
+                  )}
                   edit={edits[param.key]}
                   onEdit={(edit) => onEdit(param.key, edit)}
                   query={query}
@@ -110,9 +121,30 @@ export function PropertyGroupSection({
                 />
               ))}
             </div>
+            {!readOnly && (
+              <AddListEntryButtons
+                params={block.params}
+                onAdd={onAddListEntry}
+              />
+            )}
           </div>
         ))}
       </CollapsibleContent>
     </Collapsible>
   );
+}
+
+/** The handler removing the list entry of a row, for the first row of each entry only. */
+function removeEntryHandler(
+  params: PropertyParam[],
+  i: number,
+  onRemove: (list: string, index: number) => void
+): (() => void) | undefined {
+  const entry = parseListEntryKey(params[i].key);
+  if (!entry) return undefined;
+  const first = params.findIndex((param) => {
+    const other = parseListEntryKey(param.key);
+    return other?.list === entry.list && other.index === entry.index;
+  });
+  return first === i ? () => onRemove(entry.list, entry.index) : undefined;
 }

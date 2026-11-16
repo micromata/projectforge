@@ -217,7 +217,7 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
     companion object {
         @JvmStatic
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
-            "usersgroups", "owner.username",
+            "owner.username",
             "owner.firstname",
             "owner.lastname"
         )

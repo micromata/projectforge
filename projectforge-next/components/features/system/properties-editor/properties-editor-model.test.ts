@@ -7,6 +7,7 @@ import {
   isValidKey,
   newParam,
   withAddedParams,
+  type PropertyEdits,
 } from "./properties-editor-model";
 
 const param = (
@@ -83,6 +84,23 @@ describe("properties editor model", () => {
     );
     expect(byQuery.map((g) => g.id)).toEqual(["general"]);
     expect(byQuery[0].blocks).toHaveLength(1);
+    const keysFor = (query: string, edits: PropertyEdits = {}) =>
+      filterGroups(
+        groups,
+        { query, onlyInFile: false, onlyModified: false },
+        edits
+      ).flatMap((g) => g.blocks.flatMap((b) => b.params.map((p) => p.key)));
+    expect(keysFor("https://pf")).toEqual(["projectforge.domain"]);
+    expect(
+      keysFor("help@", {
+        "projectforge.support.mail": { kind: "set", value: "help@pf" },
+      })
+    ).toEqual(["projectforge.support.mail"]);
+    expect(
+      keysFor("geheim", {
+        "spring.datasource.password": { kind: "set", value: "geheim" },
+      })
+    ).toEqual([]);
     const inFile = filterGroups(
       groups,
       { query: "", onlyInFile: true, onlyModified: false },

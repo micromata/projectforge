@@ -3,6 +3,7 @@ import type {
   PropertyGroup,
   PropertyParam,
 } from "@/lib/rs/properties-editor";
+import { newListEntryParam, parseListEntryKey } from "./list-entries";
 
 /** The not yet saved edit of one parameter: a new value, or removing it from the file. */
 export type PropertyEdit = { kind: "set"; value: string } | { kind: "remove" };
@@ -21,9 +22,16 @@ export const OTHER_GROUP_ID = "other";
 /** Id of the backend's group of keys in ProjectForge's namespace it doesn't know (any more). */
 export const OBSOLETE_GROUP_ID = "obsolete";
 
-/** Undocumented keys aren't reset to a default but deleted from the file. */
+/**
+ * Undocumented keys (and further indices of a list or map) aren't reset to a default but deleted from
+ * the file.
+ */
 export function isUndocumented(param: PropertyParam): boolean {
-  return param.status === "OBSOLETE" || param.status === "UNKNOWN";
+  return (
+    param.status === "OBSOLETE" ||
+    param.status === "UNKNOWN" ||
+    param.status === "VARIANT"
+  );
 }
 
 const KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._\-[\]]*$/;
@@ -89,8 +97,41 @@ export function newParam(key: string): PropertyParam {
   };
 }
 
-/** The groups with the parameters added by the admin in the group "Other". */
+/**
+ * The groups with the parameters added by the admin: a new entry of a list after the last entry of
+ * its list, any other in the group "Other".
+ */
 export function withAddedParams(
+  groups: PropertyGroup[],
+  addedKeys: string[]
+): PropertyGroup[] {
+  if (addedKeys.length === 0) return groups;
+  const placed = new Set<string>();
+  const withEntries = groups.map((group) => ({
+    ...group,
+    blocks: group.blocks.map((block) => {
+      const params = [...block.params];
+      addedKeys.forEach((key) => {
+        if (placed.has(key)) return;
+        const entry = newListEntryParam(params, key);
+        if (!entry) return;
+        const list = parseListEntryKey(key)?.list;
+        const last = params.findLastIndex(
+          (param) => parseListEntryKey(param.key)?.list === list
+        );
+        params.splice(last + 1, 0, entry);
+        placed.add(key);
+      });
+      return params.length === block.params.length
+        ? block
+        : { ...block, params };
+    }),
+  }));
+  const others = addedKeys.filter((key) => !placed.has(key));
+  return withOtherParams(withEntries, others);
+}
+
+function withOtherParams(
   groups: PropertyGroup[],
   addedKeys: string[]
 ): PropertyGroup[] {
@@ -116,10 +157,16 @@ export function withAddedParams(
 function matchesQuery(
   param: PropertyParam,
   blockDescription: string | null | undefined,
-  words: string[]
+  words: string[],
+  edit: PropertyEdit | undefined
 ): boolean {
+  // The backend sends no value of a secret; a new one typed in isn't searchable either.
   const text = [
     param.key,
+    param.secret ? null : currentValue(param, edit),
+    param.defaultValue,
+    param.example,
+    param.activeValue,
     param.description,
     blockDescription,
     param.fileComment,
@@ -149,7 +196,12 @@ export function filterGroups(
               (!filter.onlyModified ||
                 isEffectiveEdit(param, edits[param.key])) &&
               (words.length === 0 ||
-                matchesQuery(param, block.description, words) ||
+                matchesQuery(
+                  param,
+                  block.description,
+                  words,
+                  edits[param.key]
+                ) ||
                 group.title.toLowerCase().includes(words.join(" ")))
           ),
         }))

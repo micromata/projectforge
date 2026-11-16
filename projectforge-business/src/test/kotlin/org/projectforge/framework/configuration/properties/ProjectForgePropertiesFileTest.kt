@@ -152,8 +152,20 @@ class ProjectForgePropertiesFileTest {
         )
         assertFalse(result.contains("compileCss") || result.contains("Old option"), result)
         assertFalse(result.contains("springdoc") || result.contains("Own Spring setting"), result)
-        // A variant of a documented key is commented out like a documented one.
-        assertTrue(result.contains("#projectforge.einvoice.seller.bankAccounts[2].iban=DE00"), result)
+        // Another index of a documented list is deleted, too, not kept as a comment.
+        assertFalse(result.contains("bankAccounts[2]"), result)
+    }
+
+    @Test
+    fun `list entries are written entry by entry`() {
+        val list = "projectforge.einvoice.seller.bankAccounts"
+        val result = writer.write(
+            "$list[0].name=A\n$list[0].iban=DE0\n",
+            listOf("[1].name" to "B", "[2].name" to "C", "[1].iban" to "DE1", "[2].iban" to "DE2")
+                .map { (suffix, value) -> PropertyChange("$list$suffix", value) }
+        )
+        val keys = result.lines().filter { it.startsWith(list) }.map { it.substringBefore('=').removePrefix(list) }
+        assertEquals(listOf("[0].name", "[0].iban", "[1].name", "[1].iban", "[2].name", "[2].iban"), keys, result)
     }
 
     @Test

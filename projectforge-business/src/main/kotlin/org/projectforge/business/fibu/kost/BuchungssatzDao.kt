@@ -262,8 +262,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
     companion object {
         @JvmStatic
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
-            "kost1.nummer", "kost1.description",
-            "kost2.nummer",
+            "kost1.description",
             "kost2.description", "kost2.comment", "kost2.projekt.name", "kost2.projekt.kunde.name", "konto.nummer",
             "gegenKonto.nummer"
         )

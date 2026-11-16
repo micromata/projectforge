@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "The search of the projectforge.properties editor also finds parameters by their value (set in the file, entered, default or active).",
+  "de": "Die Suche im Editor der projectforge.properties findet Parameter auch über ihren Wert (in der Datei gesetzt, eingegeben, Vorgabe oder aktiv)."
+}

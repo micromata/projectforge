@@ -74,9 +74,9 @@ class ProjectForgePropertiesWriter(private val metadata: PropertiesMetadata) {
         if (change.remove) {
             active ?: return
             val status = metadata.statusOf(key)
-            if (status == PropertiesMetadata.KeyStatus.OBSOLETE || status == PropertiesMetadata.KeyStatus.UNKNOWN) {
-                // Not documented: nothing worth keeping as an example (the backup has it), so it is deleted with its
-                // comment.
+            if (status != PropertiesMetadata.KeyStatus.KNOWN) {
+                // Not documented (or another index of a documented list): nothing worth keeping as an example (the
+                // backup has it), so it is deleted with its comment.
                 units.remove(active)
             } else {
                 commentOut(active, key)
@@ -169,6 +169,8 @@ class ProjectForgePropertiesWriter(private val metadata: PropertiesMetadata) {
                 Sorted(unit, null, Double.MAX_VALUE)
             }
         }.sortedWith(compareBy<Sorted> { it.position }.thenBy { it.unit.fileIndex })
+            // The entries of an indexed list one after the other, not field by field.
+            .let { PropertiesMetadata.sortListEntries(it) { item -> item.unit.key } }
         val out = mutableListOf<String>()
         if (parsed.header.isNotEmpty()) {
             out.addAll(parsed.header)

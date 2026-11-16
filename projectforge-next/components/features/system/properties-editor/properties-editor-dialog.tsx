@@ -87,6 +87,8 @@ export function PropertiesEditorDialog({ onClose }: { onClose: () => void }) {
                 forceOpen={searching}
                 edits={editor.edits}
                 onEdit={editor.setEdit}
+                onAddListEntry={editor.addListEntry}
+                onRemoveListEntry={editor.removeListEntry}
                 query={editor.filter.query}
                 readOnly={readOnly}
               />
@@ -118,7 +120,7 @@ export function PropertiesEditorDialog({ onClose }: { onClose: () => void }) {
           description={
             <span className="flex flex-col gap-2">
               <span>{t("system.propertiesEditor.confirm.description")}</span>
-              <span className="flex flex-col font-mono text-xs">
+              <span className="flex max-h-[50dvh] flex-col overflow-y-auto font-mono text-xs">
                 {editor.changes.map((change) => (
                   <span key={change.key} className="break-all">
                     {change.remove

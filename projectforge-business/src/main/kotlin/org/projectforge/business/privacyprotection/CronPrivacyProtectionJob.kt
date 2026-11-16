@@ -54,7 +54,7 @@ class CronPrivacyProtectionJob {
 
   fun register(job: IPrivacyProtectionJob) {
     synchronized(jobs) {
-      log.info { "Registering job ${job::class.java}." }
+      log.debug { "Registering job ${job::class.java}." }
       jobs.add(job)
     }
   }

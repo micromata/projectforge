@@ -109,10 +109,11 @@ class ProjectForgePropertiesService {
             .groupBy { metadata.findRelatedKey(it) }
         val groups = metadata.groups.map { group ->
             GroupData(group.id, group.title, group.expert, group.blocks.map { block ->
-                BlockData(block.description, block.params.flatMap { param ->
+                val params = block.params.flatMap { param ->
                     listOf(toParamData(param.key, param, snapshot, comments[param.key])) +
                         variantsByKey[param.key].orEmpty().map { toParamData(it, null, snapshot, comments[it]) }
-                })
+                }
+                BlockData(block.description, PropertiesMetadata.sortListEntries(params) { it.key })
             })
         }.toMutableList()
         listOf(
