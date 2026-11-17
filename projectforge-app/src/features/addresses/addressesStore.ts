@@ -61,7 +61,7 @@ class AddressesStore {
   };
 
   private repository(api: ApiClient) {
-    return new AddressesRepository(api, JsonCache, addressImageFiles);
+    return new AddressesRepository(api, JsonCache, addressImageFiles, () => authController.api === api);
   }
 
   /** Loads the addresses of the active login, once per login (the stored ones first). */

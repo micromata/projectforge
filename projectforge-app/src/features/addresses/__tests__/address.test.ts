@@ -156,6 +156,19 @@ describe('AddressesRepository', () => {
     expect(second.addresses.map((it) => it.id)).toEqual([1, 2]);
   });
 
+  it('stores nothing of a login that is no longer the active one (late answer after a server switch)', async () => {
+    const get = jest.fn().mockResolvedValue({ timestamp: 1, ids: [1], addresses: [address({ id: 1 })] });
+    const download = jest.fn().mockResolvedValue(new Uint8Array([1]));
+    const stored = cache();
+    const images = files();
+    const repository = new AddressesRepository({ post: jest.fn(), get, download }, stored, images, () => false);
+    const book = await repository.sync(null);
+    expect(book.addresses).toHaveLength(1);
+    expect(await repository.image(1, 1)).toBeNull();
+    expect(stored.entries).toEqual({});
+    expect(images.stored.size).toBe(0);
+  });
+
   it('keeps the stored book without a connection, but reports an answer of the server', async () => {
     const stored = addressBook(1, [address({ id: 1 })]);
     const offline = new AddressesRepository({ post: jest.fn(), get: jest.fn().mockRejectedValue(new TypeError('Network request failed')), download: jest.fn() }, cache(), files());

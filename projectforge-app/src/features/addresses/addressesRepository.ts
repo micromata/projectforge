@@ -66,6 +66,11 @@ export class AddressesRepository {
     private readonly api: Pick<ApiClient, 'get' | 'post' | 'download'>,
     private readonly cache: BookCache,
     private readonly images: ImageFiles,
+    /**
+     * Whether the login of [api] is still the active one. After a switch to another server (or a logout) the cache
+     * belongs to the new login: a late answer of the old server must not be stored into it.
+     */
+    private readonly isCurrent: () => boolean = () => true,
   ) {}
 
   /** The stored address book, null if there is none (yet). Not marked as offline: the server isn't asked. */
@@ -78,8 +83,10 @@ export class AddressesRepository {
   async sync(stored: AddressBook | null): Promise<AddressBook> {
     try {
       const book = (stored == null ? null : await this.syncChanges(stored)) ?? (await this.loadAll());
-      this.store(book);
-      this.deleteObsoleteImages(book);
+      if (this.isCurrent()) {
+        this.store(book);
+        this.deleteObsoleteImages(book);
+      }
       return book;
     } catch (e) {
       if (!isOffline(e) || stored == null) throw e;
@@ -112,6 +119,7 @@ export class AddressesRepository {
 
   /** Keeps [book] on the device. */
   store(book: AddressBook) {
+    if (!this.isCurrent()) return;
     this.cache.write(AddressesRepository.CACHE_NAME, { ...book, fromCache: undefined });
   }
 
@@ -127,7 +135,7 @@ export class AddressesRepository {
       const bytes = await this.api.download(`${AddressesRepository.PATH}/${full ? 'image' : 'imagePreview'}/${id}`, {}, {
         renewLogin: false,
       });
-      return this.images.write(name, bytes);
+      return this.isCurrent() ? this.images.write(name, bytes) : null;
     } catch {
       return null;
     }
