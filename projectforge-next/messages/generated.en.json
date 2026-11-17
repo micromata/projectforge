@@ -660,6 +660,16 @@
       "dropHere": "Drop files here",
       "title": "You may upload multiple files here by dropping in or clicking."
     },
+    "view": {
+      "_": "Show",
+      "newTab": "Open in new tab",
+      "next": "Next file",
+      "notAvailable": "This file can't be shown in the browser. Please download it.",
+      "pdfNotSupported": "This browser doesn't show PDFs within the page. Open the file in a new tab or download it.",
+      "previous": "Previous file",
+      "tooltip": "Shows the file in the browser (PDF, image or text) without downloading it.",
+      "truncated": "Only the first {arg0} of the file are shown. Download it for the whole content."
+    },
     "zip": {
       "encrypted": "Encrypted",
       "encryptedStandard": "Encrypted (ZIP standard)",

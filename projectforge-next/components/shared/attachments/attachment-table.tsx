@@ -17,6 +17,7 @@ import {
   type Attachment,
 } from "@/lib/rs/attachments";
 import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
+import { AttachmentViewButton } from "./attachment-view-button";
 import { useAttachmentService } from "./attachment-service";
 import { inactiveRefClass } from "@/lib/page-def/reference";
 
@@ -32,6 +33,7 @@ interface CellContext {
   id: number;
   selection?: AttachmentSelection;
   busy?: boolean;
+  onView?: (attachment: Attachment) => void;
 }
 
 const AttachmentCellContext = createContext<CellContext | null>(null);
@@ -243,7 +245,7 @@ function NameCell({
   highlight?: string;
 }) {
   const t = useTranslations();
-  const { entity, id } = useCellContext();
+  const { entity, id, onView } = useCellContext();
   const { base } = useAttachmentService();
   return (
     <div className="min-w-0">
@@ -264,6 +266,7 @@ function NameCell({
         >
           <HighlightedText text={attachment.name} query={highlight} />
         </a>
+        <AttachmentViewButton attachment={attachment} onView={onView} />
         {attachment.encrypted && (
           <AttachmentEncryptedBadge attachment={attachment} />
         )}
@@ -287,6 +290,8 @@ interface Props {
   selection?: AttachmentSelection;
   onEdit: (attachment: Attachment) => void;
   onDelete: (attachment: Attachment) => void;
+  /** Shows the file in the browser (see AttachmentViewButton). */
+  onView?: (attachment: Attachment) => void;
 }
 
 /**
@@ -306,10 +311,13 @@ export function AttachmentTable({
   selection,
   onEdit,
   onDelete,
+  onView,
 }: Props) {
   const t = useTranslations();
   return (
-    <AttachmentCellContext.Provider value={{ entity, id, selection, busy }}>
+    <AttachmentCellContext.Provider
+      value={{ entity, id, selection, busy, onView }}
+    >
       <DataTable<Attachment>
         table={table}
         columns={[]}

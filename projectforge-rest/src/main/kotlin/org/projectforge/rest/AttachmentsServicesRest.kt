@@ -44,11 +44,13 @@ import org.projectforge.files.FileObject
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -70,6 +72,10 @@ private val log = KotlinLogging.logger {}
 class AttachmentsServicesRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
+
+    /** The global Content Security Policy, which the preview of a PDF adapts (see [AttachmentPreview.pdfCsp]). */
+    @Value("\${projectforge.security.csp-header-value:}")
+    private var cspHeaderValue: String? = null
 
     private var actionListeners = mutableMapOf<String, AttachmentsActionListener>()
 
@@ -449,6 +455,32 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val filename = result.first.fileName ?: "file"
         val inputStream = result.second
         return RestUtils.downloadFile(filename, inputStream)
+    }
+
+    /**
+     * The file shown in the browser instead of downloaded: PDFs, images and texts only, detected by their content,
+     * anything else is answered with 415 (see [AttachmentPreview]).
+     */
+    @AccessChecked("AttachmentsService.getAttachmentInputStream: download access of the category's attachmentsAccessChecker")
+    @GetMapping("preview/{category}/{id}")
+    fun preview(
+        response: HttpServletResponse,
+        @PathVariable("category", required = true) category: String,
+        @PathVariable("id", required = true) id: Long,
+        @RequestParam("fileId", required = true) fileId: String,
+        @RequestParam("listId") listId: String?
+    ): ResponseEntity<InputStreamResource> {
+        log.info { "User tries to preview attachment: ${paramsToString(category, id, fileId, listId)}." }
+        val pagesRest = getPagesRest(category, listId)
+        val (fileObject, inputStream) =
+            attachmentsService.getAttachmentInputStream(
+                pagesRest.attachmentsPath!!,
+                id,
+                fileId,
+                pagesRest.attachmentsAccessChecker,
+                baseDao = pagesRest.baseDao,
+            ) ?: return ResponseEntity.notFound().build()
+        return AttachmentPreview.response(fileObject.fileName ?: "file", inputStream, response, cspHeaderValue)
     }
 
     /**
