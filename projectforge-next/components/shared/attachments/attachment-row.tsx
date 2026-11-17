@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
 import { useAttachmentService } from "./attachment-service";
 import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
+import { AttachmentViewButton } from "./attachment-view-button";
 
 interface Props {
   attachment: Attachment;
@@ -15,6 +16,8 @@ interface Props {
   id: number;
   onEdit: (attachment: Attachment) => void;
   onDelete: (attachment: Attachment) => void;
+  /** Shows the file in the browser (see AttachmentViewButton). */
+  onView?: (attachment: Attachment) => void;
   busy?: boolean;
   /** Nothing but downloads: no rename, no delete — and a row click downloads (see below). */
   readOnly?: boolean;
@@ -47,6 +50,7 @@ export function AttachmentRow({
   id,
   onEdit,
   onDelete,
+  onView,
   busy,
   readOnly,
   selected,
@@ -119,6 +123,7 @@ export function AttachmentRow({
           >
             {attachment.name}
           </a>
+          <AttachmentViewButton attachment={attachment} onView={onView} />
           {attachment.encrypted && (
             <AttachmentEncryptedBadge attachment={attachment} />
           )}

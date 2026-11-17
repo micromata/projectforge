@@ -660,6 +660,16 @@
       "dropHere": "Dateien hier ablegen",
       "title": "Dateien durch Klick auswählen oder Dateien hier hinziehen."
     },
+    "view": {
+      "_": "Anzeigen",
+      "newTab": "In neuem Tab öffnen",
+      "next": "Nächste Datei",
+      "notAvailable": "Diese Datei kann im Browser nicht angezeigt werden. Bitte herunterladen.",
+      "pdfNotSupported": "Dieser Browser zeigt PDFs nicht innerhalb der Seite an. Die Datei kann in einem neuen Tab geöffnet oder heruntergeladen werden.",
+      "previous": "Vorherige Datei",
+      "tooltip": "Zeigt die Datei im Browser an (PDF, Bild oder Text), ohne sie herunterzuladen.",
+      "truncated": "Nur die ersten {arg0} der Datei werden angezeigt. Für den ganzen Inhalt bitte herunterladen."
+    },
     "zip": {
       "encrypted": "verschlüsselt",
       "encryptedStandard": "verschlüsselt (ZIP-Standard)",

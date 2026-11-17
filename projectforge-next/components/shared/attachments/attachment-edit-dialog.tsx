@@ -52,6 +52,11 @@ export interface AttachmentEditDialogProps {
   onDelete: () => void;
   onEncrypt: (password: string, mode: EncryptionMode) => Promise<string | null>;
   onTestDecryption: (password: string) => Promise<string | null>;
+  /**
+   * Shows the file in AttachmentViewer, above these details (which keep what was typed). Unset for a file the
+   * browser can't show.
+   */
+  onView?: () => void;
   onClose: () => void;
 }
 
@@ -65,8 +70,8 @@ export interface AttachmentEditDialogProps {
  *
  * Everything else the legacy dialog offered (`AttachmentPageRest.createAttachmentLayout`) is here as
  * well: encrypting the file or testing a password against it (AttachmentEncryption), deleting and
- * downloading it. The row has the last two already, but whoever opened the details to look at a file
- * should not have to close them to act on it.
+ * downloading it. On top of it the preview (AttachmentViewer). The row has these three already, but whoever
+ * opened the details to look at a file should not have to close them to act on it.
  */
 export function AttachmentEditDialog({
   attachment,
@@ -81,6 +86,7 @@ export function AttachmentEditDialog({
   onDelete,
   onEncrypt,
   onTestDecryption,
+  onView,
   onClose,
 }: AttachmentEditDialogProps) {
   const t = useTranslations();
@@ -147,6 +153,7 @@ export function AttachmentEditDialog({
             fileRef={{ entity, id, fileId: attachment.fileId, base }}
             busy={busy}
             onDelete={readOnly ? undefined : onDelete}
+            onView={onView}
           />
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <Button type="button" variant="outline" onClick={onClose}>

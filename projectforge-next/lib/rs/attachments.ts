@@ -163,6 +163,11 @@ export interface AttachmentService {
   /** Who uploaded or changed a file is shown. */
   userInfo: boolean;
   /**
+   * PDFs, images and texts can be shown in the browser (`preview`, see [attachmentPreviewUrl]). Off for the
+   * external access of a data transfer area, which has no such endpoint.
+   */
+  preview?: boolean;
+  /**
    * Called when a write (upload, rename, delete, encrypt) failed on the way, not refused by the backend.
    * The external access of a data transfer area re-reads its login state then: the usual cause there is
    * an expired session, which the page should answer with its login form.
@@ -184,6 +189,7 @@ export const DEFAULT_ATTACHMENT_SERVICE: AttachmentService = {
   multiDownload: true,
   downloadAll: true,
   userInfo: true,
+  preview: true,
 };
 
 /**
@@ -310,6 +316,70 @@ export function attachmentDownloadUrl(ref: AttachmentRef): string {
     listId: ref.listId ?? DEFAULT_LIST_ID,
   });
   return `${ref.base ?? BASE}/download/${ref.entity}/${ref.id}?${params}`;
+}
+
+/** How [AttachmentViewer] shows a file: in the PDF viewer of the browser, as an image, or as text. */
+export type PreviewKind = "pdf" | "image" | "text";
+
+const PREVIEW_KINDS: Record<string, PreviewKind> = {
+  pdf: "pdf",
+  png: "image",
+  jpg: "image",
+  jpeg: "image",
+  gif: "image",
+  webp: "image",
+  // The same list as `AttachmentPreview.TEXT_EXTENSIONS`.
+  ...Object.fromEntries(
+    [
+      "txt",
+      "csv",
+      "tsv",
+      "json",
+      "xml",
+      "log",
+      "md",
+      "properties",
+      "yml",
+      "yaml",
+    ].map((extension) => [extension, "text" as const])
+  ),
+};
+
+/**
+ * How the file can be shown in the browser, by its name; null for every other format and for an encrypted
+ * file. Only a guess for offering the preview: the backend decides by the content and refuses anything else
+ * (`AttachmentPreview`) — an svg or html file is never shown, whatever it is called.
+ */
+export function previewKind(
+  attachment: Pick<Attachment, "name" | "encrypted">
+): PreviewKind | null {
+  if (attachment.encrypted) return null;
+  const dot = attachment.name.lastIndexOf(".");
+  if (dot < 0) return null;
+  return PREVIEW_KINDS[attachment.name.slice(dot + 1).toLowerCase()] ?? null;
+}
+
+/**
+ * Where a single attachment can be shown in the browser (`Content-Disposition: inline`), as
+ * [attachmentDownloadUrl]. Answers 415 for a file of another format.
+ */
+export function attachmentPreviewUrl(ref: AttachmentRef): string {
+  const params = new URLSearchParams({
+    fileId: ref.fileId,
+    listId: ref.listId ?? DEFAULT_LIST_ID,
+  });
+  return `${ref.base ?? BASE}/preview/${ref.entity}/${ref.id}?${params}`;
+}
+
+/** The content of a text attachment, for the viewer; throws an [RsError] for a 415 (not shown as text). */
+export async function fetchAttachmentPreviewText(
+  ref: AttachmentRef,
+  signal?: AbortSignal
+): Promise<string> {
+  const path = attachmentPreviewUrl(ref);
+  const res = await rawRequest(path, { method: "GET" }, signal);
+  if (!res.ok) throw new RsError(res.status, `${res.status}: ${path}`);
+  return res.text();
 }
 
 /**
@@ -543,7 +613,6 @@ function parseAction(text: string): ResponseAction | null {
 /** Unwraps `ResponseAction.variables.data.attachments`, which every write answers with. */
 function readAttachments(action: ResponseAction | null): Attachment[] {
   const data = action?.variables?.data as
-    | { attachments?: Attachment[] | null }
-    | undefined;
+    { attachments?: Attachment[] | null } | undefined;
   return data?.attachments ?? [];
 }
