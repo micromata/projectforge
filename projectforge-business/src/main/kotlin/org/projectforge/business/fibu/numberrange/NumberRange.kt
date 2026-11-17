@@ -55,6 +55,13 @@ class NumberRange {
     /** Number of digits of the local project number (per customer or, without customers, of the whole range). */
     var projectDigits: Int = 2
 
+    /**
+     * Lowest local project number proposed for a new project (e.g. 1 for 5.###.01 instead of 5.###.00); lower ones can
+     * still be entered by hand. Null: the first proposed project number of the `fibu.accounting` configuration applies,
+     * otherwise 0.
+     */
+    var projectMin: Int? = null
+
     private var configuredSegments: List<Int>? = null
 
     /**
@@ -106,7 +113,7 @@ class NumberRange {
 
     override fun toString(): String {
         val customers = if (hasCustomers) "customers $customerMin-$customerMax" else "no customers"
-        return "NumberRange(prefix=$prefix, name=$name, $customers, projectDigits=$projectDigits, segments=$segments)"
+        return "NumberRange(prefix=$prefix, name=$name, $customers, projectDigits=$projectDigits, projectMin=$projectMin, segments=$segments)"
     }
 
     companion object {

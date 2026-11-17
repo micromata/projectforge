@@ -713,6 +713,9 @@ Jeder Nummernkreis ist ein Listeneintrag `projectforge.fibu.number-ranges.ranges
 |`customer-min`, `customer-max` | |Kleinste und größte Kundennummer dieses Nummernkreises; beide oder keine angeben. Ein
 Nummernkreis ohne Kunden ist für Projekte ohne Kunden gedacht (z. B. interne Projekte); sein `project-digits` muss 5
 sein.
+|`project-min` |0 |Kleinste lokale Projektnummer, die für ein neues Projekt vorgeschlagen wird, z. B. `1` für `5.###.01` statt
+`5.###.00`. Niedrigere Nummern können weiterhin von Hand eingegeben werden und werden vorgeschlagen, wenn alle höheren
+vergeben sind. Ohne Angabe gilt die erste vorgeschlagene Projektnummer der Buchhaltungs-Konfiguration.
 |`project-digits` |2 |Anzahl der Stellen der Projektnummer je Kunde (1-5) bzw. des gesamten Nummernkreises bei einem
 Nummernkreis ohne Kunden.
 |`segments` |`1,3,2,2` |Segmente der 8-stelligen Kost2 für Anzeige und Eingabe, z. B. `1,4,1,2` für `1.####.#.##`.

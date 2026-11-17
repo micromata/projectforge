@@ -217,6 +217,11 @@ class NumberRangesTest {
         assertThrows<IllegalArgumentException> {
             NumberRanges(listOf(range(prefix = 1, customerMin = 0, customerMax = null)))
         }
+        // project-min must fit into the local project number:
+        assertThrows<IllegalArgumentException> {
+            NumberRanges(listOf(range(prefix = 5, customerMin = 0, customerMax = 999, projectDigits = 2, projectMin = 100)))
+        }
+        NumberRanges(listOf(range(prefix = 5, customerMin = 0, customerMax = 999, projectDigits = 2, projectMin = 99)))
     }
 
     @Test
@@ -247,7 +252,9 @@ class NumberRangesTest {
         customerMax: Long? = null,
         projectDigits: Int = 2,
         segments: List<Int>? = null,
+        projectMin: Int? = null,
     ) = NumberRange().also {
+        it.projectMin = projectMin
         it.prefix = prefix
         it.customerMin = customerMin
         it.customerMax = customerMax

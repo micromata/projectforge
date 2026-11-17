@@ -685,6 +685,9 @@ Each range is a list entry `projectforge.fibu.number-ranges.ranges[n].<property>
 |`name` | |Display name, e.g. `Intern`.
 |`customer-min`, `customer-max` | |Lowest and highest customer number of this range; give both or none. A range without
 customers is for projects without customer (e.g. internal projects); its `project-digits` must be 5.
+|`project-min` |0 |Lowest local project number proposed for a new project, e.g. `1` for `5.###.01` instead of `5.###.00`.
+Lower numbers can still be entered by hand and are proposed once all higher ones are taken. If not set, the first
+proposed project number of the accounting configuration applies.
 |`project-digits` |2 |Number of digits of the project number per customer (1-5), or of the whole range for a range
 without customers.
 |`segments` |`1,3,2,2` |Segments of the 8-digit Kost2 for display and input, e.g. `1,4,1,2` for `1.####.#.##`. Must

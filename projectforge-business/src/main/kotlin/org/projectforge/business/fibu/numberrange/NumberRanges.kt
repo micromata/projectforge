@@ -290,6 +290,11 @@ class NumberRanges(
             "Number ranges: project-digits of $range must be 1-${PROJECT_NUMBER_DIGITS - 1}."
         }
         validateSegments(range.segments, "segments of $range")
+        range.projectMin?.let {
+            require(it in 0..range.maxLocalNumber) {
+                "Number ranges: project-min of $range must be in 0..${range.maxLocalNumber}."
+            }
+        }
         val min = range.customerMin
         val max = range.customerMax
         require((min == null) == (max == null)) { "Number ranges: give both customer-min and customer-max for $range." }

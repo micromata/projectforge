@@ -289,7 +289,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * The next free local number of a project within the number range of its customer [kunde] (or, without customer,
      * of the range without customers), null without such a range or if it is exhausted. Taken are the local numbers
      * of the customer's other projects (deleted ones included) and the project numbers used in the range. The search
-     * starts at the first proposed number of the range (`fibu.accounting`, [AccountingConfig.getFirstProjectNumber]).
+     * starts at the `project-min` of the range ([NumberRange.projectMin]), or else at its first proposed number
+     * (`fibu.accounting`, [AccountingConfig.getFirstProjectNumber]).
      *
      * @param projectId The project itself, whose own number doesn't count as taken.
      */
@@ -311,7 +312,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
             .filter { !range.hasCustomers || numberRanges.customerNumber(it) == kundeNummer }
             .mapNotNull { numberRanges.localNumber(it) }
         val used = usedInRange + localNumbersOfCustomer(kunde?.id, projectId)
-        val start = AccountingConfig.getInstance().getFirstProjectNumber(range.prefix)
+        val start = range.projectMin ?: AccountingConfig.getInstance().getFirstProjectNumber(range.prefix)
         return numberRanges.nextFreeLocalNumber(range, used, start)
     }
 

@@ -269,6 +269,26 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
     }
 
     @Test
+    fun `project-min of a range wins over the configured first project number`() {
+        val range = numberRangeService.numberRanges.rangeForPrefix(1)!!
+        ConfigurationJsonValues.internalSetForTest(ConfigurationParam.FIBU_ACCOUNTING, """{"firstProjectNumbers":{"1":2}}""")
+        range.projectMin = 1
+        try {
+            persistenceService.runInTransaction { _ ->
+                logon(TEST_FINANCE_USER)
+                val customer = insertKunde(10010)
+                assertEquals(1, projektDao.nextFreeLocalNumber(customer, null))
+                insertProjekt(customer, nummer = 1)
+                assertEquals(2, projektDao.nextFreeLocalNumber(customer, null))
+                null
+            }
+        } finally {
+            range.projectMin = null
+            ConfigurationJsonValues.internalSetForTest(ConfigurationParam.FIBU_ACCOUNTING, null)
+        }
+    }
+
+    @Test
     fun `first project numbers are validated against the number ranges`() {
         fun errors(json: String) = ConfigurationJsonValidators.validate(ConfigurationParam.FIBU_ACCOUNTING.key, json)
         assertEquals(emptyList<String>(), errors("""{"firstProjectNumbers":{"5":1,"1":9}}"""))

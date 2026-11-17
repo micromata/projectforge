@@ -38,6 +38,7 @@ package org.projectforge.business.fibu.numberrange
  * projectforge.fibu.number-ranges.ranges[1].customer-min=0
  * projectforge.fibu.number-ranges.ranges[1].customer-max=999
  * projectforge.fibu.number-ranges.ranges[1].project-digits=2
+ * projectforge.fibu.number-ranges.ranges[1].project-min=1
  * projectforge.fibu.number-ranges.ranges[2].prefix=1
  * projectforge.fibu.number-ranges.ranges[2].customer-min=10000
  * projectforge.fibu.number-ranges.ranges[2].customer-max=19999
