@@ -9,7 +9,7 @@ import {
 /**
  * The shaping of the forecast chart data (see `order-forecast-charts-view.tsx`) for its two charts, the
  * counterparts of sheet "Grafiken 1" of the forecast Excel export: the monthly stacked bars by position
- * status with the forecast/plan/previous-year lines, and the cumulated curves.
+ * status with the previous-year/plan bars beside them, and the cumulated curves.
  */
 
 /** The i18n keys of the position statuses, spelled out so the i18n key scanner finds them. */
@@ -63,13 +63,13 @@ export function monthlyBarKeys(
 }
 
 /**
- * The line keys of the monthly chart: the forecast (invoiced plus remaining forecast, the top of the stacked
- * bars), the plan only if one was calculated, and the previous years.
+ * The outlined comparison bars beside the stacked bars of the monthly chart: the plan (only if one was calculated)
+ * and the previous years. The forecast (invoiced plus remaining forecast) is the top of the stack.
  */
-export function monthlyLineKeys(data: ForecastChartData): SeriesKey[] {
+export function monthlyCompareBarKeys(data: ForecastChartData): SeriesKey[] {
   return data.plan
-    ? ["total", "plan", "prevYear", "prevPrevYear"]
-    : ["total", "prevYear", "prevPrevYear"];
+    ? ["plan", "prevYear", "prevPrevYear"]
+    : ["prevYear", "prevPrevYear"];
 }
 
 /** The line keys of the cumulated chart; the plan only if one was calculated. */

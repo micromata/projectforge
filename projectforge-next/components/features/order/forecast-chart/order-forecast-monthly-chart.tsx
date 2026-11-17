@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, CartesianGrid, ComposedChart, XAxis, YAxis } from "recharts";
 import { useTranslations } from "next-intl";
 import { ChartContainer, ChartLegend } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
@@ -21,18 +14,19 @@ import type { ForecastChartData } from "@/lib/rs/order";
 import {
   buildForecastChartConfig,
   formatChartMonth,
-  lineDashArray,
   monthlyBarKeys,
-  monthlyLineKeys,
+  lineDashArray,
+  monthlyCompareBarKeys,
+  type SeriesKey,
   monthlyRows,
   spansMultipleYears,
 } from "./order-forecast-series";
 
 /**
- * The monthly forecast ('Umsatzprognose Monatswerte' of the Excel export, in its colours): the remaining
- * forecast of each position status and the invoiced sums (IST) as stacked, outlined bars, with the forecast
- * of the current year (invoiced plus remaining forecast, blue), the plan (if a planning date is set) and the
- * invoiced sums of the two previous years as lines.
+ * The monthly forecast ('Umsatzprognose Monatswerte' of the Excel export, in its colours): per month the
+ * remaining forecast of each position status and the invoiced sums (IST) as one stacked, outlined bar
+ * (invoiced plus remaining forecast), preceded by an outlined bar of the plan (if a planning date is set) and followed by those of the two
+ * previous years.
  */
 export function OrderForecastMonthlyChart({
   data,
@@ -47,18 +41,33 @@ export function OrderForecastMonthlyChart({
   const config = useMemo(() => buildForecastChartConfig(t), [t]);
   const rows = useMemo(() => monthlyRows(data), [data]);
   const bars = useMemo(() => monthlyBarKeys(data), [data]);
-  const lines = useMemo(() => monthlyLineKeys(data), [data]);
+  const compareBars = useMemo(() => monthlyCompareBarKeys(data), [data]);
   const showYear = spansMultipleYears(data);
-  // The stacked bars reach up to their monthly sum, so the axis is scaled on that sum next to the lines.
+  // The stacked bars reach up to their monthly sum, so the axis is scaled on that sum next to the comparison bars.
   const scale = useMemo(
     () =>
       niceScale(
         rows.flatMap((row) => [
           bars.reduce((sum, key) => sum + ((row[key] as number) ?? 0), 0),
-          ...lines.map((key) => row[key] as number),
+          ...compareBars.map((key) => row[key] as number),
         ])
       ),
-    [rows, bars, lines]
+    [rows, bars, compareBars]
+  );
+  // Outlined bar of a previous year or the plan, standing beside the stack (a stack of its own).
+  const compareBar = (key: SeriesKey) => (
+    <Bar
+      key={key}
+      dataKey={key}
+      // An own stack per bar: recharts places unstacked bars after all stacks, whatever their order here.
+      stackId={key}
+      stroke={`var(--color-${key})`}
+      strokeWidth={1.5}
+      strokeDasharray={lineDashArray(key)}
+      fill={`var(--color-${key})`}
+      fillOpacity={CHART_BAR_FILL_OPACITY / 3}
+      isAnimationActive={false}
+    />
   );
   return (
     <ChartContainer
@@ -70,8 +79,9 @@ export function OrderForecastMonthlyChart({
       <ComposedChart
         data={rows}
         margin={{ left: 4, right: 12, top: 8 }}
-        // Half of recharts' default bar width: a 30% gap on each side of a month leaves 40% for the bar.
-        barCategoryGap="30%"
+        // A 20% gap on each side of a month leaves 60% for the group of the stack and its comparison bars.
+        barCategoryGap="20%"
+        barGap={2}
       >
         <CartesianGrid
           vertical={false}
@@ -103,6 +113,7 @@ export function OrderForecastMonthlyChart({
         <ChartLegend
           content={<SeriesLegendContent config={config} reversed />}
         />
+        {compareBars.includes("plan") && compareBar("plan")}
         {bars.map((key) => (
           <Bar
             key={key}
@@ -115,18 +126,7 @@ export function OrderForecastMonthlyChart({
             isAnimationActive={false}
           />
         ))}
-        {lines.map((key) => (
-          <Line
-            key={key}
-            dataKey={key}
-            type="linear"
-            stroke={`var(--color-${key})`}
-            strokeWidth={2}
-            strokeDasharray={lineDashArray(key)}
-            dot={false}
-            isAnimationActive={false}
-          />
-        ))}
+        {compareBars.filter((key) => key !== "plan").map(compareBar)}
       </ComposedChart>
     </ChartContainer>
   );
