@@ -1,6 +1,7 @@
 {
   "summary": {
     "en": [
+      "**Attachments**: preview of PDFs, images and texts",
       "**CVE-Pilot**: the CVE-Clinic is renamed",
       "**Merlin**: PDF export with LibreOffice, mapping table",
       "**Shared costs**: hours of overlapping time sheets",
@@ -8,6 +9,7 @@
       "{app} Version 1.2.0 in the App Store"
     ],
     "de": [
+      "**Anhänge**: Vorschau für PDFs, Bilder und Texte",
       "**CVE-Pilot**: die CVE-Clinic ist umbenannt",
       "**Merlin**: PDF-Export mit LibreOffice, Zuordnungstabelle",
       "**Gemeinsame Kosten**: Stunden überlappender Zeitberichte",
@@ -17,6 +19,7 @@
   },
   "overview": {
     "en": [
+      "**Attachments:** PDFs, images and texts of every entity with attachments can be shown in the browser with \"Preview\", with paging through the files of the list, \"open in new tab\" and download.",
       "**CVE-Pilot:** the CVE-Clinic is now called CVE-Pilot; old links to its pages are redirected, plugin id, settings and database tables keep their names.",
       "**Merlin:** the PDF export of templates uses LibreOffice if installed (closer to Word, serial documents no longer take minutes per document); the mapping of a dependent variable is edited in a table.",
       "**Shared costs:** the hours of time sheets overlapping other ones are counted.",
@@ -28,6 +31,7 @@
       "**Fixes:** the Excel export of outgoing invoices has the period of performance and the other invoice fields again, JFreeChart scripts run in the release jar again, and every message box can be closed."
     ],
     "de": [
+      "**Anhänge:** PDFs, Bilder und Texte aller Einträge mit Anhängen lassen sich im Browser mit „Vorschau“ anzeigen, mit Blättern durch die Dateien der Liste, „In neuem Tab öffnen“ und Download.",
       "**CVE-Pilot:** die CVE-Clinic heißt jetzt CVE-Pilot; alte Links auf ihre Seiten werden weitergeleitet, Plugin-Id, Einstellungen und Datenbanktabellen behalten ihre Namen.",
       "**Merlin:** der PDF-Export von Vorlagen nutzt LibreOffice, wenn installiert (näher an Word, Serienbriefe brauchen nicht mehr Minuten pro Dokument); die Zuordnung einer abhängigen Variablen wird in einer Tabelle bearbeitet.",
       "**Gemeinsame Kosten:** die Stunden von Zeitberichten, die andere überlappen, werden gezählt.",
