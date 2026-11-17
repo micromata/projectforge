@@ -19,7 +19,11 @@ import { SearchInput } from "@/components/shared/list/search-input";
 import { useAttachmentMutations } from "@/hooks/use-attachments";
 import { useAttachmentSelection } from "@/hooks/use-attachment-selection";
 import { useAttachmentEncryption } from "@/hooks/use-attachment-encryption";
-import type { Attachment, AttachmentWriteResult } from "@/lib/rs/attachments";
+import {
+  previewKind,
+  type Attachment,
+  type AttachmentWriteResult,
+} from "@/lib/rs/attachments";
 import { AttachmentEditDialog } from "./attachment-edit-dialog";
 import { useAttachmentService } from "./attachment-service";
 import { AttachmentRow } from "./attachment-row";
@@ -30,6 +34,7 @@ import {
   searchAttachments,
 } from "./attachment-table";
 import { AttachmentToolbar } from "./attachment-toolbar";
+import { AttachmentViewer } from "./attachment-viewer";
 
 interface Props {
   /** The stored attachments, in the order the backend returned them. */
@@ -185,6 +190,17 @@ function LoadedAttachmentFiles({
   );
   const selection = useAttachmentSelection(displayed);
   const [editing, setEditing] = useState<Attachment | null>(null);
+  // The viewer pages through the files of the list it can show, in the order on screen.
+  const viewable = useMemo(
+    () =>
+      service.preview
+        ? displayed.filter((attachment) => previewKind(attachment))
+        : [],
+    [service.preview, displayed]
+  );
+  const [viewing, setViewing] = useState<string | null>(null);
+  const viewIndex = viewable.findIndex((file) => file.fileId === viewing);
+  const view = (attachment: Attachment) => setViewing(attachment.fileId);
   /** The files the open confirmation would delete — one row's, or a whole selection's. */
   const [deleting, setDeleting] = useState<Attachment[]>([]);
 
@@ -274,6 +290,7 @@ function LoadedAttachmentFiles({
           selection={selectable ? selection : undefined}
           onEdit={setEditing}
           onDelete={(attachment) => setDeleting([attachment])}
+          onView={view}
         />
       ) : (
         <ul className="flex flex-col">
@@ -294,11 +311,21 @@ function LoadedAttachmentFiles({
               }
               onEdit={setEditing}
               onDelete={(attachment) => setDeleting([attachment])}
+              onView={view}
             />
           ))}
         </ul>
       )}
 
+      <AttachmentViewer
+        files={viewable}
+        index={viewIndex >= 0 ? viewIndex : null}
+        entity={entity}
+        id={id}
+        base={service.base}
+        onIndexChange={(index) => setViewing(viewable[index]?.fileId ?? null)}
+        onClose={() => setViewing(null)}
+      />
       {editing && (
         <AttachmentEditDialog
           attachment={editing}
@@ -316,6 +343,11 @@ function LoadedAttachmentFiles({
           }
           onTestDecryption={(password) =>
             encryption.testFile(editing.fileId, password)
+          }
+          onView={
+            viewable.some((file) => file.fileId === editing.fileId)
+              ? () => view(editing)
+              : undefined
           }
           onClose={() => setEditing(null)}
         />

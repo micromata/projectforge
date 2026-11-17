@@ -2,7 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon, Download01Icon } from "@hugeicons/core-free-icons";
+import {
+  Delete01Icon,
+  Download01Icon,
+  ViewIcon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
   attachmentDownloadUrl,
@@ -10,13 +14,14 @@ import {
 } from "@/lib/rs/attachments";
 
 /**
- * Delete and download, for the details of one file (see AttachmentEditDialog) — the left half of its
+ * Delete, download and preview, for the details of one file (see AttachmentEditDialog) — the left half of its
  * footer, as the legacy dialog had them beside "Update".
  */
 export function AttachmentFileActions({
   fileRef,
   busy,
   onDelete,
+  onView,
 }: {
   fileRef: AttachmentRef;
   busy?: boolean;
@@ -25,6 +30,8 @@ export function AttachmentFileActions({
    * no delete button — read-only details.
    */
   onDelete?: () => void;
+  /** Opens the file in AttachmentViewer; without it (a file the browser can't show) there is no preview button. */
+  onView?: () => void;
 }) {
   const t = useTranslations();
   return (
@@ -47,6 +54,12 @@ export function AttachmentFileActions({
           {t("download._")}
         </a>
       </Button>
+      {onView && (
+        <Button type="button" variant="outline" onClick={onView}>
+          <HugeiconsIcon icon={ViewIcon} size={16} />
+          {t("preview")}
+        </Button>
+      )}
     </div>
   );
 }

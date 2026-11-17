@@ -3,14 +3,14 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.11",
-    "date" : "2026-11-16",
+    "date" : "2026-11-17",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
       "items" : [ {
         "title" : "Shared costs: the hours of time sheets overlapping other ones (only possible with shared costs)",
         "items" : [ "Time sheet list: in the statistics, absolute and as a share of the total duration.", "Monthly employee report: in the statistics and as a column of their own per cost unit, with their total." ]
-      } ]
+      }, "Attachments (orders, contracts, invoices and every other entity with attachments): PDFs, images and texts can be shown in the browser with \"Preview\" next to the file name, with paging through the files of the list, \"open in new tab\" and download. Other formats (and SVG or HTML files) are still downloaded only; on phones and tablets a PDF opens in a new tab." ]
     }, {
       "type" : "improved",
       "items" : [ "Availability entries: the types are shown in the user's language. They are configured as codes now (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), the texts of existing entries are converted. Installations with their own list switch it to the codes; an own code gets its texts in CustomerI18nResources (`availability.types.code`), any other value is shown as entered.", {
@@ -22,7 +22,7 @@
       }, "Properties editor: some parameters take effect on saving, without a restart, and are marked as \"live\": the logos and their height, the availability types, the mail server, the expectations of invoices and the seller of e-invoices. The default (or example) of a parameter can be copied to the clipboard.", "Every message box (toast) can be closed, including the ones closing by themselves after a few seconds and the progress of a running job, so they no longer cover buttons and menus.", "The projectforge.properties editor can add and remove entries of indexed lists (e.g. bank accounts of the e-invoice seller); empty fields of an entry are left out of the file and the entries are written one after the other.", "The search of the projectforge.properties editor also finds parameters by their value (set in the file, entered, default or active).", "{app} When a page asks for a second factor, it can be confirmed in the browser, where WebAuthn (security key, passkey) works too; the page keeps what it had open.", "{app} Main menu on a tablet: the columns are of about the same height, the categories in menu order; opening or closing a category no longer moves the others.", "{app} Behind an SSO proxy, the app says when the proxy's login has expired and badges and notifications aren't updated, and offers to renew it.", "{app} Time sheets: the button to start the timer is labelled and stands out next to \"Book\"." ]
     }, {
       "type" : "changed",
-      "items" : [ "The CVE-Clinic is now called CVE-Pilot. Old links to its pages are redirected; the plugin id, settings (`projectforge.plugin.cveradar.*`) and database tables keep their names." ]
+      "items" : [ "The CVE-Clinic is now called CVE-Pilot. Old links to its pages are redirected; the plugin id, settings (`projectforge.plugin.cveradar.*`) and database tables keep their names.", "{app} Web pages tab: the globe shows the page last visited; there the button becomes a menu icon that opens the menu, and the globe closes it again." ]
     }, {
       "type" : "fixed",
       "items" : [ {
@@ -31,7 +31,7 @@
       }, {
         "title" : "Scripts",
         "items" : [ "JFreeChart scripts run again in the release jar (the library was missing in the script class path).", "A chart produced by a script is shown directly on the output tab, the demo script draws a modern donut chart.", "The demo script \"Excel export of all user\" works again." ]
-      }, "Excel export of outgoing invoices: the period of performance and the other fields of the invoice are back (missing since 9.0.0): type, customer reference, special features, payment terms, discount, currency, billing address, e-invoice data, id and last update.", "{app} Behind an SSO proxy, a page no longer opens the proxy's login in the browser after the app was in the background for a long time." ]
+      }, "Excel export of outgoing invoices: the period of performance and the other fields of the invoice are back (missing since 9.0.0): type, customer reference, special features, payment terms, discount, currency, billing address, e-invoice data, id and last update.", "Availability: entries saved in the new interface were not found by the name of their user until the next search index rebuild. The quick view \"Who is available?\" links to the availability list.", "{app} Behind an SSO proxy, a page no longer opens the proxy's login in the browser after the app was in the background for a long time." ]
     } ]
   },
   "groups" : [ {
