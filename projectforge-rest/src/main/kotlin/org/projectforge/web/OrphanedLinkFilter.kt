@@ -341,7 +341,11 @@ class OrphanedLinkFilter : Filter {
     private fun redirect(servletResponse: ServletResponse, uri: String, redirectUrl: String) {
         servletResponse as HttpServletResponse
         log.info { "Redirect orphaned link '$uri' to '$redirectUrl'." }
-        servletResponse.sendRedirect(redirectUrl)
+        // Not sendRedirect(): it makes the Location absolute from the request's scheme, which is http behind a reverse
+        // proxy without X-Forwarded-Proto, so the mobile app took the redirect for a link to another site and opened
+        // the system browser. A relative Location (RFC 9110) keeps the scheme and host of the browser.
+        servletResponse.status = HttpServletResponse.SC_FOUND
+        servletResponse.setHeader("Location", redirectUrl)
         return
     }
 
