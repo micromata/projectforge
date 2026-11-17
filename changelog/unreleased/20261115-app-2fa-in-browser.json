@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "{app} When a page asks for a second factor, it can be confirmed in the browser, where WebAuthn (security key, passkey) works too; the page keeps what it had open.",
-  "de": "{app} Fragt eine Seite nach einem zweiten Faktor, lässt er sich im Browser bestätigen, wo auch WebAuthn (Sicherheitsschlüssel, Passkey) funktioniert; die Seite behält, was sie offen hatte."
-}

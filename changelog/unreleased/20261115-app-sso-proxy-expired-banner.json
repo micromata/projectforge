@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "{app} Behind an SSO proxy, the app says when the proxy's login has expired and badges and notifications aren't updated, and offers to renew it.",
-  "de": "{app} Hinter einem SSO-Proxy zeigt die App an, wenn die Anmeldung am Proxy abgelaufen ist und Badges und Benachrichtigungen nicht aktualisiert werden, und bietet an, sie zu erneuern."
-}

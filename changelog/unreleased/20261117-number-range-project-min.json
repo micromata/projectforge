@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Number ranges: `project-min` sets the lowest local project number proposed for a new project (e.g. 5.123.01 instead of 5.123.00).",
-  "de": "Nummernkreise: `project-min` legt die kleinste lokale Projektnummer fest, die für ein neues Projekt vorgeschlagen wird (z. B. 5.123.01 statt 5.123.00)."
-}

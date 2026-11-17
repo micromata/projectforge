@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Attachments (orders, contracts, invoices and every other entity with attachments): PDFs, images and texts can be shown in the browser with \"Preview\" next to the file name, with paging through the files of the list, \"open in new tab\" and download. Other formats (and SVG or HTML files) are still downloaded only; on phones and tablets a PDF opens in a new tab.",
-  "de": "Anhänge (Aufträge, Verträge, Rechnungen und alle anderen Einträge mit Anhängen): PDFs, Bilder und Texte lassen sich über „Vorschau“ neben dem Dateinamen im Browser anzeigen, mit Blättern durch die Dateien der Liste, „In neuem Tab öffnen“ und Download. Andere Formate (und SVG- oder HTML-Dateien) werden weiterhin nur heruntergeladen; auf Smartphones und Tablets öffnet sich ein PDF in einem neuen Tab."
-}

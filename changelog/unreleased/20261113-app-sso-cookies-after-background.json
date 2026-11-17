@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "{app} Behind an SSO proxy, a page no longer opens the proxy's login in the browser after the app was in the background for a long time.",
-  "de": "{app} Hinter einem SSO-Proxy öffnet eine Seite nicht mehr den Login des Proxys im Browser, nachdem die App lange im Hintergrund war."
-}
