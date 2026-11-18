@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as ReactDom from "react-dom";
 import * as jsxRuntime from "react/jsx-runtime";
 import * as reactQuery from "@tanstack/react-query";
 import * as nextIntl from "next-intl";
@@ -19,6 +20,7 @@ import { usePluginRoute } from "@/lib/plugin-runtime/route-context";
 export interface HostPluginRuntime {
   sdkVersion: string;
   react: typeof React;
+  reactDom: typeof ReactDom;
   jsxRuntime: typeof jsxRuntime;
   reactQuery: typeof reactQuery;
   nextIntl: typeof nextIntl;
@@ -41,6 +43,7 @@ export function installPluginRuntime(): HostPluginRuntime {
   const runtime: HostPluginRuntime = {
     sdkVersion: PLUGIN_SDK_VERSION,
     react: React,
+    reactDom: ReactDom,
     jsxRuntime,
     reactQuery,
     nextIntl,

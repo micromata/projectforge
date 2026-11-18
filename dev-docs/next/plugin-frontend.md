@@ -2,8 +2,8 @@
 
 A plugin can bring its own pages without a rebuild of projectforge-next: a bundle of native ES modules, built independently
 (Vite), shipped in the plugin jar and loaded by the app in the browser. The app knows the plugin only by its manifest.
-Status: the seam is in place (manifest, outlet, texts, bridge, build package); the first real plugin to use it is the
-CVE-Pilot, its pages still live in this package until they have moved (see the plan in the plugin's repository).
+Status: in use: the pages of the CVE-Pilot are the frontend of its plugin (`/plugin/cveradar/**`). Plan and history in the
+plugin's repository (`docs/runtime-frontend-plugin-plan.md`).
 
 ## How it works
 
@@ -50,15 +50,21 @@ its own (Tailwind does not see plugin sources, use the components of the app whe
 - Tests: `lib/plugin-runtime/plugin-runtime.test.ts` (route matching, manifest checks), `e2e/plugin-poc.spec.ts` (needs a plugin
   jar with a bundle; the CVE-Pilot repository's PoC bundle serves it), `FeaturePathIndexTest`, `PluginFrontendRestTest`.
 
+## What a plugin imports
+
+`@/components/shared/page-shell`, `@/lib/format`, `next/navigation`, `zod`, ... in the source of a plugin are the modules of the app
+listed in `lib/plugin-runtime/modules.ts`: the build maps them to the instances of the app (`modules` of the bridge), so the plugin
+uses the app's own components, hooks and clients and their context. A file of the plugin at the same path wins (`@/lib/rs/...` of the
+plugin itself); anything else is a build error ("neither a file of the plugin nor a module the app offers"). The list is the contract,
+pinned by `modules.test.ts`.
+
 ## Open points
 
-- The names a plugin build re-exports from `react`, `@tanstack/react-query` and `next-intl` come from the plugin's own `node_modules`
-  (`packages/plugin-vite`), not from the bridge: another version there can export a name the app lacks (`undefined` at runtime, no
-  build error). To do: check the names against `globalThis.__HOST_PLUGIN_RUNTIME__` when the plugin is activated, and pin the list of
-  bridge exports in a test.
-- The core still knows the CVE-Pilot in `ExternalPlugins` (routes blocked while the plugin is missing, the prefix of its field metadata, `PluginAdminService.PLUGIN_CVE_RADAR_ID`),
-  in the texts module `plugins/org.projectforge.plugins.cveradar` (and `gen`, which exports them to the catalogs of the app) and in the pages `app/(authenticated)/{cvepilot,cvrcase}`;
-  all of it goes when the pages have moved into the plugin.
-- `HostPluginRuntime` is not yet typed for plugins (`packages/plugin-sdk` has the page contract only); the typed pieces come with the
-  first pages that need them.
+- The field metadata of the plugin's entities (`lib/metadata/cvr-*`) are still generated into this package by `gen`
+  (`GenerateNextFieldMetadataMain`, `ExternalPlugins`) and copied into the plugin; the generator has to become reusable by the plugin build.
+- The texts of the plugin are still generated into the catalogs of the app from the plugin's texts module here
+  (`plugins/org.projectforge.plugins.cveradar`); they move into the plugin when it serves them itself (manifest `messages`, supported).
+- The e2e specs of the plugin (`e2e/cve-pilot-*.spec.ts`) are here, they need the infrastructure of this package.
+- The plugin build needs `npm ci` of this package (the names a package exports are read from its `node_modules`).
+- `HostPluginRuntime` is only typed for the bridge itself; the plugin source is type-checked against the app's files, not yet in its build.
 - Plugin css is untested; Tailwind does not see plugin sources.

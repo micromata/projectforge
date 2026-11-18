@@ -32,7 +32,6 @@ import org.projectforge.feature.FeatureDefinition
 import org.projectforge.feature.FeatureDerivation
 import org.projectforge.feature.FeatureService
 import org.projectforge.plugins.core.AbstractPlugin
-import org.projectforge.plugins.core.ExternalPlugins
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.core.PluginFrontend
 import org.projectforge.rest.config.AttachmentCategoryRequests
@@ -155,22 +154,6 @@ class FeaturePathIndexTest {
         Assertions.assertTrue(index(pluginActive = false, plugins = listOf(withFrontend)).isBlocked(route))
         // The plugin urls of a plugin without a frontend are nobody's.
         Assertions.assertFalse(index(pluginActive = false).isBlocked(route))
-    }
-
-    @Test
-    fun `next pages of a missing external plugin are blocked`() {
-        val missing = index()
-        Assertions.assertTrue(missing.isBlocked("/next/cvepilot/"))
-        Assertions.assertTrue(missing.isBlocked("/next/cvepilot/case/42/"))
-        Assertions.assertTrue(missing.isBlocked("/next/cvrcase/"))
-        Assertions.assertTrue("cvepilot" in missing.nextRoutes().disabled)
-        val cveRadar = object : AbstractPlugin(ExternalPlugins.CVE_RADAR.id, "CVE-Pilot", "External plugin.") {
-            override fun initialize() {}
-        }
-        val available = index(plugins = listOf(TestPlugin(), cveRadar))
-        Assertions.assertFalse(available.isBlocked("/next/cvepilot/"))
-        Assertions.assertFalse(available.isBlocked("/next/cvrcase/"))
-        Assertions.assertFalse("cvepilot" in available.nextRoutes().disabled)
     }
 
     @Test

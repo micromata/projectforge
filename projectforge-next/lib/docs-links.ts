@@ -25,13 +25,3 @@ function webDocsLink(locale: string): string {
 export function luceneQueryDocsUrl(locale: string): string {
   return `${webDocsLink(locale)}/userguide/#full_indexed_search`;
 }
-
-/** The user guide's chapter on the libraries of a CVE-Pilot component: the formats, a script collecting them in a zip. */
-export function cvePilotLibrariesDocsUrl(locale: string): string {
-  return `${webDocsLink(locale)}/userguide/#cve_pilot_libraries`;
-}
-
-/** The user guide on the bulk import of SBOMs into an area (`[[cve_pilot_sbom_import]]`). */
-export function cvePilotSbomImportDocsUrl(locale: string): string {
-  return `${webDocsLink(locale)}/userguide/#cve_pilot_sbom_import`;
-}
