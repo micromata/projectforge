@@ -42,3 +42,14 @@ its own (Tailwind does not see plugin sources, use the components of the app whe
 - Plugin REST endpoints check access themselves (`@AccessChecked`); hiding a page protects nothing.
 - Tests: `lib/plugin-runtime/plugin-runtime.test.ts` (route matching, manifest checks), `e2e/plugin-poc.spec.ts` (needs a plugin
   jar with a bundle; the CVE-Pilot repository's PoC bundle serves it), `FeaturePathIndexTest`, `PluginFrontendRestTest`.
+
+## Open points
+
+- The names a plugin build re-exports from `react`, `@tanstack/react-query` and `next-intl` come from the plugin's own `node_modules`
+  (`packages/plugin-vite`), not from the bridge: another version there can export a name the app lacks (`undefined` at runtime, no
+  build error). To do: check the names against `globalThis.__HOST_PLUGIN_RUNTIME__` when the plugin is activated, and pin the list of
+  bridge exports in a test.
+- Pages, menu entries and redirects of old urls are not yet derived from the manifest (`PageRoutes`, `OrphanedLinkFilter`).
+- `HostPluginRuntime` is not yet typed for plugins (`packages/plugin-sdk` has the page contract only); the typed pieces come with the
+  first pages that need them.
+- Plugin css is untested; Tailwind does not see plugin sources.

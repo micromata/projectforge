@@ -4082,6 +4082,14 @@
       "title": "My Statistics"
     }
   },
+  "plugin": {
+    "frontend": {
+      "error": {
+        "load": "The plugin {name} could not be loaded.",
+        "manifests": "The plugins could not be loaded."
+      }
+    }
+  },
   "plugins": {
     "banking": {
       "account": {

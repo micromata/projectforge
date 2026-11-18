@@ -3,9 +3,12 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.12",
-    "date" : "2026-11-17",
+    "date" : "2026-11-18",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Plugins can bring their own pages for the new user interface, loaded at runtime without rebuilding the application, together with their own texts." ]
+    }, {
       "type" : "fixed",
       "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one." ]
     } ]

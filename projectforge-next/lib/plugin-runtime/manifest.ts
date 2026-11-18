@@ -25,17 +25,17 @@ export function usePluginManifests() {
   });
 }
 
-export function manifestError(manifest: PluginManifest): string | null {
-  if (manifest.sdkVersion !== PLUGIN_SDK_VERSION) {
-    return `Plugin ${manifest.id} was built for sdk ${manifest.sdkVersion}, this app speaks ${PLUGIN_SDK_VERSION}.`;
-  }
+/** Why the app refuses to load a plugin: it was built for another sdk, or its urls leave the assets. */
+export type ManifestProblem = "incompatible" | "assets";
+
+export function manifestProblem(
+  manifest: PluginManifest
+): ManifestProblem | null {
+  if (manifest.sdkVersion !== PLUGIN_SDK_VERSION) return "incompatible";
   const urls = [
     manifest.entry,
     ...manifest.css,
     ...Object.values(manifest.messages),
   ];
-  const bad = urls.find((url) => !isPluginAssetUrl(url));
-  return bad
-    ? `Plugin ${manifest.id} points outside of its assets: ${bad}`
-    : null;
+  return urls.every(isPluginAssetUrl) ? null : "assets";
 }

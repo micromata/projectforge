@@ -77,6 +77,12 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/rsPublic/:path*`,
         basePath: false,
       },
+      // The bundles, styles and texts of the frontend plugins, which only Spring serves (from the plugin jars).
+      {
+        source: "/next/plugins-assets/:path*",
+        destination: `${backendUrl}/next/plugins-assets/:path*`,
+        basePath: false,
+      },
       // The icons, which the root layout links at the root (served by Spring, see app/layout.tsx).
       ...["/favicon.ico", "/apple-touch-icon.png"].map((icon) => ({
         source: icon,

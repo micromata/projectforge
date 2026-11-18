@@ -56,7 +56,8 @@ class NextSpaResourceResolverTest {
     private static final String SHELL_MAP = """
             {"routes": [
               {"page": "/book/[id]", "regex": "^/book/([^/]+?)(?:/)?$", "shellDir": "book/new"},
-              {"page": "/book/[id]/history", "regex": "^/book/([^/]+?)/history(?:/)?$", "shellDir": "book/new/history"}
+              {"page": "/book/[id]/history", "regex": "^/book/([^/]+?)/history(?:/)?$", "shellDir": "book/new/history"},
+              {"page": "/plugin/[[...path]]", "regex": "^/plugin(?:/(.+?))?(?:/)?$", "shellDir": "plugin"}
             ]}
             """;
 
@@ -78,6 +79,7 @@ class NextSpaResourceResolverTest {
         write(dir, "book/new/index.txt", "book edit payload");
         write(dir, "book/new/__next._tree.txt", "book edit tree");
         write(dir, "book/new/history/index.html", "book history shell");
+        write(dir, "plugin/index.html", "plugin shell");
         write(dir, "_next/static/chunks/main.js", "asset");
         write(dir, "index.html", "start page");
         // A trailing slash, as Spring's resource location has one: createRelative resolves against
@@ -146,6 +148,16 @@ class NextSpaResourceResolverTest {
     }
 
     /** An unresolvable asset stays a 404 rather than being masked with a page's HTML. */
+    /** The plugin chooses the urls of its pages, an id may carry a dot (`items/v1.2`); a file below it stays a file. */
+    @Test
+    void servesADeepLinkOfAPluginWithADotInItsLastSegment() throws IOException {
+        assertEquals("plugin shell", resolve("plugin/example/items/5"));
+        assertEquals("plugin shell", resolve("plugin/example/items/v1.2"));
+        assertEquals("plugin shell", resolve("plugin/example/items/v1.2/"));
+        assertNull(resolve("plugin/example/missing.js"));
+        assertNull(resolve("plugin/example/missing.css"));
+    }
+
     @Test
     void leavesAMissingAssetUnresolved() throws IOException {
         assertNull(resolver.getResource("_next/static/chunks/gone.js", location));

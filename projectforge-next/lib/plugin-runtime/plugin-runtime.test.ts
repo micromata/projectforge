@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isPluginAssetUrl,
-  manifestError,
+  manifestProblem,
   PLUGIN_SDK_VERSION,
 } from "./manifest";
 import { matchRoute } from "./route-context";
@@ -23,6 +23,11 @@ describe("matchRoute", () => {
     expect(matchRoute("/", "/")).toEqual({});
     expect(matchRoute("/items/:id", "/items/5/")).toEqual({ id: "5" });
     expect(matchRoute("/items/:id", "/items/a%20b")).toEqual({ id: "a b" });
+    expect(matchRoute("/items/:id", "/items/v1.2")).toEqual({ id: "v1.2" });
+    // A malformed escape is a value like any other, not an error while rendering.
+    expect(matchRoute("/items/:id", "/items/%E0%A4%A")).toEqual({
+      id: "%E0%A4%A",
+    });
     expect(matchRoute("/items/:id/edit", "/items/5/edit")).toEqual({ id: "5" });
   });
 
@@ -33,28 +38,28 @@ describe("matchRoute", () => {
   });
 });
 
-describe("manifestError", () => {
+describe("manifestProblem", () => {
   it("accepts a manifest of the known sdk version below the assets", () => {
-    expect(manifestError(manifest())).toBeNull();
+    expect(manifestProblem(manifest())).toBeNull();
   });
 
   it("refuses an unknown sdk version", () => {
-    expect(manifestError(manifest({ sdkVersion: "0" }))).toContain("sdk");
+    expect(manifestProblem(manifest({ sdkVersion: "0" }))).toBe("incompatible");
   });
 
   it("refuses urls outside the assets or leaving them", () => {
     expect(
-      manifestError(manifest({ entry: "https://evil.example/plugin.js" }))
-    ).not.toBeNull();
+      manifestProblem(manifest({ entry: "https://evil.example/plugin.js" }))
+    ).toBe("assets");
     expect(
-      manifestError(manifest({ entry: "/next/plugins-assets/../_next/x.js" }))
-    ).not.toBeNull();
+      manifestProblem(manifest({ entry: "/next/plugins-assets/../_next/x.js" }))
+    ).toBe("assets");
+    expect(manifestProblem(manifest({ css: ["/other/plugin.css"] }))).toBe(
+      "assets"
+    );
     expect(
-      manifestError(manifest({ css: ["/other/plugin.css"] }))
-    ).not.toBeNull();
-    expect(
-      manifestError(manifest({ messages: { de: "//evil/x.json" } }))
-    ).not.toBeNull();
+      manifestProblem(manifest({ messages: { de: "//evil/x.json" } }))
+    ).toBe("assets");
     expect(isPluginAssetUrl("/next/plugins-assets/example/plugin.js")).toBe(
       true
     );

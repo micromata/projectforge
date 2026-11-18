@@ -5,6 +5,18 @@ import { test, expect, goto } from "./fixtures/auth";
  * the plugin jar under /next/plugins-assets/) renders inside the host React tree.
  */
 test.describe("runtime plugin PoC", () => {
+  // The bundle lives in the plugin jar of the CVE-Pilot, an external binary: without it there is nothing to load.
+  test.beforeEach(async ({ loggedInPage: page }) => {
+    const res = await page.request.get("/rs/pluginFrontend");
+    const ids: string[] = res.ok()
+      ? (await res.json()).map((m: { id: string }) => m.id)
+      : [];
+    test.skip(
+      !ids.includes("cveradar"),
+      "No activated plugin 'cveradar' with a frontend bundle."
+    );
+  });
+
   test("renders with the host's React and QueryClient, under the CSP, also after a reload", async ({
     loggedInPage: page,
   }) => {

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { notFound, usePathname, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/shared/spinner";
 import { pluginMessagesQueryKey } from "@/components/plugin-runtime/plugin-messages-provider";
 import {
-  manifestError,
+  manifestProblem,
   usePluginManifests,
 } from "@/lib/plugin-runtime/manifest";
 import {
@@ -37,56 +37,65 @@ function Problem({ children }: { children: React.ReactNode }) {
  */
 export function PluginOutlet() {
   const pathname = usePathname();
+  const [, id = "", ...rest] = pathname.replace(/\/+$/, "").split("/").slice(1);
+  // One instance per plugin: what was loaded for another one must not be shown (or fail) under this one's url.
+  return <PluginPages key={id} id={id} subPath={`/${rest.join("/")}`} />;
+}
+
+function PluginPages({ id, subPath }: { id: string; subPath: string }) {
+  const t = useTranslations("plugin.frontend");
   const router = useRouter();
   const locale = useLocale();
-  const [, id = "", ...rest] = pathname.replace(/\/+$/, "").split("/").slice(1);
-  const subPath = `/${rest.join("/")}`;
   const { data: manifests, isError, isPending } = usePluginManifests();
   const manifest = manifests?.find((m) => m.id === id);
-  const error = manifest ? manifestError(manifest) : null;
+  const problem = manifest ? manifestProblem(manifest) : null;
   const [definition, setDefinition] = useState<PluginDefinition | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   // The texts of the plugin are there before its first page renders (a missing text would show as its key).
   const messagesUrl = manifest?.messages[locale] ?? manifest?.messages.en;
   const { isPending: messagesPending } = useQuery({
     queryKey: pluginMessagesQueryKey(id, locale),
     queryFn: ({ signal }) => fetchPluginMessages(messagesUrl!, signal),
-    enabled: !!messagesUrl && !error,
+    enabled: !!messagesUrl && !problem,
     staleTime: Infinity,
     retry: false,
   });
 
   useEffect(() => {
-    if (!manifest || error) return;
+    if (!manifest || problem) return;
     let cancelled = false;
     loadPlugin(manifest)
       .then((loaded) => !cancelled && setDefinition(loaded))
-      .catch(
-        (e: unknown) =>
-          !cancelled && setLoadError(e instanceof Error ? e.message : String(e))
-      );
+      .catch((e: unknown) => {
+        console.error(`Plugin ${manifest.id} failed to load`, e);
+        if (!cancelled) setLoadFailed(true);
+      });
     return () => {
       cancelled = true;
     };
-  }, [manifest, error]);
+  }, [manifest, problem]);
 
   const route = definition?.routes
     .map((r) => ({ Page: r.component, params: matchRoute(r.path, subPath) }))
     .find((r) => r.params);
   const match = route ? { Page: route.Page, params: route.params! } : null;
-
   const value = {
     params: match?.params ?? {},
     navigate: (path: string) => router.push(`${BASE}/${id}${path}`),
   };
 
-  if (isError) return <Problem>The plugins could not be loaded.</Problem>;
+  if (isError) return <Problem>{t("error.manifests")}</Problem>;
   if (isPending) return <Spinner />;
-  if (!manifest) return <Problem>Not found</Problem>;
-  if (error ?? loadError) return <Problem>{error ?? loadError}</Problem>;
+  if (!manifest) notFound();
+  if (problem) {
+    console.error(`Plugin ${id} is refused: ${problem}`);
+    return <Problem>{t(`error.${problem}`, { name: manifest.name })}</Problem>;
+  }
+  if (loadFailed)
+    return <Problem>{t("error.load", { name: manifest.name })}</Problem>;
   if (!definition || (!!messagesUrl && messagesPending)) return <Spinner />;
-  if (!match) return <Problem>Not found</Problem>;
+  if (!match) notFound();
   return (
     <PluginRouteContext.Provider value={value}>
       <match.Page />

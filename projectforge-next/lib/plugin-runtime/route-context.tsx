@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import { matchRoute as appMatchRoute } from "@/lib/route-params";
 
 /** What a plugin page knows of its place: the params of the matched route and how to move on. */
 export interface PluginRoute {
@@ -17,20 +18,16 @@ export function usePluginRoute(): PluginRoute {
   return route;
 }
 
-/** `/items/:id` against `/items/5` -> `{ id: "5" }`, or null. A trailing slash does not matter. */
+/**
+ * `/items/:id` against `/items/5` -> `{ id: "5" }`, or null. A trailing slash does not matter. The matcher of the
+ * app (lib/route-params), whose pattern writes a param as `[id]`; a plugin writes it as `:id`.
+ */
 export function matchRoute(
   pattern: string,
   path: string
 ): Record<string, string> | null {
-  const split = (p: string) => p.split("/").filter(Boolean);
-  const want = split(pattern);
-  const have = split(path);
-  if (want.length !== have.length) return null;
-  const params: Record<string, string> = {};
-  for (let i = 0; i < want.length; i++) {
-    if (want[i].startsWith(":"))
-      params[want[i].slice(1)] = decodeURIComponent(have[i]);
-    else if (want[i] !== have[i]) return null;
-  }
-  return params;
+  return appMatchRoute(pattern.replace(/:(\w+)/g, "[$1]"), path) as Record<
+    string,
+    string
+  > | null;
 }
