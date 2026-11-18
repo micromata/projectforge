@@ -33,6 +33,7 @@ import org.projectforge.feature.FeatureDerivation
 import org.projectforge.feature.FeatureService
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.ExternalPlugins
+import org.projectforge.plugins.core.PluginFrontend
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.rest.feature.testplugin.TestPlugin
@@ -141,6 +142,19 @@ class FeaturePathIndexTest {
         Assertions.assertFalse(personalBoxOff.isBlocked("/next/testplugin/42"))
         Assertions.assertTrue(personalBoxOff.isBlocked("/next/testplugin/-1/"))
         Assertions.assertTrue(personalBoxOff.isBlocked("/rs/testpluginpersonal/list"))
+    }
+
+    @Test
+    fun `pages of a plugin frontend are switched off with the plugin`() {
+        val withFrontend = object : AbstractPlugin(TestPlugin.ID, "Test", "Plugin with a frontend.") {
+            override fun initialize() {}
+            override val frontend = PluginFrontend(sdkVersion = "1", assetDir = "testplugin/1")
+        }
+        val route = "/next/plugin/${TestPlugin.ID}/items/5/"
+        Assertions.assertFalse(index(plugins = listOf(withFrontend)).isBlocked(route))
+        Assertions.assertTrue(index(pluginActive = false, plugins = listOf(withFrontend)).isBlocked(route))
+        // The plugin urls of a plugin without a frontend are nobody's.
+        Assertions.assertFalse(index(pluginActive = false).isBlocked(route))
     }
 
     @Test

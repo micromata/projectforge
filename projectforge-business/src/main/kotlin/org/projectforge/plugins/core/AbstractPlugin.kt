@@ -64,6 +64,13 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
         get() = emptyList()
 
     /**
+     * The frontend of the plugin, if it has pages in the app (loaded at runtime, see [PluginFrontend]). Its pages are
+     * switched off with the plugin like [featureNextRoutes].
+     */
+    open val frontend: PluginFrontend?
+        get() = null
+
+    /**
      * @return the initialized
      */
     var initialized = false

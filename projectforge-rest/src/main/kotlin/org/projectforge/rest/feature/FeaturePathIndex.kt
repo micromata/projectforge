@@ -31,6 +31,7 @@ import org.projectforge.feature.FeatureService
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.core.ExternalPlugins
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.core.PluginFrontend
 import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.ui.AutoCompletion
 import org.springframework.aop.support.AopUtils
@@ -98,7 +99,7 @@ class FeaturePathIndex {
             }
         }
         plugins.forEach { plugin ->
-            plugin.featureNextRoutes.forEach {
+            (plugin.featureNextRoutes + listOfNotNull(plugin.frontend?.let { PluginFrontend.route(plugin.id) })).forEach {
                 result.getOrPut(plugin.id) { mutableSetOf() }.add("${FeatureDefinition.NEXT_PREFIX}${it.trim('/')}")
             }
         }
