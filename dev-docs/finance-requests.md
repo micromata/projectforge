@@ -21,7 +21,7 @@ Nutzer außerhalb von Finance sollen sich nicht mit Buchungskonten beschäftigen
 |---------|-----------------------------------------------------------------------------------------------------|-------------|
 | 0       | Diese Doku, offene Fragen an Finance (siehe invoice-from-order.md)                                  | Fragen offen |
 | 1       | Kontoliste: Filter Debitoren / Kreditoren / Sachkonten (konfigurierte Nummernkreise, `AccountingConfig`) | umgesetzt   |
-| 2       | Kontomaske: BT-58 unter BT-56, BT-Nummern an den Feldern, fehlende gängige BT-Felder                | offen       |
+| 2       | Kontomaske: BT-58 unter BT-56, BT-Nummern an den Feldern, fehlende gängige BT-Felder (siehe unten)  | teils       |
 | 3       | Auftrag: BT-12, BT-13 (`customerOrderNumber`, auch Position), BT-19, BT-56/58 mit Vorrang vor dem Konto, Leistungszeitraum (BT-73/74) im Zahlplan | offen |
 | 4       | Rechnung auf Knopfdruck, Variante 1 (Gesamtauftrag, Position, Zahlplanposition)                      | offen       |
 | 5       | Rechnungsassistent (Variante 2)                                                                      | später      |
