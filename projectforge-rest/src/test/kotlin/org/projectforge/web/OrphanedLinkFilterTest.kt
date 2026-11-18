@@ -108,21 +108,6 @@ class OrphanedLinkFilterTest {
         Assertions.assertNull(redirectOf("/rs/adminErrors/list"))
     }
 
-    /** The CVE-Radar became the CVE-Clinic, then the CVE-Pilot: old links (notifications, chats, bookmarks) keep working. */
-    @Test
-    fun `renamed next sections are redirected with their sub pages`() {
-        Assertions.assertEquals("/next/cvepilot", redirectOf("/next/cveradar"))
-        Assertions.assertEquals("/next/cvepilot", redirectOf("/next/cveradar/"))
-        Assertions.assertEquals("/next/cvepilot/case/42", redirectOf("/next/cveradar/case/42/"))
-        Assertions.assertEquals("/next/cvepilot/teamcheck/7?tab=x", redirectOf("/next/cveradar/teamcheck/7", mapOf("tab" to "x")))
-        Assertions.assertEquals("/next/cvepilot", redirectOf("/next/cveclinic"))
-        Assertions.assertEquals("/next/cvepilot/case/42", redirectOf("/next/cveclinic/case/42"))
-        Assertions.assertEquals("/next/cvepilot/my?tab=x", redirectOf("/next/cveclinic/my/", mapOf("tab" to "x")))
-        Assertions.assertNull(redirectOf("/next/cvepilot/case/42"))
-        Assertions.assertNull(redirectOf("/next/cveradarXyz"))
-        Assertions.assertNull(redirectOf("/rs/cveradar/my"))
-    }
-
     /** A plugin names its own renamed sections (AbstractPlugin.renamedNextSections), the filter needs no knowledge of it. */
     @Test
     fun `renamed sections of a plugin are redirected`() {
