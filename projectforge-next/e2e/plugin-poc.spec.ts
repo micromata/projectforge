@@ -23,6 +23,10 @@ test.describe("runtime plugin PoC", () => {
       if (step === "open") await goto(page, "/plugin/cveradar");
       else await page.reload();
       await expect(page.getByTestId("plugin-poc")).toBeVisible();
+      // The text comes from the plugin itself, not from the catalog of the app.
+      await expect(page.getByTestId("poc-title")).toHaveText(
+        /Laufzeit-Plugin \(PoC\)|Runtime plugin \(PoC\)/
+      );
       await expect(page.getByTestId("poc-react")).toContainText("true");
       await expect(page.getByTestId("poc-queryclient")).toContainText("true");
       await expect(page.getByTestId("poc-query")).toContainText("ok");

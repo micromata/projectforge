@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as jsxRuntime from "react/jsx-runtime";
 import * as reactQuery from "@tanstack/react-query";
+import * as nextIntl from "next-intl";
 import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/shared/section-card";
 import { getQueryClient } from "@/lib/query-client";
@@ -19,6 +20,7 @@ export interface HostPluginRuntime {
   react: typeof React;
   jsxRuntime: typeof jsxRuntime;
   reactQuery: typeof reactQuery;
+  nextIntl: typeof nextIntl;
   ui: { Button: typeof Button; SectionCard: typeof SectionCard };
   api: { request: typeof request };
   hooks: { usePluginRoute: typeof usePluginRoute };
@@ -38,6 +40,7 @@ export function installPluginRuntime(): HostPluginRuntime {
     react: React,
     jsxRuntime,
     reactQuery,
+    nextIntl,
     ui: { Button, SectionCard },
     api: { request },
     hooks: { usePluginRoute },
