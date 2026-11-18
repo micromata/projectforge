@@ -25,6 +25,7 @@ package org.projectforge.plugins.core
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.Flyway
+import org.projectforge.PageRoutes
 import org.projectforge.business.user.UserRight
 import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.persistence.api.BaseDao
@@ -64,6 +65,25 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
         get() = emptyList()
 
     /**
+     * The frontend of the plugin, if it has pages in the app (loaded at runtime, see [PluginFrontend]). Its pages are
+     * switched off with the plugin like [featureNextRoutes].
+     */
+    open val frontend: PluginFrontend?
+        get() = null
+
+    /**
+     * The next pages of the plugin by REST category, joining [org.projectforge.PageRoutes] when the plugin is
+     * initialized (menu, links and redirects of a migrated category). The pages themselves come with the plugin, see
+     * [frontend].
+     */
+    open val nextPages: Map<String, PageRoutes.Page>
+        get() = emptyMap()
+
+    /** Former route -> current route of renamed sections of the pages of the plugin, see [PageRoutes.registerPlugin]. */
+    open val renamedNextSections: Map<String, String>
+        get() = emptyMap()
+
+    /**
      * @return the initialized
      */
     var initialized = false
@@ -79,6 +99,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
             initializedPlugins.add(this.javaClass)
             log.info { "Initializing plugin: $javaClass" }
             initialize()
+            PageRoutes.registerPlugin(nextPages, renamedNextSections)
             if (!internalJunitTestMode) { // Don't init flyway: schema-update is auto on test cases.
                 flywayInit()
             }

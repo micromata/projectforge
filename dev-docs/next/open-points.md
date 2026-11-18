@@ -44,5 +44,5 @@ backend UILayout are removed. This is the one list of what is left. Remove an en
   are already declared in `teamEvent.page.tsx`, only the route is missing.
 - **`calendar.useNewCalendarEvents`** — with the flag set, the calendar's `action` answers URLs to
   `calEvent`, for which there is no page. Look at this before switching the flag (currently `false`).
-- **Plugin frontends inside the plugin modules** — see [plugin-frontend-colocation.md](plugin-frontend-colocation.md); full modularity is impossible under static export.
+- **Frontend plugins loaded at runtime** — the seam is in place, what is left (pages/menu/redirects from the manifest, typed bridge, plugin css) is listed in [plugin-frontend.md](plugin-frontend.md#open-points).
 - **`NEXT_APP_PATH`** stays `/next` (decided).

@@ -61,9 +61,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## External plugins
 - The backend of the CVE-Pilot is developed in a repository of its own and joins the release jar as a binary
-  (`pf.extraPlugins`, `PF_EXTRA_PLUGINS`; the release pins it in `plugins-bin/`, a GitHub release asset); here are only its next pages, its texts
+  (`pf.extraPlugins`, `PF_EXTRA_PLUGINS`; the release pins it in `plugins-bin/`, a GitHub release asset); its pages are its own frontend
+  (`plugin/frontend` there, loaded by the app at runtime, `dev-docs/next/plugin-frontend.md`); here are only its texts
   (`plugins/org.projectforge.plugins.cveradar`: `CveRadarI18nResources*`), the generated `lib/metadata/cvr-*` and its
-  changelog entries. Without the plugin (no pin) its pages are switched off. Details: `dev-docs/external-plugins.md`.
+  changelog entries. Without the plugin (no pin) it has no pages at all. Details: `dev-docs/external-plugins.md`.
+- What a frontend plugin may import of the app is `lib/plugin-runtime/modules.ts` (pinned by a test): renaming or removing
+  what a module there exports breaks the plugins without any test here failing; raise `PLUGIN_SDK_VERSION` for a breaking change.
 - A core change can break such a plugin without any test here failing: keep the core api it uses
   (`org.projectforge.*`) compatible, or adapt the plugin in the same release.
 

@@ -32,8 +32,8 @@ import org.projectforge.feature.FeatureDefinition
 import org.projectforge.feature.FeatureDerivation
 import org.projectforge.feature.FeatureService
 import org.projectforge.plugins.core.AbstractPlugin
-import org.projectforge.plugins.core.ExternalPlugins
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.core.PluginFrontend
 import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.rest.feature.testplugin.TestPlugin
 import org.projectforge.rest.feature.testplugin.TestPluginPublicRest
@@ -144,19 +144,16 @@ class FeaturePathIndexTest {
     }
 
     @Test
-    fun `next pages of a missing external plugin are blocked`() {
-        val missing = index()
-        Assertions.assertTrue(missing.isBlocked("/next/cvepilot/"))
-        Assertions.assertTrue(missing.isBlocked("/next/cvepilot/case/42/"))
-        Assertions.assertTrue(missing.isBlocked("/next/cvrcase/"))
-        Assertions.assertTrue("cvepilot" in missing.nextRoutes().disabled)
-        val cveRadar = object : AbstractPlugin(ExternalPlugins.CVE_RADAR.id, "CVE-Pilot", "External plugin.") {
+    fun `pages of a plugin frontend are switched off with the plugin`() {
+        val withFrontend = object : AbstractPlugin(TestPlugin.ID, "Test", "Plugin with a frontend.") {
             override fun initialize() {}
+            override val frontend = PluginFrontend(sdkVersion = "1", assetDir = "testplugin/1")
         }
-        val available = index(plugins = listOf(TestPlugin(), cveRadar))
-        Assertions.assertFalse(available.isBlocked("/next/cvepilot/"))
-        Assertions.assertFalse(available.isBlocked("/next/cvrcase/"))
-        Assertions.assertFalse("cvepilot" in available.nextRoutes().disabled)
+        val route = "/next/plugin/${TestPlugin.ID}/items/5/"
+        Assertions.assertFalse(index(plugins = listOf(withFrontend)).isBlocked(route))
+        Assertions.assertTrue(index(pluginActive = false, plugins = listOf(withFrontend)).isBlocked(route))
+        // The plugin urls of a plugin without a frontend are nobody's.
+        Assertions.assertFalse(index(pluginActive = false).isBlocked(route))
     }
 
     @Test

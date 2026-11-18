@@ -4,6 +4,7 @@ import { AuthGuard } from "@/components/shared/auth-guard";
 import { CostSearchPanelHost } from "@/components/shared/cost-search/cost-search-panel-host";
 import { FeatureGuard } from "@/components/shared/feature-guard";
 import { EntityEditModalHost } from "@/components/shared/edit/entity-edit-modal-host";
+import { PluginMessagesProvider } from "@/components/plugin-runtime/plugin-messages-provider";
 import { JobToasts } from "@/components/shared/jobs/job-toasts";
 import { NotificationToasts } from "@/components/shared/notifications/notification-toasts";
 import { TwoFactorProvider } from "@/components/shared/two-factor-provider";
@@ -42,7 +43,10 @@ export default function AuthenticatedLayout({
       <Suspense fallback={null}>
         <TwoFactorProvider>
           {/* The pages of switched off features are "not found", also on navigating inside the app. */}
-          <FeatureGuard>{children}</FeatureGuard>
+          {/* The texts of the plugins with a frontend of their own, on top of the texts of the app. */}
+          <PluginMessagesProvider>
+            <FeatureGuard>{children}</FeatureGuard>
+          </PluginMessagesProvider>
         </TwoFactorProvider>
       </Suspense>
     </AuthGuard>
