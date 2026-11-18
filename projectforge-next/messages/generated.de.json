@@ -4267,6 +4267,8 @@
         "title": "Feedback {arg0}"
       },
       "case": {
+        "additionalCves": "Weitere CVEs",
+        "additionalCvesHint": "CVEs, die zusammengehören und denselben Fix oder Workaround brauchen; eine ID pro Zeile. Eine CVE gehört zu genau einem Fall. Nur bei der Art CVE.",
         "ai": {
           "affected": "Betroffen",
           "answer": {
@@ -4321,10 +4323,14 @@
         "closeReason": "Begründung des Abschlusses",
         "code": "Kennung",
         "codeHint": "CVE-ID einer Schwachstelle; ein Vorfall ohne Kennung erhält die nächste des Jahres.",
+        "cves": "CVEs",
         "error": {
           "codeExists": "Die Kennung {arg0} gibt es schon.",
           "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
-          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345 (oder die ID eines Advisorys ohne CVE, z. B. GHSA-XXXX-XXXX-XXXX)."
+          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345 (oder die ID eines Advisorys ohne CVE, z. B. GHSA-XXXX-XXXX-XXXX).",
+          "cveInOtherCase": "{arg0} gehört schon zum Fall {arg1}.",
+          "cvesOnlyForCve": "Weitere CVEs gibt es nur bei Fällen der Art CVE; die Art ist hier Incident.",
+          "tooManyCves": "Ein Fall hat höchstens {arg0} weitere CVEs."
         },
         "export": {
           "button": "Als JSON herunterladen"
@@ -4935,7 +4941,6 @@
           "devices": "Geräte",
           "inventory": "Systeme",
           "my": "Mein CVE-Pilot",
-          "prototype": "Demo",
           "vulnerabilities": "Schwachstellen"
         },
         "saved": "Gespeichert."
@@ -5121,7 +5126,6 @@
         "vulnerability": "1 Schwachstelle",
         "withoutFix": "{arg0} ohne Fix"
       },
-      "persona": "Ansicht als",
       "possiblyAffected": {
         "info": "Für diese Technologie ist keine genaue Version im Inventar, der Treffer ist daher unsicher.",
         "label": "möglicherweise"
@@ -5148,13 +5152,6 @@
         "exposed": "kritische Instanz im Internet +1",
         "instances": "betroffene Instanzen +1",
         "kev": "KEV +1"
-      },
-      "prototype": {
-        "banner": "Demo mit fiktiven Testdaten; Änderungen bleiben nur in diesem Browser.",
-        "reset": {
-          "info": "Stellt die Testdaten im Auslieferungszustand wieder her; alle Änderungen gehen verloren.",
-          "label": "Testdaten zurücksetzen"
-        }
       },
       "qa": {
         "audience": {
@@ -5314,11 +5311,6 @@
         "OSV": "OSV"
       },
       "start": {
-        "demo": {
-          "hint": "Alle geplanten Funktionen des CVE-Pilots als klickbarer Prototyp mit fiktiven Testdaten.",
-          "link": "Demo öffnen",
-          "title": "Demo"
-        },
         "vulnerabilities": {
           "hint": "Die aus der NVD importierten Schwachstellen ab dem eingestellten CVSS-Wert. Ein Klick auf die CVE öffnet sie bei der NVD."
         }
