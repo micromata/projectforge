@@ -33,8 +33,8 @@ import org.projectforge.feature.FeatureDerivation
 import org.projectforge.feature.FeatureService
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.ExternalPlugins
-import org.projectforge.plugins.core.PluginFrontend
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.plugins.core.PluginFrontend
 import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.rest.feature.testplugin.TestPlugin
 import org.projectforge.rest.feature.testplugin.TestPluginPublicRest

@@ -48,11 +48,11 @@ class PluginFrontend(
     val messages: Map<String, String> = emptyMap(),
 ) {
     init {
-        require(ASSET_PART.matches(assetDir) && assetDir.split('/').none { it == ".." || it.isEmpty() }) {
+        require(ASSET_PART.matches(assetDir) && noDots(assetDir)) {
             "Invalid asset directory of a plugin frontend: '$assetDir'."
         }
         (listOf(entry) + css + messages.values).forEach {
-            require(FILE_PART.matches(it)) { "Invalid file of a plugin frontend: '$it'." }
+            require(FILE_PART.matches(it) && noDots(it)) { "Invalid file of a plugin frontend: '$it'." }
         }
     }
 
@@ -64,6 +64,9 @@ class PluginFrontend(
 
         /** The url of the pages of a plugin below the app, without leading slash. */
         fun route(pluginId: String) = "plugin/$pluginId"
+
+        /** No `.` or `..` segment: a file never leaves the directory of the plugin. */
+        private fun noDots(path: String) = path.split('/').none { it == "." || it == ".." }
 
         private val ASSET_PART = Regex("[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*")
         private val FILE_PART = Regex("[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*\\.[A-Za-z0-9]+")
