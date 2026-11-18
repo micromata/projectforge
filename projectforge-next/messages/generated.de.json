@@ -1536,6 +1536,7 @@
       "contacts": {
         "info": "Ansprechpartner:innen haben Zugriff auf den Auftrag und seine Rechnungen und bekommen eine E-Mail, wenn er geändert wird (ebenso alle, die ihn bisher bearbeitet haben)."
       },
+      "contractNumber": "Vertragsnummer (BT-12)",
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
@@ -1654,6 +1655,16 @@
         "total": "Summe",
         "until": "bis {arg0}"
       },
+      "customerContact": {
+        "fromAccount": "Aus Konto ergänzen",
+        "fromAccountDone": "{arg0} Feld(er) aus dem Konto ergänzt.",
+        "fromAccountHint": "Ergänzt die leeren Kontaktfelder (BT-56, BT-58) aus dem Konto des Kunden. Bereits Ausgefülltes bleibt erhalten.",
+        "fromAccountNothing": "Nichts zu ergänzen: Das Konto hat für die leeren Felder keine Werte."
+      },
+      "customerContactDepartment": "Abteilung Kunde (BT-56)",
+      "customerContactEmail": "E-Mail-Adresse Ansprechpartner Kunde (BT-58)",
+      "customerContactPerson": "Ansprechpartner Kunde (BT-56)",
+      "customerOrderNumber": "Bestellnummer Kunde (BT-13)",
       "datum": {
         "_": "Angebotsdatum",
         "short": "Datum"
@@ -1801,6 +1812,7 @@
       "invoice": {
         "info": ", fakturiert: {arg0}, noch nicht fakturiert: {arg1}"
       },
+      "invoiceData": "Rechnungsdaten",
       "invoicedExceedsCommissioned": "Der fakturierte Betrag übersteigt den beauftragten Betrag – bitte auf eine falsch zugeordnete Rechnung prüfen.",
       "mail": {
         "digest": {
@@ -2239,19 +2251,19 @@
     "konto": {
       "_": "Konto",
       "bezeichnung": "Bezeichnung",
-      "city": "Ort",
-      "contactDepartment": "Abteilung",
+      "city": "Ort (BT-52)",
+      "contactDepartment": "Abteilung (BT-56)",
       "contactEmail": "E-Mail-Adresse Ansprechpartner Kunde (BT-58)",
       "contactPerson": {
-        "_": "Ansprechpartner",
+        "_": "Ansprechpartner (BT-56)",
         "tooltip": "Ansprechpartner und Abteilung werden zusammen als ein Text gesendet, die Kontaktstelle des Käufers (BT-56), z.B. \"Erika Mustermann, Einkauf\"."
       },
-      "costCenter": "Kostenstelle",
-      "country": "Land",
+      "costCenter": "Kostenstelle (BT-19)",
+      "country": "Land (BT-55)",
       "eInvoice": "E-Rechnung",
       "eInvoiceEmail": "E-Mail-Adresse Rechnungseingang Kunde (BT-49)",
       "leitwegId": {
-        "_": "Leitweg-ID",
+        "_": "Leitweg-ID (BT-10)",
         "tooltip": "Pflicht für E-Rechnungen an öffentliche Auftraggeber (z.B. 04011000-1234512345-12)"
       },
       "nummer": "Kontonummer",
@@ -2260,13 +2272,13 @@
         "active": "aktiv",
         "nonactive": "nicht aktiv"
       },
-      "street": "Straße",
+      "street": "Straße (BT-50)",
       "title": {
         "add": "Neues Konto",
         "list": "Liste der Konten"
       },
-      "vatId": "USt-IdNr.",
-      "zipCode": "PLZ"
+      "vatId": "USt-IdNr. (BT-48)",
+      "zipCode": "PLZ (BT-53)"
     },
     "kost": {
       "error": {
@@ -4263,6 +4275,8 @@
         "title": "Feedback {arg0}"
       },
       "case": {
+        "additionalCves": "Weitere CVEs",
+        "additionalCvesHint": "CVEs, die zusammengehören und denselben Fix oder Workaround brauchen; eine ID pro Zeile. Eine CVE gehört zu genau einem Fall.",
         "ai": {
           "affected": "Betroffen",
           "answer": {
@@ -4320,7 +4334,9 @@
         "error": {
           "codeExists": "Die Kennung {arg0} gibt es schon.",
           "conflict": "Dieser Fall wurde inzwischen geändert (um {arg0}). Bitte neu laden und die Änderung wiederholen.",
-          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345 (oder die ID eines Advisorys ohne CVE, z. B. GHSA-XXXX-XXXX-XXXX)."
+          "cveId": "Eine CVE braucht ihre CVE-ID, z. B. CVE-2026-12345 (oder die ID eines Advisorys ohne CVE, z. B. GHSA-XXXX-XXXX-XXXX).",
+          "cveInOtherCase": "{arg0} gehört schon zum Fall {arg1}.",
+          "tooManyCves": "Ein Fall hat höchstens {arg0} weitere CVEs."
         },
         "export": {
           "button": "Als JSON herunterladen"
@@ -4931,7 +4947,6 @@
           "devices": "Geräte",
           "inventory": "Systeme",
           "my": "Mein CVE-Pilot",
-          "prototype": "Demo",
           "vulnerabilities": "Schwachstellen"
         },
         "saved": "Gespeichert."
@@ -5117,7 +5132,6 @@
         "vulnerability": "1 Schwachstelle",
         "withoutFix": "{arg0} ohne Fix"
       },
-      "persona": "Ansicht als",
       "possiblyAffected": {
         "info": "Für diese Technologie ist keine genaue Version im Inventar, der Treffer ist daher unsicher.",
         "label": "möglicherweise"
@@ -5144,13 +5158,6 @@
         "exposed": "kritische Instanz im Internet +1",
         "instances": "betroffene Instanzen +1",
         "kev": "KEV +1"
-      },
-      "prototype": {
-        "banner": "Demo mit fiktiven Testdaten; Änderungen bleiben nur in diesem Browser.",
-        "reset": {
-          "info": "Stellt die Testdaten im Auslieferungszustand wieder her; alle Änderungen gehen verloren.",
-          "label": "Testdaten zurücksetzen"
-        }
       },
       "qa": {
         "audience": {
@@ -5310,11 +5317,6 @@
         "OSV": "OSV"
       },
       "start": {
-        "demo": {
-          "hint": "Alle geplanten Funktionen des CVE-Pilots als klickbarer Prototyp mit fiktiven Testdaten.",
-          "link": "Demo öffnen",
-          "title": "Demo"
-        },
         "vulnerabilities": {
           "hint": "Die aus der NVD importierten Schwachstellen ab dem eingestellten CVSS-Wert. Ein Klick auf die CVE öffnet sie bei der NVD."
         }

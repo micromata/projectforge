@@ -73,6 +73,8 @@ class AuftragsPosition(
     var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE,
     var periodOfPerformanceBegin: LocalDate? = null,
     var periodOfPerformanceEnd: LocalDate? = null,
+    var customerOrderNumber: String? = null,
+    var customerCostCenter: String? = null,
     var modeOfPaymentType: ModeOfPaymentType? = null,
     var task: Task? = null,
     /**

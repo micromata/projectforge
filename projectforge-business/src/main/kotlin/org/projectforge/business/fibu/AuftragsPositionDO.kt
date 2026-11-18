@@ -163,6 +163,17 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "period_of_performance_end")
   open var periodOfPerformanceEnd: LocalDate? = null
 
+  /** The customer's order number of this position, where it differs from the one of the order (BT-13). */
+  @PropertyInfo(i18nKey = "fibu.auftrag.customerOrderNumber")
+  @FullTextField
+  @get:Column(name = "customer_order_number", length = 255)
+  open var customerOrderNumber: String? = null
+
+  /** The customer's cost center of this position, where it differs from the one of the order (BT-19). */
+  @PropertyInfo(i18nKey = "fibu.konto.costCenter")
+  @get:Column(name = "customer_cost_center", length = 255)
+  open var customerCostCenter: String? = null
+
   @PropertyInfo(i18nKey = "fibu.modeOfPayment")
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "mode_of_payment_type", length = 13)

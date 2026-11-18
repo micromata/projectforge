@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import {
-  NOTE_FEATURES,
+  DESCRIPTION_FEATURES,
   pasteMarkdown,
   richTextExtensions,
   type RichTextFeatures,
@@ -31,8 +31,8 @@ function toContent(value: string | null, features: RichTextFeatures) {
 
 /**
  * A small rich text editor (TipTap): paragraphs, bold, italic, underline, lists, links and a few text
- * colours, plus what [features] offers: headings (levels 1 to 4), tables (the default), code, emoji. The value
- * is HTML; render it with [RichText], which sanitizes it (with `code` for code). No block quotes: it is for notes
+ * colours, plus what [features] offers: headings (levels 1 to 4), tables, code, emoji (all by default). The value
+ * is HTML; render it with [RichText], which sanitizes it (with `code`, the default, for code). No block quotes: it is for notes
  * (a tooltip hint, the body of a mail, a room description), not for documents. The chat editor (ChatEditor)
  * is built from the same parts.
  *
@@ -49,7 +49,7 @@ export function RichTextEditor({
   onBlur,
   placeholder,
   variables,
-  features = NOTE_FEATURES,
+  features = DESCRIPTION_FEATURES,
   invalid,
   disabled,
   className,
@@ -61,7 +61,7 @@ export function RichTextEditor({
   onBlur?: () => void;
   placeholder?: string;
   variables?: RichTextVariable[];
-  /** The markup offered, see [RichTextFeatures]; headings and tables by default. */
+  /** The markup offered, see [RichTextFeatures]; everything by default. */
   features?: RichTextFeatures;
   invalid?: boolean;
   disabled?: boolean;

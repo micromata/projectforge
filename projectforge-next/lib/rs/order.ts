@@ -793,3 +793,27 @@ export function refreshOrderCache(): Promise<{ message: string }> {
     method: "POST",
   });
 }
+
+/** The customer contact (BT-56, BT-58) of an order, as `OrderEntityRest.customerContactFromAccount` answers it. */
+export interface CustomerContact {
+  customerContactPerson?: string | null;
+  customerContactDepartment?: string | null;
+  customerContactEmail?: string | null;
+}
+
+/**
+ * The customer contact of the unsaved order with what it leaves empty filled in from the account of its customer.
+ * The account itself is not readable for everybody who edits orders, so the backend hands out only these three
+ * values. Nothing is written; the caller takes the values from the answer.
+ */
+export function fetchCustomerContactFromAccount(
+  data: unknown,
+  signal?: AbortSignal
+): Promise<CustomerContact> {
+  const postData: PostData = { data } as PostData;
+  return request<CustomerContact>(
+    "/rs/order/customerContactFromAccount",
+    { method: "POST", body: JSON.stringify(postData) },
+    signal
+  );
+}

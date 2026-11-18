@@ -890,6 +890,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             "contactPerson.username",
             "contactPerson.firstname",
             "contactPerson.lastname", "kunde.name", "projekt.name", "projekt.kunde.name", "positionen.position",
+            "customerOrderNumber", "contractNumber", "positionen.customerOrderNumber",
             "positionen.art",
             "positionen.status", "positionen.titel", "positionen.bemerkung", "positionen.nettoSumme"
         )

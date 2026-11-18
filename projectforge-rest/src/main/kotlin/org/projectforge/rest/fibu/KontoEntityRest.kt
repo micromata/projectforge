@@ -28,12 +28,19 @@ import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.KontoStatus
 import org.projectforge.business.fibu.kost.AccountingConfig
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.utils.IntRanges
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Konto
+import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.UISelectValue
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -67,6 +74,45 @@ class KontoEntityRest
 
     /** Name hits first, see [autoCompletePrimarySearchFields]. */
     override val autoCompletePrimarySearchFields = arrayOf("nummer", "bezeichnung")
+
+    /**
+     * The kind of account (debitors, creditors, general ledger accounts) as a pill of the list, told apart by
+     * the configured number ranges (see [KontoType]). Synthetic: no property of the account holds it.
+     */
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement(
+                TYPE_FILTER,
+                label = translate("fibu.konto.filter.accountType"),
+                defaultFilter = true,
+                values = listOf(
+                    UISelectValue(KontoType.DEBITOR.name, translate("fibu.konto.filter.debitors")),
+                    UISelectValue(KontoType.CREDITOR.name, translate("fibu.konto.filter.creditors")),
+                    UISelectValue(KontoType.GENERAL_LEDGER.name, translate("fibu.konto.filter.generalLedger")),
+                ),
+            )
+        )
+    }
+
+    override fun preProcessMagicFilter(
+        target: QueryFilter,
+        source: MagicFilter,
+    ): List<CustomResultFilter<KontoDO>>? {
+        val entry = source.entries.find { it.field == TYPE_FILTER } ?: return null
+        entry.synthetic = true
+        val types = entry.value.values?.mapNotNull { KontoType.entries.find { type -> type.name == it } }
+        if (types.isNullOrEmpty()) {
+            return null
+        }
+        val config = AccountingConfig.getInstance()
+        return listOf(
+            KontoTypeFilter(
+                types.toSet(),
+                KontoType.rangesOf(config.debitorsAccountNumberRangesString),
+                KontoType.rangesOf(config.creditorsAccountNumberRangesString),
+            )
+        )
+    }
 
     override fun transformFromDB(obj: KontoDO, editMode: Boolean): Konto {
         val konto = Konto()
@@ -127,5 +173,10 @@ class KontoEntityRest
         return list.filter { konto ->
             konto.status != KontoStatus.NONACTIVE && accountRanges.doesMatch(konto.nummer)
         }.map { Konto(it) }
+    }
+
+    companion object {
+        /** Name of the synthetic filter entry of the account list. */
+        private const val TYPE_FILTER = "accountType"
     }
 }

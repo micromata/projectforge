@@ -42,6 +42,18 @@ export const AUFTRAGS_POSITION_METADATA = {
       i18nKey: "created",
       required: false,
     },
+    customerCostCenter: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.costCenter",
+      required: false,
+      maxLength: 255,
+    },
+    customerOrderNumber: {
+      dataType: "STRING",
+      i18nKey: "fibu.auftrag.customerOrderNumber",
+      required: false,
+      maxLength: 255,
+    },
     deleted: {
       dataType: "BOOLEAN",
       i18nKey: "deleted",
