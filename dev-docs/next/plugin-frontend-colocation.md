@@ -1,6 +1,7 @@
 # Colocating plugin frontends in `plugins/**` (design proposal)
 
-Status: **proposal / not yet implemented.** This document records the idea, the constraint that
+Status: **superseded** by [plugin-frontend.md](plugin-frontend.md): frontend plugins can be loaded at runtime (native ES modules and a bridge), which this document
+believed impossible under `output: "export"`; only needed if a plugin is meant to be compiled into the one build. Originally: **proposal / not yet implemented.** This document records the idea, the constraint that
 shapes it, and a recommended approach, so a later migration can pick it up.
 
 ## Context
@@ -24,7 +25,7 @@ projectforge-next is, by contrast, a **single** Next.js App Router build with `o
 (`next.config.ts`, `turbopack.root: __dirname`): routes come exclusively from the one `app/` tree,
 and everything is resolved **at build time** and compiled into one static bundle, which Gradle
 (`npmBuild → copyNextBuild → nextAppJar`) packs into the boot jar under `/next`. There is **no
-runtime frontend plugin loading**.
+runtime frontend plugin loading** in the Next build itself (but see plugin-frontend.md: a bundle can be loaded by the app at runtime).
 
 **Consequence:** a plugin frontend can never be as independent as the backend plugin. The most that
 is achievable is to **place the source files physically under `plugins/**`** and pull them into the

@@ -1,0 +1,11 @@
+{
+  "name": "@projectforge/plugin-vite",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vite build of a ProjectForge frontend plugin: maps the shared dependencies to the instances of the app.",
+  "main": "index.mjs",
+  "peerDependencies": {
+    "vite": ">=7"
+  }
+}

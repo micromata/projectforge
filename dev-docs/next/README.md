@@ -10,7 +10,8 @@ the Wicket and React frontends, which are removed.
 | [entities.md](entities.md)                                     | The reference entities — `book`, `cost1`, `order` — and what each one proves about the concept        |
 | [list-paging.md](list-paging.md)                               | Server-side paging of the large lists: why an id list, how it works, how to turn it on                |
 | [open-points.md](open-points.md)                               | The one list of what is left: missing tests, list-paging follow-ups, deferred features                |
-| [plugin-frontend-colocation.md](plugin-frontend-colocation.md) | Proposal, not implemented: plugin pages living in the plugin module                                   |
+| [plugin-frontend.md](plugin-frontend.md)                       | Frontend plugins loaded at runtime: manifest, outlet, texts, bridge, build                            |
+| [plugin-frontend-colocation.md](plugin-frontend-colocation.md) | Superseded proposal: plugin pages living in the plugin module at build time                           |
 
 Related documents outside this folder:
 
