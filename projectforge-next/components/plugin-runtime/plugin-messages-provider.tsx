@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { NextIntlClientProvider, useLocale, useTimeZone } from "next-intl";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import {
@@ -15,6 +15,16 @@ import {
 import { fetchCustomerI18nOverrides } from "@/lib/rs/i18n";
 import { fetchPluginMessages } from "@/lib/rs/plugin-frontend";
 
+/**
+ * The plugins whose texts are part of the texts handed down (or that have none, or failed): decided in the same render
+ * that hands them down, so a page that waits for its id never renders before its keys exist.
+ */
+const TextsDoneContext = createContext<string[]>([]);
+
+export function usePluginTextsDone(): string[] {
+  return useContext(TextsDoneContext);
+}
+
 export const pluginMessagesQueryKey = (id: string, locale: string) =>
   ["plugin-messages", id, locale] as const;
 
@@ -27,6 +37,7 @@ export function PluginMessagesProvider({ children }: { children: ReactNode }) {
   const locale = normalizeLocale(useLocale()) ?? "en";
   const timeZone = useTimeZone();
   const { data: manifests } = usePluginManifests();
+  const valid = (manifests ?? []).filter((m) => manifestProblem(m) === null);
   // The same query as LocaleProvider's: one request, shared.
   const { data: customer } = useQuery({
     queryKey: ["i18n-customer-overrides", locale],
@@ -35,26 +46,28 @@ export function PluginMessagesProvider({ children }: { children: ReactNode }) {
     gcTime: Infinity,
     retry: false,
   });
-  // One flat map of all plugins (structurally shared, so it only changes with the data).
-  const merged = useQueries({
-    queries: (manifests ?? [])
-      .filter((manifest) => manifestProblem(manifest) === null)
-      .map((manifest) => {
-        const url = manifest.messages[locale] ?? manifest.messages.en;
-        return {
-          queryKey: pluginMessagesQueryKey(manifest.id, locale),
-          queryFn: ({ signal }: { signal: AbortSignal }) =>
-            url ? fetchPluginMessages(url, signal) : Promise.resolve({}),
-          staleTime: Infinity,
-          gcTime: Infinity,
-          retry: false,
-        };
-      }),
-    combine: (results) =>
-      Object.assign({}, ...results.map((r) => r.data ?? {})) as Record<
+  // One flat map of all plugins and the ids that are done (structurally shared, so it only changes with the data).
+  const { merged, done } = useQueries({
+    queries: valid.map((manifest) => {
+      const url = manifest.messages[locale] ?? manifest.messages.en;
+      return {
+        queryKey: pluginMessagesQueryKey(manifest.id, locale),
+        queryFn: ({ signal }: { signal: AbortSignal }) =>
+          url ? fetchPluginMessages(url, signal) : Promise.resolve({}),
+        staleTime: Infinity,
+        gcTime: Infinity,
+        retry: false,
+      };
+    }),
+    combine: (results) => ({
+      merged: Object.assign({}, ...results.map((r) => r.data ?? {})) as Record<
         string,
         string
       >,
+      done: valid
+        .filter((_, i) => results[i].isSuccess || results[i].isError)
+        .map((m) => m.id),
+    }),
   });
   const messages = useMemo(
     () =>
@@ -65,12 +78,14 @@ export function PluginMessagesProvider({ children }: { children: ReactNode }) {
     [locale, merged, customer]
   );
   return (
-    <NextIntlClientProvider
-      locale={locale}
-      messages={messages}
-      timeZone={timeZone}
-    >
-      {children}
-    </NextIntlClientProvider>
+    <TextsDoneContext.Provider value={done}>
+      <NextIntlClientProvider
+        locale={locale}
+        messages={messages}
+        timeZone={timeZone}
+      >
+        {children}
+      </NextIntlClientProvider>
+    </TextsDoneContext.Provider>
   );
 }

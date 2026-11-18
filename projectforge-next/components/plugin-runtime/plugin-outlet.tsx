@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { notFound, usePathname, useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/shared/spinner";
-import { pluginMessagesQueryKey } from "@/components/plugin-runtime/plugin-messages-provider";
+import { usePluginTextsDone } from "@/components/plugin-runtime/plugin-messages-provider";
 import {
   manifestProblem,
   usePluginManifests,
@@ -18,7 +17,6 @@ import {
   matchRoute,
   PluginRouteContext,
 } from "@/lib/plugin-runtime/route-context";
-import { fetchPluginMessages } from "@/lib/rs/plugin-frontend";
 
 const BASE = "/plugin";
 
@@ -45,22 +43,14 @@ export function PluginOutlet() {
 function PluginPages({ id, subPath }: { id: string; subPath: string }) {
   const t = useTranslations("plugin.frontend");
   const router = useRouter();
-  const locale = useLocale();
   const { data: manifests, isError, isPending } = usePluginManifests();
   const manifest = manifests?.find((m) => m.id === id);
   const problem = manifest ? manifestProblem(manifest) : null;
   const [definition, setDefinition] = useState<PluginDefinition | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
 
-  // The texts of the plugin are there before its first page renders (a missing text would show as its key).
-  const messagesUrl = manifest?.messages[locale] ?? manifest?.messages.en;
-  const { isPending: messagesPending } = useQuery({
-    queryKey: pluginMessagesQueryKey(id, locale),
-    queryFn: ({ signal }) => fetchPluginMessages(messagesUrl!, signal),
-    enabled: !!messagesUrl && !problem,
-    staleTime: Infinity,
-    retry: false,
-  });
+  // The texts of the plugin are in the texts handed down before its first page renders (else a key would show).
+  const textsDone = usePluginTextsDone().includes(id);
 
   useEffect(() => {
     if (!manifest || problem) return;
@@ -94,7 +84,7 @@ function PluginPages({ id, subPath }: { id: string; subPath: string }) {
   }
   if (loadFailed)
     return <Problem>{t("error.load", { name: manifest.name })}</Problem>;
-  if (!definition || (!!messagesUrl && messagesPending)) return <Spinner />;
+  if (!definition || !textsDone) return <Spinner />;
   if (!match) notFound();
   return (
     <PluginRouteContext.Provider value={value}>
