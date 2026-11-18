@@ -3,9 +3,12 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.12",
-    "date" : "2026-11-17",
+    "date" : "2026-11-18",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "changed",
+      "items" : [ "CVE-Pilot: the demo on fictitious test data is removed, the pages work on the real data only." ]
+    }, {
       "type" : "fixed",
       "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one." ]
     } ]
