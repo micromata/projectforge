@@ -16,6 +16,7 @@ The documentation for users and administrators is on the website (`site/`, https
 | [major-upgrades.md](major-upgrades.md)                | Plan      | Spring Boot 4 / Hibernate 7 done; Jackson 3 and the remaining majors open             |
 | [kost2-reallocation.md](kost2-reallocation.md)        | Plan      | Retroactive Kost2 reallocation of accounting records; not started                     |
 | [invoice-from-order.md](invoice-from-order.md)        | Plan      | "Create invoice" from an order (positions, order number prefilled); waiting for finance |
+| [finance-requests.md](finance-requests.md)            | Plan      | Finance wishes: account filters/form, BT fields in the order book, invoice at the push of a button |
 | [backup-encryption.md](backup-encryption.md)          | Proposal  | Encrypting backups with `age`; not implemented                                        |
 | [digital-business-card.md](digital-business-card.md)  | Plan      | Digital business cards: QR/vCard and photo (token url) done; Apple Wallet pass open       |
 | [app-api-deprecations.md](app-api-deprecations.md)    | Reference | Fields and endpoints the published app still reads, kept for it; when they can go     |

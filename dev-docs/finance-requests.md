@@ -1,0 +1,39 @@
+# Wünsche des Finance-Teams: Buchungskonten, Auftragsbuch, Rechnung auf Knopfdruck
+
+**Status:** Plan, nicht begonnen. Die Rechnung aus dem Auftrag (Schritt 4) ist in
+[invoice-from-order.md](invoice-from-order.md) ausgearbeitet und wartet auf die Antworten von Finance.
+
+## Empfehlung: Konten sind Sache von Finance
+
+Nutzer außerhalb von Finance sollen sich nicht mit Buchungskonten beschäftigen. Sie können sie auch gar nicht lesen
+(kein Zugriff auf `KontoDO`). Deshalb gibt es am Auftrag **kein Feld „Konto“**:
+
+- Das Konto kommt serverseitig über `kunde.konto` in die Rechnung (`OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount`).
+- Entfallen sind damit die Pflichtauswahl beim Status „beauftragt“, die Option „nicht vorhanden, anlegen“ mit
+  Mail an Finance und das Klappfeld mit den Kontodaten im Auftrag. Fehlt das Konto, legt Finance es beim Schreiben der
+  Rechnung an.
+- Der Button „aus Konto ergänzen“ im Auftrag holt die Kontaktdaten serverseitig. Nutzer sehen nur die übernommenen Werte,
+  nie das Konto.
+
+## Reihenfolge
+
+| Schritt | Inhalt                                                                                              | Stand       |
+|---------|-----------------------------------------------------------------------------------------------------|-------------|
+| 0       | Diese Doku, offene Fragen an Finance (siehe invoice-from-order.md)                                  | Fragen offen |
+| 1       | Kontoliste: Filter Debitoren / Kreditoren / Sachkonten (konfigurierte Nummernkreise, `AccountingConfig`) | umgesetzt   |
+| 2       | Kontomaske: BT-58 unter BT-56, BT-Nummern an den Feldern, fehlende gängige BT-Felder                | offen       |
+| 3       | Auftrag: BT-12, BT-13 (`customerOrderNumber`, auch Position), BT-19, BT-56/58 mit Vorrang vor dem Konto, Leistungszeitraum (BT-73/74) im Zahlplan | offen |
+| 4       | Rechnung auf Knopfdruck, Variante 1 (Gesamtauftrag, Position, Zahlplanposition)                      | offen       |
+| 5       | Rechnungsassistent (Variante 2)                                                                      | später      |
+| 6       | Kunden-Datenabgleichsblatt als PDF aus der Kontomaske                                                 | offen       |
+
+## Bereits vorhanden
+
+- `KontoDO`: Leitweg-ID, Adresse, USt-Id, E-Mail für E-Rechnung, Kontakt (BT-56), Abteilung, E-Mail (BT-58), Kostenstelle (BT-19).
+- `RechnungDO`: Bestellnummer (BT-13), Kontakt, Kostenstelle, Leistungszeitraum (BT-73/74, auch je Position).
+- Auftrag und Auftragsposition: Leistungszeitraum. Fehlt noch im Zahlplan (`PaymentScheduleDO`).
+
+## Festlegungen
+
+- BT-13 am Auftrag ist ein eigenes Feld; die Kundenreferenz (`referenz`) bleibt unverändert (sie dient auch für Jira-Links).
+- Nach dem Anlegen entscheidet Finance in der Rechnungsmaske, ob die Rechnung „geplant“ oder direkt „gestellt“ wird.

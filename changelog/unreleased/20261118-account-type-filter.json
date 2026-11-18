@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Accounts: the list can be narrowed to debitors, creditors or general ledger accounts. The kinds follow the number ranges of the accounting configuration (debitors and creditors); all other accounts are general ledger accounts.",
+  "de": "Buchungskonten: Die Liste lässt sich auf Debitoren, Kreditoren oder Sachkonten einschränken. Die Arten richten sich nach den Nummernkreisen der Buchhaltungskonfiguration (Debitoren und Kreditoren); alle übrigen Konten sind Sachkonten."
+}
