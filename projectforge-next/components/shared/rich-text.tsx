@@ -2,6 +2,9 @@
 
 import { useMemo, useRef } from "react";
 import DOMPurify from "dompurify";
+import { useTranslations } from "next-intl";
+import { CUSTOM_EMOJIS } from "@/components/shared/emoji/custom-emoji";
+import { decorateEmoji } from "@/components/shared/emoji/decorate-emoji";
 import { looksLikeMarkdown, markdownToHtml } from "@/lib/markdown-to-html";
 import { cn } from "@/lib/utils";
 import { linkifyHtml } from "./linkify-html";
@@ -187,20 +190,24 @@ export function richTextToPlainText(text: string): string {
 export function RichText({
   html,
   className,
-  code,
+  code = true,
   decorate,
 }: {
   html: string;
   className?: string;
-  /** Keep code (`<code>`, `<pre>`), as the editor of [DESCRIPTION_FEATURES] writes it. */
+  /** Keep code (`<code>`, `<pre>`), as the editor writes it; on by default, like the editor's features. */
   code?: boolean;
-  /** Changes the sanitized HTML, e.g. draws the custom emoji (decorateEmoji). */
+  /** Changes the sanitized HTML; the custom emoji are drawn (decorateEmoji) by default. */
   decorate?: (sanitized: string) => string;
 }) {
+  const t = useTranslations();
   const sanitized = useMemo(() => {
     const clean = linkifyHtml(sanitizeRichText(toRichTextHtml(html), { code }));
-    return decorate ? decorate(clean) : clean;
-  }, [html, code, decorate]);
+    return (
+      decorate?.(clean) ??
+      decorateEmoji(clean, (emoji) => t(CUSTOM_EMOJIS[emoji]))
+    );
+  }, [html, code, decorate, t]);
   const ref = useRef<HTMLDivElement>(null);
   const copyButtons = useCodeBlockCopyButtons(ref, sanitized);
   return (

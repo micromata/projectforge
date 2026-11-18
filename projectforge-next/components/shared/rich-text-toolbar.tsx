@@ -27,7 +27,7 @@ import {
 } from "@/components/shared/rich-text-toolbar-controls";
 import { EmojiPicker } from "@/components/shared/emoji/emoji-picker";
 import type { RichTextFeatures } from "@/components/shared/rich-text-extensions";
-import { NOTE_FEATURES } from "@/components/shared/rich-text-extensions";
+import { DESCRIPTION_FEATURES } from "@/components/shared/rich-text-extensions";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 /** A placeholder the caller resolves later, inserted as `{{key}}` (e.g. the fields of a mail). */
@@ -102,7 +102,7 @@ const MARKS: {
 export function RichTextToolbar({
   editor,
   variables,
-  features = NOTE_FEATURES,
+  features = DESCRIPTION_FEATURES,
   codeBlockHint,
 }: {
   editor: Editor | null;
