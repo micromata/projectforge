@@ -335,6 +335,8 @@ export class AuthController {
    */
   private async leave() {
     if (this.state.status !== 'loggedIn') return;
+    // The old client is no longer the current one: late answers must not be stored into the cleared cache.
+    this.api = null;
     this.deps.cache.clearAll();
     this.deps.files.clearAll();
   }
@@ -347,6 +349,7 @@ export class AuthController {
 
   /** The user's data on the device: the cache, the shared files and the web session and storage of the WebView. */
   private async clearLocalData() {
+    this.api = null;
     this.deps.cache.clearAll();
     this.deps.files.clearAll();
     await this.webCookies.clear().catch((e) => appLog.warn('auth', `WebView data not cleared: ${String(e)}`));
