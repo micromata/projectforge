@@ -10,9 +10,9 @@ import { toast } from "@/lib/toast";
 
 /**
  * A button fetching a file of the backend (see downloadFile): disabled while it loads, a refusal — an
- * expired result file — shown as a toast.
+ * expired result file — shown as a toast. Shared by the script result and the downloads of other features.
  */
-export function ScriptDownloadButton({
+export function DownloadButton({
   download,
   hint,
   children,

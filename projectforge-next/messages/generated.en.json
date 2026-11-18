@@ -4923,7 +4923,6 @@
           "devices": "Devices",
           "inventory": "Systems",
           "my": "My CVE-Pilot",
-          "prototype": "Demo",
           "vulnerabilities": "Vulnerabilities"
         },
         "saved": "Saved."
@@ -5109,7 +5108,6 @@
         "vulnerability": "1 vulnerability",
         "withoutFix": "{arg0} without fix"
       },
-      "persona": "Act as",
       "possiblyAffected": {
         "info": "The inventory has no exact version of this technology, so the match is uncertain.",
         "label": "possibly"
@@ -5136,13 +5134,6 @@
         "exposed": "critical instance on the internet +1",
         "instances": "affected instances +1",
         "kev": "KEV +1"
-      },
-      "prototype": {
-        "banner": "Demo with fictitious test data; changes are kept in this browser only.",
-        "reset": {
-          "info": "Restores the test data as delivered; all changes are lost.",
-          "label": "Reset test data"
-        }
       },
       "qa": {
         "audience": {
@@ -5302,11 +5293,6 @@
         "OSV": "OSV"
       },
       "start": {
-        "demo": {
-          "hint": "All planned functions of the CVE-Pilot as a clickable prototype with fictitious test data.",
-          "link": "Open demo",
-          "title": "Demo"
-        },
         "vulnerabilities": {
           "hint": "The vulnerabilities imported from the NVD, from the configured CVSS score on. A click on the CVE opens it at the NVD."
         }

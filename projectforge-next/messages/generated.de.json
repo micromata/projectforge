@@ -4923,7 +4923,6 @@
           "devices": "Geräte",
           "inventory": "Systeme",
           "my": "Mein CVE-Pilot",
-          "prototype": "Demo",
           "vulnerabilities": "Schwachstellen"
         },
         "saved": "Gespeichert."
@@ -5109,7 +5108,6 @@
         "vulnerability": "1 Schwachstelle",
         "withoutFix": "{arg0} ohne Fix"
       },
-      "persona": "Ansicht als",
       "possiblyAffected": {
         "info": "Für diese Technologie ist keine genaue Version im Inventar, der Treffer ist daher unsicher.",
         "label": "möglicherweise"
@@ -5136,13 +5134,6 @@
         "exposed": "kritische Instanz im Internet +1",
         "instances": "betroffene Instanzen +1",
         "kev": "KEV +1"
-      },
-      "prototype": {
-        "banner": "Demo mit fiktiven Testdaten; Änderungen bleiben nur in diesem Browser.",
-        "reset": {
-          "info": "Stellt die Testdaten im Auslieferungszustand wieder her; alle Änderungen gehen verloren.",
-          "label": "Testdaten zurücksetzen"
-        }
       },
       "qa": {
         "audience": {
@@ -5302,11 +5293,6 @@
         "OSV": "OSV"
       },
       "start": {
-        "demo": {
-          "hint": "Alle geplanten Funktionen des CVE-Pilots als klickbarer Prototyp mit fiktiven Testdaten.",
-          "link": "Demo öffnen",
-          "title": "Demo"
-        },
         "vulnerabilities": {
           "hint": "Die aus der NVD importierten Schwachstellen ab dem eingestellten CVSS-Wert. Ein Klick auf die CVE öffnet sie bei der NVD."
         }
