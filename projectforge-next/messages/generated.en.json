@@ -4255,6 +4255,8 @@
         "title": "Feedback {arg0}"
       },
       "case": {
+        "additionalCves": "Further CVEs",
+        "additionalCvesHint": "CVEs that belong together and need the same fix or workaround; one id per line. A CVE belongs to one case only.",
         "ai": {
           "affected": "Affected",
           "answer": {
@@ -4312,7 +4314,9 @@
         "error": {
           "codeExists": "The id {arg0} exists already.",
           "conflict": "This case was changed in the meantime (at {arg0}). Please reload it and repeat your change.",
-          "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345 (or the id of an advisory without CVE, e.g. GHSA-XXXX-XXXX-XXXX)."
+          "cveId": "A CVE needs its CVE id, e.g. CVE-2026-12345 (or the id of an advisory without CVE, e.g. GHSA-XXXX-XXXX-XXXX).",
+          "cveInOtherCase": "{arg0} belongs to the case {arg1} already.",
+          "tooManyCves": "A case has {arg0} further CVEs at most."
         },
         "export": {
           "button": "Download as JSON"
