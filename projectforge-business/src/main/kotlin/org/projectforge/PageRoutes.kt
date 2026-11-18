@@ -24,6 +24,8 @@
 
 package org.projectforge
 
+import java.util.concurrent.ConcurrentHashMap
+
 /**
  * Single source of truth for the pages of the web frontend (projectforge-next, served under
  * [Constants.NEXT_APP_PATH]): which route a REST category has, where its edit and add pages are, and which old
@@ -104,6 +106,36 @@ object PageRoutes {
         val editRoute: String = editRoute ?: "$route/edit/$ID_PLACEHOLDER"
         val newEntryRoute: String = newEntryRoute ?: "$route/edit"
     }
+
+    /** The pages a plugin brings, registered when the plugin is initialized (see [AbstractPlugin.nextPages]). */
+    private val pluginPages = ConcurrentHashMap<String, Page>()
+
+    /** Former route -> current route of renamed sections of pages (without `next/`), see [renamedNextSections]. */
+    private val pluginRenamedSections = ConcurrentHashMap<String, String>()
+
+    /** The pages of the core and of the initialized plugins. */
+    private val pages: Map<String, Page>
+        get() = if (pluginPages.isEmpty()) PAGES else PAGES + pluginPages
+
+    /**
+     * Joins the pages of a plugin: its REST categories are migrated like the ones of the core, from now on.
+     * @param renamedSections Former route -> current route of sections of its pages that were renamed, whose old links
+     *   (notifications, chats, bookmarks) are redirected by the OrphanedLinkFilter.
+     */
+    fun registerPlugin(pages: Map<String, Page>, renamedSections: Map<String, String> = emptyMap()) {
+        pluginPages.putAll(pages)
+        pluginRenamedSections.putAll(renamedSections)
+    }
+
+    /** The counterpart of [registerPlugin], for tests. */
+    fun unregisterPlugin(pages: Map<String, Page>, renamedSections: Map<String, String> = emptyMap()) {
+        pages.keys.forEach { pluginPages.remove(it) }
+        renamedSections.keys.forEach { pluginRenamedSections.remove(it) }
+    }
+
+    /** Former route -> current route of the renamed sections of the pages of the plugins. */
+    val renamedNextSections: Map<String, String>
+        get() = pluginRenamedSections
 
     /**
      * REST category -> page in projectforge-next.
@@ -534,13 +566,13 @@ object PageRoutes {
      * of these has a page there.
      */
     val categories: Set<String>
-        get() = PAGES.keys
+        get() = pages.keys
 
     /**
      * @return true, if the page of the given REST category is served by projectforge-next.
      */
     fun isMigrated(category: String): Boolean {
-        return PAGES.containsKey(category)
+        return pages.containsKey(category)
     }
 
     /**
@@ -560,7 +592,7 @@ object PageRoutes {
      * @return The page of the given REST category in projectforge-next, or null, if there is none.
      */
     fun page(category: String): Page? {
-        return PAGES[category]
+        return pages[category]
     }
 
     /**
@@ -568,7 +600,7 @@ object PageRoutes {
      * or `outgoingInvoice` for the route `invoice`. Empty, if no page has this route.
      */
     fun categoriesOfRoute(route: String): Set<String> {
-        return PAGES.filterValues { it.route == route }.keys
+        return pages.filterValues { it.route == route }.keys
     }
 
     /**
@@ -636,13 +668,13 @@ object PageRoutes {
     )
 
     /**
-     * One [OrphanedLink] per page with a [Page.legacyApp]. Derived from [PAGES], so a page joins the moment it
+     * One [OrphanedLink] per page with a [Page.legacyApp]. Derived from [pages], so a page joins the moment it
      * declares one - nothing to maintain here. A category is redirected in its own legacy app only: a page from
      * Wicket orphans `/wa/...` links, one from React orphans `/react/...` links - that is where its old links pointed.
      */
     @JvmStatic
     fun orphanedLinks(): List<OrphanedLink> {
-        return PAGES.entries.mapNotNull { (category, page) ->
+        return pages.entries.mapNotNull { (category, page) ->
             val app = page.legacyApp ?: return@mapNotNull null
             val editRoute = page.legacyEditRoute ?: app.editRoute(category)
             OrphanedLink(

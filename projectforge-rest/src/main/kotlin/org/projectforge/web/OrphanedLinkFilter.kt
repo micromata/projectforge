@@ -158,7 +158,7 @@ class OrphanedLinkFilter : Filter {
         response: ServletResponse,
         uri: String,
     ): Boolean {
-        for ((oldRoute, newRoute) in RENAMED_NEXT_SECTIONS) {
+        for ((oldRoute, newRoute) in RENAMED_NEXT_SECTIONS + PageRoutes.renamedNextSections) {
             val path = "/${Constants.NEXT_APP_PATH}$oldRoute"
             val rest = when {
                 uri.endsWith(path) -> ""

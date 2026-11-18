@@ -123,6 +123,21 @@ class OrphanedLinkFilterTest {
         Assertions.assertNull(redirectOf("/rs/cveradar/my"))
     }
 
+    /** A plugin names its own renamed sections (AbstractPlugin.renamedNextSections), the filter needs no knowledge of it. */
+    @Test
+    fun `renamed sections of a plugin are redirected`() {
+        val sections = mapOf("oldexample" to "plugin/example")
+        Assertions.assertNull(redirectOf("/next/oldexample/items/5"))
+        PageRoutes.registerPlugin(emptyMap(), sections)
+        try {
+            Assertions.assertEquals("/next/plugin/example/items/5", redirectOf("/next/oldexample/items/5/"))
+            Assertions.assertEquals("/next/plugin/example?tab=x", redirectOf("/next/oldexample", mapOf("tab" to "x")))
+        } finally {
+            PageRoutes.unregisterPlugin(emptyMap(), sections)
+        }
+        Assertions.assertNull(redirectOf("/next/oldexample/items/5"))
+    }
+
     /** The old Wicket calendars, the former page after login, still lead to the next calendar. */
     @Test
     fun `the old wicket calendar is redirected to next`() {

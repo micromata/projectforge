@@ -29,6 +29,13 @@ CVE-Pilot, its pages still live in this package until they have moved (see the p
    same providers, QueryClient and locale as the app. What is on the bridge is the contract: change it like a public api and
    raise `PLUGIN_SDK_VERSION` (`lib/plugin-runtime/manifest.ts`, `packages/plugin-sdk`) for a breaking change.
 
+## Pages and old links of a plugin
+
+A plugin that migrates REST categories to next pages declares them itself, not the core: `AbstractPlugin.nextPages` (category ->
+`PageRoutes.Page`, the routes of its list/edit/new pages, e.g. below `plugin/<id>`) and `renamedNextSections` (former route -> current
+route, whose sub pages follow). They join `PageRoutes` when the plugin is initialized, i.e. only if it is activated; menu entries,
+links of notifications and the redirects of `OrphanedLinkFilter` then work as for a page of the core.
+
 ## Building a plugin
 
 See `packages/plugin-vite/README.md` (build, `checkBundle`) and `packages/plugin-sdk` (types). The plugin repository takes both
@@ -49,7 +56,8 @@ its own (Tailwind does not see plugin sources, use the components of the app whe
   (`packages/plugin-vite`), not from the bridge: another version there can export a name the app lacks (`undefined` at runtime, no
   build error). To do: check the names against `globalThis.__HOST_PLUGIN_RUNTIME__` when the plugin is activated, and pin the list of
   bridge exports in a test.
-- Pages, menu entries and redirects of old urls are not yet derived from the manifest (`PageRoutes`, `OrphanedLinkFilter`).
+- The core still lists the pages and renamed sections of the CVE-Pilot (`PageRoutes`, `OrphanedLinkFilter`, `ExternalPlugins`); they go when the
+  plugin declares them itself (`AbstractPlugin.nextPages`, `renamedNextSections`, below) and the pages have moved.
 - `HostPluginRuntime` is not yet typed for plugins (`packages/plugin-sdk` has the page contract only); the typed pieces come with the
   first pages that need them.
 - Plugin css is untested; Tailwind does not see plugin sources.
