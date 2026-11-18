@@ -244,6 +244,8 @@ class FeaturePathIndex {
             "menu",
             "next2FA",
             "notification",
+            // The frontends of the activated plugins (the app loads them at runtime), see PluginFrontendRest.
+            "pluginFrontend",
             // Push settings of the user ("My account" → Apps, settings of the mobile app).
             "pushSettings",
             "timeZones",
