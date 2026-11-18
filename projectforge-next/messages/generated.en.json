@@ -2239,19 +2239,19 @@
     "konto": {
       "_": "Account",
       "bezeichnung": "Identifier",
-      "city": "City",
-      "contactDepartment": "Department",
+      "city": "City (BT-52)",
+      "contactDepartment": "Department (BT-56)",
       "contactEmail": "Contact person email of the customer (BT-58)",
       "contactPerson": {
-        "_": "Contact person",
+        "_": "Contact person (BT-56)",
         "tooltip": "Contact person and department are sent together as one text, the contact point of the buyer (BT-56), e.g. \"Jane Doe, Purchasing\"."
       },
-      "costCenter": "Cost center",
-      "country": "Country",
+      "costCenter": "Cost center (BT-19)",
+      "country": "Country (BT-55)",
       "eInvoice": "E-Invoice",
       "eInvoiceEmail": "Invoice recipient email of the customer (BT-49)",
       "leitwegId": {
-        "_": "Leitweg-ID",
+        "_": "Leitweg-ID (BT-10)",
         "tooltip": "Required for e-invoices to public sector recipients (e.g. 04011000-1234512345-12)"
       },
       "nummer": "Account number",
@@ -2260,13 +2260,13 @@
         "active": "active",
         "nonactive": "non-active"
       },
-      "street": "Street",
+      "street": "Street (BT-50)",
       "title": {
         "add": "New account",
         "list": "List of accounts"
       },
-      "vatId": "VAT ID",
-      "zipCode": "Zip code"
+      "vatId": "VAT ID (BT-48)",
+      "zipCode": "Zip code (BT-53)"
     },
     "kost": {
       "error": {

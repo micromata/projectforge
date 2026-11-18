@@ -2239,19 +2239,19 @@
     "konto": {
       "_": "Konto",
       "bezeichnung": "Bezeichnung",
-      "city": "Ort",
-      "contactDepartment": "Abteilung",
+      "city": "Ort (BT-52)",
+      "contactDepartment": "Abteilung (BT-56)",
       "contactEmail": "E-Mail-Adresse Ansprechpartner Kunde (BT-58)",
       "contactPerson": {
-        "_": "Ansprechpartner",
+        "_": "Ansprechpartner (BT-56)",
         "tooltip": "Ansprechpartner und Abteilung werden zusammen als ein Text gesendet, die Kontaktstelle des Käufers (BT-56), z.B. \"Erika Mustermann, Einkauf\"."
       },
-      "costCenter": "Kostenstelle",
-      "country": "Land",
+      "costCenter": "Kostenstelle (BT-19)",
+      "country": "Land (BT-55)",
       "eInvoice": "E-Rechnung",
       "eInvoiceEmail": "E-Mail-Adresse Rechnungseingang Kunde (BT-49)",
       "leitwegId": {
-        "_": "Leitweg-ID",
+        "_": "Leitweg-ID (BT-10)",
         "tooltip": "Pflicht für E-Rechnungen an öffentliche Auftraggeber (z.B. 04011000-1234512345-12)"
       },
       "nummer": "Kontonummer",
@@ -2260,13 +2260,13 @@
         "active": "aktiv",
         "nonactive": "nicht aktiv"
       },
-      "street": "Straße",
+      "street": "Straße (BT-50)",
       "title": {
         "add": "Neues Konto",
         "list": "Liste der Konten"
       },
-      "vatId": "USt-IdNr.",
-      "zipCode": "PLZ"
+      "vatId": "USt-IdNr. (BT-48)",
+      "zipCode": "PLZ (BT-53)"
     },
     "kost": {
       "error": {

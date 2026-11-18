@@ -37,3 +37,9 @@ Nutzer außerhalb von Finance sollen sich nicht mit Buchungskonten beschäftigen
 
 - BT-13 am Auftrag ist ein eigenes Feld; die Kundenreferenz (`referenz`) bleibt unverändert (sie dient auch für Jira-Links).
 - Nach dem Anlegen entscheidet Finance in der Rechnungsmaske, ob die Rechnung „geplant“ oder direkt „gestellt“ wird.
+
+## Offen zu Schritt 2
+
+BT-58 steht nun unter BT-56 und die Felder des Kontos nennen ihre BT-Nummer. Das Konto trägt damit alle Felder der
+Rechnung, die aus ihm vorbelegt werden. Welche weiteren „gängigen“ BT-Felder Finance am Konto pflegen will (z. B.
+Zahlungsbedingungen, Käufer-Referenz), ist offen und kommt mit den Fragen an Finance.
