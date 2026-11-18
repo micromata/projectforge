@@ -6,7 +6,7 @@ import {
   type ScriptDownload,
   type ScriptExecuteEndpoint,
 } from "@/lib/rs/script";
-import { ScriptDownloadButton } from "./script-download-button";
+import { DownloadButton } from "@/components/shared/download-button";
 
 /**
  * The file the execution produced — or the user's last execution, which the backend keeps for a few
@@ -27,12 +27,12 @@ export function ScriptDownloadBanner({
       <h2 className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
         {t("scripting.download.filename._")}
       </h2>
-      <ScriptDownloadButton
+      <DownloadButton
         download={() => downloadScriptResult(endpoint)}
         hint={t("scripting.download.filename.info")}
       >
         {download.filenameAndSize}
-      </ScriptDownloadButton>
+      </DownloadButton>
       {download.availableUntil && (
         <span className="text-xs text-muted-foreground">
           {t("scripting.download.filename.additional", {
