@@ -164,7 +164,8 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   open var periodOfPerformanceEnd: LocalDate? = null
 
   /** The customer's order number of this position, where it differs from the one of the order (BT-13). */
-  @PropertyInfo(i18nKey = "fibu.rechnung.customerOrderNumber")
+  @PropertyInfo(i18nKey = "fibu.auftrag.customerOrderNumber")
+  @FullTextField
   @get:Column(name = "customer_order_number", length = 255)
   open var customerOrderNumber: String? = null
 

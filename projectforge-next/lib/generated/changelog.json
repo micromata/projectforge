@@ -6,6 +6,9 @@
     "date" : "2026-11-18",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Order book: an order carries the data of its invoices, so finance no longer has to look them up: customer order number (BT-13, also per position), contract number (BT-12), cost center (BT-19, also per position) and the customer's contact person with department and e-mail (BT-56, BT-58). The contact of the order takes precedence over the one of the account; \"Add from account\" fills in the empty contact fields. A payment schedule entry has its own service period (BT-73, BT-74)." ]
+    }, {
       "type" : "improved",
       "items" : [ "Accounts and outgoing invoices: the e-mail of the contact person (BT-58) sits directly below the contact person (BT-56). The fields of the e-invoice block of an account name their BT number.", "Accounts: the list can be narrowed to debitors, creditors or general ledger accounts. The kinds follow the number ranges of the accounting configuration (debitors and creditors); all other accounts are general ledger accounts." ]
     }, {

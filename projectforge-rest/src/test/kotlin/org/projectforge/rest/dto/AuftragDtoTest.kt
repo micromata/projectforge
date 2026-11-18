@@ -265,6 +265,22 @@ class AuftragDtoTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a clone drops the customer's order numbers and keeps the rest of the invoice data`() {
+        val dto = clonedOrder()
+
+        // The order number belongs to the original order, as the customer reference does.
+        assertNull(dto.customerOrderNumber)
+        assertTrue(dto.positionen!!.all { it.customerOrderNumber == null })
+        // Contract, cost center and contact are the customer's, not the original's.
+        assertEquals("C-2026-1", dto.contractNumber)
+        assertEquals("KST-4711", dto.customerCostCenter)
+        assertEquals("Erika Mustermann", dto.customerContactPerson)
+        assertEquals("Einkauf", dto.customerContactDepartment)
+        assertEquals("einkauf@example.com", dto.customerContactEmail)
+        assertTrue(dto.positionen!!.all { it.customerCostCenter == "KST-POS" })
+    }
+
+    @Test
     fun `a clone carries every live position, none with an id and none invoiced`() {
         val dto = clonedOrder()
 
@@ -329,6 +345,16 @@ class AuftragDtoTest : AbstractTestBase() {
         order.entscheidungsDatum = LocalDate.of(2026, 2, 10)
         order.beauftragungsDatum = LocalDate.of(2026, 2, 20)
         order.referenz = "REF-4711"
+        order.customerOrderNumber = "PO-4711"
+        order.contractNumber = "C-2026-1"
+        order.customerCostCenter = "KST-4711"
+        order.customerContactPerson = "Erika Mustermann"
+        order.customerContactDepartment = "Einkauf"
+        order.customerContactEmail = "einkauf@example.com"
+        order.positionen?.forEach {
+            it.customerOrderNumber = "PO-POS"
+            it.customerCostCenter = "KST-POS"
+        }
         order.positionen?.forEach { it.vollstaendigFakturiert = true }
         order.paymentSchedules?.forEach {
             it.reached = true

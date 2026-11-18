@@ -65,19 +65,19 @@ export const AUFTRAG_METADATA = {
     },
     customerContactDepartment: {
       dataType: "STRING",
-      i18nKey: "fibu.konto.contactDepartment",
+      i18nKey: "fibu.auftrag.customerContactDepartment",
       required: false,
       maxLength: 255,
     },
     customerContactEmail: {
       dataType: "STRING",
-      i18nKey: "fibu.konto.contactEmail",
+      i18nKey: "fibu.auftrag.customerContactEmail",
       required: false,
       maxLength: 255,
     },
     customerContactPerson: {
       dataType: "STRING",
-      i18nKey: "fibu.konto.contactPerson",
+      i18nKey: "fibu.auftrag.customerContactPerson",
       required: false,
       maxLength: 255,
     },
@@ -89,7 +89,7 @@ export const AUFTRAG_METADATA = {
     },
     customerOrderNumber: {
       dataType: "STRING",
-      i18nKey: "fibu.rechnung.customerOrderNumber",
+      i18nKey: "fibu.auftrag.customerOrderNumber",
       required: false,
       maxLength: 255,
     },

@@ -50,7 +50,7 @@ export const AUFTRAGS_POSITION_METADATA = {
     },
     customerOrderNumber: {
       dataType: "STRING",
-      i18nKey: "fibu.rechnung.customerOrderNumber",
+      i18nKey: "fibu.auftrag.customerOrderNumber",
       required: false,
       maxLength: 255,
     },

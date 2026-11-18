@@ -1661,6 +1661,10 @@
         "fromAccountHint": "Fills in the empty contact fields (BT-56, BT-58) from the account of the customer. What is already filled in is kept.",
         "fromAccountNothing": "Nothing to add: the account has no values for the empty fields."
       },
+      "customerContactDepartment": "Customer's department (BT-56)",
+      "customerContactEmail": "Customer's contact person email (BT-58)",
+      "customerContactPerson": "Customer's contact person (BT-56)",
+      "customerOrderNumber": "Customer's order number (BT-13)",
       "datum": {
         "_": "Date of order",
         "short": "Date"

@@ -263,7 +263,9 @@ export interface ForecastChartData {
 }
 
 export type ForecastKind =
-  "COMMISSIONED_FIXED" | "COMMISSIONED_TIME_AND_MATERIALS" | "WEIGHTED";
+  | "COMMISSIONED_FIXED"
+  | "COMMISSIONED_TIME_AND_MATERIALS"
+  | "WEIGHTED";
 
 /** The stored parameters of the charts tab, or the backend's defaults (begin of the year, no plan). */
 export function fetchForecastChartSettings(
@@ -522,7 +524,10 @@ export function fetchContributionMargin(
 
 /** What one bubble of the contribution margin bubble chart stands for (`ContributionMarginBubbleGrouping`). */
 export type ContributionMarginBubbleGrouping =
-  "PROJECT" | "PROJECT_GROUP" | "CUSTOMER" | "CUSTOMER_GROUP";
+  | "PROJECT"
+  | "PROJECT_GROUP"
+  | "CUSTOMER"
+  | "CUSTOMER_GROUP";
 
 /** The grouping and the switch of the bubble chart, remembered per user. */
 export interface ContributionMarginBubbleSettings {
@@ -681,7 +686,11 @@ export function fetchContributionMarginDetails(
 export type ContributionMarginLevel = "ORDER" | "TASK";
 
 export type ContributionMarginRowType =
-  "PROJECT" | "ORDER" | "ORDER_POSITION" | "TASK" | "RESIDUAL";
+  | "PROJECT"
+  | "ORDER"
+  | "ORDER_POSITION"
+  | "TASK"
+  | "RESIDUAL";
 
 /** The monthly values of a row of the breakdown, as in ContributionMarginData, and its sums. */
 export interface ContributionMarginSeries {

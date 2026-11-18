@@ -215,7 +215,7 @@ class Auftrag(
     }
 
     /**
-     * The lean row of the hand built next list: only the 19 columns of `order.page.tsx`, everything else
+     * The lean row of the hand built next list: only the columns of `order.page.tsx`, everything else
      * left null so `JsonInclude.Include.NON_NULL` keeps it off the wire.
      *
      * Not a [copyFrom] with a trimmed [Auftrag]: the legacy AG-Grid columns bind to the very fields this
@@ -230,6 +230,7 @@ class Auftrag(
      *   users by name only (with their inactive flags).
      * - [customer] and [project] as objects (~257 B/row): only their `displayName` is a column, so the row
      *   carries a [Customer]/[Project] holding that name and nothing else.
+     * - The two optional columns [customerOrderNumber] and [contractNumber] do travel (short texts, mostly empty).
      * - `bemerkung`, `statusBeschreibung`, `bindungsFrist`, `beauftragungs*`, `kundeText`, `forecastType`,
      *   `angebotsDatum`: read by no column of the list.
      *
@@ -256,6 +257,8 @@ class Auftrag(
         nummer = src.nummer
         titel = src.titel
         referenz = src.referenz
+        customerOrderNumber = src.customerOrderNumber
+        contractNumber = src.contractNumber
         status = src.status
         // The display name only — a Customer/Project carrying its id and name, not the whole entity. The
         // free text customer is the fallback of an order naming a customer that is not in the list, as

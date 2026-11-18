@@ -6,6 +6,9 @@
     "date" : "2026-11-18",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Auftragsbuch: Ein Auftrag führt die Daten seiner Rechnungen, die Finance so nicht mehr suchen muss: Bestellnummer des Kunden (BT-13, auch je Position), Vertragsnummer (BT-12), Kostenstelle (BT-19, auch je Position) sowie Ansprechpartner des Kunden mit Abteilung und E-Mail (BT-56, BT-58). Der Ansprechpartner des Auftrags hat Vorrang vor dem des Kontos; „Aus Konto ergänzen“ füllt die leeren Kontaktfelder. Eine Zahlplanposition hat einen eigenen Leistungszeitraum (BT-73, BT-74)." ]
+    }, {
       "type" : "improved",
       "items" : [ "Buchungskonten und Ausgangsrechnungen: Die E-Mail-Adresse des Ansprechpartners (BT-58) steht direkt unter dem Ansprechpartner (BT-56). Die Felder des E-Rechnungs-Blocks eines Kontos nennen ihre BT-Nummer.", "Buchungskonten: Die Liste lässt sich auf Debitoren, Kreditoren oder Sachkonten einschränken. Die Arten richten sich nach den Nummernkreisen der Buchhaltungskonfiguration (Debitoren und Kreditoren); alle übrigen Konten sind Sachkonten." ]
     }, {

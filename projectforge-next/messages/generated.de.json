@@ -1661,6 +1661,10 @@
         "fromAccountHint": "Ergänzt die leeren Kontaktfelder (BT-56, BT-58) aus dem Konto des Kunden. Bereits Ausgefülltes bleibt erhalten.",
         "fromAccountNothing": "Nichts zu ergänzen: Das Konto hat für die leeren Felder keine Werte."
       },
+      "customerContactDepartment": "Abteilung Kunde (BT-56)",
+      "customerContactEmail": "E-Mail-Adresse Ansprechpartner Kunde (BT-58)",
+      "customerContactPerson": "Ansprechpartner Kunde (BT-56)",
+      "customerOrderNumber": "Bestellnummer Kunde (BT-13)",
       "datum": {
         "_": "Angebotsdatum",
         "short": "Datum"

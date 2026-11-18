@@ -1471,7 +1471,10 @@ open class OrderEntityRest : // open: proxied by Spring.
      * `internal` and in the companion object: it needs nothing of the Spring context, so it is testable without one.
      */
     internal fun customerContactFromAccount(dto: Auftrag, account: KontoDO?): CustomerContact {
-      fun fill(current: String?, value: String?) = if (current.isNullOrBlank()) value?.takeIf { it.isNotBlank() } ?: current else current
+      fun fill(current: String?, value: String?): String? {
+        if (!current.isNullOrBlank()) return current
+        return value?.takeIf { it.isNotBlank() } ?: current
+      }
       return CustomerContact(
         customerContactPerson = fill(dto.customerContactPerson, account?.contactPerson),
         customerContactDepartment = fill(dto.customerContactDepartment, account?.contactDepartment),
@@ -1497,7 +1500,8 @@ open class OrderEntityRest : // open: proxied by Spring.
      *   first save ([OrderEntityRest.transformForDB] -> `AuftragDao.getNextNumber`).
      * - A fresh draft: [AuftragsStatus.IN_ERSTELLUNG] and dated today (date of entry and of offer), with
      *   the date of decision and the date of assignment cleared — those belong to the original's history.
-     * - No customer reference ([AuftragDO.referenz]): it belongs to the original order.
+     * - No customer reference ([AuftragDO.referenz]) and no customer order number ([AuftragDO.customerOrderNumber], also
+     *   of the positions): both belong to the original order. Contract number, cost center and contact stay.
      * - No attachments: the files live in the file store under the old order's id and are not copied.
      * - Every position and payment schedule loses its id, so the save writes new rows and
      *   [assignNumbersToNewRows] numbers them from 1. Positions the user marked deleted are left out
@@ -1528,11 +1532,13 @@ open class OrderEntityRest : // open: proxied by Spring.
       dto.entscheidungsDatum = null
       dto.beauftragungsDatum = null
       dto.referenz = null
+      dto.customerOrderNumber = null
       dto.attachments = null
       dto.attachmentsCounter = null
       dto.attachmentsSize = null
       dto.positionen = dto.positionen?.filter { !it.deleted }?.onEach { position ->
         position.id = null
+        position.customerOrderNumber = null
         position.vollstaendigFakturiert = false
         position.invoicedSum = null
         position.notInvoicedSum = null

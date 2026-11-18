@@ -1,5 +1,5 @@
 {
-  "type": "new",
+  "type": "added",
   "en": "Order book: an order carries the data of its invoices, so finance no longer has to look them up: customer order number (BT-13, also per position), contract number (BT-12), cost center (BT-19, also per position) and the customer's contact person with department and e-mail (BT-56, BT-58). The contact of the order takes precedence over the one of the account; \"Add from account\" fills in the empty contact fields. A payment schedule entry has its own service period (BT-73, BT-74).",
   "de": "Auftragsbuch: Ein Auftrag führt die Daten seiner Rechnungen, die Finance so nicht mehr suchen muss: Bestellnummer des Kunden (BT-13, auch je Position), Vertragsnummer (BT-12), Kostenstelle (BT-19, auch je Position) sowie Ansprechpartner des Kunden mit Abteilung und E-Mail (BT-56, BT-58). Der Ansprechpartner des Auftrags hat Vorrang vor dem des Kontos; „Aus Konto ergänzen“ füllt die leeren Kontaktfelder. Eine Zahlplanposition hat einen eigenen Leistungszeitraum (BT-73, BT-74)."
 }

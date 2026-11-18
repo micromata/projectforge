@@ -108,7 +108,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     open var referenz: String? = null
 
     /** The customer's order number, taken over into the invoices of the order (BT-13). */
-    @PropertyInfo(i18nKey = "fibu.rechnung.customerOrderNumber")
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerOrderNumber")
     @FullTextField
     @get:Column(name = "customer_order_number", length = 255)
     open var customerOrderNumber: String? = null
@@ -128,17 +128,17 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * The customer's contact person of the order, not to be confused with the internal [contactPerson]. Goes
      * together with the department as the buyer contact point (BT-56) and takes precedence over the one of the account.
      */
-    @PropertyInfo(i18nKey = "fibu.konto.contactPerson")
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerContactPerson")
     @get:Column(name = "customer_contact_person", length = 255)
     open var customerContactPerson: String? = null
 
     /** Department of the customer's contact person, part of the buyer contact point (BT-56). */
-    @PropertyInfo(i18nKey = "fibu.konto.contactDepartment")
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerContactDepartment")
     @get:Column(name = "customer_contact_department", length = 255)
     open var customerContactDepartment: String? = null
 
     /** Email address of the customer's contact person (BT-58). */
-    @PropertyInfo(i18nKey = "fibu.konto.contactEmail")
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerContactEmail")
     @get:Column(name = "customer_contact_email", length = 255)
     open var customerContactEmail: String? = null
 

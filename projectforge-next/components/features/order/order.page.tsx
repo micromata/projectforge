@@ -229,6 +229,10 @@ export const ORDER_PAGE = definePage<
         />
       ),
     },
+    // The customer's order and contract number (BT-13, BT-12): what finance looks an order up by, offered
+    // but not shown at first — most readers of the order book never ask for them.
+    { name: "customerOrderNumber", size: 140, hiddenByDefault: true },
+    { name: "contractNumber", size: 140, hiddenByDefault: true },
     attachmentsColumn<OrderListRow>(),
     // The four managers in one column, as the legacy list shows them ("PM/HOB/KAM/CP").
     {

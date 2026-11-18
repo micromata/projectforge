@@ -207,6 +207,9 @@ export interface OrderListRow extends RowWithEditors {
   pos?: string | null;
   personDays?: number | null;
   referenz?: string | null;
+  /** BT-13 and BT-12, optional columns of the list. */
+  customerOrderNumber?: string | null;
+  contractNumber?: string | null;
   /**
    * The contact person and the additional contacts in one column (`assignedPersons`), as references, struck
    * through when no longer active (see RefList).
