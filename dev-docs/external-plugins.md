@@ -7,7 +7,11 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
 
 ## How it works
 
-- **Register:** `ExternalPlugins` (`projectforge-business/.../plugins/core/ExternalPlugins.kt`) knows each such plugin:
+- **Declared by the plugin, not known to the core:** its next pages by REST category (`AbstractPlugin.nextPages`) and the former names of
+  its section (`renamedNextSections`) join `PageRoutes` when the plugin is initialized, the redirects of old links in
+  `OrphanedLinkFilter` follow; its settings are documented in its jar (below); its frontend is loaded at runtime
+  ([plugin-frontend.md](next/plugin-frontend.md)).
+- **Still registered here:** `ExternalPlugins` (`projectforge-business/.../plugins/core/ExternalPlugins.kt`) knows each such plugin:
   id, next routes, prefix of its generated field metadata, package of its entities.
 - **Binary into the build:** `-Ppf.extraPlugins=<jar or directory>[,...]` (or the environment variable
   `PF_EXTRA_PLUGINS`) adds the jars to the runtime classpath of `projectforge-application`: boot jar
@@ -24,8 +28,10 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   - `GenerateNextFieldMetadataTest` keeps its `lib/metadata/<prefix>*.generated.ts`, no orphans.
 - **Texts** stay in this repository (resource bundle of the plugin module), so `gen` exports them to next as before.
 - **Integration settings** (timeouts, size limits) of the plugin: `IntegrationConfig.registerBuiltin`, called by the
-  plugin; the `projectforge.plugin.<id>.*` block stays documented in `application.properties` (read by
-  `PropertiesMetadata`, unknown keys would be flagged as obsolete).
+  plugin; the `projectforge.plugin.<id>.*` keys are documented by the plugin itself, in
+  `META-INF/projectforge/plugin-application.properties` of its jar (own `### Group`, same format as `application.properties`);
+  `PropertiesMetadata` appends the files of all plugins on the class path (unknown keys would be flagged as obsolete). Spring
+  doesn't read them: the defaults are those of the plugin's `@ConfigurationProperties` class.
 - **Flyway:** the plugin migrates with its own history table (`t_flyway_<id>_schema_version`), the scripts live in
   its repository; versioning as in CLAUDE.md.
 

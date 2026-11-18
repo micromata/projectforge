@@ -56,8 +56,9 @@ its own (Tailwind does not see plugin sources, use the components of the app whe
   (`packages/plugin-vite`), not from the bridge: another version there can export a name the app lacks (`undefined` at runtime, no
   build error). To do: check the names against `globalThis.__HOST_PLUGIN_RUNTIME__` when the plugin is activated, and pin the list of
   bridge exports in a test.
-- The core still lists the pages and renamed sections of the CVE-Pilot (`PageRoutes`, `OrphanedLinkFilter`, `ExternalPlugins`); they go when the
-  plugin declares them itself (`AbstractPlugin.nextPages`, `renamedNextSections`, below) and the pages have moved.
+- The core still knows the CVE-Pilot in `ExternalPlugins` (routes blocked while the plugin is missing, the prefix of its field metadata, `PluginAdminService.PLUGIN_CVE_RADAR_ID`),
+  in the texts module `plugins/org.projectforge.plugins.cveradar` (and `gen`, which exports them to the catalogs of the app) and in the pages `app/(authenticated)/{cvepilot,cvrcase}`;
+  all of it goes when the pages have moved into the plugin.
 - `HostPluginRuntime` is not yet typed for plugins (`packages/plugin-sdk` has the page contract only); the typed pieces come with the
   first pages that need them.
 - Plugin css is untested; Tailwind does not see plugin sources.
