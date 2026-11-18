@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Availability entries: the types are shown in the user's language. They are configured as codes now (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), the texts of existing entries are converted. Installations with their own list switch it to the codes; an own code gets its texts in CustomerI18nResources (`availability.types.code`), any other value is shown as entered.",
-  "de": "Verfügbarkeiten: Die Typen werden in der Sprache der Benutzer:innen angezeigt. Sie sind jetzt als Codes konfiguriert (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), die Texte bestehender Einträge werden umgestellt. Installationen mit eigener Liste stellen sie auf die Codes um; ein eigener Code bekommt seine Texte in CustomerI18nResources (`availability.types.code`), jeder andere Wert wird wie eingegeben angezeigt."
-}

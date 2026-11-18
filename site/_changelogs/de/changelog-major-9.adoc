@@ -1,13 +1,96 @@
 ---
 title: "ProjectForge 9"
-date: 2026-11-13
-sort_key: "2026-11-13 0060"
+date: 2026-11-17
+sort_key: "2026-11-17 0061"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-12.changelog-release]
+=== ProjectForge 9.2.12 veröffentlicht
+
+[.changelog-source]
+__2026-11-17, Tag https://github.com/micromata/projectforge/tree/9.2.12-RELEASE[9.2.12-RELEASE]__ +++{% include release-pills.html tag="9.2.12-RELEASE" docker="9.2.12" mini=true %}+++
+
+- **Anhänge**: Vorschau für PDFs, Bilder und Texte
+- **CVE-Pilot**: die CVE-Clinic ist umbenannt
+- **Merlin**: PDF-Export mit LibreOffice, Zuordnungstabelle
+- **Gemeinsame Kosten**: Stunden überlappender Zeitberichte
+- **Auftrags-Forecast**: Monatsdiagramm mit Balken
+- [changelog-app]##App## Version 1.2.0 im App Store
+
+.Überblick
+[%collapsible]
+====
+- **Anhänge:** PDFs, Bilder und Texte aller Einträge mit Anhängen lassen sich im Browser mit „Vorschau“ anzeigen, mit Blättern durch die Dateien der Liste, „In neuem Tab öffnen“ und Download.
+- **CVE-Pilot:** die CVE-Clinic heißt jetzt CVE-Pilot; alte Links auf ihre Seiten werden weitergeleitet, Plugin-Id, Einstellungen und Datenbanktabellen behalten ihre Namen.
+- **Merlin:** der PDF-Export von Vorlagen nutzt LibreOffice, wenn installiert (näher an Word, Serienbriefe brauchen nicht mehr Minuten pro Dokument); die Zuordnung einer abhängigen Variablen wird in einer Tabelle bearbeitet.
+- **Gemeinsame Kosten:** die Stunden von Zeitberichten, die andere überlappen, werden gezählt.
+- **Auftrags-Forecast:** das Monatsdiagramm zeigt die Vorjahre und den Plan als Balken neben dem Forecast; die Monatswerte der Auftragsstatistik zeigen den Forecast des aktuellen Jahres.
+- **Nummernkreise:** `+project-min+` legt die niedrigste lokale Projektnummer fest, die für ein neues Projekt vorgeschlagen wird.
+- **Properties-Editor:** Live-Parameter wirken beim Speichern ohne Neustart, Einträge indizierter Listen lassen sich hinzufügen und entfernen, und die Suche findet Parameter auch über ihren Wert.
+- **Verfügbarkeit:** die Typen erscheinen in der Sprache des Benutzers und werden als Codes konfiguriert; in der neuen Oberfläche gespeicherte Einträge werden sofort über den Namen ihres Benutzers gefunden.
+- [changelog-app]##App## Version 1.2.0 der App ist im App Store: beschrifteter Timer-Button, Menü-Symbol im Web-Seiten-Tab, gleich hohe Menüspalten auf dem Tablet, zweiter Faktor im Browser bestätigen (WebAuthn funktioniert) und klarerer Umgang mit abgelaufener SSO-Proxy-Anmeldung.
+- **Korrekturen:** der Excel-Export der Ausgangsrechnungen hat Leistungszeitraum und die übrigen Rechnungsfelder wieder, JFreeChart-Scripte laufen im Release-Jar wieder, und jede Meldung lässt sich schließen.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Geteilte Kosten: die Stunden von Zeitberichten, die sich mit anderen überlappen (nur bei geteilten Kosten möglich)**
+  * Zeitberichtsliste: in der Statistik, absolut und als Anteil an der Gesamtdauer.
+  * Monatsbericht: in der Statistik und als eigene Spalte je Kostenträger, mit Summe.
+- [changelog-app]##App## Version 1.2.0 der App ist im App Store verfügbar.
+- Anhänge (Aufträge, Verträge, Rechnungen und alle anderen Einträge mit Anhängen): PDFs, Bilder und Texte lassen sich über „Vorschau“ neben dem Dateinamen im Browser anzeigen, mit Blättern durch die Dateien der Liste, „In neuem Tab öffnen“ und Download. Andere Formate (und SVG- oder HTML-Dateien) werden weiterhin nur heruntergeladen; auf Smartphones und Tablets öffnet sich ein PDF in einem neuen Tab.
+- Nummernkreise: `+project-min+` legt die kleinste lokale Projektnummer fest, die für ein neues Projekt vorgeschlagen wird (z. B. 5.123.01 statt 5.123.00).
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Verfügbarkeiten: Die Typen werden in der Sprache der Benutzer:innen angezeigt. Sie sind jetzt als Codes konfiguriert (projectforge.availability.types: parentalLeave, sickness, absence, compensatoryTimeOff, mobileWork, workation), die Texte bestehender Einträge werden umgestellt. Installationen mit eigener Liste stellen sie auf die Codes um; ein eigener Code bekommt seine Texte in CustomerI18nResources (`+availability.types.code+`), jeder andere Wert wird wie eingegeben angezeigt.
+- [changelog-app]##App## Fragt eine Seite nach einem zweiten Faktor, lässt er sich im Browser bestätigen, wo auch WebAuthn (Sicherheitsschlüssel, Passkey) funktioniert; die Seite behält, was sie offen hatte.
+- [changelog-app]##App## Hauptmenü auf dem Tablet: Die Spalten sind etwa gleich hoch, die Kategorien in der Reihenfolge des Menüs; das Öffnen oder Schließen einer Kategorie verschiebt die anderen nicht mehr.
+- [changelog-app]##App## Hinter einem SSO-Proxy zeigt die App an, wenn die Anmeldung am Proxy abgelaufen ist und Badges und Benachrichtigungen nicht aktualisiert werden, und bietet an, sie zu erneuern.
+- **Auftragsstatistik**
+  * Die Monatswerte zeigen auch den Forecast des aktuellen Jahres als blaue Linie.
+- Hauptmenü: Die Kategorien bleiben über die Spalten in der Reihenfolge des Menüs, von oben nach unten und dann von links nach rechts gelesen.
+- **Merlin**
+  * Die Zuordnung einer abhängigen Variablen wird in einer Tabelle bearbeitet, ein Wert je Wert ihrer Mastervariablen; ein Wert darf ein Komma enthalten.
+  * Ein leerer Wert oder einer mit Semikolon oder Doppelpunkt verschiebt die folgenden Werte einer Zuordnung nicht mehr.
+- Properties-Editor: Einige Parameter werden beim Speichern ohne Neustart wirksam und sind mit „sofort wirksam“ markiert: die Logos und ihre Höhe, die Verfügbarkeitstypen, der Mailserver, die Erwartungen an Rechnungen und der Verkäufer der E-Rechnungen. Der Standardwert (oder das Beispiel) eines Parameters lässt sich in die Zwischenablage kopieren.
+- Jede Meldung (Toast) lässt sich wegklicken, auch die, die nach ein paar Sekunden von selbst verschwinden, und der Fortschritt eines laufenden Jobs – sie verdecken so keine Schaltflächen und Menüs mehr.
+- [changelog-app]##App## Zeitberichte: Der Button zum Starten des Timers ist beschriftet und fällt neben „Buchen“ auf.
+- Der Editor der projectforge.properties kann Einträge indizierter Listen (z. B. Bankkonten des E-Rechnungs-Verkäufers) hinzufügen und entfernen; leere Felder eines Eintrags werden nicht in die Datei geschrieben und die Einträge werden nacheinander geschrieben.
+- Die Suche im Editor der projectforge.properties findet Parameter auch über ihren Wert (in der Datei gesetzt, eingegeben, Vorgabe oder aktiv).
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Die CVE-Clinic heißt jetzt CVE-Pilot. Alte Links auf ihre Seiten werden umgeleitet; Plugin-ID, Einstellungen (`+projectforge.plugin.cveradar.*+`) und Datenbanktabellen behalten ihre Namen.
+- [changelog-app]##App## Tab Webseiten: Die Weltkugel zeigt die zuletzt besuchte Seite; dort wird der Button zum Menü-Icon, das das Menü öffnet, und die Weltkugel schließt es wieder.
+- Auftragsprognose: Das Monatsdiagramm zeigt Vorjahre und Plan als Balken neben der Prognose statt als Linien.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- [changelog-app]##App## Hinter einem SSO-Proxy öffnet eine Seite nicht mehr den Login des Proxys im Browser, nachdem die App lange im Hintergrund war.
+- **Merlin**
+  * Der PDF-Export von Vorlagen nutzt wie das Rechnungs-PDF LibreOffice, wenn es auf dem Server installiert ist: Das Layout ist näher an Word, und Serienbriefe mit PDF-Export brauchen nicht mehr Minuten pro Dokument.
+  * Ein Dokument eines Serienbriefs, das sich nicht in PDF umwandeln lässt, wird als Word-Dokument geliefert, statt den ganzen Lauf abzubrechen.
+- **Scripte**
+  * JFreeChart-Scripte laufen im Release-Jar wieder (die Bibliothek fehlte im Script-Classpath).
+  * Ein von einem Script erzeugtes Diagramm wird direkt im Reiter „Ausgabe“ angezeigt, das Demo-Script zeichnet ein modernes Donut-Diagramm.
+  * Das Demo-Script „Excel export of all user“ läuft wieder.
+- Excel-Export der Debitorenrechnungen: Leistungszeitraum und die übrigen Felder der Rechnung sind wieder enthalten (fehlten seit 9.0.0): Typ, Kundenreferenz, Besonderheiten, Zahlungsziel, Skonto, Währung, Rechnungsadresse, E-Rechnungsdaten, Id und letzte Änderung.
+- Verfügbarkeit: In der neuen Oberfläche gespeicherte Einträge wurden bis zum nächsten Neuaufbau des Suchindex nicht über den Namen ihrer Benutzer:innen gefunden. Die Schnellansicht „Wer ist verfügbar?“ verlinkt auf die Verfügbarkeitsliste.
+====
 
 [discrete#release-9-2-11.changelog-release]
 === ProjectForge 9.2.11 veröffentlicht

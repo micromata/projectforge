@@ -105,6 +105,16 @@ ensure_deps() {
   [[ -d "$APP/node_modules" ]] || (cd "$APP" && npm install)
 }
 
+# expo prebuild pins NODE_BINARY in ios/.xcode.env.local to the node of that moment, a versioned brew path
+# (Cellar/node/<version>) that a brew update deletes: Xcode's script phases then fail. Re-point it to the node of the
+# PATH (for brew the stable symlink) if the pinned one is gone.
+fix_xcode_node() {
+  local file="$APP/ios/.xcode.env.local" pinned
+  [[ -f "$file" ]] || return 0
+  pinned="$(sed -n 's/^export NODE_BINARY=//p' "$file")"
+  [[ -z "$pinned" || -x "$pinned" ]] || echo "export NODE_BINARY=$(command -v node)" > "$file"
+}
+
 confirm() {
   local answer
   read -r -p "$1 [y/N] " answer
@@ -353,6 +363,7 @@ cmd_run() {
     server="http://localhost:$PROXY_PORT"
   fi
   ensure_deps
+  fix_xcode_node
   cd "$APP"
   export EXPO_PUBLIC_PF_SERVER="$server"
   echo "Server preset in the login: $server, Metro on :$METRO_PORT"
@@ -464,6 +475,7 @@ case "$cmd" in
     ;;
   build-ios)
     ensure_deps
+    fix_xcode_node
     if [[ "${1:-}" == --release ]]; then
       APP_VARIANT=production exec npx expo run:ios --configuration Release --no-bundler "${@:2}"
     fi

@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Every message box (toast) can be closed, including the ones closing by themselves after a few seconds and the progress of a running job, so they no longer cover buttons and menus.",
-  "de": "Jede Meldung (Toast) lässt sich wegklicken, auch die, die nach ein paar Sekunden von selbst verschwinden, und der Fortschritt eines laufenden Jobs – sie verdecken so keine Schaltflächen und Menüs mehr."
-}

@@ -51,6 +51,8 @@ async function loggedIn(opts: { userId: number; deviceId: number; server?: (requ
   const store = new SessionStore(memoryStore({}));
   await store.save(userA);
   const counts = { cache: 0, files: 0, cookies: 0 };
+  /** The client that is current while the cache is cleared (null: none, late answers of the old one are refused). */
+  const apiAtClear: unknown[] = [];
   const controller = new AuthController({
     http,
     appLogin: new AppLogin(
@@ -66,14 +68,19 @@ async function loggedIn(opts: { userId: number; deviceId: number; server?: (requ
         counts.cookies++;
       },
     },
-    cache: { clearAll: () => counts.cache++ },
+    cache: {
+      clearAll: () => {
+        counts.cache++;
+        apiAtClear.push(controller.api);
+      },
+    },
     files: { clearAll: () => counts.files++ },
     userStatus: { start: async () => undefined, stop: () => undefined },
   });
   await controller.restore();
   expect(controller.getState().session?.userId).toBe(1);
   const apiRequests = () => requests.filter((it) => it.url.includes('/rs/'));
-  return { controller, store, counts, apiRequests, requests };
+  return { controller, store, counts, apiRequests, requests, apiAtClear };
 }
 
 test('the start needs no server', async () => {
@@ -154,7 +161,7 @@ test('a client of the old server sends nothing of the new login and cannot end i
     proxyCookies: { proxy: 'secretB' },
     appLoginPath: true,
   };
-  const { controller, counts } = await loggedIn({ userId: 1, deviceId: 10 });
+  const { controller, counts, apiAtClear } = await loggedIn({ userId: 1, deviceId: 10 });
   const { http, requests: seen } = fakeHttp(() => ({ body: {} }));
   let unauthorized = 0;
   let renewals = 0;
@@ -175,6 +182,9 @@ test('a client of the old server sends nothing of the new login and cannot end i
   // The cache goes, the WebView data stays (per server, like the stored login).
   expect(counts.cache).toBe(1);
   expect(counts.cookies).toBe(0);
+  // No client is current while the cache is cleared, and the new one is another.
+  expect(apiAtClear).toEqual([null]);
+  expect(controller.api).not.toBeNull();
   await old.post('/rs/x', { renewLogin: false });
   expect(seen[seen.length - 1].headers.Authorization).toBeUndefined();
   expect(seen[seen.length - 1].headers.Cookie).toBeUndefined();
