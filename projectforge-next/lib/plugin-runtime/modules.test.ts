@@ -40,6 +40,7 @@ describe("PLUGIN_MODULES", () => {
       "components/shared/form-alert",
       "components/shared/form/field-hint",
       "components/shared/form/form-context",
+      "components/shared/form/text-area-field",
       "components/shared/guarded-dialog",
       "components/shared/hint-tooltip",
       "components/shared/jobs/job-progress",

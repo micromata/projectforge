@@ -26,6 +26,7 @@ import * as sharedEntityMultiAutocomplete from "@/components/shared/entity-multi
 import * as sharedFormAlert from "@/components/shared/form-alert";
 import * as sharedFormFieldHint from "@/components/shared/form/field-hint";
 import * as sharedFormFormContext from "@/components/shared/form/form-context";
+import * as sharedFormTextAreaField from "@/components/shared/form/text-area-field";
 import * as sharedGuardedDialog from "@/components/shared/guarded-dialog";
 import * as sharedHintTooltip from "@/components/shared/hint-tooltip";
 import * as sharedJobsJobProgress from "@/components/shared/jobs/job-progress";
@@ -106,6 +107,7 @@ export const PLUGIN_MODULES: Record<string, Record<string, unknown>> = {
   "components/shared/form-alert": sharedFormAlert,
   "components/shared/form/field-hint": sharedFormFieldHint,
   "components/shared/form/form-context": sharedFormFormContext,
+  "components/shared/form/text-area-field": sharedFormTextAreaField,
   "components/shared/guarded-dialog": sharedGuardedDialog,
   "components/shared/hint-tooltip": sharedHintTooltip,
   "components/shared/jobs/job-progress": sharedJobsJobProgress,
