@@ -37,6 +37,7 @@ import org.projectforge.business.fibu.contributionmargin.ContributionMarginDetai
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginLevel
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginResult
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
+import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
@@ -127,6 +128,12 @@ open class OrderEntityRest : // open: proxied by Spring.
 
   @Autowired
   private lateinit var rechnungDao: RechnungDao
+
+  @Autowired
+  private lateinit var kontoCache: KontoCache
+
+  @Autowired
+  private lateinit var kundeCache: KundeCache
 
   @Autowired
   private lateinit var auftragsCache: AuftragsCache
@@ -348,6 +355,13 @@ open class OrderEntityRest : // open: proxied by Spring.
           type = position.periodOfPerformanceType,
           begin = position.periodOfPerformanceBegin,
           end = position.periodOfPerformanceEnd,
+        )
+      },
+      instalments = dto.paymentSchedules?.map {
+        PeriodOfPerformanceValidator.Instalment(
+          begin = it.periodOfPerformanceBegin,
+          end = it.periodOfPerformanceEnd,
+          deleted = it.deleted,
         )
       },
     ).forEach { error ->
@@ -643,6 +657,25 @@ open class OrderEntityRest : // open: proxied by Spring.
   }
 
   /**
+   * The customer contact (BT-56, BT-58) of the posted order, with what it leaves empty filled from the account of
+   * its customer: the "add from account" button of the order form. Nothing is written, the client takes the three
+   * values from the answer.
+   *
+   * The account is not readable for everybody who edits orders, so this is where its contact data is handed
+   * out, and only that: no other field of the account. Restricted to those who may create orders, as the
+   * invoice's counterpart (`eInvoiceFromAccount`) is restricted to those who may handle invoices.
+   */
+  @AccessChecked("DAO: select access + insert access (edit form helper)")
+  @PostMapping("customerContactFromAccount")
+  fun customerContactFromAccount(@RequestBody postData: PostData<Auftrag>): CustomerContact {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    checkLoggedInUserInsertAccess()
+    val dto = postData.data
+    val account = kontoCache.getKontoIfNotInitialized(kundeCache.getKunde(dto.customer?.id)?.konto)
+    return customerContactFromAccount(dto, account)
+  }
+
+  /**
    * The sums of an order as they are right now in the form, i.e. computed on the posted state, not on
    * the stored one.
    *
@@ -731,6 +764,13 @@ open class OrderEntityRest : // open: proxied by Spring.
         positions.mapNotNull { if (own(it)) it.periodOfPerformanceEnd else info.periodOfPerformanceEnd }
           .maxOrNull()
   }
+
+  /** The customer contact of an order (BT-56: person and department, BT-58: email). */
+  class CustomerContact(
+    val customerContactPerson: String?,
+    val customerContactDepartment: String?,
+    val customerContactEmail: String?,
+  )
 
   /**
    * The sums of one order.
@@ -1424,6 +1464,21 @@ open class OrderEntityRest : // open: proxied by Spring.
   }
 
   companion object {
+    /**
+     * The customer contact of [dto], each value an empty one of it takes from [account]. Without an account the
+     * contact stays as it is.
+     *
+     * `internal` and in the companion object: it needs nothing of the Spring context, so it is testable without one.
+     */
+    internal fun customerContactFromAccount(dto: Auftrag, account: KontoDO?): CustomerContact {
+      fun fill(current: String?, value: String?) = if (current.isNullOrBlank()) value?.takeIf { it.isNotBlank() } ?: current else current
+      return CustomerContact(
+        customerContactPerson = fill(dto.customerContactPerson, account?.contactPerson),
+        customerContactDepartment = fill(dto.customerContactDepartment, account?.contactDepartment),
+        customerContactEmail = fill(dto.customerContactEmail, account?.contactEmail),
+      )
+    }
+
     private val customerFilter = CustomerChecklistFilter("order/customerFilterValues")
     private val businessUnitFilter = BusinessUnitChecklistFilter("order/businessUnitFilterValues")
     private val projectFilter = ProjectChecklistFilter("order/projectFilterValues")

@@ -97,6 +97,9 @@ export interface OrderPositionDto extends PositionInvoiceInfo {
   periodOfPerformanceType?: PeriodOfPerformanceType | null;
   periodOfPerformanceBegin?: string | null;
   periodOfPerformanceEnd?: string | null;
+  /** BT-13 and BT-19 of this position, where they differ from the order's. */
+  customerOrderNumber?: string | null;
+  customerCostCenter?: string | null;
   modeOfPaymentType?: ModeOfPaymentType | null;
   task?: EntityRefDto | null;
   /** The net-sum calculator's breakdown as JSON, persisted so the calculation can be reopened. */
@@ -110,6 +113,9 @@ export interface PaymentScheduleDto {
   /** Number of the position this instalment belongs to, not its id — see `PaymentScheduleDO`. */
   positionNumber?: number | null;
   scheduleDate?: string | null;
+  /** The service period this instalment bills (BT-73, BT-74). */
+  periodOfPerformanceBegin?: string | null;
+  periodOfPerformanceEnd?: string | null;
   amount?: number | null;
   comment?: string | null;
   reached?: boolean | null;
@@ -122,6 +128,13 @@ export interface OrderDetail {
   nummer?: number | null;
   titel?: string | null;
   referenz?: string | null;
+  /** What an invoice of the order is prefilled with: BT-13, BT-12, BT-19, BT-56 and BT-58. */
+  customerOrderNumber?: string | null;
+  contractNumber?: string | null;
+  customerCostCenter?: string | null;
+  customerContactPerson?: string | null;
+  customerContactDepartment?: string | null;
+  customerContactEmail?: string | null;
   status?: AuftragsStatus | null;
   // `customer`/`project` as the DTO names them, not `kunde`/`projekt` as the entity does — the JSON
   // carries the DTO's names, and `Auftrag.copyTo` is what maps them back (see its comment there).

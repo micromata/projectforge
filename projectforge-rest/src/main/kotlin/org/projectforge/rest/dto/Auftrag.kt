@@ -55,6 +55,13 @@ class Auftrag(
     var paymentSchedules: MutableList<PaymentSchedule>? = null,
     var personDays: BigDecimal? = null,
     var referenz: String? = null,
+    /** The e-invoice data of the customer an invoice of this order is prefilled with (BT-13, BT-12, BT-19, BT-56, BT-58). */
+    var customerOrderNumber: String? = null,
+    var contractNumber: String? = null,
+    var customerCostCenter: String? = null,
+    var customerContactPerson: String? = null,
+    var customerContactDepartment: String? = null,
+    var customerContactEmail: String? = null,
     var assignedPersons: String? = null,
     /**
      * The persons of [assignedPersons] as references, for the list column (struck through when no longer active).

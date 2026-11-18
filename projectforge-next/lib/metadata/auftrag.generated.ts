@@ -52,10 +52,46 @@ export const AUFTRAG_METADATA = {
       i18nKey: "contactPerson",
       required: false,
     },
+    contractNumber: {
+      dataType: "STRING",
+      i18nKey: "fibu.auftrag.contractNumber",
+      required: false,
+      maxLength: 255,
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",
       required: false,
+    },
+    customerContactDepartment: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.contactDepartment",
+      required: false,
+      maxLength: 255,
+    },
+    customerContactEmail: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.contactEmail",
+      required: false,
+      maxLength: 255,
+    },
+    customerContactPerson: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.contactPerson",
+      required: false,
+      maxLength: 255,
+    },
+    customerCostCenter: {
+      dataType: "STRING",
+      i18nKey: "fibu.konto.costCenter",
+      required: false,
+      maxLength: 255,
+    },
+    customerOrderNumber: {
+      dataType: "STRING",
+      i18nKey: "fibu.rechnung.customerOrderNumber",
+      required: false,
+      maxLength: 255,
     },
     deleted: {
       dataType: "BOOLEAN",

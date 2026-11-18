@@ -87,6 +87,16 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column
   open var reached: Boolean = false
 
+  /** Begin of the service period this instalment bills (BT-73). */
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
+  @get:Column(name = "period_of_performance_begin")
+  open var periodOfPerformanceBegin: LocalDate? = null
+
+  /** End of the service period this instalment bills (BT-74). */
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
+  @get:Column(name = "period_of_performance_end")
+  open var periodOfPerformanceEnd: LocalDate? = null
+
   /**
    * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
    */

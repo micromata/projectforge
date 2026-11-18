@@ -1536,6 +1536,7 @@
       "contacts": {
         "info": "Ansprechpartner:innen haben Zugriff auf den Auftrag und seine Rechnungen und bekommen eine E-Mail, wenn er geändert wird (ebenso alle, die ihn bisher bearbeitet haben)."
       },
+      "contractNumber": "Vertragsnummer (BT-12)",
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
@@ -1653,6 +1654,12 @@
         "target": "Ziel {arg0} %",
         "total": "Summe",
         "until": "bis {arg0}"
+      },
+      "customerContact": {
+        "fromAccount": "Aus Konto ergänzen",
+        "fromAccountDone": "{arg0} Feld(er) aus dem Konto ergänzt.",
+        "fromAccountHint": "Ergänzt die leeren Kontaktfelder (BT-56, BT-58) aus dem Konto des Kunden. Bereits Ausgefülltes bleibt erhalten.",
+        "fromAccountNothing": "Nichts zu ergänzen: Das Konto hat für die leeren Felder keine Werte."
       },
       "datum": {
         "_": "Angebotsdatum",
@@ -1801,6 +1808,7 @@
       "invoice": {
         "info": ", fakturiert: {arg0}, noch nicht fakturiert: {arg1}"
       },
+      "invoiceData": "Rechnungsdaten",
       "invoicedExceedsCommissioned": "Der fakturierte Betrag übersteigt den beauftragten Betrag – bitte auf eine falsch zugeordnete Rechnung prüfen.",
       "mail": {
         "digest": {

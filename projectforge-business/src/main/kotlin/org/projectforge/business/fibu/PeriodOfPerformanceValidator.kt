@@ -58,6 +58,16 @@ object PeriodOfPerformanceValidator {
     }
 
     /**
+     * One payment schedule row, reduced to its own period (BT-73/74). A deleted row is skipped, but keeps its
+     * index so an error is anchored at the row the user sees.
+     */
+    class Instalment(
+        val begin: LocalDate? = null,
+        val end: LocalDate? = null,
+        val deleted: Boolean = false,
+    )
+
+    /**
      * @param fieldId The field the error belongs to, as a path relative to the order, e.g.
      * `periodOfPerformanceEnd` or `positionen[0].periodOfPerformanceBegin`.
      * @param messageKey The i18n key of the message.
@@ -81,6 +91,7 @@ object PeriodOfPerformanceValidator {
         periodOfPerformanceBegin: LocalDate?,
         periodOfPerformanceEnd: LocalDate?,
         positions: List<Position>?,
+        instalments: List<Instalment>? = null,
     ): List<Error> {
         val errors = mutableListOf<Error>()
         // The order's period is what a position of type SEEABOVE refers to, so that position makes the
@@ -133,6 +144,18 @@ object PeriodOfPerformanceValidator {
                     Error(
                         fieldId = "positionen[$index].periodOfPerformanceBegin",
                         messageKey = POS_BEGIN_BEFORE_BEGIN_MESSAGE_KEY,
+                    )
+                )
+            }
+        }
+        instalments?.forEachIndexed { index, instalment ->
+            if (!instalment.deleted && instalment.begin != null && instalment.end != null &&
+                instalment.end.isBefore(instalment.begin)
+            ) {
+                errors.add(
+                    Error(
+                        fieldId = "paymentSchedules[$index].periodOfPerformanceEnd",
+                        messageKey = END_BEFORE_BEGIN_MESSAGE_KEY,
                     )
                 )
             }

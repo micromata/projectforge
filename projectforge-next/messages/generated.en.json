@@ -1536,6 +1536,7 @@
       "contacts": {
         "info": "Contact persons have access to the order and its invoices and get an e-mail when the order is changed (as does everyone who has edited it before)."
       },
+      "contractNumber": "Contract number (BT-12)",
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
@@ -1653,6 +1654,12 @@
         "target": "Target {arg0} %",
         "total": "Total",
         "until": "until {arg0}"
+      },
+      "customerContact": {
+        "fromAccount": "Add from account",
+        "fromAccountDone": "{arg0} field(s) added from the account.",
+        "fromAccountHint": "Fills in the empty contact fields (BT-56, BT-58) from the account of the customer. What is already filled in is kept.",
+        "fromAccountNothing": "Nothing to add: the account has no values for the empty fields."
       },
       "datum": {
         "_": "Date of order",
@@ -1801,6 +1808,7 @@
       "invoice": {
         "info": ", invoiced: {arg0}, not yet invoiced: {arg1}"
       },
+      "invoiceData": "Invoice data",
       "invoicedExceedsCommissioned": "The invoiced amount exceeds the commissioned amount – please check for an incorrectly assigned invoice.",
       "mail": {
         "digest": {
