@@ -107,6 +107,41 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:Column(length = 255)
     open var referenz: String? = null
 
+    /** The customer's order number, taken over into the invoices of the order (BT-13). */
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerOrderNumber")
+    @FullTextField
+    @get:Column(name = "customer_order_number", length = 255)
+    open var customerOrderNumber: String? = null
+
+    /** The number of the contract the order belongs to, where there is one (BT-12). */
+    @PropertyInfo(i18nKey = "fibu.auftrag.contractNumber")
+    @FullTextField
+    @get:Column(name = "contract_number", length = 255)
+    open var contractNumber: String? = null
+
+    /** The customer's cost center, taken over into the invoices of the order (BT-19). */
+    @PropertyInfo(i18nKey = "fibu.konto.costCenter")
+    @get:Column(name = "customer_cost_center", length = 255)
+    open var customerCostCenter: String? = null
+
+    /**
+     * The customer's contact person of the order, not to be confused with the internal [contactPerson]. Goes
+     * together with the department as the buyer contact point (BT-56) and takes precedence over the one of the account.
+     */
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerContactPerson")
+    @get:Column(name = "customer_contact_person", length = 255)
+    open var customerContactPerson: String? = null
+
+    /** Department of the customer's contact person, part of the buyer contact point (BT-56). */
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerContactDepartment")
+    @get:Column(name = "customer_contact_department", length = 255)
+    open var customerContactDepartment: String? = null
+
+    /** Email address of the customer's contact person (BT-58). */
+    @PropertyInfo(i18nKey = "fibu.auftrag.customerContactEmail")
+    @get:Column(name = "customer_contact_email", length = 255)
+    open var customerContactEmail: String? = null
+
     @PropertyInfo(i18nKey = "label.position.short")
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(includeDepth = 1)

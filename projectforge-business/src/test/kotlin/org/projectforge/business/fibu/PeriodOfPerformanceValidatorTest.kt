@@ -140,6 +140,22 @@ class PeriodOfPerformanceValidatorTest {
         )
     }
 
+    @Test
+    fun `an instalment must not end before it begins, a deleted one is not checked`() {
+        val errors = PeriodOfPerformanceValidator.validate(
+            periodOfPerformanceBegin = begin,
+            periodOfPerformanceEnd = end,
+            positions = null,
+            instalments = listOf(
+                PeriodOfPerformanceValidator.Instalment(begin = begin, end = end),
+                PeriodOfPerformanceValidator.Instalment(begin = end, end = begin, deleted = true),
+                PeriodOfPerformanceValidator.Instalment(begin = end, end = begin),
+            ),
+        )
+        assertEquals(listOf("paymentSchedules[2].periodOfPerformanceEnd"), errors.map { it.fieldId })
+        assertEquals(PeriodOfPerformanceValidator.END_BEFORE_BEGIN_MESSAGE_KEY, errors[0].messageKey)
+    }
+
     private fun position(
         type: PeriodOfPerformanceType?,
         positionBegin: LocalDate? = null,

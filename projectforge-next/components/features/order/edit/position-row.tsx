@@ -195,6 +195,15 @@ export function PositionRow({
           hint={t("fibu.auftrag.forecastType.pos.info")}
           options={p.enumOptions("forecastType", t)}
         />
+        {/* What an invoice of this position is prefilled with, where it differs from the order's. */}
+        <InputField
+          name={name("customerOrderNumber")}
+          label={label("customerOrderNumber")}
+        />
+        <InputField
+          name={name("customerCostCenter")}
+          label={label("customerCostCenter")}
+        />
         <SelectField
           name={name("periodOfPerformanceType")}
           label={label("periodOfPerformanceType")}

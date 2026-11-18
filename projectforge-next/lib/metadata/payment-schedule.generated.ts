@@ -44,6 +44,16 @@ export const PAYMENT_SCHEDULE_METADATA = {
       i18nKey: "fibu.auftrag.paymentschedule.number",
       required: false,
     },
+    periodOfPerformanceBegin: {
+      dataType: "DATE",
+      i18nKey: "fibu.periodOfPerformance.from",
+      required: false,
+    },
+    periodOfPerformanceEnd: {
+      dataType: "DATE",
+      i18nKey: "fibu.periodOfPerformance.to",
+      required: false,
+    },
     positionNumber: {
       dataType: "INT",
       i18nKey: "fibu.auftrag.position",

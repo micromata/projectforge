@@ -1536,6 +1536,7 @@
       "contacts": {
         "info": "Contact persons have access to the order and its invoices and get an e-mail when the order is changed (as does everyone who has edited it before)."
       },
+      "contractNumber": "Contract number (BT-12)",
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
@@ -1654,6 +1655,16 @@
         "total": "Total",
         "until": "until {arg0}"
       },
+      "customerContact": {
+        "fromAccount": "Add from account",
+        "fromAccountDone": "{arg0} field(s) added from the account.",
+        "fromAccountHint": "Fills in the empty contact fields (BT-56, BT-58) from the account of the customer. What is already filled in is kept.",
+        "fromAccountNothing": "Nothing to add: the account has no values for the empty fields."
+      },
+      "customerContactDepartment": "Customer's department (BT-56)",
+      "customerContactEmail": "Customer's contact person email (BT-58)",
+      "customerContactPerson": "Customer's contact person (BT-56)",
+      "customerOrderNumber": "Customer's order number (BT-13)",
       "datum": {
         "_": "Date of order",
         "short": "Date"
@@ -1801,6 +1812,7 @@
       "invoice": {
         "info": ", invoiced: {arg0}, not yet invoiced: {arg1}"
       },
+      "invoiceData": "Invoice data",
       "invoicedExceedsCommissioned": "The invoiced amount exceeds the commissioned amount – please check for an incorrectly assigned invoice.",
       "mail": {
         "digest": {
@@ -2239,19 +2251,19 @@
     "konto": {
       "_": "Account",
       "bezeichnung": "Identifier",
-      "city": "City",
-      "contactDepartment": "Department",
+      "city": "City (BT-52)",
+      "contactDepartment": "Department (BT-56)",
       "contactEmail": "Contact person email of the customer (BT-58)",
       "contactPerson": {
-        "_": "Contact person",
+        "_": "Contact person (BT-56)",
         "tooltip": "Contact person and department are sent together as one text, the contact point of the buyer (BT-56), e.g. \"Jane Doe, Purchasing\"."
       },
-      "costCenter": "Cost center",
-      "country": "Country",
+      "costCenter": "Cost center (BT-19)",
+      "country": "Country (BT-55)",
       "eInvoice": "E-Invoice",
       "eInvoiceEmail": "Invoice recipient email of the customer (BT-49)",
       "leitwegId": {
-        "_": "Leitweg-ID",
+        "_": "Leitweg-ID (BT-10)",
         "tooltip": "Required for e-invoices to public sector recipients (e.g. 04011000-1234512345-12)"
       },
       "nummer": "Account number",
@@ -2260,13 +2272,13 @@
         "active": "active",
         "nonactive": "non-active"
       },
-      "street": "Street",
+      "street": "Street (BT-50)",
       "title": {
         "add": "New account",
         "list": "List of accounts"
       },
-      "vatId": "VAT ID",
-      "zipCode": "Zip code"
+      "vatId": "VAT ID (BT-48)",
+      "zipCode": "Zip code (BT-53)"
     },
     "kost": {
       "error": {
@@ -4923,6 +4935,7 @@
           "devices": "Devices",
           "inventory": "Systems",
           "my": "My CVE-Pilot",
+          "prototype": "Demo",
           "vulnerabilities": "Vulnerabilities"
         },
         "saved": "Saved."
@@ -5108,6 +5121,7 @@
         "vulnerability": "1 vulnerability",
         "withoutFix": "{arg0} without fix"
       },
+      "persona": "Act as",
       "possiblyAffected": {
         "info": "The inventory has no exact version of this technology, so the match is uncertain.",
         "label": "possibly"
@@ -5134,6 +5148,13 @@
         "exposed": "critical instance on the internet +1",
         "instances": "affected instances +1",
         "kev": "KEV +1"
+      },
+      "prototype": {
+        "banner": "Demo with fictitious test data; changes are kept in this browser only.",
+        "reset": {
+          "info": "Restores the test data as delivered; all changes are lost.",
+          "label": "Reset test data"
+        }
       },
       "qa": {
         "audience": {
@@ -5293,6 +5314,11 @@
         "OSV": "OSV"
       },
       "start": {
+        "demo": {
+          "hint": "All planned functions of the CVE-Pilot as a clickable prototype with fictitious test data.",
+          "link": "Open demo",
+          "title": "Demo"
+        },
         "vulnerabilities": {
           "hint": "The vulnerabilities imported from the NVD, from the configured CVSS score on. A click on the CVE opens it at the NVD."
         }

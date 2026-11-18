@@ -44,6 +44,8 @@ class PaymentSchedule(
      */
     var positionNumber: Short? = null,
     var scheduleDate: LocalDate? = null,
+    var periodOfPerformanceBegin: LocalDate? = null,
+    var periodOfPerformanceEnd: LocalDate? = null,
     var amount: BigDecimal? = null,
     var comment: String? = null,
     var reached: Boolean = false,

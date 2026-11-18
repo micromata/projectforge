@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { CollapsibleSummary } from "@/components/shared/collapsible-summary";
+import { DatePeriodField } from "@/components/shared/form/date-period-field";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { InputField } from "@/components/shared/form/input-field";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
@@ -10,6 +11,7 @@ import { RepeatableRow } from "@/components/shared/form/repeatable-row";
 import { SelectField } from "@/components/shared/form/select-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
+import { TERM_KIND_IDS } from "@/lib/date-period";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { PAYMENT_SCHEDULE_METADATA } from "@/lib/metadata/payment-schedule.generated";
 import type { PaymentScheduleValues } from "../order-schema";
@@ -110,6 +112,20 @@ export function PaymentScheduleRow({
           name={name("scheduleDate")}
           label={label("scheduleDate")}
           type="date"
+        />
+        {/* The service period this instalment bills (BT-73, BT-74), what its invoice is prefilled with. */}
+        <DatePeriodField
+          label={t("fibu.periodOfPerformance._")}
+          begin={{
+            name: name("periodOfPerformanceBegin"),
+            label: label("periodOfPerformanceBegin"),
+          }}
+          end={{
+            name: name("periodOfPerformanceEnd"),
+            label: label("periodOfPerformanceEnd"),
+          }}
+          periodKinds={TERM_KIND_IDS}
+          paging
         />
         <NumberField
           name={name("amount")}

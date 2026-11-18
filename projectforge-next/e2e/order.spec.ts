@@ -56,6 +56,8 @@ test.describe("order book", { tag: "@lane-order" }, () => {
     // computed column names its own key, since `KundeDO`/`ProjektDO` and the transient sums have no
     // metadata entry at all.
     for (const column of ORDER_PAGE.columns) {
+      // Offered in the column panel, not on the page until the user switches them on.
+      if ("hiddenByDefault" in column && column.hiddenByDefault) continue;
       const name = columnIdOf(column);
       const key = columnHeaderKeyOf(column, AUFTRAG_METADATA);
       await expect(

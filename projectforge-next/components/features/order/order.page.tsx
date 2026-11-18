@@ -10,6 +10,7 @@ import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { makeAdditionalContactsField } from "@/components/shared/form/additional-contacts-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { OrderForecastPanel } from "./forecast/order-forecast-panel";
+import { CustomerContactFromAccountButton } from "./edit/customer-contact-from-account-button";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
 import { OrderEditBanner } from "./edit/order-edit-banner";
 import { PaymentScheduleSection } from "./edit/payment-schedule-section";
@@ -228,6 +229,10 @@ export const ORDER_PAGE = definePage<
         />
       ),
     },
+    // The customer's order and contract number (BT-13, BT-12): what finance looks an order up by, offered
+    // but not shown at first — most readers of the order book never ask for them.
+    { name: "customerOrderNumber", size: 140, hiddenByDefault: true },
+    { name: "contractNumber", size: 140, hiddenByDefault: true },
     attachmentsColumn<OrderListRow>(),
     // The four managers in one column, as the legacy list shows them ("PM/HOB/KAM/CP").
     {
@@ -352,6 +357,27 @@ export const ORDER_PAGE = definePage<
           // Both say what being a contact means: access to the order and its change mail.
           { name: "contactPerson", hintKey: "fibu.auftrag.contacts.info" },
           { custom: OrderAdditionalContactsField, span: 2 },
+        ],
+      },
+      {
+        // What the invoices of the order are prefilled with (e-invoice: BT-12, BT-13, BT-19, BT-56, BT-58). The
+        // contact here takes precedence over the account's, which finance keeps and others cannot read.
+        id: "invoiceData",
+        titleKey: "fibu.auftrag.invoiceData",
+        headerActions: CustomerContactFromAccountButton,
+        fields: [
+          { name: "customerOrderNumber" },
+          { name: "contractNumber" },
+          { name: "customerCostCenter" },
+          {
+            name: "customerContactPerson",
+            hintKey: "fibu.konto.contactPerson.tooltip",
+          },
+          {
+            name: "customerContactDepartment",
+            hintKey: "fibu.konto.contactPerson.tooltip",
+          },
+          { name: "customerContactEmail" },
         ],
       },
       {
