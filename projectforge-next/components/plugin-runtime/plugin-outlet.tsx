@@ -1,80 +1,92 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/shared/spinner";
-import { installPluginRuntime } from "@/lib/plugin-runtime/bridge";
+import { pluginMessagesQueryKey } from "@/components/plugin-runtime/plugin-messages-provider";
+import {
+  manifestError,
+  usePluginManifests,
+} from "@/lib/plugin-runtime/manifest";
+import {
+  loadPlugin,
+  type PluginDefinition,
+} from "@/lib/plugin-runtime/load-plugin";
 import {
   matchRoute,
   PluginRouteContext,
 } from "@/lib/plugin-runtime/route-context";
+import { fetchPluginMessages } from "@/lib/rs/plugin-frontend";
 
-interface PluginDefinition {
-  routes: { path: string; component: ComponentType }[];
+const BASE = "/plugin";
+
+function Problem({ children }: { children: React.ReactNode }) {
+  return (
+    <p role="alert" className="p-6 text-destructive">
+      {children}
+    </p>
+  );
 }
 
-/** Entry bundles are only loaded from here, whatever a registry would answer. */
-const ASSET_PREFIX = "/next/plugins-assets/";
-
 /**
- * PoC: loads one plugin bundle at runtime and renders the page of its route matching the url below `basePath`.
- * The host owns the url (the plugin never sees the router): it matches, and hands params and `navigate` down.
+ * The pages of a plugin with a frontend of its own, `/plugin/<id>/<route of the plugin>`. The app knows nothing of the
+ * plugin but its manifest (PluginFrontendRest): it loads the bundle, and matches the url against the routes the bundle
+ * names. The plugin never sees the router of the app, it gets the params of its route and `navigate`.
  */
-export function PluginOutlet({
-  entry,
-  basePath,
-}: {
-  entry: string;
-  basePath: string;
-}) {
-  const [definition, setDefinition] = useState<PluginDefinition | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export function PluginOutlet() {
   const pathname = usePathname();
   const router = useRouter();
+  const locale = useLocale();
+  const [, id = "", ...rest] = pathname.replace(/\/+$/, "").split("/").slice(1);
+  const subPath = `/${rest.join("/")}`;
+  const { data: manifests, isError, isPending } = usePluginManifests();
+  const manifest = manifests?.find((m) => m.id === id);
+  const error = manifest ? manifestError(manifest) : null;
+  const [definition, setDefinition] = useState<PluginDefinition | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // The texts of the plugin are there before its first page renders (a missing text would show as its key).
+  const messagesUrl = manifest?.messages[locale] ?? manifest?.messages.en;
+  const { isPending: messagesPending } = useQuery({
+    queryKey: pluginMessagesQueryKey(id, locale),
+    queryFn: ({ signal }) => fetchPluginMessages(messagesUrl!, signal),
+    enabled: !!messagesUrl && !error,
+    staleTime: Infinity,
+    retry: false,
+  });
 
   useEffect(() => {
+    if (!manifest || error) return;
     let cancelled = false;
-    async function load() {
-      if (!entry.startsWith(ASSET_PREFIX) || entry.includes("..")) {
-        throw new Error(`Plugin entry outside of ${ASSET_PREFIX}: ${entry}`);
-      }
-      const host = installPluginRuntime();
-      // A native browser import, not a module of this build: the bundler must leave it alone.
-      const module = await import(
-        /* webpackIgnore: true */ /* turbopackIgnore: true */ entry
+    loadPlugin(manifest)
+      .then((loaded) => !cancelled && setDefinition(loaded))
+      .catch(
+        (e: unknown) =>
+          !cancelled && setLoadError(e instanceof Error ? e.message : String(e))
       );
-      const loaded: PluginDefinition = await module.activate(host);
-      if (!cancelled) setDefinition(loaded);
-    }
-    load().catch((e: unknown) => {
-      if (!cancelled) setError(e instanceof Error ? e.message : String(e));
-    });
     return () => {
       cancelled = true;
     };
-  }, [entry]);
+  }, [manifest, error]);
 
-  const match = useMemo(() => {
-    if (!definition) return null;
-    const path = pathname.startsWith(basePath) ? pathname.slice(basePath.length) : "/";
-    for (const route of definition.routes) {
-      const params = matchRoute(route.path, path);
-      if (params) return { Page: route.component, params };
-    }
-    return null;
-  }, [definition, pathname, basePath]);
+  const route = definition?.routes
+    .map((r) => ({ Page: r.component, params: matchRoute(r.path, subPath) }))
+    .find((r) => r.params);
+  const match = route ? { Page: route.Page, params: route.params! } : null;
 
-  const value = useMemo(
-    () => ({
-      params: match?.params ?? {},
-      navigate: (path: string) => router.push(`${basePath}${path}`),
-    }),
-    [match, router, basePath]
-  );
+  const value = {
+    params: match?.params ?? {},
+    navigate: (path: string) => router.push(`${BASE}/${id}${path}`),
+  };
 
-  if (error) return <p role="alert" className="p-6 text-destructive">{error}</p>;
-  if (!definition) return <Spinner />;
-  if (!match) return <p role="alert" className="p-6">Not found</p>;
+  if (isError) return <Problem>The plugins could not be loaded.</Problem>;
+  if (isPending) return <Spinner />;
+  if (!manifest) return <Problem>Not found</Problem>;
+  if (error ?? loadError) return <Problem>{error ?? loadError}</Problem>;
+  if (!definition || (!!messagesUrl && messagesPending)) return <Spinner />;
+  if (!match) return <Problem>Not found</Problem>;
   return (
     <PluginRouteContext.Provider value={value}>
       <match.Page />

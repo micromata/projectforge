@@ -20,7 +20,7 @@ test.describe("runtime plugin PoC", () => {
     });
 
     for (const step of ["open", "reload"]) {
-      if (step === "open") await goto(page, "/pluginPoc");
+      if (step === "open") await goto(page, "/plugin/cveradar");
       else await page.reload();
       await expect(page.getByTestId("plugin-poc")).toBeVisible();
       await expect(page.getByTestId("poc-react")).toContainText("true");
@@ -35,7 +35,7 @@ test.describe("runtime plugin PoC", () => {
   test("deep links below the plugin route survive reload, back and forward", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, "/pluginPoc/items/5");
+    await goto(page, "/plugin/cveradar/items/5");
     await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
     await page.reload();
     await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
@@ -44,7 +44,7 @@ test.describe("runtime plugin PoC", () => {
     await expect(page.getByTestId("plugin-poc")).toBeVisible();
     await page.getByTestId("poc-open-item").click();
     await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
-    expect(page.url()).toMatch(/\/next\/pluginPoc\/items\/5\/?$/);
+    expect(page.url()).toMatch(/\/next\/plugin\/cveradar\/items\/5\/?$/);
 
     await page.goBack();
     await expect(page.getByTestId("plugin-poc")).toBeVisible();
@@ -52,8 +52,12 @@ test.describe("runtime plugin PoC", () => {
     await expect(page.getByTestId("plugin-poc-item")).toContainText("Item 5");
   });
 
-  test("a missing bundle is a real 404, not the app shell", async ({ request }) => {
-    const res = await request.get("/next/plugins-assets/cveradar-poc/missing.js");
+  test("a missing bundle is a real 404, not the app shell", async ({
+    request,
+  }) => {
+    const res = await request.get(
+      "/next/plugins-assets/cveradar-poc/missing.js"
+    );
     expect(res.status()).toBe(404);
   });
 });

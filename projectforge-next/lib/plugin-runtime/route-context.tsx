@@ -28,7 +28,8 @@ export function matchRoute(
   if (want.length !== have.length) return null;
   const params: Record<string, string> = {};
   for (let i = 0; i < want.length; i++) {
-    if (want[i].startsWith(":")) params[want[i].slice(1)] = decodeURIComponent(have[i]);
+    if (want[i].startsWith(":"))
+      params[want[i].slice(1)] = decodeURIComponent(have[i]);
     else if (want[i] !== have[i]) return null;
   }
   return params;

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/shared/section-card";
 import { getQueryClient } from "@/lib/query-client";
 import { request } from "@/lib/rs/client";
+import { PLUGIN_SDK_VERSION } from "@/lib/plugin-runtime/manifest";
 import { usePluginRoute } from "@/lib/plugin-runtime/route-context";
 
 /**
@@ -33,7 +34,7 @@ export function installPluginRuntime(): HostPluginRuntime {
   const existing = globalThis.__HOST_PLUGIN_RUNTIME__;
   if (existing) return existing;
   const runtime: HostPluginRuntime = {
-    sdkVersion: "0-poc",
+    sdkVersion: PLUGIN_SDK_VERSION,
     react: React,
     jsxRuntime,
     reactQuery,
