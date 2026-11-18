@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/shared/section-card";
 import { getQueryClient } from "@/lib/query-client";
 import { request } from "@/lib/rs/client";
+import { PLUGIN_MODULES } from "@/lib/plugin-runtime/modules";
 import { PLUGIN_SDK_VERSION } from "@/lib/plugin-runtime/manifest";
 import { usePluginRoute } from "@/lib/plugin-runtime/route-context";
 
@@ -21,6 +22,8 @@ export interface HostPluginRuntime {
   jsxRuntime: typeof jsxRuntime;
   reactQuery: typeof reactQuery;
   nextIntl: typeof nextIntl;
+  /** The modules of the app a plugin may import, see modules.ts. */
+  modules: typeof PLUGIN_MODULES;
   ui: { Button: typeof Button; SectionCard: typeof SectionCard };
   api: { request: typeof request };
   hooks: { usePluginRoute: typeof usePluginRoute };
@@ -41,6 +44,7 @@ export function installPluginRuntime(): HostPluginRuntime {
     jsxRuntime,
     reactQuery,
     nextIntl,
+    modules: PLUGIN_MODULES,
     ui: { Button, SectionCard },
     api: { request },
     hooks: { usePluginRoute },
