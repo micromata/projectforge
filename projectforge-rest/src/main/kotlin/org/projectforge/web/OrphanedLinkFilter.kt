@@ -148,7 +148,8 @@ class OrphanedLinkFilter : Filter {
     }
 
     /**
-     * The pages of a renamed section of projectforge-next ([RENAMED_NEXT_SECTIONS], e.g. `next/cveradar/case/42`),
+     * The pages of a renamed section of projectforge-next ([PageRoutes.renamedNextSections], which the plugins declare,
+     * e.g. `next/oldname/case/42`),
      * linked by notifications, chats and bookmarks: the rest of the path and the query are carried over.
      *
      * @return true if the request was such a link and a redirect was sent.
@@ -158,7 +159,7 @@ class OrphanedLinkFilter : Filter {
         response: ServletResponse,
         uri: String,
     ): Boolean {
-        for ((oldRoute, newRoute) in RENAMED_NEXT_SECTIONS) {
+        for ((oldRoute, newRoute) in PageRoutes.renamedNextSections) {
             val path = "/${Constants.NEXT_APP_PATH}$oldRoute"
             val rest = when {
                 uri.endsWith(path) -> ""
@@ -373,15 +374,6 @@ class OrphanedLinkFilter : Filter {
         private val RENAMED_NEXT_PAGES = mapOf(
             "adminErrors" to "systemDashboard",
             "problemDashboard" to "systemDashboard",
-        )
-
-        /**
-         * Former route -> current route of renamed sections of next pages (without `next/`), whose sub pages move
-         * with them, see [redirectRenamedNextSection]: the CVE-Radar became the CVE-Clinic, then the CVE-Pilot.
-         */
-        private val RENAMED_NEXT_SECTIONS = mapOf(
-            "cveradar" to "cvepilot",
-            "cveclinic" to "cvepilot",
         )
 
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */

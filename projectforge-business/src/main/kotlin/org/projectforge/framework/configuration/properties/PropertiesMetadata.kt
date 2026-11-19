@@ -190,13 +190,27 @@ class PropertiesMetadata(
         fun typeOf(value: String?): Type =
             if (value != null && (value.equals("true", true) || value.equals("false", true))) Type.BOOLEAN else Type.STRING
 
-        /** The parsed bundled `application.properties`. */
+        /**
+         * The files of the plugins documenting their settings, in the format of `application.properties` (their own
+         * groups): `META-INF/projectforge/plugin-application.properties` of the plugin jars. Not read by Spring.
+         */
+        const val PLUGIN_RESOURCE = "META-INF/projectforge/plugin-application.properties"
+
+        /** The parsed bundled `application.properties`, followed by the groups the plugins on the class path bring. */
         val instance: PropertiesMetadata by lazy {
             val content = PropertiesMetadata::class.java.getResourceAsStream("/application.properties")
                 ?.use { String(it.readBytes(), Charsets.ISO_8859_1) }
                 ?: throw IllegalStateException("application.properties not found in the class path.")
-            parse(content)
+            val plugins = (PropertiesMetadata::class.java.classLoader ?: ClassLoader.getSystemClassLoader())
+                .getResources(PLUGIN_RESOURCE).toList()
+                .sortedBy { it.toString() }
+                .map { url -> url.openStream().use { String(it.readBytes(), Charsets.ISO_8859_1) } }
+            parse(combine(content, plugins))
         }
+
+        /** The content of `application.properties` followed by the files of the plugins (each starts with its own group). */
+        internal fun combine(content: String, plugins: List<String>): String =
+            (listOf(content) + plugins).joinToString("\n\n")
 
         fun parse(content: String): PropertiesMetadata {
             val groups = mutableListOf<Group>()

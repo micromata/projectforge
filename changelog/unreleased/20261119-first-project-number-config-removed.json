@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Number ranges: the first proposed local project number is set only by `project-min` of the range; the duplicate setting in the accounting configuration was removed (a stored value is ignored).",
+  "de": "Nummernkreise: Die erste vorgeschlagene lokale Projektnummer wird nur noch über `project-min` des Nummernkreises festgelegt; die doppelte Einstellung in der Buchhaltungskonfiguration entfällt (ein gespeicherter Wert wird ignoriert)."
+}

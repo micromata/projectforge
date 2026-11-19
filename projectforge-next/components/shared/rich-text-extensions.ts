@@ -26,10 +26,10 @@ export interface RichTextFeatures {
   emoji?: boolean;
 }
 
-/** A note, a mail body, a tooltip hint: headings and tables. */
-export const NOTE_FEATURES: RichTextFeatures = { headings: true, tables: true };
-
-/** A room description: a note that may contain code and emoji as well. */
+/**
+ * The full palette, the default of every editor unless it is restricted on purpose: a note, a description, a
+ * mail body, a tooltip hint, with code and emoji.
+ */
 export const DESCRIPTION_FEATURES: RichTextFeatures = {
   headings: true,
   tables: true,
@@ -50,7 +50,7 @@ export const CHAT_MESSAGE_FEATURES: RichTextFeatures = {
  */
 export function richTextExtensions(
   placeholder: string,
-  features: RichTextFeatures = NOTE_FEATURES,
+  features: RichTextFeatures = DESCRIPTION_FEATURES,
   extra: Extensions = []
 ): Extensions {
   return [

@@ -61,6 +61,23 @@ class PageRoutesTest {
         }
     }
 
+    /** A plugin brings its pages when it is initialized: the core lists nothing of it. */
+    @Test
+    fun `the pages of a plugin join and leave`() {
+        val pages = mapOf("testplugincat" to PageRoutes.Page(route = "plugin/testplugin"))
+        Assertions.assertFalse(PageRoutes.isMigrated("testplugincat"))
+        PageRoutes.registerPlugin(pages)
+        try {
+            Assertions.assertTrue(PageRoutes.isMigrated("testplugincat"))
+            Assertions.assertEquals("next/plugin/testplugin", PageRoutes.listUrl("testplugincat"))
+            Assertions.assertTrue(PageRoutes.isNextUrl(PageRoutes.listUrl("testplugincat")))
+            Assertions.assertTrue("testplugincat" in PageRoutes.categories)
+        } finally {
+            PageRoutes.unregisterPlugin(pages)
+        }
+        Assertions.assertFalse(PageRoutes.isMigrated("testplugincat"))
+    }
+
     @Test
     fun `isNextUrl recognizes the urls the menu has to leave Wicket for`() {
         // What WicketMenuBuilder decides on: MenuItemDefId carries the url, not the category, and the

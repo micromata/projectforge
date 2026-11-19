@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
     proxyTimeout: 300_000,
     // Dev-only as well: the dev server buffers a request body for the rewrites below and passes on only the first
     // 10 MB by default, while the content length stays the full one; Spring then waits for the rest until the read
-    // times out. As the cap of a bulk import of SBOMs (CveRadarConfig.SbomImport.maxSizeLimitMb).
+    // times out. As the cap of a bulk import of SBOMs of a plugin (the CVE-Pilot: 1 GB).
     proxyClientMaxBodySize: "1gb",
   },
   // Dev-only: proxy backend calls to Spring, on :8080 or wherever PF_BACKEND_URL points (a dev
@@ -75,6 +75,12 @@ const nextConfig: NextConfig = {
       {
         source: "/rsPublic/:path*",
         destination: `${backendUrl}/rsPublic/:path*`,
+        basePath: false,
+      },
+      // The bundles, styles and texts of the frontend plugins, which only Spring serves (from the plugin jars).
+      {
+        source: "/next/plugins-assets/:path*",
+        destination: `${backendUrl}/next/plugins-assets/:path*`,
         basePath: false,
       },
       // The icons, which the root layout links at the root (served by Spring, see app/layout.tsx).

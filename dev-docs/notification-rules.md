@@ -31,7 +31,8 @@ keeps already notified recipients from being notified twice, so a handler's `per
 
 ## Texts
 A plugin keeps the texts of its types in its own bundle (e.g. `CveRadarI18nResources(_de).properties`), with the keys
-above (prefix `notification.`, exported to next by `GenerateNextI18nMessagesMain`). Then `bin/pfDev.sh gen`.
+above (prefix `notification.`). A plugin of this repository: exported to next by `GenerateNextI18nMessagesMain`, then
+`bin/pfDev.sh gen`. A plugin with a runtime frontend delivers them with its own message catalogs.
 
 ## Tests
 A handler test like `CvrTeamCheckUnansweredRuleHandlerTest` (evaluate, resolve, params via the REST endpoint);

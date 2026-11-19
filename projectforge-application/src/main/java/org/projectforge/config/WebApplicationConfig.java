@@ -127,10 +127,22 @@ public class WebApplicationConfig implements WebMvcConfigurer {
             return tryShell(resourcePath, location, isAssetRequest(resourcePath));
         }
 
+        /** The pages of the plugins with a frontend of their own (see PluginFrontend): the plugin chooses their urls. */
+        private static final String PLUGIN_PAGES = "plugin/";
+
+        /** What a file below {@link #PLUGIN_PAGES} can be; any other "extension" is part of an id (`items/v1.2`). */
+        private static final java.util.Set<String> FILE_EXTENSIONS = java.util.Set.of(
+                "js", "mjs", "css", "json", "txt", "map", "png", "jpg", "jpeg", "gif", "svg", "ico", "webp",
+                "woff", "woff2", "ttf", "otf", "eot", "webmanifest", "xml", "pdf", "wasm");
+
         /** Whether the last segment carries a non-.html extension, i.e. a file was asked for, not a page. */
         private static boolean isAssetRequest(String resourcePath) {
             int lastSlash = resourcePath.lastIndexOf('/');
             String lastSegment = lastSlash >= 0 ? resourcePath.substring(lastSlash + 1) : resourcePath;
+            if (resourcePath.startsWith(PLUGIN_PAGES)) {
+                int dot = lastSegment.lastIndexOf('.');
+                return dot >= 0 && FILE_EXTENSIONS.contains(lastSegment.substring(dot + 1).toLowerCase());
+            }
             return lastSegment.contains(".") && !lastSegment.endsWith(".html");
         }
 

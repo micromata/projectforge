@@ -1,0 +1,7 @@
+{
+  "name": "@projectforge/plugin-sdk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Types of the contract between ProjectForge and a frontend plugin.",
+  "types": "index.d.ts"
+}

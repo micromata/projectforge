@@ -7,7 +7,11 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
 
 ## How it works
 
-- **Register:** `ExternalPlugins` (`projectforge-business/.../plugins/core/ExternalPlugins.kt`) knows each such plugin:
+- **Declared by the plugin, not known to the core:** its next pages by REST category (`AbstractPlugin.nextPages`) and the former names of
+  its section (`renamedNextSections`) join `PageRoutes` when the plugin is initialized, the redirects of old links in
+  `OrphanedLinkFilter` follow; its settings are documented in its jar (below); its frontend is loaded at runtime
+  ([plugin-frontend.md](next/plugin-frontend.md)).
+- **Still registered here:** `ExternalPlugins` (`projectforge-business/.../plugins/core/ExternalPlugins.kt`) knows each such plugin:
   id, next routes, prefix of its generated field metadata, package of its entities.
 - **Binary into the build:** `-Ppf.extraPlugins=<jar or directory>[,...]` (or the environment variable
   `PF_EXTRA_PLUGINS`) adds the jars to the runtime classpath of `projectforge-application`: boot jar
@@ -24,8 +28,10 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   - `GenerateNextFieldMetadataTest` keeps its `lib/metadata/<prefix>*.generated.ts`, no orphans.
 - **Texts** stay in this repository (resource bundle of the plugin module), so `gen` exports them to next as before.
 - **Integration settings** (timeouts, size limits) of the plugin: `IntegrationConfig.registerBuiltin`, called by the
-  plugin; the `projectforge.plugin.<id>.*` block stays documented in `application.properties` (read by
-  `PropertiesMetadata`, unknown keys would be flagged as obsolete).
+  plugin; the `projectforge.plugin.<id>.*` keys are documented by the plugin itself, in
+  `META-INF/projectforge/plugin-application.properties` of its jar (own `### Group`, same format as `application.properties`);
+  `PropertiesMetadata` appends the files of all plugins on the class path (unknown keys would be flagged as obsolete). Spring
+  doesn't read them: the defaults are those of the plugin's `@ConfigurationProperties` class.
 - **Flyway:** the plugin migrates with its own history table (`t_flyway_<id>_schema_version`), the scripts live in
   its repository; versioning as in CLAUDE.md.
 
@@ -34,7 +40,7 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
 - This repository as git submodule `projectforge/`, pinned by the release to its tag; composite build
   (`includeBuild`, ProjectForge's `buildSrc` as plugin build `pf-build-logic`, because `buildSrc` is a reserved build
   name; the version catalog from `projectforge/gradle/libs.versions.toml`). Core modules are used as
-  `org.projectforge:<module>`, the texts at test time as `org.projectforge:org.projectforge.plugins.cveradar`.
+  `org.projectforge:<module>`. The texts (resource bundle) are in the plugin itself.
 - `-PpfCoreDir=<worktree>` builds against a local worktree instead of the submodule.
 - Artifact `plugin/build/libs/projectforge-plugin-cveradar-<version>.jar`, the version is the one of ProjectForge.
 - `bin/pf.sh <pfDev.sh command>` there builds the jar and runs this repository's `pfDev.sh` with it
@@ -63,5 +69,5 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   Docker (`docker/push-release.sh`) and the GitHub release take the jar, unchanged. A mini release keeps the pin, and so does a release in which the plugin jar is byte-identical to the pinned one
   (the build is reproducible): no new asset, the pin points to the one of the release that introduced the jar.
 - The history of the plugin was extracted with `git filter-repo --paths-from-file` (paths
-  `plugins/org.projectforge.plugins.cveradar/`, `dev-docs/requirements/PF-CVR*` with its images and
+  `plugins/org.projectforge.plugins.cveradar/` (the texts too, until they moved into the plugin), `dev-docs/requirements/PF-CVR*` with its images and
   `docker/compose/dependency-track/`, moved to `plugin/`, `docs/` and `docker/`).
