@@ -40,7 +40,7 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
 - This repository as git submodule `projectforge/`, pinned by the release to its tag; composite build
   (`includeBuild`, ProjectForge's `buildSrc` as plugin build `pf-build-logic`, because `buildSrc` is a reserved build
   name; the version catalog from `projectforge/gradle/libs.versions.toml`). Core modules are used as
-  `org.projectforge:<module>`, the texts at test time as `org.projectforge:org.projectforge.plugins.cveradar`.
+  `org.projectforge:<module>`. The texts (resource bundle) are in the plugin itself.
 - `-PpfCoreDir=<worktree>` builds against a local worktree instead of the submodule.
 - Artifact `plugin/build/libs/projectforge-plugin-cveradar-<version>.jar`, the version is the one of ProjectForge.
 - `bin/pf.sh <pfDev.sh command>` there builds the jar and runs this repository's `pfDev.sh` with it
@@ -69,5 +69,5 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   Docker (`docker/push-release.sh`) and the GitHub release take the jar, unchanged. A mini release keeps the pin, and so does a release in which the plugin jar is byte-identical to the pinned one
   (the build is reproducible): no new asset, the pin points to the one of the release that introduced the jar.
 - The history of the plugin was extracted with `git filter-repo --paths-from-file` (paths
-  `plugins/org.projectforge.plugins.cveradar/`, `dev-docs/requirements/PF-CVR*` with its images and
+  `plugins/org.projectforge.plugins.cveradar/` (the texts too, until they moved into the plugin), `dev-docs/requirements/PF-CVR*` with its images and
   `docker/compose/dependency-track/`, moved to `plugin/`, `docs/` and `docker/`).
