@@ -54,7 +54,15 @@ test.describe("address", { tag: "@lane-address" }, () => {
     // As in the React list, the view opens over the list, which stays where it was.
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    await expect(page).toHaveURL(/\/address$/);
+    // The dialog is part of the url: a reload or a copied link shows it again, Back closes it.
+    await expect(page).toHaveURL(/\/address\/?\?view=\d+$/);
+    await page.reload();
+    await expect(dialog).toBeVisible();
+    await page.goBack();
+    await expect(dialog).toHaveCount(0);
+    await expect(page).not.toHaveURL(/view=/);
+    await rows.first().getByRole("cell").nth(1).click();
+    await expect(dialog).toBeVisible();
     await dialog.getByRole("link", { name: t("edit") }).click();
     await expect(page).toHaveURL(/\/address\/\d+\/edit\?returnTo=\/address$/);
     await expect(
@@ -98,9 +106,19 @@ test.describe("address", { tag: "@lane-address" }, () => {
           .getByRole("dialog")
           .getByRole("heading", { name: t("address.phoneCall.title") })
       ).toBeVisible();
-      await expect(page).toHaveURL(/\/address$/);
+      // The dialog is part of the url: a reload shows it again, Back closes it.
+      await expect(page).toHaveURL(
+        /\/address\/?\?.*dialog=call&dialogAddress=\d+/
+      );
+      await page.reload();
+      await expect(
+        page
+          .getByRole("dialog")
+          .getByRole("heading", { name: t("address.phoneCall.title") })
+      ).toBeVisible();
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(page).not.toHaveURL(/dialog=/);
     }
     const sms = page.locator('a[href*="/sendTextMessage?"]').first();
     if ((await sms.count()) > 0) {
@@ -110,9 +128,12 @@ test.describe("address", { tag: "@lane-address" }, () => {
           .getByRole("dialog")
           .getByRole("heading", { name: t("address.sendSms.title") })
       ).toBeVisible();
-      await expect(page).toHaveURL(/\/address$/);
-      await page.keyboard.press("Escape");
+      await expect(page).toHaveURL(
+        /dialog=sms&dialogAddress=\d+&dialogFrom=addressList&phoneType=/
+      );
+      await page.goBack();
       await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(page).not.toHaveURL(/dialog=/);
     }
 
     await rows
@@ -121,6 +142,59 @@ test.describe("address", { tag: "@lane-address" }, () => {
       .click();
     await expect(page).toHaveURL(/\/address\/\d+\/edit\?returnTo=\/address$/);
     await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
+  test("keeps the view over the list and its send dialogs in the url, one dialog each", async ({
+    loggedInPage: page,
+  }) => {
+    // A fake address, so the case doesn't depend on the data of the account (nor on a Sipgate/SMS setup).
+    const id = 9_000_001;
+    const address = {
+      id,
+      name: "E2E-Dialog-Url",
+      firstName: "Fake",
+      mobilePhone: "+49 170 1234567",
+    };
+    const list = {
+      resultSet: [address],
+      totalSize: 1,
+      totalSizeExact: true,
+      size: 1,
+      reloadUI: false,
+      resultSetTruncated: false,
+    };
+    await page.route(/\/rs\/address\/(list|listPage)(\?|$)/, (route) =>
+      route.fulfill({ json: list })
+    );
+    await page.route(`**/rs/address/view/${id}`, (route) =>
+      route.fulfill({
+        json: { address, phoneCallEnabled: false, smsEnabled: true },
+      })
+    );
+    await goto(page, "/address");
+    const row = page.locator(ROW).first();
+    await row.getByRole("cell").nth(1).click();
+    // Not by role: a dialog under another one is aria-hidden and left out.
+    const dialogs = page.locator('[role="dialog"]');
+    await expect(dialogs).toHaveCount(1);
+    await expect(page).toHaveURL(new RegExp(`/address/?\\?view=${id}$`));
+
+    // The text message opens over the view — one dialog more, not one from the row beneath as well.
+    await dialogs.first().locator('a[href*="/sendTextMessage?"]').click();
+    await expect(dialogs).toHaveCount(2);
+    await expect(page).toHaveURL(
+      /dialog=sms&dialogAddress=\d+&dialogFrom=addressView/
+    );
+    await page.goBack();
+    await expect(dialogs).toHaveCount(1);
+    await expect(page).toHaveURL(new RegExp(`view=${id}$`));
+
+    // A shared link shows the view again; closing it leaves the list without the param.
+    await page.reload();
+    await expect(dialogs).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await expect(dialogs).toHaveCount(0);
+    await expect(page).not.toHaveURL(/view=/);
   });
 
   test("takes the fields of a pasted signature over into the form", async ({

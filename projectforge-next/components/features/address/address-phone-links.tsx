@@ -12,9 +12,21 @@ import {
 } from "@hugeicons/core-free-icons";
 import { PhoneCallDialog } from "@/components/features/phone-call/phone-call-dialog";
 import { SendTextMessageDialog } from "@/components/features/send-text-message/send-text-message-dialog";
+import { useUrlDialog } from "@/hooks/use-url-dialog";
 import { cn } from "@/lib/utils";
+import {
+  ADDRESS_DIALOG_KEYS,
+  addressDialogParams,
+  parseAddressDialog,
+  type AddressDialog,
+} from "./address-dialog-url";
 import { phoneNumbersOf } from "./address-phones";
 import type { AddressDetail } from "./types";
+
+/** `Omit` for each member of a union, so the discriminant keeps narrowing. */
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
+  ? Omit<T, K>
+  : never;
 
 interface Props {
   address: AddressDetail;
@@ -35,7 +47,8 @@ interface Props {
  * Shared by the list and the view.
  *
  * The direct call and the text message open in a dialog over the list or view, as in the React app; their links
- * still lead to the pages, for a new tab (ctrl/cmd click).
+ * still lead to the pages, for a new tab (ctrl/cmd click). The dialog is part of the url of the page
+ * (`address-dialog-url.ts`): bookmarkable, and Back closes it.
  *
  * Hovering a number shows it large across the top of the window, as the React app did: to be read off the screen
  * while dialling it on a desk phone.
@@ -53,9 +66,26 @@ export function AddressPhoneLinks({
     number: string;
     mobile: boolean;
   } | null>(null);
-  const [dialog, setDialog] = useState<
-    { kind: "call"; number: string } | { kind: "sms"; phoneType: string } | null
-  >(null);
+  const urlDialog = useUrlDialog(ADDRESS_DIALOG_KEYS);
+  // The list row and the view dialog over it show the numbers of the same address: only the place the dialog
+  // was opened from shows it.
+  const requested = parseAddressDialog(urlDialog.params);
+  const dialog =
+    requested &&
+    requested.addressId === address.id &&
+    requested.from === callerPage
+      ? requested
+      : null;
+  const openDialog = (
+    next: DistributiveOmit<AddressDialog, "addressId" | "from">
+  ) =>
+    urlDialog.open(
+      addressDialogParams({
+        ...next,
+        addressId: address.id!,
+        from: callerPage,
+      })
+    );
   const numbers = phoneNumbersOf(address);
   if (numbers.length === 0) return null;
   // A plain click opens the dialog; one with a modifier (new tab or window) follows the link to the page.
@@ -115,7 +145,10 @@ export function AddressPhoneLinks({
                   className="hover:underline"
                   aria-label={`${t("address.directCall.call")} ${entry.number} (${label})`}
                   onClick={openInDialog(() =>
-                    setDialog({ kind: "call", number: entry.number })
+                    openDialog({
+                      kind: "call",
+                      number: entry.number,
+                    })
                   )}
                 >
                   {entry.number}
@@ -135,7 +168,10 @@ export function AddressPhoneLinks({
                   className="text-muted-foreground hover:text-foreground"
                   aria-label={`${t("address.sendSms.title")}: ${entry.number}`}
                   onClick={openInDialog(() =>
-                    setDialog({ kind: "sms", phoneType: entry.type })
+                    openDialog({
+                      kind: "sms",
+                      phoneType: entry.type,
+                    })
                   )}
                 >
                   <HugeiconsIcon icon={Message01Icon} size={14} />
@@ -156,12 +192,12 @@ export function AddressPhoneLinks({
                 number: dialog.number,
                 callerPage,
               }}
-              onClose={() => setDialog(null)}
+              onClose={urlDialog.close}
             />
           ) : (
             <SendTextMessageDialog
               params={{ addressId: address.id, phoneType: dialog.phoneType }}
-              onClose={() => setDialog(null)}
+              onClose={urlDialog.close}
             />
           )}
         </span>
