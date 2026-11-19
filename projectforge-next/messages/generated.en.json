@@ -3832,6 +3832,8 @@
     "schedule": {
       "day": "Day",
       "dayOfWeek": "Weekday",
+      "immediate": "Notify immediately after detection",
+      "immediateInfo": "In addition to the schedule, the rule is checked hourly (7 am to 7 pm); new events are notified right away, already notified recipients are not notified again.",
       "info": "The rules are checked once a day in the morning.",
       "mode": {
         "DAILY": "Every working day",

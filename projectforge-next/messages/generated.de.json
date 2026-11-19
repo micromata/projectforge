@@ -3832,6 +3832,8 @@
     "schedule": {
       "day": "Tag",
       "dayOfWeek": "Wochentag",
+      "immediate": "Sofort nach Erkennen benachrichtigen",
+      "immediateInfo": "Zusätzlich zum Zeitplan wird die Regel stündlich (7 bis 19 Uhr) geprüft; neue Ereignisse werden sofort gemeldet, bereits benachrichtigte Empfänger nicht erneut.",
       "info": "Die Regeln werden einmal täglich am Morgen geprüft.",
       "mode": {
         "DAILY": "Jeden Arbeitstag",
