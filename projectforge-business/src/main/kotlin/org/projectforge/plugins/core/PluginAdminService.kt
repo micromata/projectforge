@@ -287,8 +287,6 @@ open class PluginAdminService {
 
     companion object {
         const val PLUGIN_BANKING_ID = "banking"
-        // Not initially activated. Its backend is developed outside of this repository, see ExternalPlugins.
-        const val PLUGIN_CVE_RADAR_ID = "cveradar"
         const val PLUGIN_DATA_TRANSFER_ID = "datatransfer"
         const val PLUGIN_LICENSE_MANAGEMENT_ID = "licenseManagementPlugin"
         // Must match the id used by LiquidityPlanningPlugin's constructor:
