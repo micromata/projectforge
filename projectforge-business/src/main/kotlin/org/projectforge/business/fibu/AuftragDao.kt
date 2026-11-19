@@ -581,6 +581,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         } else {
             "Auftrag #" + auftrag.nummer + " wurde geändert."
         }
+        // Calculated once for all digest recipients (and only if there is one).
+        val digestAmount by lazy { digestAmount(auftrag) }
         var sent = false
         var failure: Exception? = null
         for ((index, recipient) in recipients.withIndex()) {
@@ -590,14 +592,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                     OrderNotificationMode.DAILY -> {
                         // Collected for the daily digest (OrderNotificationDigestService), not mailed now.
                         orderNotificationQueueDao.enqueue(
-                            recipient.id!!, auftrag.id!!, digestSnapshot(auftrag, operationType, history),
+                            recipient.id!!, auftrag.id!!, digestSnapshot(auftrag, operationType, history, digestAmount),
                             operationType.name, requestUrl,
                         )
                         continue
                     }
                     else -> {}
                 }
-                if (sendNotification(auftrag, operationType, recipient, subject, requestUrl, history.take(10))) {
+                if (sendNotification(auftrag, operationType, recipient, subject, requestUrl, history.take(10), digestAmount)) {
                     sent = true
                 }
             } catch (ex: Exception) {
@@ -625,6 +627,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         auftrag: AuftragDO,
         operationType: OperationType,
         history: List<FlatDisplayHistoryEntry>,
+        amount: BigDecimal?,
     ): OrderNotificationQueueDao.Snapshot {
         val changes = if (operationType == OperationType.UPDATE) {
             val newest = history.mapNotNull { it.timestamp?.time }.maxOrNull()
@@ -638,9 +641,23 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             orderTitle = auftrag.titel,
             customerProject = auftrag.projektKundeAsString,
             status = auftrag.status?.name,
-            amount = auftrag.info.netSum,
+            amount = amount,
             changes = changes,
         )
+    }
+
+    /**
+     * The info of the saved entity isn't calculated (only [AuftragsCache] does), its net sum would be 0. Calculated
+     * on an info of its own, the entity stays untouched. A deleted order has no amount (its sums are reset to 0).
+     */
+    internal fun digestAmount(auftrag: AuftragDO): BigDecimal? {
+        if (auftrag.deleted) return null
+        return try {
+            OrderInfo().also { it.calculateAll(auftrag) }.netSum
+        } catch (ex: Exception) {
+            log.warn("Can't calculate the net sum of order #${auftrag.nummer}: ${ex.message}", ex)
+            null
+        }
     }
 
     private fun sendNotification(
@@ -650,8 +667,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         subject: String,
         requestUrl: String?,
         history: List<FlatDisplayHistoryEntry>,
+        netSum: BigDecimal?,
     ): Boolean {
         val data: MutableMap<String, Any?> = HashMap()
+        data["netSum"] = netSum
         data["contactPerson"] = auftrag.contactPerson
         data["auftrag"] = auftrag
         data["operationType"] = operationType.name
