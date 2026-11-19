@@ -123,6 +123,11 @@ class NotificationSchedule(
     var day: Int = 0,
     /** [Mode.WEEKLY] only. */
     var dayOfWeek: DayOfWeek? = null,
+    /**
+     * Besides the days of the [mode], the rule is also evaluated at every run of the rule job (hourly), so a new
+     * event is notified right after it is detected. Already notified recipients aren't notified twice (dedup key).
+     */
+    var immediate: Boolean = false,
 ) {
     enum class Mode {
         /** [day] working days before the end of the month: 0 is the last working day. */
@@ -142,6 +147,11 @@ class NotificationSchedule(
 
         /** Never by schedule, only by hand. */
         NONE,
+    }
+
+    /** Is the rule evaluated at a run of the rule job on the given day, which last evaluated it on [lastRunDate]? */
+    fun runsAt(date: LocalDate, lastRunDate: LocalDate?): Boolean {
+        return immediate || (isDue(date) && lastRunDate != date)
     }
 
     /** Is the rule due on the given day? */

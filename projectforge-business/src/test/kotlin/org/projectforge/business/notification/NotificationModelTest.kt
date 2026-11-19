@@ -77,6 +77,14 @@ class NotificationModelTest {
         assertFalse(monday.isDue(LocalDate.of(2026, 4, 6)))
         assertTrue(monday.isDue(LocalDate.of(2026, 4, 7)))
         assertFalse(NotificationSchedule().isDue(LocalDate.of(2026, 4, 7)), "NONE")
+
+        // Immediate: evaluated at every run of the job, also twice a day and without any day of the schedule.
+        val day = LocalDate.of(2026, 4, 7)
+        assertFalse(NotificationSchedule().runsAt(day, null), "NONE only by hand")
+        assertTrue(NotificationSchedule(NotificationSchedule.Mode.DAILY).runsAt(day, null))
+        assertFalse(NotificationSchedule(NotificationSchedule.Mode.DAILY).runsAt(day, day), "once a day")
+        assertTrue(NotificationSchedule(immediate = true).runsAt(day, day), "NONE + immediate")
+        assertTrue(NotificationSchedule(NotificationSchedule.Mode.DAILY, immediate = true).runsAt(day, day))
     }
 
     @Test

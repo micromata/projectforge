@@ -18,6 +18,7 @@ export function toFormValues(
     scheduleMode: rule.scheduleMode ?? "NONE",
     scheduleDay: rule.scheduleDay ?? 0,
     scheduleDayOfWeek: rule.scheduleDayOfWeek ?? null,
+    scheduleImmediate: rule.scheduleImmediate ?? false,
     // Completed by the backend (the defaults of the type); a new rule gets them with its type (RuleTypeField).
     params: rule.params ?? {},
     recipientGroups: rule.recipientGroups ?? [],
