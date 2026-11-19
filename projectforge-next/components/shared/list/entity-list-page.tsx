@@ -30,6 +30,7 @@ import {
 } from "@/hooks/use-read-access-guard";
 import { useSelectAllShortcut } from "@/hooks/use-select-all-shortcut";
 import { useUpdateAccess } from "@/hooks/use-update-access";
+import { useUrlDialog } from "@/hooks/use-url-dialog";
 import { useEntitySelection } from "@/store/selection-store";
 import {
   deletedRowClass,
@@ -171,6 +172,10 @@ export function EntityListPage<
 /** The url search param that seeds a list's search box, set by the global search's "more in …" jump. */
 const LIST_SEARCH_PARAM = "q";
 
+/** The url search param of the entry open in the page's own dialog (see PageDef.rowDialog). */
+const ROW_DIALOG_PARAM = "view";
+const ROW_DIALOG_KEYS = [ROW_DIALOG_PARAM];
+
 /**
  * The checkbox column leads every row, whatever the user's stored layout says — constant, so the
  * table's memoization is not defeated by a fresh array on every render (see withLockedFirst).
@@ -310,8 +315,13 @@ function DeclaredList<
   // declarative and cannot hold state; it survives period stepping (only the filter values change) and
   // resets when the page is left, which is what "on demand" asks for.
   const [previousYearComparison, setPreviousYearComparison] = useState(false);
-  // The entry a row click opened in the page's own dialog (see PageDef.rowDialog), null while none is.
-  const [dialogId, setDialogId] = useState<number | null>(null);
+  // The entry a row click opened in the page's own dialog (see PageDef.rowDialog), null while none is. It is
+  // the url's `view` param: a copied link or a reload shows the dialog again, Back closes it.
+  const rowDialogUrl = useUrlDialog(ROW_DIALOG_KEYS);
+  const rowDialogParam = rowDialogUrl.params.get(ROW_DIALOG_PARAM) ?? "";
+  const dialogId = /^[1-9]\d*$/.test(rowDialogParam)
+    ? Number(rowDialogParam)
+    : null;
   const RowDialog = page.rowDialog;
   const buildFilter = useCallback(
     (base: MagicFilter): MagicFilter =>
@@ -497,7 +507,8 @@ function DeclaredList<
                 // virtual series occurrence) to a route of its own; anything else opens the entry.
                 const to = page.onRowClick?.(row);
                 if (to) navigateInGesture(router, to);
-                else if (RowDialog) setDialogId(row.id);
+                else if (RowDialog)
+                  rowDialogUrl.open({ [ROW_DIALOG_PARAM]: String(row.id) });
                 else targets.openEntry(row.id);
               }
             : undefined
@@ -522,7 +533,7 @@ function DeclaredList<
         className="flex-1"
       />
       {RowDialog && dialogId !== null && (
-        <RowDialog id={dialogId} onClose={() => setDialogId(null)} />
+        <RowDialog id={dialogId} onClose={rowDialogUrl.close} />
       )}
     </ListPageShell>
   );
