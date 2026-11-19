@@ -61,7 +61,7 @@ val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
 
-// Plugins developed outside of this repository (see org.projectforge.plugins.core.ExternalPlugins), joining the
+// Plugins developed outside of this repository (dev-docs/external-plugins.md), joining the
 // boot jar, bootRun and the generators as binaries: -Ppf.extraPlugins=<jar or directory of jars>[,...] (relative to
 // the root project) or the environment variable PF_EXTRA_PLUGINS. A plugin brings its own libraries, which aren't in
 // ProjectForge, as further jars.
@@ -316,6 +316,8 @@ val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // The generators tell the entities of the plugins developed outside of this repository by their jars.
+    systemProperty("pf.extraPluginJars", extraPluginJars.joinToString(",") { it.absolutePath })
 }
 
 tasks.named<Test>("test") {
@@ -450,6 +452,22 @@ tasks.register<JavaExec>("developmentMainForRelease") {
     mainClass.set("org.projectforge.development.DevelopmentMainForReleaseKt")
     classpath = sourceSets["test"].runtimeClasspath
     workingDir = rootDir
+    systemProperty("pf.extraPluginJars", extraPluginJars.joinToString(",") { it.absolutePath })
+}
+
+/**
+ * Generates the field metadata of the entities of the plugins given as pf.extraPlugins (not those of this repository)
+ * into the directory -Ppf.metadata.out=<dir>, for the frontend of such a plugin (bin/pf.sh metadata there).
+ * With -Ppf.metadata.check=true nothing is written: the task fails if a file differs.
+ */
+tasks.register<JavaExec>("generatePluginMetadata") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateExternalPluginMetadataMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    systemProperty("pf.extraPluginJars", extraPluginJars.joinToString(",") { it.absolutePath })
+    providers.gradleProperty("pf.metadata.out").orNull?.let { systemProperty("pf.metadata.out", rootProject.file(it).absolutePath) }
+    providers.gradleProperty("pf.metadata.check").orNull?.let { systemProperty("pf.metadata.check", it) }
 }
 
 /**

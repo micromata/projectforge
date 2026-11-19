@@ -60,8 +60,6 @@ pinned by `modules.test.ts`.
 
 ## Open points
 
-- The field metadata of the plugin's entities (`lib/metadata/cvr-*`) are still generated into this package by `gen`
-  (`GenerateNextFieldMetadataMain`, `ExternalPlugins`) and copied into the plugin; the generator has to become reusable by the plugin build.
 - The texts of the plugin are its own: the bundle is in the plugin jar, the build of its frontend generates one catalog per
   locale (all keys, flat) and names them in the manifest (`messages`); the app merges them while the plugin is active. No
   `gen` run here for a new text of the plugin.
