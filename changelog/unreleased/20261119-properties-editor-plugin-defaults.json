@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Properties editor: settings of a plugin that aren't in projectforge.properties (e.g. of the CVE-Pilot) no longer show \"The running system uses another value\"; they run with their default.",
+  "de": "Properties-Editor: Einstellungen eines Plugins, die nicht in der projectforge.properties stehen (z. B. des CVE-Pilots), zeigen nicht mehr \"Das laufende System verwendet einen anderen Wert\"; sie laufen mit ihrem Default."
+}
