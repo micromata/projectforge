@@ -246,7 +246,7 @@ export interface DeclaredField<M extends EntityMetadata> extends FieldBase {
   jiraHint?: boolean;
   /**
    * For a choice whose values don't speak for themselves (P1–P4): the key of each value's explanation is this
-   * prefix plus the value (`plugins.cveradar.priority.hint.` + `P1`), shown below the value in the open list. A
+   * prefix plus the value (`plugins.example.priority.hint.` + `P1`), shown below the value in the open list. A
    * value without such a key has none.
    */
   optionHintKeyPrefix?: string;

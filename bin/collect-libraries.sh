@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# collect-libraries.sh — collects the libraries of ProjectForge's components for the CVE-Pilot.
+# collect-libraries.sh — collects the libraries of ProjectForge's components for a vulnerability scanner (e.g. a plugin importing SBOMs).
 #
 # One zip per component (upload it with "Upload libraries" of the component in the inventory):
 #   backend       the runtime classpath of projectforge-application with all plugins (`gradle dependencies`)
@@ -10,14 +10,14 @@
 #                 `postgres:17` would be scanned in an arbitrarily old state); the registry only has the
 #                 released ProjectForge image, --build-app-image scans the one of the working tree instead
 # The web site (site/) isn't one: its npm packages only build the CSS (development dependencies, which the
-# CVE-Pilot leaves out), nothing of them is delivered.
+# scanner leaves out), nothing of them is delivered.
 # CycloneDX is preferred wherever possible: it has the full package urls (with the distribution of an OS
 # package) and is what Dependency-Track reads too. Nothing is uploaded by this script.
 #
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT="$ROOT/build/cve-pilot-libraries"
+OUT="$ROOT/build/libraries"
 COMPOSE="$ROOT/docker/compose/docker-compose.yml"
 SYFT_IMAGE="${SYFT_IMAGE:-docker.io/anchore/syft:latest}"
 ALL_COMPONENTS="backend,next,app,images"
@@ -27,7 +27,7 @@ MAX_ZIP_BYTES=$((10 * 1024 * 1024))
 
 usage() {
   cat <<'EOF'
-collect-libraries.sh [options] — the libraries of ProjectForge's components as zips for the CVE-Pilot
+collect-libraries.sh [options] — the libraries of ProjectForge's components as zips for a vulnerability scanner (e.g. a plugin importing SBOMs)
 
 Options:
   --only <list>    components, comma separated: backend,next,app,images (default: all)
@@ -37,7 +37,7 @@ Options:
                    builds the ProjectForge image of the working tree (docker/build-local.sh, needs the boot jar:
                    ./gradlew :projectforge-application:bootJar) and collects it instead of micromata/projectforge
   --no-syft       no syft, the package lists of the images only (without the distribution)
-  --out <dir>      output directory (default: build/cve-pilot-libraries)
+  --out <dir>      output directory (default: build/libraries)
   -h, --help       this help
 
 The images are read with docker or podman (override with CONTAINER_ENGINE=…). syft is taken from the PATH,

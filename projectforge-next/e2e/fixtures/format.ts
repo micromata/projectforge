@@ -53,7 +53,12 @@ export async function userFormat(page: Page): Promise<UserFormat> {
   // while the page renders the customer's ("Tindern") and never find the control — so overlay them here
   // too, from the same public endpoint, and translate against exactly what the user sees.
   const overrides = await fetchCustomerOverrides(page, locale);
-  const messages = applyCustomerOverrides(MESSAGES[locale], overrides);
+  // A plugin with a frontend of its own delivers its texts at runtime (PluginFrontend.messages), below the customer's.
+  const pluginMessages = await fetchPluginMessages(page, locale);
+  const messages = applyCustomerOverrides(
+    applyCustomerOverrides(MESSAGES[locale], pluginMessages),
+    overrides
+  );
   return {
     context,
     locale,
@@ -107,6 +112,26 @@ function translateMessages(
 /** Every shipped locale, in no particular order. */
 export function locales(): (keyof typeof MESSAGES)[] {
   return Object.keys(MESSAGES) as (keyof typeof MESSAGES)[];
+}
+
+/** The texts of the activated plugins with a frontend for [locale] (English where a plugin has none), as the app merges them. */
+async function fetchPluginMessages(
+  page: Page,
+  locale: string
+): Promise<Record<string, string>> {
+  const list = await page.request.get("/rs/pluginFrontend");
+  if (!list.ok()) return {};
+  const manifests = (await list.json()) as {
+    messages: Record<string, string>;
+  }[];
+  const merged: Record<string, string> = {};
+  for (const manifest of manifests) {
+    const url = manifest.messages[locale] ?? manifest.messages.en;
+    if (!url) continue;
+    const response = await page.request.get(url);
+    if (response.ok()) Object.assign(merged, await response.json());
+  }
+  return merged;
 }
 
 async function fetchUserData(page: Page): Promise<UserData> {

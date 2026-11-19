@@ -140,7 +140,7 @@ sealed class NotificationRuleParam<T : Any>(
     }
 
     /**
-     * A reference to an entity by id, picked by the autocompletion of the rest category [entity] (e.g. `cvrcase`). Its
+     * A reference to an entity by id, picked by the autocompletion of the rest category [entity] (e.g. `book`). Its
      * name comes from [NotificationRuleHandler.paramDisplayNames].
      */
     class EntityParam(

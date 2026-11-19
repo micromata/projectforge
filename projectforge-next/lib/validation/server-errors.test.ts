@@ -38,14 +38,14 @@ describe("applyServerValidationErrors", () => {
     const result = applyServerValidationErrors(
       target,
       [
-        { fieldId: "params.cvrCaseId", message: "The case is closed." },
+        { fieldId: "params.caseId", message: "The case is closed." },
         { fieldId: "paramsX", message: "Not of the group." },
       ],
       ["name", "params.*"]
     );
     expect(result.unassigned).toEqual(["Not of the group."]);
     expect(target.errorMap).toEqual({
-      onServer: { fields: { "params.cvrCaseId": "The case is closed." } },
+      onServer: { fields: { "params.caseId": "The case is closed." } },
     });
   });
 });
