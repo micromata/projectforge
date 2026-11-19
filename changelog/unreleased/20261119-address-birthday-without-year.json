@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Addresses: a birthday may be entered without the year (\"year unknown\"), as in common address books. It is shown, exported to Excel and vCard and listed in the birthday calendar as day and month only, without an age; vCards with a birthday without year are imported as such.",
+  "de": "Adressen: Ein Geburtstag kann ohne Jahr erfasst werden („Jahr unbekannt“), wie in gängigen Adressbüchern. Er wird nur mit Tag und Monat angezeigt, nach Excel und vCard exportiert und im Geburtstagskalender ohne Alter aufgeführt; vCards mit einem Geburtstag ohne Jahr werden entsprechend importiert."
+}

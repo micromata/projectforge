@@ -36,6 +36,7 @@ import ezvcard.property.Photo
 import ezvcard.property.StructuredName
 import ezvcard.property.Uid
 import org.projectforge.business.address.ImageType
+import org.projectforge.business.address.vcard.VCardUtils
 import java.time.LocalDate
 import java.util.UUID
 
@@ -44,6 +45,24 @@ import java.util.UUID
  * embedded photo): it is the content of a QR code, which gets dense quickly.
  */
 object BusinessCardVCard {
+    private val BIRTHDAY_WITHOUT_YEAR = Regex("""^(?:--)?(\d{2})-?(\d{2})$""")
+
+    /**
+     * @param value ISO date (yyyy-MM-dd) or a date without year (`--MM-DD`).
+     * @return The birthday, null if the value isn't valid.
+     */
+    internal fun parseBirthday(value: String?): Birthday? {
+        val trimmed = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        runCatching { LocalDate.parse(trimmed) }.getOrNull()?.let { return Birthday(it) }
+        val match = BIRTHDAY_WITHOUT_YEAR.matchEntire(trimmed) ?: return null
+        val (month, day) = match.destructured
+        return runCatching {
+            Birthday(LocalDate.of(VCardUtils.APPLE_NO_YEAR, month.toInt(), day.toInt())).also {
+                it.setParameter("X-APPLE-OMIT-YEAR", VCardUtils.APPLE_NO_YEAR.toString())
+            }
+        }.getOrNull()
+    }
+
     /**
      * @param photoUrl Public url of the photo (gateway). The photo itself is never embedded.
      * @return vCard 3.0 (understood by the camera apps of iOS and Android as well as by the address books).
@@ -80,7 +99,7 @@ object BusinessCardVCard {
         addAddress(vcard, AddressType.WORK, card.street, card.zipCode, card.city, card.country)
         addAddress(vcard, AddressType.HOME, card.privateStreet, card.privateZipCode, card.privateCity, card.privateCountry)
         card.birthday.clean()?.let { value ->
-            runCatching { LocalDate.parse(value) }.getOrNull()?.let { vcard.birthday = Birthday(it) }
+            parseBirthday(value)?.let { vcard.birthday = it }
         }
         card.comment.clean()?.let { vcard.addNote(it) }
         photoUrl?.takeIf { it.isNotBlank() }?.let {

@@ -65,6 +65,7 @@
     "addresses": "Addresses",
     "birthName": "Birth name",
     "birthday": "Birthday",
+    "birthdayYearUnknown": "Year unknown",
     "book": {
       "export": {
         "_": "Excel-Export",

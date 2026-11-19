@@ -95,6 +95,10 @@ public class BirthdayAddress implements Comparable<BirthdayAddress>, Serializabl
   /** Sets and gets the age of the person at the given date. */
   public int setAge(final Date date)
   {
+    if (address.getBirthdayYearUnknown()) {
+      age = -1;
+      return age;
+    }
     final PFDateTime dt = PFDateTime.from(date); // not null
     final PFDateTime birthday = PFDateTime.from(address.getBirthday());  // not null
     age = dt.getYear() - birthday.getYear();

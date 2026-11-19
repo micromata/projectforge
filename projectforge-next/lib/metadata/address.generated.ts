@@ -50,6 +50,11 @@ export const ADDRESS_METADATA = {
       i18nKey: "address.birthday",
       required: false,
     },
+    birthdayYearUnknown: {
+      dataType: "BOOLEAN",
+      i18nKey: "address.birthdayYearUnknown",
+      required: false,
+    },
     businessPhone: {
       dataType: "STRING",
       i18nKey: "address.phone",

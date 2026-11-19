@@ -190,6 +190,11 @@ open class AddressExport {
                 val lang =
                     LanguageConverter.getLanguageAsString(address.communicationLanguage, ThreadLocalUserContext.locale)
                 row.getCell("communicationLanguage")!!.setCellValue(lang)
+                val birthday = address.birthday
+                if (birthday != null && address.birthdayYearUnknown) {
+                    // The year is only a placeholder: export day and month only.
+                    row.getCell("birthday")?.setCellValue("%02d.%02d.".format(birthday.dayOfMonth, birthday.monthValue))
+                }
                 row.getCell("mailingAddressText")!!.setCellValue(address.mailingAddressText)
                 row.getCell("mailingAddressText2")!!.setCellValue(address.mailingAddressText2)
                 row.getCell("mailingZipCode")!!.setCellValue(address.mailingZipCode)

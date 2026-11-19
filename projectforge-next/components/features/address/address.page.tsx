@@ -108,7 +108,11 @@ export const ADDRESS_PAGE = definePage<
           { name: "birthName" },
           { name: "form" },
           { name: "title" },
-          { name: "birthday" },
+          // The box beside the date: the year of the date is then only a placeholder.
+          {
+            group: [{ name: "birthday" }, { name: "birthdayYearUnknown" }],
+            packed: true,
+          },
           { name: "email" },
           // The entity labels both just "e-mail".
           { name: "privateEmail", labelKey: "address.privateEmail" },

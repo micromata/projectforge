@@ -180,6 +180,7 @@ class BusinessCardServiceTest : AbstractTestBase() {
         assertThrows<UserException> { businessCardService.save(card("Note").also { it.comment = "x".repeat(1001) }) }
         assertThrows<UserException> { businessCardService.save(card("Birthday").also { it.birthday = "31.12.1980" }) }
         businessCardService.save(card("Fine").also { it.comment = "x".repeat(1000); it.birthday = "1980-12-31" })
+        businessCardService.save(card("NoYear").also { it.birthday = "--12-31" })
     }
 
     @Test
