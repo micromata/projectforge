@@ -222,6 +222,24 @@ It also records which old `/wa` or `/react` URLs are redirected (`legacyApp`).
   a data transfer. Bookmarks alone don't justify a redirect (`PageRoutesTest`, "only links that left
   ProjectForge are redirected").
 
+### Dialogs and the URL
+
+A dialog that should survive a reload and can be sent as a link keeps its state in the URL. Which way depends
+on the case:
+
+- **A nested route under a layout** — the calendar: its `layout` keeps `CalendarShell` mounted and
+  `calendar/[...edit]` renders the edit dialog from the path (`/calendar/timesheet/5`). Fits where a page owns its
+  route tree and the entry has no other page below that path.
+- **A query param (`useUrlDialog`, `hooks/use-url-dialog.ts`)** — a view or send dialog over a page whose
+  `/<entity>/<id>` is already the full page, so the path is taken: the address view over its list
+  (`PageDef.rowDialog`, `?view=<id>`; every list that declares one gets it from the list shell) and the send
+  dialogs of an address (`?dialog=…&dialogAddress=…&dialogFrom=…`). Opening pushes a history entry
+  (`navigateInGesture`), closing goes back if the hook pushed it, else replaces the URL without the params, so Back
+  never leads into a closed dialog. Where the same trigger is mounted twice (a list row and the view dialog over it)
+  the URL names the place that opened it (`dialogFrom`), or both would show the dialog.
+- **The edit modal store** (`EntityEditModalHost`, `openEntityEdit`) opens any entity's form in a dialog from any
+  page, but keeps no URL: use a route or a param where a link matters.
+
 ## Page composition
 
 Three shells, used by every page:
