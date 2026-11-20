@@ -1,0 +1,42 @@
+{
+  "summary": {
+    "en": [
+      "**CVE-Pilot**: dashboard, API key upload, several CVEs per case",
+      "**Plugins**: own pages for the new interface",
+      "**Order book**: invoice data of an order",
+      "**Addresses**: birthday without year",
+      "**Notification rules**: immediate notification"
+    ],
+    "de": [
+      "**CVE-Pilot**: Dashboard, Upload per API-Key, mehrere CVEs pro Fall",
+      "**Plugins**: eigene Seiten für die neue Oberfläche",
+      "**Auftragsbuch**: Rechnungsdaten eines Auftrags",
+      "**Adressen**: Geburtstag ohne Jahr",
+      "**Benachrichtigungsregeln**: sofortige Benachrichtigung"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**CVE-Pilot:** a dashboard as the first tab of the start page, an API key per component for uploading lists of libraries without a login, further CVEs per case, matching by the data of the CNA for vulnerabilities without CPE data, a component dialog with tabs, and a quick search in all columns of the tables; the demo on test data is removed.",
+      "**Plugins:** plugins can bring their own pages and texts for the new user interface, loaded at runtime without rebuilding the application.",
+      "**Order book:** an order carries the data of its invoices (customer order number, contract number, cost center, contact person, service period of a payment schedule entry); accounts can be filtered by debitors, creditors and general ledger accounts, and their e-invoice fields name their BT number.",
+      "**Addresses:** a birthday may be entered without the year; the view and the dialogs over the address list are part of the page's url.",
+      "**Notification rules:** a rule can additionally notify immediately after an event is detected.",
+      "**Rich text:** the editors offer the same formatting everywhere (headings, tables, code, code blocks, emoji).",
+      "**Number ranges:** the first proposed local project number is set only by `project-min` of the range.",
+      "{app} Switching to another server no longer mixes the address books of the servers (with the next app version).",
+      "**Fixes:** the net sum in order notification mails, the \"running system uses another value\" hint of the properties editor for plugin settings, and the charts of the CVE-Pilot statistics."
+    ],
+    "de": [
+      "**CVE-Pilot:** ein Dashboard als erster Tab der Startseite, ein API-Key pro Komponente zum Hochladen von Bibliothekslisten ohne Anmeldung, weitere CVEs pro Fall, Abgleich über die Daten der CNA für Schwachstellen ohne CPE-Daten, ein Komponenten-Dialog mit Tabs und eine Schnellsuche über alle Spalten der Tabellen; die Demo auf Testdaten entfällt.",
+      "**Plugins:** Plugins können eigene Seiten und Texte für die neue Oberfläche mitbringen, zur Laufzeit geladen ohne Neubau der Anwendung.",
+      "**Auftragsbuch:** ein Auftrag trägt die Daten seiner Rechnungen (Kundenauftragsnummer, Vertragsnummer, Kostenstelle, Ansprechpartner, Leistungszeitraum eines Zahlungsplaneintrags); Konten lassen sich nach Debitoren, Kreditoren und Sachkonten filtern, und ihre E-Rechnungs-Felder nennen ihre BT-Nummer.",
+      "**Adressen:** ein Geburtstag kann ohne Jahr eingegeben werden; die Ansicht und die Dialoge über der Adressliste sind Teil der Url der Seite.",
+      "**Benachrichtigungsregeln:** eine Regel kann zusätzlich sofort nach Erkennen eines Ereignisses benachrichtigen.",
+      "**Rich-Text:** die Editoren bieten überall dieselbe Formatierung (Überschriften, Tabellen, Code, Codeblöcke, Emoji).",
+      "**Nummernkreise:** die erste vorgeschlagene lokale Projektnummer wird nur noch über `project-min` des Kreises festgelegt.",
+      "{app} Der Wechsel auf einen anderen Server vermischt die Adressbücher der Server nicht mehr (mit der nächsten App-Version).",
+      "**Korrekturen:** die Nettosumme in Auftrags-Benachrichtigungsmails, der Hinweis „Das laufende System verwendet einen anderen Wert“ im Properties-Editor bei Plugin-Einstellungen und die Diagramme der CVE-Pilot-Statistik."
+    ]
+  }
+}
