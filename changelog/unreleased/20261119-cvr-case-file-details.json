@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "CVE-Pilot: the description tab of a case shows its key fields (kind, id, all CVEs, fix version, reason of the priority) and carries the edit button. Further CVEs are only possible for cases of kind CVE; an incident with further CVEs is rejected with a message.",
-  "de": "CVE-Pilot: Der Tab Beschreibung eines Falls zeigt die wichtigsten Felder (Art, Kennung, alle CVEs, Fix-Version, Begründung der Priorität) und trägt den Bearbeiten-Button. Weitere CVEs gibt es nur bei Fällen der Art CVE; ein Incident mit weiteren CVEs wird mit einer Meldung abgelehnt."
-}

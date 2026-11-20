@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Plugins can bring their own pages for the new user interface, loaded at runtime without rebuilding the application, together with their own texts.",
-  "de": "Plugins können eigene Seiten für die neue Oberfläche mitbringen, die zur Laufzeit ohne neuen Build der Anwendung geladen werden, samt eigener Texte."
-}
