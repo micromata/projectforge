@@ -49,4 +49,19 @@ test.describe("2FA passkey recommendation", { tag: "@parallel" }, () => {
       page.locator('[role="alert"][data-tone="warning"]')
     ).toHaveCount(0);
   });
+
+  test("is not shown at the login in the app (its setup page is out of reach there)", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "userAgent", {
+        get: () =>
+          "Mozilla/5.0 ProjectForgeApp/1.5.0 (browser2FA) (openInBrowser)",
+      });
+    });
+    await loginRequiring2FA(page, false);
+    await expect(
+      page.locator('[role="alert"][data-tone="warning"]')
+    ).toHaveCount(0);
+  });
 });

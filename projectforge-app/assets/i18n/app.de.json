@@ -41,6 +41,7 @@
   "app.web.find.next": "Nächster Treffer",
   "app.web.share": "Link teilen",
   "app.web.openInBrowser": "Im Browser öffnen",
+  "app.web.openInBrowser.failed": "Die Seite konnte nicht im Browser geöffnet werden.",
   "app.web.offline": "Keine Verbindung zum Server.",
   "app.web.menu.noMatch": "Kein Menüpunkt gefunden.",
   "app.web.menu.close": "Menü schließen",
