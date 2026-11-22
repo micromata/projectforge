@@ -36,6 +36,9 @@ import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
 
+/** Claims come from the IdP: no line breaks or control characters in the log. */
+private fun String.logSafe(): String = take(200).replace(Regex("\\p{Cntrl}"), "_")
+
 @Service
 @ConditionalOnProperty(name = ["spring.security.oauth2.client.registration.authentik.client-id"])
 open class OAuth2UserService(
@@ -50,27 +53,23 @@ open class OAuth2UserService(
 
         val pfUser = resolveUser(sub, preferredUsername)
         if (pfUser == null) {
-            log.warn { "OAuth2 login rejected: no local user found for sub=$sub, username=$preferredUsername" }
+            log.warn { "OAuth2 login rejected: no local user found for sub=${sub?.logSafe()}, username=${preferredUsername?.logSafe()}" }
             throw OAuth2AuthenticationException(
                 OAuth2Error("user_not_found", "No local user found for this identity.", null)
             )
         }
-        if (pfUser.deactivated == true) {
-            log.warn { "OAuth2 login rejected: user '${pfUser.username}' is deactivated" }
+        if (pfUser.deactivated == true || !pfUser.hasSystemAccess()) {
+            log.warn { "OAuth2 login rejected: user '${pfUser.username}' is deactivated or has no system access" }
             throw OAuth2AuthenticationException(
                 OAuth2Error("user_deactivated", "User account is deactivated.", null)
             )
         }
 
-        log.info { "OAuth2 login successful for user '${pfUser.username}' (sub=$sub)" }
+        log.info { "OAuth2 login successful for user '${pfUser.username}' (sub=${sub?.logSafe()})" }
         return oidcUser
     }
 
     fun resolveUser(sub: String?, preferredUsername: String?): PFUserDO? {
-        var pfUser = sub?.let { userDao.getUserByIdpExternalId(it) }
-        if (pfUser == null && preferredUsername != null) {
-            pfUser = userDao.getInternalByName(preferredUsername)
-        }
-        return pfUser
+        return OidcUserMatcher.resolve(userDao, sub, preferredUsername)
     }
 }

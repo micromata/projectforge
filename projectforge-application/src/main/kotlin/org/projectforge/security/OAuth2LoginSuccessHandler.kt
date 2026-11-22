@@ -56,8 +56,10 @@ open class OAuth2LoginSuccessHandler(
             return
         }
         val userContext = UserContext(pfUser)
-        // The SSO login counts as a second factor done as long ago as the SSO session may last at most (if configured).
-        my2FARequestConfiguration.getLastSuccessful2FAAfterSsoLogin(pfUser.username)?.let {
+        // The SSO login counts as a second factor, if the SSO server says it authenticated with one (amr) and when (auth_time).
+        val amr = (oidcUser.getClaim<Any>("amr") as? Collection<*>)?.map { it.toString() }
+        val authTime = oidcUser.authenticatedAt?.toEpochMilli()
+        my2FARequestConfiguration.getLastSuccessful2FAAfterSsoLogin(pfUser.username, amr, authTime)?.let {
             userContext.lastSuccessful2FA = it
         }
         LoginService.internalLogin(request, userContext)

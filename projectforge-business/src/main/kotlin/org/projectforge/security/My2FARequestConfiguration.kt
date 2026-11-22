@@ -72,44 +72,38 @@ open class My2FARequestConfiguration {
     internal set // internal for test cases
 
   /**
-   * Maximum age in minutes of an SSO session (OIDC login). If given, a login via SSO is treated as a second factor
-   * done this long ago (worst case: the shared SSO session is just about to expire). Periods of
-   * `projectforge.2fa.expiryPeriod.*` that are longer than this are fulfilled by the SSO login, equal or shorter ones
-   * demand a second factor of ProjectForge. If not given (or 0), SSO is only the login and a second factor of
-   * ProjectForge is always required.
+   * Values of the `amr` claim (authentication methods, RFC 8176) of the ID token that make a login via SSO (OIDC)
+   * count as a second factor, comma separated, case insensitive (e.g. `mfa,otp,hwk,swk`). The time of that second factor
+   * is the `auth_time` claim: the time the SSO server really authenticated the user, not the start of the shared SSO
+   * session. Without `amr` containing one of the values or without `auth_time`, SSO is only the login and ProjectForge
+   * asks for its own second factor. Empty (default): SSO never counts as second factor.
    */
-  @Value("\${projectforge.2fa.ssoSessionMaxAgeMinutes:}")
-  var ssoSessionMaxAgeMinutes: Int? = null
+  @Value("\${projectforge.2fa.ssoAmrValues:}")
+  var ssoAmrValues: String = ""
     internal set // internal for test cases
 
   /**
-   * Warns about values of [ssoSessionMaxAgeMinutes] that most probably aren't meant.
+   * The time (millis) to take as `lastSuccessful2FA` of a user just logged in via SSO, see [ssoAmrValues].
+   * @param amr The `amr` claim of the ID token.
+   * @param authTime The `auth_time` claim of the ID token (millis).
+   * @return null, if SSO doesn't count as second factor (not configured, no matching `amr`, no plausible `auth_time`,
+   * or [username] is exempt anyway).
    */
-  @PostConstruct
-  private fun checkSsoSessionMaxAge() {
-    val minutes = ssoSessionMaxAgeMinutes ?: return
-    if (minutes < 0) {
-      log.warn { "projectforge.2fa.ssoSessionMaxAgeMinutes=$minutes is negative and ignored: SSO is only the login." }
-    } else if (minutes in 1..10) {
-      log.warn {
-        "projectforge.2fa.ssoSessionMaxAgeMinutes=$minutes is very short: a SSO login may then authorize the mobile app " +
-            "without a second factor of its own (needs one of at most 10 minutes)."
-      }
-    } else if (minutes > 7 * 24 * 60) {
-      log.warn { "projectforge.2fa.ssoSessionMaxAgeMinutes=$minutes is longer than 7 days: is the SSO session really that long?" }
-    }
-  }
-
-  /**
-   * The time (millis) to take as `lastSuccessful2FA` of a user just logged in via SSO, see [ssoSessionMaxAgeMinutes].
-   * @return null, if SSO doesn't count as second factor (not configured, or [username] is exempt anyway).
-   */
-  fun getLastSuccessful2FAAfterSsoLogin(username: String?, now: Long = System.currentTimeMillis()): Long? {
-    val minutes = ssoSessionMaxAgeMinutes?.takeIf { it > 0 } ?: return null
-    if (isExempt(username)) {
+  fun getLastSuccessful2FAAfterSsoLogin(
+    username: String?,
+    amr: Collection<String>?,
+    authTime: Long?,
+    now: Long = System.currentTimeMillis(),
+  ): Long? {
+    val accepted = ssoAmrValues.split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+    if (accepted.isEmpty() || amr.isNullOrEmpty() || authTime == null || isExempt(username)) {
       return null
     }
-    return now - minutes * 60_000L
+    if (amr.none { it.trim().lowercase() in accepted }) {
+      return null
+    }
+    // A time in the future (clock skew of the SSO server) never counts as later than now.
+    return minOf(authTime, now)
   }
 
   /**
@@ -244,8 +238,8 @@ open class My2FARequestConfiguration {
     loginExpiryDays = days
   }
 
-  /** For test cases of other modules, see [ssoSessionMaxAgeMinutes]. */
-  fun internalSetSsoSessionMaxAgeMinutes4TestCases(minutes: Int?) {
-    ssoSessionMaxAgeMinutes = minutes
+  /** For test cases of other modules, see [ssoAmrValues]. */
+  fun internalSetSsoAmrValues4TestCases(values: String) {
+    ssoAmrValues = values
   }
 }

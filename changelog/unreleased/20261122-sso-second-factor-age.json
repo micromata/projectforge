@@ -1,5 +1,5 @@
 {
   "type": "added",
-  "en": "Login via SSO: the new property projectforge.2fa.ssoSessionMaxAgeMinutes lets an SSO login count as a second factor done that long ago (e.g. 480 for an SSO session of 8 hours). Without it, SSO is only the login and ProjectForge always asks for its own second factor on protected pages.",
-  "de": "Login per SSO: Mit der neuen Property projectforge.2fa.ssoSessionMaxAgeMinutes gilt ein SSO-Login als zweiter Faktor, der so lange zurückliegt (z. B. 480 bei einer SSO-Session von 8 Stunden). Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten immer einen eigenen zweiten Faktor."
+  "en": "Login via SSO: the new property projectforge.2fa.ssoAmrValues (e.g. mfa,otp,hwk) lets an SSO login count as a second factor, done at the auth_time of the ID token, if the SSO server reports one of these authentication methods (amr). Without it, SSO is only the login and ProjectForge asks for its own second factor on protected pages.",
+  "de": "Login per SSO: Mit der neuen Property projectforge.2fa.ssoAmrValues (z. B. mfa,otp,hwk) gilt ein SSO-Login als zweiter Faktor, durchgeführt zum auth_time des ID-Tokens, wenn der SSO-Server eine dieser Authentifizierungsmethoden (amr) meldet. Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten einen eigenen zweiten Faktor."
 }

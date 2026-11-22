@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginService
+import org.projectforge.security.OidcUserMatcher
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.annotation.Order
 import org.springframework.security.core.context.SecurityContextHolder
@@ -74,6 +75,12 @@ class GatewaySessionFilter(
 
     private fun getUserContext(request: HttpServletRequest, principal: OidcUser): UserContext? {
         LoginService.getUserContext(request)?.let { userContext ->
+            // Spring keeps the session attributes when another identity logs in within the same session.
+            if (!OidcUserMatcher.isSameIdentity(userContext.user, principal.subject, principal.preferredUsername)) {
+                log.info { "Gateway session of '${userContext.user?.username}' doesn't belong to the OAuth2 identity, invalidating it." }
+                request.getSession(false)?.invalidate()
+                return null
+            }
             if (userContext.user?.hasSystemAccess() == true) {
                 return userContext
             }
@@ -82,8 +89,7 @@ class GatewaySessionFilter(
             request.getSession(false)?.invalidate()
             return null
         }
-        val pfUser = userDao.getUserByIdpExternalId(principal.subject)
-            ?: principal.preferredUsername?.let { userDao.getInternalByName(it) }
+        val pfUser = OidcUserMatcher.resolve(userDao, principal.subject, principal.preferredUsername)
         if (pfUser == null || !pfUser.hasSystemAccess()) {
             log.warn { "OAuth2 user '${principal.preferredUsername}' (sub=${principal.subject}) not found or not active on the gateway." }
             return null

@@ -899,8 +899,8 @@ projectforge.2fa.expiryPeriod.days90=
 # Number of days a 2FA is required, when stay-logged-in is used. Without stay-logged-in and given, a 2FA is required
 # after every login.
 projectforge.2fa.loginExpiryDays=30
-# Optional: maximum age in minutes of the SSO session (login via OAuth2/OIDC), see the OAuth2 section. Empty: SSO is only the login.
-projectforge.2fa.ssoSessionMaxAgeMinutes=
+# Optional: amr values of the ID token that make an SSO login (OAuth2/OIDC) count as second factor, see the OAuth2 section. Empty: SSO is only the login.
+projectforge.2fa.ssoAmrValues=
 # Optional: no e-mail as second factor for members of these groups (comma separated):
 projectforge.2fa.disableMail2FAForGroups=PF_Admin
 ----
@@ -1262,15 +1262,15 @@ On successful OAuth2 login, ProjectForge resolves the local user account as foll
 Deactivated users are always rejected regardless of a valid OAuth2 session.
 
 *Second factor after an SSO login:* if ProjectForge is responsible for users, passwords and groups itself but accepts the
-login of the SSO server, set `projectforge.2fa.ssoSessionMaxAgeMinutes` to the maximum lifetime of the SSO session
-(e.g. `480` for 8 hours). A login via SSO then counts as a second factor done that long ago (worst case: the shared SSO
-session is nearly expired). Expiry periods of `projectforge.2fa.expiryPeriod.*` that are longer (e.g. `days30`) are
-fulfilled by the SSO login, equal or shorter ones (e.g. `hours8`, `hours1`, `minutes10` for admin pages, "My account" and
-password changes) ask for a second factor of ProjectForge. Without the property (default) SSO is only the login and
-ProjectForge always asks for its own second factor on protected pages. Users listed in `projectforge.2fa.exemptUsers`
-are never asked. The SSO login also fulfills `projectforge.2fa.loginExpiryDays` (no second factor right after login).
-Set the property only if the SSO server itself enforces a second factor (MFA); ProjectForge doesn't check how the SSO
-server authenticated the user.
+login of the SSO server, `projectforge.2fa.ssoAmrValues` names the values of the `amr` claim of the ID token (e.g.
+`mfa,otp,hwk,swk`) with which the SSO server says it authenticated the user with a second factor. Only then, and only
+with an `auth_time` claim, the SSO login counts as a second factor done at `auth_time` (not at the start of the shared SSO
+session). Expiry periods of `projectforge.2fa.expiryPeriod.*` that are still running since then (e.g. `days30`) are
+fulfilled, the others (e.g. `hours1`, `minutes10` for admin pages, "My account" and password changes) ask for a second
+factor of ProjectForge. Without the property (default), without such an `amr` or without `auth_time` SSO is only the login
+and ProjectForge asks for its own second factor on protected pages. Users listed in `projectforge.2fa.exemptUsers` are
+never asked. A counted SSO login also fulfills `projectforge.2fa.loginExpiryDays`. The SSO server has to send `amr` and
+`auth_time` in the ID token (check the claims of your provider), and a user must not be able to choose them.
 
 [[external_gateway_mode]]
 ==== External Gateway mode
