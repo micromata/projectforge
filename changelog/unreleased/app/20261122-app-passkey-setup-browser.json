@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "{app} Setting up a passkey: the app cannot register one itself, so the setup page now offers to continue in the browser of the device.",
+  "de": "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher bietet die Einrichtungsseite jetzt an, im Browser des Geräts fortzufahren."
+}

@@ -37,3 +37,11 @@ export function confirm2FAInApp(
     }
   });
 }
+
+/**
+ * Lets the app open the passkey setup (`/2FASetup`) in the system browser, where WebAuthn registration works (the
+ * WebView of the app can't). The user logs in there; nothing comes back to the page. False if there is no app.
+ */
+export function openPasskeySetupInBrowser(): boolean {
+  return postToApp({ pf: "passkeySetup" });
+}

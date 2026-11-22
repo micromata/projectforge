@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FormAlert } from "@/components/shared/form-alert";
 import type { TwoFactorContext, TwoFactorMethods } from "@/lib/rs/auth";
-import { isInApp } from "@/lib/app-mode";
+import { Button } from "@/components/ui/button";
+import { appOpensPasskeySetupInBrowser, isInApp } from "@/lib/app-mode";
+import { openPasskeySetupInBrowser } from "@/lib/app-bridge";
 import { isWebAuthnSupported } from "@/lib/webauthn";
 
 interface PasskeyRecommendationProps {
@@ -16,7 +18,8 @@ interface PasskeyRecommendationProps {
  * Strong recommendation to register a passkey, shown beside the 2FA code entry of a user who has none.
  *
  * Not shown in the password reset (the user isn't logged in, no setup page reachable), in the app's WebView
- * (it can't register passkeys) and where the browser can't do WebAuthn. At the login only a pre-login session
+ * (it can't register passkeys; an app that opens the setup in the system browser gets a button for that) and where
+ * the browser can't do WebAuthn. At the login only a pre-login session
  * exists, so the setup page isn't linkable there: a hint names where to find it instead.
  */
 export function PasskeyRecommendation({
@@ -24,18 +27,30 @@ export function PasskeyRecommendation({
   methods,
 }: PasskeyRecommendationProps) {
   const t = useTranslations();
+  // Only where the setup page is reachable (not at the login, where it has no button).
+  const inBrowser = context === "session" && appOpensPasskeySetupInBrowser();
   if (
     methods.webAuthn ||
     context === "reset" ||
-    isInApp() ||
-    !isWebAuthnSupported()
+    (isInApp() && !inBrowser) ||
+    // The system browser does the registration, whatever the WebView can.
+    (!inBrowser && !isWebAuthnSupported())
   ) {
     return null;
   }
   return (
     <FormAlert tone="warning">
       <p>{t("user.My2FACode.passkey.recommendation")}</p>
-      {context === "session" ? (
+      {context === "session" && inBrowser ? (
+        <Button
+          type="button"
+          variant="link"
+          className="h-auto p-0 font-medium"
+          onClick={() => openPasskeySetupInBrowser()}
+        >
+          {t("webauthn.browser.open")}
+        </Button>
+      ) : context === "session" ? (
         <Link
           href="/2FASetup"
           target="_blank"

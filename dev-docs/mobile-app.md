@@ -237,6 +237,13 @@ SMS and mail do. So next's 2FA dialog (`two-factor-form.tsx`, context `session`)
 3. It answers with the event `pf-app-2fa` `{ok}` (`twoFactorScript.ts`); next repeats the refused request (the CSRF
    token of the new session follows by the retry of `client.ts`). No reload, the page keeps its state.
 
+**Passkey setup:** registering a passkey (`/2FASetup`, `WebAuthnSection`, the recommendation beside the code entry) fails
+in the WebView for the same reason, and it needs a browser session (challenge and fresh 2FA live in the HTTP session), so
+the app token can't do it. An app with `(browserPasskey)` in its user agent (`appOpensPasskeySetupInBrowser`) makes
+next show "Set up in the browser" instead of the add buttons: the page posts `{"pf":"passkeySetup"}`, the app
+(`WebScreen.onMessage`, same origin only) opens `/next/2FASetup` with `Linking.openURL` (`passkeySetup.ts`). The user logs
+in there; nothing comes back, they return to the app by hand. Older apps only get the explanatory text.
+
 ## Client log
 
 `core/log/appLog.ts` (`appLog`) records what is needed to find out why something fails, in particular behind

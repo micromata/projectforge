@@ -23,3 +23,13 @@ export const APP_BROWSER_2FA_MARKER = "(browser2FA)";
 export function appConfirms2FAInBrowser(): boolean {
   return isInApp() && navigator.userAgent.includes(APP_BROWSER_2FA_MARKER);
 }
+
+/**
+ * The app opens the passkey setup in the system browser (`{"pf":"passkeySetup"}`, see app-bridge.ts), as the WebView
+ * can't register passkeys: an app that can marks its user agent with `(browserPasskey)` after its version.
+ */
+export const APP_BROWSER_PASSKEY_MARKER = "(browserPasskey)";
+
+export function appOpensPasskeySetupInBrowser(): boolean {
+  return isInApp() && navigator.userAgent.includes(APP_BROWSER_PASSKEY_MARKER);
+}
