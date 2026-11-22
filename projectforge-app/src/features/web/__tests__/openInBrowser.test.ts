@@ -21,13 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-/** The page of next where passkeys are registered (`{"pf":"passkeySetup"}` of the page opens it in the browser). */
-const PASSKEY_SETUP_PATH = '/next/2FASetup';
+import { browserTarget } from '../openInBrowser';
 
-/**
- * The address of the passkey setup at [server]. The WebView can't register passkeys (the relying party is the domain of
- * the server, which a store app has no association with), so the system browser shows it: the user logs in there.
- */
-export function passkeySetupUrl(server: URL): string {
-  return `${server.toString().replace(/\/+$/, '')}${PASSKEY_SETUP_PATH}`;
-}
+const server = new URL('https://pf.example.com/pf/');
+const shown = 'https://pf.example.com/pf/next/chat';
+
+test('without a path of the page the shown page', () => {
+  expect(browserTarget(server, shown, undefined)).toBe(shown);
+  expect(browserTarget(server, null, undefined)).toBeNull();
+});
+
+test('a path of next is taken below the context path of the server', () => {
+  expect(browserTarget(server, shown, '/next/2FASetup')).toBe('https://pf.example.com/pf/next/2FASetup');
+});
+
+test.each(['//evil.example.com/next/x', 'https://evil.example.com', '/rs/users', '/next/../rs/x', 42, null])(
+  'anything else is ignored: %s',
+  (path) => {
+    expect(browserTarget(server, shown, path)).toBe(shown);
+  },
+);

@@ -1,5 +1,5 @@
 {
   "type": "fixed",
-  "en": "{app} Setting up a passkey: the app cannot register one itself, so the setup page now offers to continue in the browser of the device.",
-  "de": "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher bietet die Einrichtungsseite jetzt an, im Browser des Geräts fortzufahren."
+  "en": "{app} Setting up a passkey: the app cannot register one itself, so the setup page now continues in the browser of the device. Pages of the server can ask the app to show them in the browser, as the \"Open in browser\" menu entry does for every page.",
+  "de": "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher geht die Einrichtungsseite jetzt im Browser des Geräts weiter. Seiten des Servers können die App bitten, sie im Browser anzuzeigen, wie es der Menüpunkt „Im Browser öffnen“ für jede Seite tut."
 }

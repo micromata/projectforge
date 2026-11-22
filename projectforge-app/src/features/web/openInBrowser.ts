@@ -21,10 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-import { passkeySetupUrl } from '../passkeySetup';
-
-test('the passkey setup of the server', () => {
-  expect(passkeySetupUrl(new URL('https://pf.example.com'))).toBe('https://pf.example.com/next/2FASetup');
-  // A server below a context path keeps it.
-  expect(passkeySetupUrl(new URL('https://pf.example.com/pf/'))).toBe('https://pf.example.com/pf/next/2FASetup');
-});
+/**
+ * The page the system browser shows for `{"pf":"openInBrowser","path":…}` of a page: the page [path] of next at
+ * [server] (below its context path) if the page named one (e.g. `/next/2FASetup`, where passkeys can be registered, which
+ * the WebView can't), else the page [shown] now. Anything but a path of next is ignored.
+ */
+export function browserTarget(server: URL, shown: string | null, path: unknown): string | null {
+  if (typeof path === 'string' && /^\/next\/[\w\-./?=&%#]*$/.test(path) && !path.includes('..')) {
+    return `${server.toString().replace(/\/+$/, '')}${path}`;
+  }
+  return shown;
+}

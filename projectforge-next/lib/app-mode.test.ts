@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   appConfirms2FAInBrowser,
-  appOpensPasskeySetupInBrowser,
+  appOpensPageInBrowser,
   isInApp,
 } from "./app-mode";
 
@@ -15,20 +15,18 @@ describe("app-mode", () => {
   it("a browser is no app", () => {
     userAgent("Mozilla/5.0 Safari/605.1");
     expect(isInApp()).toBe(false);
-    expect(appOpensPasskeySetupInBrowser()).toBe(false);
+    expect(appOpensPageInBrowser()).toBe(false);
   });
 
-  it("an older app does not open the passkey setup in the browser", () => {
+  it("an older app does not open the page in the browser", () => {
     userAgent("Mozilla/5.0 ProjectForgeApp/1.4.0 (browser2FA)");
     expect(isInApp()).toBe(true);
     expect(appConfirms2FAInBrowser()).toBe(true);
-    expect(appOpensPasskeySetupInBrowser()).toBe(false);
+    expect(appOpensPageInBrowser()).toBe(false);
   });
 
   it("an app with the marker does", () => {
-    userAgent(
-      "Mozilla/5.0 ProjectForgeApp/1.5.0 (browser2FA) (browserPasskey)"
-    );
-    expect(appOpensPasskeySetupInBrowser()).toBe(true);
+    userAgent("Mozilla/5.0 ProjectForgeApp/1.5.0 (browser2FA) (openInBrowser)");
+    expect(appOpensPageInBrowser()).toBe(true);
   });
 });

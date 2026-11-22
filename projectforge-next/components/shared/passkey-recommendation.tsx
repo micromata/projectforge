@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { FormAlert } from "@/components/shared/form-alert";
 import type { TwoFactorContext, TwoFactorMethods } from "@/lib/rs/auth";
 import { Button } from "@/components/ui/button";
-import { appOpensPasskeySetupInBrowser, isInApp } from "@/lib/app-mode";
-import { openPasskeySetupInBrowser } from "@/lib/app-bridge";
+import { appOpensPageInBrowser, isInApp } from "@/lib/app-mode";
+import { openPageInBrowser } from "@/lib/app-bridge";
 import { isWebAuthnSupported } from "@/lib/webauthn";
 
 interface PasskeyRecommendationProps {
@@ -28,7 +28,7 @@ export function PasskeyRecommendation({
 }: PasskeyRecommendationProps) {
   const t = useTranslations();
   // Only where the setup page is reachable (not at the login, where it has no button).
-  const inBrowser = context === "session" && appOpensPasskeySetupInBrowser();
+  const inBrowser = context === "session" && appOpensPageInBrowser();
   if (
     methods.webAuthn ||
     context === "reset" ||
@@ -46,7 +46,7 @@ export function PasskeyRecommendation({
           type="button"
           variant="link"
           className="h-auto p-0 font-medium"
-          onClick={() => openPasskeySetupInBrowser()}
+          onClick={() => openPageInBrowser("/next/2FASetup")}
         >
           {t("webauthn.browser.open")}
         </Button>

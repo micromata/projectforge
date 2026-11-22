@@ -34,8 +34,8 @@ import {
   finishWebAuthnRegister,
   updateWebAuthnEntry,
 } from "@/lib/rs/my-2fa-setup";
-import { appOpensPasskeySetupInBrowser, isInApp } from "@/lib/app-mode";
-import { openPasskeySetupInBrowser } from "@/lib/app-bridge";
+import { appOpensPageInBrowser, isInApp } from "@/lib/app-mode";
+import { openPageInBrowser } from "@/lib/app-bridge";
 import { toast } from "@/lib/toast";
 import { isWebAuthnSupported, register } from "@/lib/webauthn";
 import { HELP_TEXT_CLASS } from "./help-text";
@@ -63,7 +63,7 @@ export function WebAuthnSection({
   const supported = isWebAuthnSupported();
   // The WebView of the app can't register a passkey: an app that can opens this page in the system browser instead.
   const inApp = isInApp();
-  const inBrowser = inApp && appOpensPasskeySetupInBrowser();
+  const inBrowser = inApp && appOpensPageInBrowser();
 
   return (
     <SectionCard>
@@ -101,7 +101,7 @@ export function WebAuthnSection({
                 type="button"
                 size="sm"
                 className="mt-2 gap-1.5"
-                onClick={() => openPasskeySetupInBrowser()}
+                onClick={() => openPageInBrowser()}
               >
                 <HugeiconsIcon icon={FingerPrintIcon} size={14} aria-hidden />
                 {t("webauthn.browser.open")}

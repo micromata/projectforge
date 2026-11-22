@@ -25,11 +25,12 @@ export function appConfirms2FAInBrowser(): boolean {
 }
 
 /**
- * The app opens the passkey setup in the system browser (`{"pf":"passkeySetup"}`, see app-bridge.ts), as the WebView
- * can't register passkeys: an app that can marks its user agent with `(browserPasskey)` after its version.
+ * The app shows a page in the system browser on request (`{"pf":"openInBrowser"}`, see app-bridge.ts), e.g. the passkey
+ * setup, as the WebView can't register passkeys: an app that can marks its user agent with `(openInBrowser)` after its
+ * version. (Its menu has the entry for every page anyway.)
  */
-export const APP_BROWSER_PASSKEY_MARKER = "(browserPasskey)";
+export const APP_OPEN_IN_BROWSER_MARKER = "(openInBrowser)";
 
-export function appOpensPasskeySetupInBrowser(): boolean {
-  return isInApp() && navigator.userAgent.includes(APP_BROWSER_PASSKEY_MARKER);
+export function appOpensPageInBrowser(): boolean {
+  return isInApp() && navigator.userAgent.includes(APP_OPEN_IN_BROWSER_MARKER);
 }

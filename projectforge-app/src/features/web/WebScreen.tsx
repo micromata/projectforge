@@ -47,7 +47,7 @@ import { showWalletPass, walletAvailable, WalletException } from '../../core/wal
 import { FindBar, FindResult } from './FindBar';
 import { findScript } from './findInPage';
 import { themeScript } from './themeScript';
-import { passkeySetupUrl } from './passkeySetup';
+import { browserTarget } from './openInBrowser';
 import { twoFactorAnswerScript } from './twoFactorScript';
 import { BLOB_SCRIPT, blobFile, DownloadedFile, isWalletPass, WebDownload } from './webDownload';
 import { NativePage, WebNavigation } from './webNavigation';
@@ -439,6 +439,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       mime?: unknown;
       data?: unknown;
       maxAgeMillis?: unknown;
+      path?: unknown;
     };
     try {
       data = JSON.parse(event.nativeEvent.data);
@@ -456,13 +457,18 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       userStatus.changed();
     } else if (data?.pf === 'twoFactor' && navigation.isSameOrigin(event.nativeEvent.url)) {
       void confirm2FA(data.maxAgeMillis);
-    } else if (data?.pf === 'passkeySetup' && navigation.isSameOrigin(event.nativeEvent.url)) {
-      // The WebView can't register passkeys: the system browser shows the setup page (the user logs in there).
-      appLog.info('web', 'Passkey setup asked by the page: opened in the system browser');
-      void Linking.openURL(passkeySetupUrl(navigation.server)).catch((e) =>
-        appLog.warn('web', `Passkey setup not opened: ${String(e)}`),
-      );
+    } else if (data?.pf === 'openInBrowser' && navigation.isSameOrigin(event.nativeEvent.url)) {
+      // next shows pages the WebView can't do (passkey setup): the system browser shows this page or [path] (the user
+      // logs in there).
+      openInBrowser(browserTarget(navigation.server, shownUrl.current, data.path));
     }
+  };
+
+  /** Shows [url] (a page of the server) in the system browser; it has a session of its own, the user logs in there. */
+  const openInBrowser = (url: string | null) => {
+    if (!url) return;
+    appLog.info('web', `Page ${LogSanitizer.url(url)} opened in the browser`);
+    void Linking.openURL(url).catch((e) => appLog.warn('web', `Not opened outside the app: ${String(e)}`));
   };
 
   /**
@@ -680,12 +686,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     share: () => {
       if (shownUrl.current) void Share.share({ url: shownUrl.current, message: shownUrl.current });
     },
-    openInBrowser: () => {
-      const url = shownUrl.current;
-      if (!url) return;
-      appLog.info('web', `Page ${LogSanitizer.url(url)} opened in the browser`);
-      void Linking.openURL(url).catch((e) => appLog.warn('web', `Not opened outside the app: ${String(e)}`));
-    },
+    openInBrowser: () => openInBrowser(shownUrl.current),
     restart: () => restart(true),
   }));
 
@@ -710,8 +711,8 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
         originWhitelist={['*']}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         // Marks the app for next (lib/app-mode.ts), which then e.g. hides its logout; `(browser2FA)`: it confirms a
-        // second factor in the browser (confirm2FA), `(browserPasskey)`: it opens the passkey setup there.
-        applicationNameForUserAgent={`ProjectForgeApp/${appVersion} (browser2FA) (browserPasskey)`}
+        // second factor in the browser (confirm2FA), `(openInBrowser)`: it shows a page in the browser.
+        applicationNameForUserAgent={`ProjectForgeApp/${appVersion} (browser2FA) (openInBrowser)`}
         injectedJavaScriptBeforeContentLoaded={COMMIT_SCRIPT + BLOB_SCRIPT}
         injectedJavaScriptBeforeContentLoadedForMainFrameOnly
         onMessage={onMessage}
