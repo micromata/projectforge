@@ -3,9 +3,12 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.13",
-    "date" : "2026-11-17",
+    "date" : "2026-11-22",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).", "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile." ]
+    }, {
       "type" : "fixed",
       "items" : [ "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen." ]
     } ]

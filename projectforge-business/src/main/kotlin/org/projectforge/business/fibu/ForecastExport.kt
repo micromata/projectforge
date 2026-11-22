@@ -102,6 +102,9 @@ open class ForecastExport { // open needed by Wicket.
     private lateinit var rechnungCache: RechnungCache
 
     @Autowired
+    private lateinit var forecastPeriodSums: ForecastPeriodSums
+
+    @Autowired
     private lateinit var rechnungDao: RechnungDao
 
     @Autowired
@@ -1015,15 +1018,7 @@ open class ForecastExport { // open needed by Wicket.
         val posInfo = orderInfo?.getInfoPosition(pos.id)
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
-        val forecastInfo = ForecastOrderPosInfo(order, pos)
-        forecastInfo.distributeUnusedBudget = ctx.distributeUnusedBudget
-        // Distribution must not re-forecast months already covered by actual invoices (respecting baseDate):
-        forecastInfo.lastInvoiceMonth = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(pos.id)
-            ?.filter { it.isInvoiced && (baseDate == null || (it.rechnungInfo?.date ?: LocalDate.MAX) <= baseDate) }
-            ?.mapNotNull { it.rechnungInfo?.date }
-            ?.maxOrNull()
-            ?.let { PFDay.from(it).beginOfMonth }
-        forecastInfo.calculate()
+        val forecastInfo = forecastPeriodSums.calculate(order, pos, baseDate, ctx.distributeUnusedBudget)
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, netSum).cellStyle = ctx.currencyCellStyle
         if (invoicedSum.compareTo(BigDecimal.ZERO) != 0) {
             sheet.setBigDecimalValue(row, ForecastCol.FAKTURIERT.header, invoicedSum).cellStyle =

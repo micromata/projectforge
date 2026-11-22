@@ -1793,6 +1793,8 @@
         "_": "Forecast",
         "tooltip": "Export des Forecasts für die aktuelle Auftragsliste. Das Startdatum wird aus dem Leistungszeitraum Start Filter verwendet. Wenn nicht angegeben wird der 01.01.[aktuelles Jahr] verwendet."
       },
+      "forecastInPeriod": "Forecast im Zeitraum",
+      "forecastPeriod": "Forecast-Fakturierung",
       "forecastType": {
         "_": "Forecast-Typ",
         "currentMonth": "Aktueller Monat",

@@ -1793,6 +1793,8 @@
         "_": "Forecast",
         "tooltip": "Forecast export for actual orderbook list. The start date will be taken from the period of performance begin. If not present it uses 01/01/[actual year]."
       },
+      "forecastInPeriod": "Forecast in period",
+      "forecastPeriod": "Forecast invoicing",
       "forecastType": {
         "_": "Forecast type",
         "currentMonth": "Current month",

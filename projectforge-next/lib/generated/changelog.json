@@ -3,9 +3,12 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.13",
-    "date" : "2026-11-17",
+    "date" : "2026-11-22",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: PDFs and text files of a message can be previewed (eye button) like attachments elsewhere.", "Order book: new filter \"Forecast invoicing\" with a period. It lists the orders the forecast expects to invoice in that period, with the amount in the column \"Forecast in period\", which appears while the filter is set, and its sum in the statistics line." ]
+    }, {
       "type" : "fixed",
       "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one." ]
     } ]
