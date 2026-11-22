@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -73,30 +74,44 @@ class ForecastPeriodSumsTest : AbstractTestBase() {
         assertSum(2000, id, nextMonth.plusMonths(1).localDate, nextMonth.plusMonths(2).endOfMonth.localDate)
     }
 
+    /**
+     * Characterization: with FOLLOWING_MONTH a performance period of two months (Dec, Jan) is forecast in the two
+     * months after its first one (Jan, Feb), half each; the first month stays empty. The forecast export shows the same.
+     */
     @Test
-    fun `the following month forecast type shifts the revenue by a month`() {
+    fun `the following month forecast type spreads the revenue over the months after the first one`() {
         val id = insertOrder(
             2000, nextMonth.localDate, nextMonth.plusMonths(1).endOfMonth.localDate,
             type = AuftragForecastType.FOLLOWING_MONTH,
         )
-        // Nothing in the first month of the performance period; the invoicing follows one month after the performance.
         assertSum(0, id, nextMonth.localDate, nextMonth.endOfMonth.localDate)
-        assertSum(2000, id, nextMonth.plusMonths(1).localDate, nextMonth.plusMonths(2).endOfMonth.localDate)
+        assertSum(1000, id, nextMonth.plusMonths(1).localDate, nextMonth.plusMonths(1).endOfMonth.localDate)
+        assertSum(1000, id, nextMonth.plusMonths(2).localDate, nextMonth.plusMonths(2).endOfMonth.localDate)
+        assertSum(0, id, nextMonth.plusMonths(3).localDate, nextMonth.plusMonths(3).endOfMonth.localDate)
     }
 
+    /**
+     * Characterization: the rest of a position with a payment schedule (net sum minus the schedule) is distributed
+     * evenly over the months from the first schedule on, the month of the schedule included. Its own amount is then
+     * not the month's value (here 1000 net, 400 scheduled for the second month: 333.33 in each of the three months),
+     * and the total stays the net sum. The forecast export behaves the same; change both together, if ever.
+     */
     @Test
-    fun `a payment schedule doesn't change what is forecast in total`() {
+    fun `the distribution overwrites the month of a payment schedule`() {
+        val scheduleMonth = nextMonth.plusMonths(1)
         val id = insertOrder(
             1000, nextMonth.localDate, nextMonth.plusMonths(3).endOfMonth.localDate,
             type = AuftragForecastType.CURRENT_MONTH,
-            scheduleDate = nextMonth.plusMonths(1).plusDays(9).localDate, scheduleAmount = 400,
+            scheduleDate = scheduleMonth.plusDays(9).localDate, scheduleAmount = 400,
         )
+        val monthly = BigDecimal("333.33")
+        listOf(1, 2, 3).forEach { offset ->
+            val month = nextMonth.plusMonths(offset.toLong())
+            val sum = forecastPeriodSums.sumInPeriod(info(id), month.localDate, month.endOfMonth.localDate)
+            assertEquals(0, monthly.compareTo(sum), "Month +$offset: expected $monthly, but was $sum.")
+        }
+        assertSum(0, id, nextMonth.localDate, nextMonth.endOfMonth.localDate)
         assertSum(1000, id, nextMonth.localDate, nextMonth.plusMonths(6).endOfMonth.localDate)
-        assertTrue(
-            forecastPeriodSums.sumInPeriod(info(id), nextMonth.plusMonths(1).localDate, nextMonth.plusMonths(1).endOfMonth.localDate)
-                    .signum() > 0,
-            "The month of the schedule is part of the forecast.",
-        )
     }
 
     @Test
