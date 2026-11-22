@@ -9,8 +9,11 @@
       "type" : "added",
       "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).", "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile." ]
     }, {
+      "type" : "improved",
+      "items" : [ "Eingabe des zweiten Faktors: Wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten; das spart künftig die Code-Eingabe bei jeder Anmeldung." ]
+    }, {
       "type" : "fixed",
-      "items" : [ "Forecast: Der Betrag eines Zahlungsplans bleibt im Monat seines Datums. Der Rest einer Position (Nettosumme abzüglich Zahlungsplänen) wird zusätzlich darauf verteilt, statt den geplanten Betrag zu ersetzen.", "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen." ]
+      "items" : [ "Forecast: Der Betrag eines Zahlungsplans bleibt im Monat seines Datums. Der Rest einer Position (Nettosumme abzüglich Zahlungsplänen) wird zusätzlich darauf verteilt, statt den geplanten Betrag zu ersetzen.", "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen.", "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung." ]
     } ]
   },
   "groups" : [ {

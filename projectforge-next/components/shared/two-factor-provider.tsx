@@ -67,7 +67,7 @@ export function TwoFactorProvider({ children }: { children: React.ReactNode }) {
           if (!open) settle(false);
         }}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{t("user.My2FACode.title")}</DialogTitle>
             <DialogDescription className="sr-only">
