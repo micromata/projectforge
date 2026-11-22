@@ -91,27 +91,35 @@ class ForecastPeriodSumsTest : AbstractTestBase() {
     }
 
     /**
-     * Characterization: the rest of a position with a payment schedule (net sum minus the schedule) is distributed
-     * evenly over the months from the first schedule on, the month of the schedule included. Its own amount is then
-     * not the month's value (here 1000 net, 400 scheduled for the second month: 333.33 in each of the three months),
-     * and the total stays the net sum. The forecast export behaves the same; change both together, if ever.
+     * The amount of a payment schedule stays in the month of its date; the rest of the position (here 1000 net minus
+     * 400 scheduled) is distributed evenly from the month of the schedule on, on top of it.
      */
     @Test
-    fun `the distribution overwrites the month of a payment schedule`() {
+    fun `a payment schedule keeps its amount in its month`() {
         val scheduleMonth = nextMonth.plusMonths(1)
         val id = insertOrder(
             1000, nextMonth.localDate, nextMonth.plusMonths(3).endOfMonth.localDate,
             type = AuftragForecastType.CURRENT_MONTH,
             scheduleDate = scheduleMonth.plusDays(9).localDate, scheduleAmount = 400,
         )
-        val monthly = BigDecimal("333.33")
-        listOf(1, 2, 3).forEach { offset ->
-            val month = nextMonth.plusMonths(offset.toLong())
-            val sum = forecastPeriodSums.sumInPeriod(info(id), month.localDate, month.endOfMonth.localDate)
-            assertEquals(0, monthly.compareTo(sum), "Month +$offset: expected $monthly, but was $sum.")
-        }
         assertSum(0, id, nextMonth.localDate, nextMonth.endOfMonth.localDate)
+        assertSum(600, id, scheduleMonth.localDate, scheduleMonth.endOfMonth.localDate) // 400 + 200 of the rest
+        assertSum(200, id, scheduleMonth.plusMonths(1).localDate, scheduleMonth.plusMonths(1).endOfMonth.localDate)
+        assertSum(200, id, scheduleMonth.plusMonths(2).localDate, scheduleMonth.plusMonths(2).endOfMonth.localDate)
         assertSum(1000, id, nextMonth.localDate, nextMonth.plusMonths(6).endOfMonth.localDate)
+    }
+
+    @Test
+    fun `a payment schedule covering the whole net sum leaves nothing to distribute`() {
+        val scheduleMonth = nextMonth.plusMonths(1)
+        val id = insertOrder(
+            1000, nextMonth.localDate, nextMonth.plusMonths(3).endOfMonth.localDate,
+            type = AuftragForecastType.CURRENT_MONTH,
+            scheduleDate = scheduleMonth.plusDays(9).localDate, scheduleAmount = 1000,
+        )
+        assertSum(1000, id, scheduleMonth.localDate, scheduleMonth.endOfMonth.localDate)
+        assertSum(0, id, scheduleMonth.plusMonths(1).localDate, nextMonth.plusMonths(6).endOfMonth.localDate)
+        assertSum(0, id, nextMonth.localDate, nextMonth.endOfMonth.localDate)
     }
 
     @Test
