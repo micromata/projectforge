@@ -226,10 +226,13 @@ image::/uploads/adminguide/properties-editor.png[Properties editor]
   comments stay above the parameter they were written above.
 * The descriptions contain links to the matching sections of this guide.
 * Changes take effect only after a restart of ProjectForge, except for the parameters marked as _live_: they apply on
-  saving. These are the logos and the logo height (`projectforge.logoFile`, `projectforge.logoFileDark`,
-  `projectforge.logoHeight`, `projectforge.export.logoFile`, `wallet.logoFile`), the availability types
-  (`projectforge.availability.types`), the mail server (`mail.session.pfmailsession.*`), the expectations of invoices
-  (`projectforge.fibu.invoices.*`) and the seller of e-invoices (`projectforge.einvoice.seller.*`).
+  saving. These are:
+** the logos and the logo height (`projectforge.logoFile`, `projectforge.logoFileDark`, `projectforge.logoHeight`,
+   `projectforge.export.logoFile`, `wallet.logoFile`),
+** the availability types (`projectforge.availability.types`),
+** the mail server (`mail.session.pfmailsession.*`),
+** the expectations of invoices (`projectforge.fibu.invoices.*`),
+** the seller of e-invoices (`projectforge.einvoice.seller.*`).
 * Every parameter shows its default; _Reset to default_ removes it from the file, so the default applies again.
 * _Compare projectforge.properties_ (next to the editor) compares the current file with its backups, or two backups
   with each other, e.g. to find out what changed since an older version. By default the order is ignored, so only
@@ -290,10 +293,13 @@ projectforge.push.apns.topic=de.projectforge.mobileapp
 ==== Behind an SSO proxy
 
 If an SSO proxy (e.g. Authentik as forward auth in nginx) stands in front of ProjectForge, it lets only requests with
-its own session cookie through. The browser has this cookie, the app doesn't. `projectforge.app.proxyCookies` names
-the cookies of the proxy, separated by commas; a trailing `*` matches a prefix (`authentik_proxy_*`). During the
-login in the browser the server takes these cookies from the request and hands them to the app together with its
-token. The app sends them with every request and puts them into its web views.
+its own session cookie through. The browser has this cookie, the app doesn't. How it works:
+
+. `projectforge.app.proxyCookies` names the cookies of the proxy, separated by commas; a trailing `*` matches a prefix
+  (`authentik_proxy_*`).
+. During the login in the browser the server takes these cookies from the request and hands them to the app together
+  with its token.
+. The app sends them with every request and puts them into its web views.
 
 * Name only the cookies of the proxy: a bare `*` is ignored, and the cookies of ProjectForge itself are never handed
   over. A cookie the browser sends twice (e.g. one set by another subdomain) is not taken.
@@ -313,11 +319,14 @@ itself: it needs an APNs authentication key (`AuthKey_<keyId>.p8`) of the Apple 
 app asks for new notifications from time to time as before.
 
 The key belongs to the publisher of the app. The pushes therefore work for installations that have the publisher's key
-or their own build of the app. The message shows the title and the beginning of the notification, as the web version
-does, plus the link and the number of open notifications. Apple sees this payload: each user can switch the content
-off ("My account", Apps, and the settings of the app; a generic text then, and the app loads the content itself), and
-`projectforge.push.content=false` keeps the content out of every push. Chat messages appear only where they appear in
-mails too. Debug builds of the app use the sandbox of APNs, release builds the production service.
+or their own build of the app.
+
+* *Content:* the title and the beginning of the notification, as the web version does, plus the link and the number of
+  open notifications. Chat messages appear only where they appear in mails too.
+* *Privacy:* Apple sees this payload. Each user can switch the content off ("My account", Apps, and the settings of the
+  app; a generic text then, and the app loads the content itself). `projectforge.push.content=false` keeps the content
+  out of every push.
+* *Builds:* debug builds of the app use the sandbox of APNs, release builds the production service.
 
 [[customization]]
 === Customization
@@ -598,13 +607,16 @@ taken from an address. Two optional features need configuration.
 ==== Photo
 
 A photo is not part of the QR code but a public url (`/rsPublic/contactImage/<token>`, no login) in its vCard; it is
-only offered for the user's own address. The token is random (256 bit) and belongs to the address, so the url can't be
-guessed and stays the same when the image is replaced or deleted (without an image it answers 404; browsers may cache
-the old image for up to an hour). Failed attempts are throttled per client address. Users revoke the url with _Renew
-photo link_ on the card (all cards of the address then get a new one); switching off the photo of a card does not
-revoke it. The images are delivered by the main instance and by the gateway (the token is pushed with the address),
-under the same url. Update the gateway together with the main instance: an old gateway does not know the new path and
-answers 404 for the photos.
+only offered for the user's own address.
+
+* *Token:* random (256 bit) and belongs to the address, so the url can't be guessed and stays the same when the image
+  is replaced or deleted (without an image it answers 404; browsers may cache the old image for up to an hour).
+* *Abuse:* failed attempts are throttled per client address.
+* *Revoking:* users revoke the url with _Renew photo link_ on the card (all cards of the address then get a new one);
+  switching off the photo of a card does not revoke it.
+* *Delivery:* the images are delivered by the main instance and by the gateway (the token is pushed with the address),
+  under the same url. Update the gateway together with the main instance: an old gateway does not know the new path and
+  answers 404 for the photos.
 
 The base of the url is, in this order: `projectforge.businessCard.photoBaseUrl` (overrides everything, e.g. a reverse
 proxy), the public url of the gateway (`projectforge.gateway.push.publicUrl`, see <<external_gateway_mode>>), the domain

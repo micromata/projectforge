@@ -235,11 +235,13 @@ image::/uploads/adminguide/properties-editor.png[Properties-Editor]
   eigene Kommentare bleiben über dem Parameter, über dem sie standen.
 * Die Beschreibungen enthalten Links auf die passenden Abschnitte dieses Handbuchs.
 * Änderungen werden erst nach einem Neustart von ProjectForge wirksam, außer bei den Parametern mit der Markierung
-  _sofort wirksam_: Diese gelten beim Speichern. Das sind die Logos und die Logohöhe (`projectforge.logoFile`,
-  `projectforge.logoFileDark`, `projectforge.logoHeight`, `projectforge.export.logoFile`, `wallet.logoFile`), die
-  Verfügbarkeitstypen (`projectforge.availability.types`), der Mailserver (`mail.session.pfmailsession.*`), die
-  Erwartungen an Rechnungen (`projectforge.fibu.invoices.*`) und der Verkäufer der E-Rechnungen
-  (`projectforge.einvoice.seller.*`).
+  _sofort wirksam_: Diese gelten beim Speichern. Das sind:
+** die Logos und die Logohöhe (`projectforge.logoFile`, `projectforge.logoFileDark`, `projectforge.logoHeight`,
+   `projectforge.export.logoFile`, `wallet.logoFile`),
+** die Verfügbarkeitstypen (`projectforge.availability.types`),
+** der Mailserver (`mail.session.pfmailsession.*`),
+** die Erwartungen an Rechnungen (`projectforge.fibu.invoices.*`),
+** der Verkäufer der E-Rechnungen (`projectforge.einvoice.seller.*`).
 * Zu jedem Parameter wird sein Standardwert angezeigt; _Auf Standard zurücksetzen_ entfernt ihn aus der Datei, sodass
   wieder der Standardwert gilt.
 * _projectforge.properties vergleichen_ (neben dem Editor) vergleicht die aktuelle Datei mit ihren Sicherungskopien oder
@@ -302,10 +304,13 @@ projectforge.push.apns.topic=de.projectforge.mobileapp
 ==== Hinter einem SSO-Proxy
 
 Steht ein SSO-Proxy (z. B. Authentik als Forward Auth in nginx) vor ProjectForge, lässt er nur Anfragen mit seinem
-eigenen Sitzungs-Cookie durch. Der Browser hat dieses Cookie, die App nicht. `projectforge.app.proxyCookies` nennt die
-Cookies des Proxys, durch Kommas getrennt; ein abschließendes `*` passt auf ein Präfix (`authentik_proxy_*`). Bei der
-Anmeldung im Browser entnimmt der Server diese Cookies der Anfrage und übergibt sie zusammen mit dem Token an die App.
-Die App sendet sie mit jeder Anfrage und legt sie in ihre Web-Ansichten.
+eigenen Sitzungs-Cookie durch. Der Browser hat dieses Cookie, die App nicht. So funktioniert es:
+
+. `projectforge.app.proxyCookies` nennt die Cookies des Proxys, durch Kommas getrennt; ein abschließendes `*` passt auf
+  ein Präfix (`authentik_proxy_*`).
+. Bei der Anmeldung im Browser entnimmt der Server diese Cookies der Anfrage und übergibt sie zusammen mit dem Token an
+  die App.
+. Die App sendet sie mit jeder Anfrage und legt sie in ihre Web-Ansichten.
 
 * Nur die Cookies des Proxys nennen: Ein einzelnes `*` wird ignoriert, und die Cookies von ProjectForge selbst werden
   nie übergeben. Ein Cookie, das der Browser doppelt sendet (z. B. von einer anderen Subdomain), wird nicht
@@ -326,12 +331,14 @@ Entwicklerkontos, zu dem die App gehört (`keyFile`, `keyId`, `teamId` und die B
 `keyFile` wird keine Push-Nachricht gesendet, und die App fragt wie bisher gelegentlich nach neuen Benachrichtigungen.
 
 Der Schlüssel gehört dem Herausgeber der App. Pushes funktionieren daher für Installationen, die den Schlüssel des
-Herausgebers haben oder einen eigenen Build der App. Die Nachricht zeigt wie die Webversion den Titel und den Anfang
-der Benachrichtigung, dazu den Link und die Anzahl offener Benachrichtigungen. Apple sieht diesen Inhalt: Jede Person
-kann ihn abschalten („Mein Konto“, Apps, und die Einstellungen der App; dann kommt ein allgemeiner Text, und die App
-lädt den Inhalt selbst), und `projectforge.push.content=false` lässt ihn aus allen Push-Nachrichten heraus.
-Chat-Nachrichten erscheinen nur dort, wo sie auch in Mails erscheinen. Debug-Builds der App nutzen die Sandbox von APNs,
-Release-Builds den Produktivdienst.
+Herausgebers haben oder einen eigenen Build der App.
+
+* *Inhalt:* wie die Webversion der Titel und der Anfang der Benachrichtigung, dazu der Link und die Anzahl offener
+  Benachrichtigungen. Chat-Nachrichten erscheinen nur dort, wo sie auch in Mails erscheinen.
+* *Datenschutz:* Apple sieht diesen Inhalt. Jede Person kann ihn abschalten („Mein Konto“, Apps, und die Einstellungen
+  der App; dann kommt ein allgemeiner Text, und die App lädt den Inhalt selbst). `projectforge.push.content=false` lässt
+  ihn aus allen Push-Nachrichten heraus.
+* *Builds:* Debug-Builds der App nutzen die Sandbox von APNs, Release-Builds den Produktivdienst.
 
 [[customization]]
 === Anpassungen
@@ -620,13 +627,17 @@ Nutzer legen ihre Visitenkarten über _Meine Visitenkarten_ im Benutzermenü an:
 ==== Foto
 
 Ein Foto ist nicht Teil des QR-Codes, sondern eine öffentliche URL (`/rsPublic/contactImage/<token>`, ohne Anmeldung)
-in dessen vCard; es wird nur für die eigene Adresse angeboten. Das Token ist zufällig (256 Bit) und gehört zur Adresse,
-die URL lässt sich also nicht erraten und bleibt beim Ersetzen oder Löschen des Bildes gleich (ohne Bild antwortet sie
-mit 404; Browser können das alte Bild bis zu eine Stunde zwischenspeichern). Fehlgeschlagene Versuche werden je
-Client-Adresse gebremst. Nutzer widerrufen die URL mit _Foto-Link erneuern_ an der Karte (alle Karten der Adresse
-erhalten dann eine neue); das Abschalten des Fotos einer Karte widerruft sie nicht. Die Bilder liefern die
-Hauptinstanz und das Gateway (das Token wird mit der Adresse übertragen) unter derselben URL aus. Das Gateway sollte zusammen mit der Hauptinstanz aktualisiert werden: Ein altes Gateway kennt
-den neuen Pfad nicht und antwortet für die Fotos mit 404.
+in dessen vCard; es wird nur für die eigene Adresse angeboten.
+
+* *Token:* zufällig (256 Bit) und gehört zur Adresse, die URL lässt sich also nicht erraten und bleibt beim Ersetzen
+  oder Löschen des Bildes gleich (ohne Bild antwortet sie mit 404; Browser können das alte Bild bis zu eine Stunde
+  zwischenspeichern).
+* *Missbrauch:* fehlgeschlagene Versuche werden je Client-Adresse gebremst.
+* *Widerrufen:* Nutzer widerrufen die URL mit _Foto-Link erneuern_ an der Karte (alle Karten der Adresse erhalten dann
+  eine neue); das Abschalten des Fotos einer Karte widerruft sie nicht.
+* *Auslieferung:* die Bilder liefern die Hauptinstanz und das Gateway (das Token wird mit der Adresse übertragen) unter
+  derselben URL aus. Das Gateway sollte zusammen mit der Hauptinstanz aktualisiert werden: Ein altes Gateway kennt den
+  neuen Pfad nicht und antwortet für die Fotos mit 404.
 
 Die Basis der URL ist, in dieser Reihenfolge: `projectforge.businessCard.photoBaseUrl` (überschreibt alles, z. B. ein
 Reverse Proxy), die öffentliche URL des Gateways (`projectforge.gateway.push.publicUrl`, siehe
