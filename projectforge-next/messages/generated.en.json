@@ -6740,7 +6740,7 @@
   "webauthn": {
     "add": "Add passkey or security key",
     "browser": {
-      "info": "The app cannot register a passkey or security key itself. Open this page in the browser of the device for that (menu “Open in browser”): you log in there once, then a passkey can be added.",
+      "info": "The app cannot register a passkey or security key itself. Open this page in the browser of the device for that (menu “Open in browser”): you log in there once, then a passkey can be added. With a single sign-on the usual login there works too.",
       "open": "Set up in the browser"
     },
     "choice": {

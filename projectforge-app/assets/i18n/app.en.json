@@ -41,6 +41,7 @@
   "app.web.find.next": "Next match",
   "app.web.share": "Share link",
   "app.web.openInBrowser": "Open in browser",
+  "app.web.openInBrowser.failed": "The page couldn't be opened in the browser.",
   "app.web.offline": "No connection to the server.",
   "app.web.menu.noMatch": "No menu entry found.",
   "app.web.menu.close": "Close menu",
