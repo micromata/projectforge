@@ -893,6 +893,73 @@ class ForecastOrderPosInfoTest {
         }
     }
 
+    @Test
+    fun `payment schedule keeps its amount in its month, the rest is distributed on top`() {
+        OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.MAY, 31)
+            addPaymentSchedule(orderInfo, LocalDate.of(2025, Month.MARCH, 15), BigDecimal("4000"))
+            createPos(
+                AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("10000")
+            ).also { pos ->
+                pos.forecastType = AuftragForecastType.CURRENT_MONTH
+                // The rest of 6000 is distributed from the month of the schedule on (March - May), the schedule
+                // amount of 4000 stays in March: 4000 + 2000.
+                calculateAndAssert(orderInfo, pos, "0", "0", "6000", "2000", "2000").also {
+                    assertSame("0", it.difference)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `payment schedule covering the net sum leaves nothing to distribute`() {
+        OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.MAY, 31)
+            addPaymentSchedule(orderInfo, LocalDate.of(2025, Month.FEBRUARY, 15), BigDecimal("10000"))
+            createPos(
+                AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("10000")
+            ).also { pos ->
+                pos.forecastType = AuftragForecastType.CURRENT_MONTH
+                calculateAndAssert(orderInfo, pos, "0", "10000", "0", "0", "0").also {
+                    assertSame("0", it.difference)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `invoiced payment schedule does not reduce the rest to be distributed`() {
+        OrderInfo().also { orderInfo ->
+            orderInfo.status = AuftragsStatus.BEAUFTRAGT
+            orderInfo.snapshotDate = baseDate.localDate
+            orderInfo.periodOfPerformanceBegin = LocalDate.of(2025, Month.JANUARY, 1)
+            orderInfo.periodOfPerformanceEnd = LocalDate.of(2025, Month.MAY, 31)
+            addPaymentSchedule(orderInfo, LocalDate.of(2025, Month.JANUARY, 5), BigDecimal("4000"), invoiced = true)
+            createPos(
+                AuftragsStatus.BEAUFTRAGT, AuftragsPositionsPaymentType.TIME_AND_MATERIALS,
+                PeriodOfPerformanceType.SEEABOVE, netSum = BigDecimal("10000"), invoicedSum = BigDecimal("4000"),
+            ).also { pos ->
+                pos.forecastType = AuftragForecastType.CURRENT_MONTH
+                // The invoiced 4000 are gone from the forecast; the other 6000 are distributed from the month after
+                // the invoice on.
+                calculateAndAssert(
+                    orderInfo, pos, "0", "1500", "1500", "1500", "1500",
+                    lastInvoiceMonth = PFDay.of(2025, Month.JANUARY, 1),
+                ).also {
+                    assertSame("0", it.difference)
+                }
+            }
+        }
+    }
+
     private fun createPos(
         status: AuftragsStatus,
         paymentType: AuftragsPositionsPaymentType,
@@ -914,7 +981,12 @@ class ForecastOrderPosInfoTest {
         }
     }
 
-    private fun addPaymentSchedule(orderInfo: OrderInfo, date: LocalDate, amount: BigDecimal) {
+    private fun addPaymentSchedule(
+        orderInfo: OrderInfo,
+        date: LocalDate,
+        amount: BigDecimal,
+        invoiced: Boolean = false,
+    ) {
         orderInfo.paymentScheduleEntries = orderInfo.paymentScheduleEntries ?: mutableListOf()
         val entries = orderInfo.paymentScheduleEntries as MutableList
         val schedule = PaymentScheduleDO().also {
@@ -922,6 +994,7 @@ class ForecastOrderPosInfoTest {
             it.number = (entries.size + 1).toShort()
             it.amount = amount
             it.positionNumber = 0
+            it.vollstaendigFakturiert = invoiced
         }
         entries.add(OrderInfo.PaymentScheduleInfo(schedule))
     }

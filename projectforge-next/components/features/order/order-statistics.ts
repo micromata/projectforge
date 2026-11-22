@@ -19,6 +19,8 @@ export interface OrderStatistics {
   counterNotYetInvoiced?: number | null;
   toBeInvoicedSum?: number | null;
   counterToBeInvoiced?: number | null;
+  /** Only while the forecast period filter is active. */
+  forecastSumInPeriod?: number | null;
 }
 
 /**
@@ -88,6 +90,14 @@ export function orderStatisticsEntries(
       tone: "toBeInvoiced",
     },
   ];
+  if (statistics.forecastSumInPeriod != null) {
+    entries.push({
+      labelKey: "fibu.auftrag.forecastInPeriod",
+      amount: statistics.forecastSumInPeriod,
+      count: statistics.counter ?? 0,
+      tone: "plain",
+    });
+  }
   // The first entry is the total and stays; the rest are the breakdown and only appear where they hold
   // something.
   return entries.filter((entry, index) => index === 0 || entry.count > 0);

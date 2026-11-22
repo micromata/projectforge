@@ -1065,6 +1065,16 @@ Strukturelement usw.) und optional einen Zahlungsplan.
 Forecast und Deckungsbeitrag stehen unter _Fibu > Statistiken_ zur Verfügung (bzw. unter
 _Projektmanagement > Statistiken_ für Benutzer ohne Fibu-Menü).
 
+[[order_book_forecast_filter]]
+=== Forecast-Fakturierung in einem Zeitraum
+
+Der Filter *Forecast-Fakturierung* mit Zeitraum (z. B. dem aktuellen Monat) listet die Aufträge, die laut Forecast in
+diesem Zeitraum fakturiert werden sollen. Die Spalte *Forecast im Zeitraum* zeigt den Betrag je Auftrag und erscheint,
+solange der Filter gesetzt ist; die Statistikzeile zeigt ihre Summe. Die Beträge sind die des Forecast-Exports je
+Monat: Forecast-Typ des Auftrags (aktueller oder Folgemonat), Zahlungsplan und Eintrittswahrscheinlichkeit gelten, und
+Monate vor dem aktuellen zeigen nur, was Zahlungsplan oder eine überfällige Position beitragen. Wie bei jedem anderen
+Filter umfassen die Forecast-Statistiken dann nur die gefilterten Aufträge.
+
 [[e_mail_notification]]
 === E-Mail-Benachrichtigung
 

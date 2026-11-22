@@ -1041,6 +1041,16 @@ structure element etc.) and an optional payment schedule.
 as forecast and contribution margin are available under _Finance > Statistics_ (or _Project
 management > Statistics_ for users without the finance menu).
 
+[[order_book_forecast_filter]]
+=== Forecast invoicing in a period
+
+The filter *Forecast invoicing* with a period (e. g. the current month) lists the orders the forecast expects
+to invoice in that period. The column *Forecast in period* shows the amount per order and appears as long as the
+filter is set; the statistics line shows its sum. The amounts are those of the Forecast export, per month: the
+forecast type of an order (current or following month), payment schedules and the probability of occurrence
+apply, and months before the current one only show what the payment schedule or an overdue position adds. As
+with every other filter, the forecast statistics then cover the filtered orders only.
+
 [[e_mail_notification]]
 === E-mail notification
 
