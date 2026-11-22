@@ -243,7 +243,7 @@ function Setup() {
 
   return (
     <AuthCard title={t("title")} className="max-w-3xl">
-      <form onSubmit={handleSubmit} className="grid gap-4">
+      <form onSubmit={handleSubmit} noValidate className="grid gap-4">
         {fieldError && !fieldError.field && (
           <FormAlert tone="error">{fieldError.message}</FormAlert>
         )}
