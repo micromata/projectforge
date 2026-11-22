@@ -402,24 +402,22 @@ open class OrderEntityRest : // open: proxied by Spring.
   ): ResultSet<*> {
     val result = super.postProcessResultSet(resultSet, request, magicFilter)
     val forecastPeriod = forecastPeriod(magicFilter)
-    if (forecastPeriod != null) {
-      // The amounts the forecast expects in the asked period, next to the order's sums (same numbers as the export).
-      result.resultSet?.filterIsInstance<Auftrag>()?.forEach { row ->
-        auftragsCache.getOrderInfo(row.id)?.let {
-          row.forecastSumInPeriod = forecastPeriodSums.sumInPeriod(it, forecastPeriod.first, forecastPeriod.second)
-        }
-      }
+    // The amounts the forecast expects in the asked period per order, next to the order's sums (same numbers as the
+    // export). Calculated once for the rows and, in the non-paged list, for the statistics.
+    val forecastSums = forecastPeriod?.let { period ->
+      resultSet.resultSet.mapNotNull { order ->
+        val info = auftragsCache.getOrderInfo(order.id) ?: return@mapNotNull null
+        order.id!! to forecastPeriodSums.sumInPeriod(info, period.first, period.second)
+      }.toMap()
+    }
+    forecastSums?.let { sums ->
+      result.resultSet?.filterIsInstance<Auftrag>()?.forEach { row -> row.forecastSumInPeriod = sums[row.id] }
     }
     if (resultSet.offset == null) {
       // Non-paged POST list: the result set is the whole result, so its statistics are the whole result's.
       result.statistics = OrderStatistics(
         baseDao.buildStatistik(resultSet.resultSet),
-        forecastPeriod?.let { period ->
-          resultSet.resultSet.sumOf { order ->
-            auftragsCache.getOrderInfo(order.id)
-              ?.let { forecastPeriodSums.sumInPeriod(it, period.first, period.second) } ?: BigDecimal.ZERO
-          }
-        },
+        forecastSums?.values?.fold(BigDecimal.ZERO, BigDecimal::add),
       )
     }
     // Server-side paged: resultSet.resultSet is one page; the whole-result statistics were computed over the
@@ -626,7 +624,10 @@ open class OrderEntityRest : // open: proxied by Spring.
     val entry = filter.entries.find { it.field == FORECAST_PERIOD_FILTER } ?: return null
     val from = PFDayUtils.parseDate(entry.value.fromValue)
     val until = PFDayUtils.parseDate(entry.value.toValue)
-    return Pair(from ?: until ?: return null, until ?: from ?: return null)
+    val first = from ?: until ?: return null
+    val last = until ?: from ?: return null
+    // An upside-down period asks for the same months, rather than for nothing.
+    return if (first <= last) Pair(first, last) else Pair(last, first)
   }
 
   /**

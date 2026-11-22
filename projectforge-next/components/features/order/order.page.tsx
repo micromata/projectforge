@@ -174,6 +174,8 @@ export const ORDER_PAGE = definePage<
       accessor: (row) => row.forecastSumInPeriod ?? null,
       dataType: "AMOUNT",
       size: 130,
+      // Depends on the period of the filter, which the backend's sort by an order's cached values doesn't know.
+      sortable: false,
       revealedByFilter: "forecastPeriod",
     },
     // Not invoiced, although marked as fully invoiced — e.g. an invoice was cancelled afterwards. Nothing else
