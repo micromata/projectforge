@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "{app} Refused by the SSO proxy: one browser login is enough for all open tabs, a cancelled login is not opened again by the next request, and the notice of the expired SSO login disappears right after the login.",
+  "de": "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung."
+}
