@@ -1,0 +1,34 @@
+{
+  "summary": {
+    "en": [
+      "**Order book**: filter \"Forecast invoicing\" with a period",
+      "**Forecast**: payment schedule stays in its month",
+      "**First setup**: simplified terminal wizard, settings take effect at once",
+      "**Second factor**: SSO login can count as one, passkey recommendation",
+      "**Chat**: preview of PDFs and text files"
+    ],
+    "de": [
+      "**Auftragsbuch**: Filter „Forecast-Fakturierung“ mit Zeitraum",
+      "**Forecast**: Zahlungsplan bleibt in seinem Monat",
+      "**Erstsetup**: vereinfachter Terminal-Wizard, Einstellungen wirken sofort",
+      "**Zweiter Faktor**: SSO-Login kann als solcher gelten, Passkey-Empfehlung",
+      "**Chat**: Vorschau für PDFs und Textdateien"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Order book:** the new filter \"Forecast invoicing\" lists the orders the forecast expects to invoice in a period, with the amount in the column \"Forecast in period\" and its sum in the statistics line.",
+      "**Forecast:** the amount of a payment schedule stays in the month of its date; the rest of a position is distributed on top of it instead of replacing it.",
+      "**First setup:** the graphical and the full-screen terminal wizard are replaced by a small terminal menu; currency, language, time notation and first day of the week are chosen in the browser and take effect without a restart, and the currency symbol of new installations is shown correctly.",
+      "**Second factor:** with `projectforge.2fa.ssoAmrValues` an SSO login counts as a second factor if the SSO server reports a matching authentication method; users without a passkey get a strong recommendation to set one up.",
+      "**Chat:** PDFs and text files of a message can be previewed like attachments elsewhere."
+    ],
+    "de": [
+      "**Auftragsbuch:** der neue Filter „Forecast-Fakturierung“ listet die Aufträge, die laut Forecast in einem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“ und dessen Summe in der Statistikzeile.",
+      "**Forecast:** der Betrag eines Zahlungsplans bleibt im Monat seines Datums; der Rest einer Position wird zusätzlich darauf verteilt, statt ihn zu ersetzen.",
+      "**Erstsetup:** der grafische und der Vollbild-Terminal-Wizard sind durch ein kleines Terminal-Menü ersetzt; Währung, Sprache, Zeitformat und Wochenbeginn werden im Browser gewählt und wirken ohne Neustart, und das Währungssymbol neuer Installationen wird korrekt angezeigt.",
+      "**Zweiter Faktor:** mit `projectforge.2fa.ssoAmrValues` gilt ein SSO-Login als zweiter Faktor, wenn der SSO-Server eine passende Authentifizierungsmethode meldet; wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten.",
+      "**Chat:** PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden."
+    ]
+  }
+}
