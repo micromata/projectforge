@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Addresses: the view that opens over the address list, and the dialogs for a direct call and for a text message, are part of the page's url. A link to them can be copied, bookmarked and shared, a reload shows them again and the browser's Back button closes them.",
-  "de": "Adressen: Die Ansicht, die sich über der Adressliste öffnet, sowie die Dialoge für den direkten Anruf und für eine Kurznachricht sind Teil der Seiten-URL. Ein Link darauf lässt sich kopieren, als Lesezeichen speichern und weitergeben, ein Neuladen zeigt sie wieder und der Zurück-Button des Browsers schließt sie."
-}

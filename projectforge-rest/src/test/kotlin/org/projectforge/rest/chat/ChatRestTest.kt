@@ -233,6 +233,15 @@ class ChatRestTest : AbstractTestBase() {
                 assertEquals(MediaType.IMAGE_PNG, response.headers.contentType)
                 assertTrue(response.headers.contentDisposition.isInline)
             }
+            // The preview shows what is recognized by its content, nothing else (an html file is never shown).
+            chatRest.previewFile(conversationId, image.fileId, org.springframework.mock.web.MockHttpServletResponse()).let { response ->
+                assertEquals(MediaType.IMAGE_PNG, response.headers.contentType)
+                assertTrue(response.headers.contentDisposition.isInline)
+            }
+            assertEquals(
+                415,
+                chatRest.previewFile(conversationId, html.fileId, org.springframework.mock.web.MockHttpServletResponse()).statusCode.value(),
+            )
             // Expired in the data transfer: still listed, not available.
             dataTransfer.areas.values.forEach { it.files.remove(html.fileId) }
             assertFalse(chatRest.getMessages(conversationId, null, null).messages.first().files.first().available)
@@ -240,6 +249,9 @@ class ChatRestTest : AbstractTestBase() {
             suppressErrorLogs {
                 logon(TEST_FINANCE_USER)
                 assertThrows(AccessException::class.java) { chatRest.downloadFile(conversationId, image.fileId, null) }
+                assertThrows(AccessException::class.java) {
+                    chatRest.previewFile(conversationId, image.fileId, org.springframework.mock.web.MockHttpServletResponse())
+                }
             }
         } finally {
             dataTransferBridge.register(null)

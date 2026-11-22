@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { chatFileUrl } from "@/lib/rs/chat";
+import { AttachmentViewer } from "@/components/shared/attachments/attachment-viewer";
+import { previewKind } from "@/lib/rs/attachments";
+import { chatFilePreviewUrl, chatFileUrl } from "@/lib/rs/chat";
 import type { ChatFile } from "@/lib/rs/chat-types";
 import { ImageLightbox } from "./image-lightbox";
 import { MessageFilesList } from "./message-files-list";
@@ -19,9 +21,14 @@ export function MessageAttachments({
   files: ChatFile[];
 }) {
   const [open, setOpen] = useState<number | null>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
   if (files.length === 0) return null;
   const images = files.filter((file) => file.image && file.available);
   const others = files.filter((file) => !file.image || !file.available);
+  // PDFs and texts open in the shared viewer of the attachments, paging through those of the message.
+  const viewable = others.filter(
+    (file) => file.available && previewKind({ name: file.name })
+  );
   return (
     <>
       {images.length > 0 && (
@@ -46,7 +53,23 @@ export function MessageAttachments({
           ))}
         </ul>
       )}
-      <MessageFilesList conversationId={conversationId} files={others} />
+      <MessageFilesList
+        conversationId={conversationId}
+        files={others}
+        onView={(file) => setViewing(viewable.indexOf(file))}
+      />
+      <AttachmentViewer
+        files={viewable}
+        index={viewing}
+        entity="chat"
+        id={conversationId}
+        urlsOf={(file) => ({
+          previewUrl: chatFilePreviewUrl(conversationId, file.fileId),
+          downloadUrl: chatFileUrl(conversationId, file.fileId, true),
+        })}
+        onIndexChange={setViewing}
+        onClose={() => setViewing(null)}
+      />
       <ImageLightbox
         conversationId={conversationId}
         files={images}

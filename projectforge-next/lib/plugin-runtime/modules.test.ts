@@ -96,6 +96,7 @@ describe("PLUGIN_MODULES", () => {
       "lib/validation/from-metadata",
       "next/link",
       "next/navigation",
+      "recharts",
       "store/job-store",
       "zod",
     ]);

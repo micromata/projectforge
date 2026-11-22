@@ -1,5 +1,5 @@
 -- A birthday of an address may be given without the year (the year of birthday is then only a placeholder).
-ALTER TABLE t_address ADD COLUMN birthday_year_unknown BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE t_address ADD COLUMN birthday_year_unknown BOOLEAN DEFAULT false NOT NULL;
 
 -- Rollback:
 -- ALTER TABLE t_address DROP COLUMN IF EXISTS birthday_year_unknown;

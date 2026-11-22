@@ -66,7 +66,10 @@ What it adds beyond `cost1`:
   It is a _computed_ column: `attachmentsSize` is the property the backend sorts by, while the cell
   shows the string the backend formatted ("5,2MB (3)") — sorting on that string would put 900KB after
   1,1MB. It offers no filter of its own, because "has attachments" is a filter the backend already
-  offers on the entity (`AttachmentsFilterSupport`). The edit page's attachment section is the one
+  offers on the entity (`AttachmentsFilterSupport`).
+  The preview eye (`AttachmentViewer`, PDF/image/text, content-checked by `AttachmentPreview`) is shared: a
+  source other than `AttachmentsServicesRest` passes its urls via `urlsOf` (chat files:
+  `GET /rs/chat/conversation/{id}/file/{fileId}/preview`). The edit page's attachment section is the one
   section that needs a persisted id to hang off, and says so itself.
 - **Writes besides save.** `actions: ["lendOut", "returnBook"]`. `BookServicesRest` changes a few
   fields server-side and then runs the posted book through the very same `saveOrUpdate` — so these run
