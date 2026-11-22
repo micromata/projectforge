@@ -24,6 +24,11 @@ A rule type is one Spring bean implementing `NotificationRuleHandler` (`projectf
 - And the evaluation: `variables`, `evaluate`, `variables(rule, today, user)`, `exampleVariables`, `isRelevant`,
   `resolve`.
 
+## Schedule
+`NotificationSchedule.mode` names the days a rule runs (once a day at most). With `immediate` the rule is also evaluated at every
+run of the rule job (hourly, 7–19), so a new event is notified right after it is detected (e.g. for plugin rule types); the dedup key
+keeps already notified recipients from being notified twice, so a handler's `periodKey` must not change with every run.
+
 ## Texts
 A plugin keeps the texts of its types in its own bundle (e.g. `CveRadarI18nResources(_de).properties`), with the keys
 above (prefix `notification.`). A plugin of this repository: exported to next by `GenerateNextI18nMessagesMain`, then

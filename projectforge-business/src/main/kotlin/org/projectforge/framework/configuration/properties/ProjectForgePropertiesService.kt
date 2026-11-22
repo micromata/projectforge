@@ -207,7 +207,7 @@ class ProjectForgePropertiesService {
             fileComment = comment,
             activeValue = if (secret) null else activeValue,
             activeSource = activeSource,
-            activeDiffers = (activeValue ?: "") != (expectedActive ?: ""),
+            activeDiffers = activeDiffers(inFile = fileValue != null, activeValue = activeValue, expectedActive = expectedActive),
             live = reloader.isLive(key),
         )
     }
@@ -256,6 +256,16 @@ class ProjectForgePropertiesService {
 
         /** Keys in ProjectForge's namespace unknown to application.properties: no longer used (or typos). */
         const val OBSOLETE_GROUP_ID = "obsolete"
+
+        /**
+         * Whether the running system uses another value than the configured one. A key neither in the file nor known to
+         * the environment (e.g. a setting of a plugin: its defaults are in the code, not read by Spring) runs with its
+         * default, there is nothing to compare.
+         */
+        internal fun activeDiffers(inFile: Boolean, activeValue: String?, expectedActive: String?): Boolean {
+            if (!inFile && activeValue == null) return false
+            return (activeValue ?: "") != (expectedActive ?: "")
+        }
 
         private const val SECRET_MASK = "******"
 

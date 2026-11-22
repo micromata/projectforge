@@ -257,7 +257,7 @@ export function AddressDetailScreen({
           )}
           {address.birthday ? (
             <Section>
-              <Row label={t('address.birthday')} value={formatIsoDay(address.birthday)} />
+              <Row label={t('address.birthday')} value={formatIsoDay(address.birthday, address.birthdayYearUnknown)} />
             </Section>
           ) : null}
           {address.comment?.trim() ? (

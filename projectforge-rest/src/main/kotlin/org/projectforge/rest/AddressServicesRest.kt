@@ -88,6 +88,7 @@ class AddressServicesRest {
         private const val APPLE_SCRIPT_DIR = "misc/"
         private const val APPLE_SCRIPT_FOR_ADDRESS_BOOK = "AddressBookRemoveNotesOfClassWork.scpt"
         internal const val SESSION_VCF_IMAGE_ATTR = "vcfImage"
+        private val BIRTHDAY_WITHOUT_YEAR = Regex("""^(?:--)?(\d{1,2})[-.](\d{1,2})\.?$""")
     }
 
     @Autowired
@@ -464,7 +465,7 @@ class AddressServicesRest {
                 "comment" -> address.comment = value
                 // Additional VCard fields
                 "birthName" -> address.birthName = value
-                "birthday" -> address.birthday = tryParseLocalDate(value)
+                "birthday" -> setBirthday(address, value)
                 "fingerprint" -> address.fingerprint = value
                 "publicKey" -> address.publicKey = value
                 "form" -> address.form = tryParseFormOfAddress(value)
@@ -548,6 +549,27 @@ class AddressServicesRest {
     }
 
     class DisplayLanguage(val id: String, val displayName: String)
+
+    /**
+     * Sets the birthday. Accepts a complete date (see [tryParseLocalDate]) or a date without year ("12.05.", "12.05",
+     * "--05-12", "05-12"), which sets `birthdayYearUnknown`.
+     */
+    private fun setBirthday(address: org.projectforge.rest.dto.Address, value: String?) {
+        val match = value?.trim()?.let { BIRTHDAY_WITHOUT_YEAR.matchEntire(it) }
+        if (match != null) {
+            val (first, second) = match.destructured.let { it.component1().toInt() to it.component2().toInt() }
+            val (month, day) = if (value.trim().contains('.')) second to first else first to second
+            try {
+                address.birthday = LocalDate.of(org.projectforge.business.address.AddressDO.BIRTHDAY_PLACEHOLDER_YEAR, month, day)
+                address.birthdayYearUnknown = true
+                return
+            } catch (ex: java.time.DateTimeException) {
+                // Invalid date, falls through to the complete date parsing (which fails too).
+            }
+        }
+        address.birthday = tryParseLocalDate(value)
+        address.birthdayYearUnknown = false
+    }
 
     /**
      * Helper function to parse LocalDate from string using PFDayUtils.parseDate().

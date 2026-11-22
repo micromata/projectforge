@@ -221,6 +221,8 @@ export interface OrderListRow extends RowWithEditors {
   beauftragtNettoSumme?: number | null;
   fakturiertSum?: number | null;
   zuFakturierenSum?: number | null;
+  /** Amount the forecast expects in the period of the forecast filter; only while that filter is active. */
+  forecastSumInPeriod?: number | null;
   /** Not invoiced, although marked as fully invoiced (`OrderInfo.fehlbetrag`); absent if none. */
   fehlbetrag?: number | null;
   periodOfPerformanceBegin?: string | null;

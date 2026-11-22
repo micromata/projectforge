@@ -133,6 +133,9 @@ class LoggingFilter : Filter {
       "/next/", // Next.js app (pages, _next/static assets, RSC probes such as __next.*.txt)
       "/wa/", // Old Wicket urls, redirected into next by OrphanedLinkFilter
       "/rsPublic/", // Public rest services (no login required)
+      // Rest services of plugins called with an API key instead of a login. Known, so that the request isn't taken for an
+      // attack and its parameters (and with them a form body, e.g. curl --data-binary) aren't read here.
+      "/rsApiKey/",
       "/static/", // resources (css, images, js, ...)
       "/assets/", // Vite build artifacts of the React app (js, css, fonts, images)
       "/export/", // ProjectForge.ics

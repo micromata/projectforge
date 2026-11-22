@@ -39,6 +39,12 @@ import { sessionStore } from './secureStorage';
 import { Session } from './session';
 import type { SessionStore } from './sessionStore';
 
+/** A login renewed this recently is not renewed again by another asker. */
+const RECENT_RENEWAL_MILLIS = 5_000;
+
+/** After a cancelled or failed login no request opens the browser again for this long (the user's own asks still do). */
+const AUTO_RENEWAL_COOLDOWN_MILLIS = 60_000;
+
 export type AuthStatus = 'restoring' | 'loggedOut' | 'loggedIn';
 
 export interface AuthState {
@@ -46,6 +52,8 @@ export interface AuthState {
   session: Session | null;
   /** Counts the logins: the tabs (WebViews) start anew for another one (another server, another user). */
   generation: number;
+  /** Counts the renewals of the login: a tab showing the refusal of the SSO proxy loads its page again for the next. */
+  renewals: number;
   /** Why the app was logged out (an i18n key), shown on the login screen. */
   messageKey?: string;
 }
@@ -97,7 +105,7 @@ export interface AuthDeps {
   /** The JsonCache and the SharedFiles: the user's data on the device. */
   cache: { clearAll(): void };
   files: { clearAll(): void };
-  userStatus: { start(api: ApiClient): Promise<void>; stop(): void };
+  userStatus: { start(api: ApiClient): Promise<void>; stop(): void; loginRenewed?(): void };
 }
 
 const platformDeps = (): AuthDeps => ({
@@ -115,9 +123,11 @@ const platformDeps = (): AuthDeps => ({
  * old, a refusal of the SSO proxy) of the app. Port of the Flutter app's AuthController.
  */
 export class AuthController {
-  private state: AuthState = { status: 'restoring', session: null, generation: 0 };
+  private state: AuthState = { status: 'restoring', session: null, generation: 0, renewals: 0 };
   private listeners = new Set<() => void>();
   private reauthentication: Promise<boolean> | null = null;
+  private lastRenewed = 0;
+  private lastFailedRenewal = 0;
   private readonly appLogin: AppLogin;
 
   readonly webCookies: WebCookies;
@@ -244,8 +254,29 @@ export class AuthController {
    * A new login in the browser (second factor too old, SSO proxy refused, a page asked for a second factor fresher
    * than [max2FAAgeMillis]); false if cancelled or failed.
    */
-  reauthenticate = (max2FAAgeMillis?: number): Promise<boolean> =>
-    (this.reauthentication ??= this.doReauthenticate(max2FAAgeMillis).finally(() => (this.reauthentication = null)));
+  reauthenticate = (max2FAAgeMillis?: number): Promise<boolean> => {
+    // Several tabs and the banner ask for the one login (one cookie jar): the one finished just now serves them all.
+    if (max2FAAgeMillis == null && Date.now() - this.lastRenewed < RECENT_RENEWAL_MILLIS) {
+      appLog.info('auth', 'Login renewed just now: no new login');
+      return Promise.resolve(true);
+    }
+    return (this.reauthentication ??= this.doReauthenticate(max2FAAgeMillis).finally(
+      () => (this.reauthentication = null),
+    ));
+  };
+
+  /**
+   * The renewal a refused request (or the redirect of a page to the SSO proxy) asks for: not while the user cancelled
+   * the last login just now, so the browser doesn't pop up again for every following request. A page then shows its
+   * error with the retry button; the banner and the retry buttons use [reauthenticate].
+   */
+  reauthenticateAutomatically = (): Promise<boolean> => {
+    if (Date.now() - this.lastFailedRenewal < AUTO_RENEWAL_COOLDOWN_MILLIS) {
+      appLog.info('auth', 'No new login: the last one was cancelled or failed just now');
+      return Promise.resolve(false);
+    }
+    return this.reauthenticate();
+  };
 
   private async doReauthenticate(max2FAAgeMillis?: number): Promise<boolean> {
     const session = this.state.session;
@@ -278,14 +309,21 @@ export class AuthController {
       await this.deps.sessionStore.save(renewed);
       // The same client and web session (they read the session per request), but the WebView needs the fresh cookies
       // of an SSO proxy.
-      this.state = { ...this.state, session: renewed };
-      this.emit();
       await this.webCookies.setProxyCookies(renewed.serverUrl, renewed.proxyCookies);
+      this.lastRenewed = Date.now();
+      this.lastFailedRenewal = 0;
+      this.state = { ...this.state, session: renewed, renewals: this.state.renewals + 1 };
+      this.emit();
+      this.deps.userStatus.loginRenewed?.();
       appLog.info('auth', 'Login renewed');
       return true;
     } catch (e) {
-      if (e instanceof AppLoginCancelled) appLog.info('auth', 'Renewal cancelled');
-      else appLog.error('auth', 'Renewal failed', e);
+      if (e instanceof AppLoginCancelled) {
+        appLog.info('auth', 'Renewal cancelled');
+        this.lastFailedRenewal = Date.now();
+      } else {
+        appLog.error('auth', 'Renewal failed', e);
+      }
       return false;
     }
   }
@@ -362,6 +400,7 @@ export class AuthController {
 
   /** [session] becomes the active login (null: logged out) with a new client, web session and status. */
   private activate(session: Session | null, newLogin: boolean, messageKey?: string) {
+    if (newLogin) this.lastFailedRenewal = 0;
     if (session == null) {
       this.api = null;
       this.webSessions = null;
@@ -371,7 +410,7 @@ export class AuthController {
         http: this.deps.http,
         current: () => this.state.session,
         onUnauthorized: this.onUnauthorized,
-        onReauthenticate: () => this.reauthenticate(),
+        onReauthenticate: () => this.reauthenticateAutomatically(),
       });
       this.api = api;
       this.webSessions = new WebSessionRepository(api, this.webCookies, () => this.ownProxyCookies(session));
@@ -380,6 +419,7 @@ export class AuthController {
       status: session == null ? 'loggedOut' : 'loggedIn',
       session,
       generation: this.state.generation + (newLogin ? 1 : 0),
+      renewals: this.state.renewals,
       messageKey,
     };
     this.emit();

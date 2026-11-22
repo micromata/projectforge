@@ -23,3 +23,14 @@ export const APP_BROWSER_2FA_MARKER = "(browser2FA)";
 export function appConfirms2FAInBrowser(): boolean {
   return isInApp() && navigator.userAgent.includes(APP_BROWSER_2FA_MARKER);
 }
+
+/**
+ * The app shows a page in the system browser on request (`{"pf":"openInBrowser"}`, see app-bridge.ts), e.g. the passkey
+ * setup, as the WebView can't register passkeys: an app that can marks its user agent with `(openInBrowser)` after its
+ * version. (Its menu has the entry for every page anyway.)
+ */
+export const APP_OPEN_IN_BROWSER_MARKER = "(openInBrowser)";
+
+export function appOpensPageInBrowser(): boolean {
+  return isInApp() && navigator.userAgent.includes(APP_OPEN_IN_BROWSER_MARKER);
+}

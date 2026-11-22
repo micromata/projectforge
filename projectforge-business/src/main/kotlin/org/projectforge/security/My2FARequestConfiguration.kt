@@ -72,6 +72,47 @@ open class My2FARequestConfiguration {
     internal set // internal for test cases
 
   /**
+   * Maximum age in minutes of an SSO session (OIDC login). If given, a login via SSO is treated as a second factor
+   * done this long ago (worst case: the shared SSO session is just about to expire). Periods of
+   * `projectforge.2fa.expiryPeriod.*` that are longer than this are fulfilled by the SSO login, equal or shorter ones
+   * demand a second factor of ProjectForge. If not given (or 0), SSO is only the login and a second factor of
+   * ProjectForge is always required.
+   */
+  @Value("\${projectforge.2fa.ssoSessionMaxAgeMinutes:}")
+  var ssoSessionMaxAgeMinutes: Int? = null
+    internal set // internal for test cases
+
+  /**
+   * Warns about values of [ssoSessionMaxAgeMinutes] that most probably aren't meant.
+   */
+  @PostConstruct
+  private fun checkSsoSessionMaxAge() {
+    val minutes = ssoSessionMaxAgeMinutes ?: return
+    if (minutes < 0) {
+      log.warn { "projectforge.2fa.ssoSessionMaxAgeMinutes=$minutes is negative and ignored: SSO is only the login." }
+    } else if (minutes in 1..10) {
+      log.warn {
+        "projectforge.2fa.ssoSessionMaxAgeMinutes=$minutes is very short: a SSO login may then authorize the mobile app " +
+            "without a second factor of its own (needs one of at most 10 minutes)."
+      }
+    } else if (minutes > 7 * 24 * 60) {
+      log.warn { "projectforge.2fa.ssoSessionMaxAgeMinutes=$minutes is longer than 7 days: is the SSO session really that long?" }
+    }
+  }
+
+  /**
+   * The time (millis) to take as `lastSuccessful2FA` of a user just logged in via SSO, see [ssoSessionMaxAgeMinutes].
+   * @return null, if SSO doesn't count as second factor (not configured, or [username] is exempt anyway).
+   */
+  fun getLastSuccessful2FAAfterSsoLogin(username: String?, now: Long = System.currentTimeMillis()): Long? {
+    val minutes = ssoSessionMaxAgeMinutes?.takeIf { it > 0 } ?: return null
+    if (isExempt(username)) {
+      return null
+    }
+    return now - minutes * 60_000L
+  }
+
+  /**
    * Login names (comma separated, case insensitive) that need no second factor, neither after login nor for
    * registering the mobile app. Only meant for the account Apple's app review logs in with: it can't read a mail or
    * an authenticator app. Empty by default; remove the entry after the review.
@@ -201,5 +242,10 @@ open class My2FARequestConfiguration {
   /** For test cases of other modules, see [loginExpiryDays]. */
   fun internalSetLoginExpiryDays4TestCases(days: Int?) {
     loginExpiryDays = days
+  }
+
+  /** For test cases of other modules, see [ssoSessionMaxAgeMinutes]. */
+  fun internalSetSsoSessionMaxAgeMinutes4TestCases(minutes: Int?) {
+    ssoSessionMaxAgeMinutes = minutes
   }
 }

@@ -72,7 +72,7 @@ class BusinessCard {
     var privateCity: String? = null
     var privateCountry: String? = null
 
-    /** ISO date (yyyy-MM-dd), as text: the card is only a copy for the vCard. */
+    /** ISO date (yyyy-MM-dd) or a date without year (--MM-DD), as text: the card is only a copy for the vCard. */
     var birthday: String? = null
     var comment: String? = null
 

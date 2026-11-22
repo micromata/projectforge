@@ -62,6 +62,7 @@ class NotificationRule(
     var scheduleMode: NotificationSchedule.Mode = NotificationSchedule.Mode.NONE,
     var scheduleDay: Int = 0,
     var scheduleDayOfWeek: DayOfWeek? = null,
+    var scheduleImmediate: Boolean = false,
     /** The values of the params of the rule type by key; an entity as `{id, displayName}`. */
     var params: Map<String, Any?> = emptyMap(),
     var recipientGroups: List<Group> = emptyList(),
@@ -91,7 +92,7 @@ class NotificationRule(
     /** The schedule as the rule stores it (the form edits its fields flat). */
     @get:JsonIgnore
     val schedule: NotificationSchedule
-        get() = NotificationSchedule(scheduleMode, scheduleDay, scheduleDayOfWeek)
+        get() = NotificationSchedule(scheduleMode, scheduleDay, scheduleDayOfWeek, scheduleImmediate)
 
     override var writeAccess: Boolean? = null
     override var deleteAccess: Boolean? = null
@@ -102,6 +103,7 @@ class NotificationRule(
         scheduleMode = schedule.mode
         scheduleDay = schedule.day
         scheduleDayOfWeek = schedule.dayOfWeek
+        scheduleImmediate = schedule.immediate
         val params = src.readParams()
         this.params = params.values.toMap() // Typed and completed by the rest endpoint.
         linkMode = params.linkMode

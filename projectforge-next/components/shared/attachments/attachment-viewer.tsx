@@ -37,6 +37,7 @@ export function AttachmentViewer({
   entity,
   id,
   base,
+  urlsOf,
   onIndexChange,
   onClose,
 }: {
@@ -46,6 +47,8 @@ export function AttachmentViewer({
   entity: string;
   id: number;
   base?: string;
+  /** Where a file is shown and downloaded from, if not `AttachmentsServicesRest` (e.g. chat files). */
+  urlsOf?: (file: Attachment) => { previewUrl: string; downloadUrl: string };
   onIndexChange: (index: number) => void;
   onClose: () => void;
 }) {
@@ -65,7 +68,7 @@ export function AttachmentViewer({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [index, count, onIndexChange]);
   const ref: AttachmentRef | null = file
-    ? { entity, id, fileId: file.fileId, base }
+    ? { entity, id, fileId: file.fileId, base, ...urlsOf?.(file) }
     : null;
   return (
     <Dialog open={file != null} onOpenChange={(open) => !open && onClose()}>

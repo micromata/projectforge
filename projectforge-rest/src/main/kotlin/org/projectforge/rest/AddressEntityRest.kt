@@ -299,6 +299,8 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
         val postal: AppPostalAddress?,
         val private: AppPostalAddress?,
         val birthday: LocalDate?,
+        /** If true, the year of [birthday] is only a placeholder and must not be shown. */
+        val birthdayYearUnknown: Boolean,
         val comment: String?,
         val hasImage: Boolean,
         val writeAccess: Boolean,
@@ -389,6 +391,7 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
                     address.privateCity, address.privateState, address.privateCountry,
                 ),
                 birthday = address.birthday,
+                birthdayYearUnknown = address.birthdayYearUnknown,
                 comment = address.comment,
                 hasImage = AddressImageCache.instance.getImage(address.id) != null,
                 writeAccess = baseDao.hasUpdateAccess(user, address, address, throwException = false),

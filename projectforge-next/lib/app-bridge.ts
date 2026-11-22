@@ -37,3 +37,11 @@ export function confirm2FAInApp(
     }
   });
 }
+
+/**
+ * Lets the app show a page in the system browser, with a session of its own (the user logs in there): the page shown
+ * now, or [path] (a path of next with its prefix, e.g. `/next/2FASetup`). False if there is no app.
+ */
+export function openPageInBrowser(path?: string): boolean {
+  return postToApp({ pf: "openInBrowser", path: path ?? null });
+}

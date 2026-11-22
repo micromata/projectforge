@@ -637,10 +637,12 @@ image::/uploads/screenshots/2026-ChatList.png[image]
 [[chat_rooms]]
 === Chat rooms
 
-Anybody may create a chat room (*New chat room*) and choose its participants: users and groups. Group
-membership is checked at the moment of access, so whoever joins a group later is in at once, and whoever
-leaves it is out. The owner of a room and its moderators edit or delete the room, hide messages of others
-with a reason (e.g. off-topic or confidential content) and see the history of edited messages.
+Anybody may create a chat room (*New chat room*) and choose its participants: users and groups.
+
+* *Groups:* the membership is checked at the moment of access, so whoever joins a group later is in at once, and
+  whoever leaves it is out.
+* *Owner and moderators:* edit or delete the room, hide messages of others with a reason (e.g. off-topic or
+  confidential content) and see the history of edited messages.
 
 Files sent in a room are stored in its data transfer area "Chat: …" and kept as long as the room says
 (*Files available*, 30 days by default); then they are deleted.
@@ -705,15 +707,20 @@ image::/uploads/screenshots/2026-ChatThread.png[image]
 [[chat_report_block]]
 === Reporting and blocking
 
-In the menu of a message of somebody else (click the message to show its actions) *Report* sends the message to the
-administrators, with an optional reason. They get the message text (the first 500 characters), the reporter and the
-author, and can deactivate the account of the author; they can't open the conversation. The report can block the author
-at the same time.
+*Report:* in the menu of a message of somebody else (click the message to show its actions) *Report* sends the message
+to the administrators, with an optional reason.
 
-*Block user* (menu of the author, or the button in the head of a direct message) ends the direct messages with this
-user: neither of you can write in the conversation, it stays readable. In rooms, the messages of a blocked user are shown
-folded (*Show* opens one), and you get no notifications, mentions or search hits from them. The blocked user isn't told.
-*Unblock user* removes the block, also in the list *Blocked users* next to the sound settings of the chat.
+* They get the message text (the first 500 characters), the reporter and the author.
+* They can deactivate the account of the author; they can't open the conversation.
+* The report can block the author at the same time.
+
+*Block user* (menu of the author, or the button in the head of a direct message):
+
+* *Direct messages:* they end; neither of you can write in the conversation, it stays readable.
+* *Rooms:* the messages of a blocked user are shown folded (*Show* opens one), and you get no notifications, mentions
+  or search hits from them.
+* The blocked user isn't told.
+* *Unblock user* removes the block, also in the list *Blocked users* next to the sound settings of the chat.
 
 [[chat_search]]
 === Search
@@ -765,12 +772,17 @@ What it protects against: database backups, log files, the chat history and admi
 data – none of them ever contains the text. It does not protect the screen or the clipboard of either side.
 The browser needs a secure connection (https).
 
-Technically, each browser creates a key pair for the conversation (WebCrypto, ECDH P-256); the private key
-can't be exported and lives only in the memory of the page. The common key is derived from both (HKDF-SHA-256)
-and encrypts each message with AES-GCM (256 bit) and a fresh initialization vector; conversation, sender and a
-counter are bound into each message, so a message can neither be replayed nor reordered unnoticed. The server
-only sees the public keys and the cipher text, keeps them in memory and deletes them when they are picked up.
-The fingerprint covers both public keys, so comparing it reveals a server that put its own keys in between.
+Technically:
+
+* *Keys:* each browser creates a key pair for the conversation (WebCrypto, ECDH P-256); the private key can't be
+  exported and lives only in the memory of the page.
+* *Encryption:* the common key is derived from both (HKDF-SHA-256) and encrypts each message with AES-GCM (256 bit)
+  and a fresh initialization vector.
+* *Replay:* conversation, sender and a counter are bound into each message, so a message can neither be replayed nor
+  reordered unnoticed.
+* *Server:* it only sees the public keys and the cipher text, keeps them in memory and deletes them when they are
+  picked up.
+* *Fingerprint:* it covers both public keys, so comparing it reveals a server that put its own keys in between.
 
 [[chat_privacy]]
 === Who reads along
@@ -915,12 +927,13 @@ another time sheet of the same user, except for a shared cost element (see below
 [[shared_cost_element]]
 ==== Shared cost element
 
-Time sheets of the same user may overlap in time, if at least one of the two is booked on a shared
-cost element and both don't belong to the same project. A time sheet is booked on a shared cost element
-if its cost 2 unit has *Shared costs* set to yes. If the cost 2 unit leaves it empty (*As structure
-element*) or there is no cost 2 unit, the checkbox *Shared cost element* of the structure element (or
-of an ancestor) decides. A cost 2 unit set to no takes precedence: its time sheets don't count as
-shared, even on a shared cost element.
+Time sheets of the same user may overlap in time, if at least one of the two is booked on a shared cost element and
+both don't belong to the same project. Whether a time sheet is booked on a shared cost element:
+
+* *Cost 2 unit with _Shared costs_ set to yes:* shared.
+* *Cost 2 unit set to no:* not shared, even on a shared cost element. It takes precedence.
+* *Cost 2 unit empty (_As structure element_) or no cost 2 unit:* the checkbox *Shared cost element* of the structure
+  element (or of an ancestor) decides.
 
 Never allowed, shared or not, are overlaps:
 
@@ -1028,6 +1041,16 @@ structure element etc.) and an optional payment schedule.
 as forecast and contribution margin are available under _Finance > Statistics_ (or _Project
 management > Statistics_ for users without the finance menu).
 
+[[order_book_forecast_filter]]
+=== Forecast invoicing in a period
+
+The filter *Forecast invoicing* with a period (e. g. the current month) lists the orders the forecast expects
+to invoice in that period. The column *Forecast in period* shows the amount per order and appears as long as the
+filter is set; the statistics line shows its sum. The amounts are those of the Forecast export, per month: the
+forecast type of an order (current or following month), payment schedules and the probability of occurrence
+apply, and months before the current one only show what the payment schedule or an overdue position adds. As
+with every other filter, the forecast statistics then cover the filtered orders only.
+
 [[e_mail_notification]]
 === E-mail notification
 
@@ -1052,13 +1075,15 @@ template.
 [[assignment_of_cost_units]]
 ==== Assignment of cost units
 
-It's recommended to try this feature for a better understanding. +
-You may assign positions of invoices to cost 1 and cost 2 units (*Cost id assignments*). An auto
-completion helps you to find the cost units very fast. You may enter numbers of cost units as well as
-text (e. g. the description, customer or type of a cost unit). +
-An unlimited number of assignments is supported. The amount may be given as amount or as percent value
-(e. g. 10%). ProjectForge® highlights positions whose amount isn't completely assigned yet
-(*Cost id assignment difference*).
+It's recommended to try this feature for a better understanding. You may assign positions of invoices to cost 1 and
+cost 2 units (*Cost id assignments*):
+
+* *Entry:* an auto completion helps you to find the cost units very fast. You may enter numbers of cost units as well as
+  text (e. g. the description, customer or type of a cost unit).
+* *Number:* unlimited assignments are supported.
+* *Amount:* given as amount or as percent value (e. g. 10%).
+* *Control:* ProjectForge® highlights positions whose amount isn't completely assigned yet (*Cost id assignment
+  difference*).
 
 Positions and assignments already saved are marked as deleted first and may be restored until you
 save the invoice.
@@ -1240,12 +1265,16 @@ objectives, choose a period and create the report. The XML is kept until you log
 . For multiple include lists a record must match all include lists (logical 'and').
 . If a record matches at least one entry of any exclude list, this record will be excluded.
 
-The method `String.matches(regExp)` is used for evaluating the regular expressions. You may refer
-to the expression syntax of the Java class `java.util.regex.Pattern` for a better understanding. For
-your convenience ProjectForge® modifies the configured expressions automatically before usage: all
-points ('.') will be escaped and the wildcard character '*' is replaced by '.*'. You may suppress the
-automatic modification by prepending an apostrophe, e. g. "'^5\.510.*" will not be modified (only
-the apostrophe itself is removed before evaluation). +
+The method `String.matches(regExp)` is used for evaluating the regular expressions. You may refer to the expression
+syntax of the Java class `java.util.regex.Pattern` for a better understanding. For your convenience ProjectForge®
+modifies the configured expressions automatically before usage:
+
+* all points ('.') will be escaped,
+* the wildcard character '*' is replaced by '.*'.
+
+You may suppress the automatic modification by prepending an apostrophe, e. g. "'^5\.510.*" will not be modified (only
+the apostrophe itself is removed before evaluation).
+
 Examples:
 
 * +++"3.*"+++ -> +++"3\..*"+++ (matches all strings beginning with "3.").
@@ -1489,259 +1518,11 @@ be notified in advance of files being deleted (for longer expiry periods). The m
 configured per area.
 * *Download all* downloads all files of an area as zip archive.
 
-[[cve_pilot_libraries]]
-=== CVE-Pilot: libraries of a component
+[[cve_pilot]]
+=== CVE-Pilot
 
-The CVE-Pilot matches vulnerabilities against the libraries of a component. They are uploaded in the inventory
-(_Upload libraries_ of a component): an SBOM, the lockfiles (npm, yarn, pnpm, Composer, Cargo, Go, Python), the output
-of Maven or Gradle, jar listings and the package lists of the operating system. The dialog shows which file or command
-to take for each of them. Only names and versions are read, nothing is executed, and the files are not stored.
-
-A component often has several of them: the lockfile of the frontend, the libraries of the backend, the packages of
-its images. These are best collected by a *script in the project* (e.g. `collect-libraries.sh`), which packs them
-into one zip; the zip is uploaded as it is. Run it in the build pipeline or before a release, so the lists always
-belong to the delivered version and nobody collects them by hand. ProjectForge's own one is `bin/collect-libraries.sh` in its repository: one zip
-per component (backend, frontend, app, each Docker image), CycloneDX wherever possible. An example, to be adapted to
-the paths of the project:
-
-[source,bash]
-----
-#!/usr/bin/env bash
-# Collects the lists of the libraries for the CVE-Pilot into libraries.zip.
-set -euo pipefail
-out="$(mktemp -d)"
-trap 'rm -rf "$out"' EXIT
-
-# Frontend: the lockfile as it is in the repository.
-mkdir -p "$out/frontend"
-cp frontend/pnpm-lock.yaml "$out/frontend/"   # or package-lock.json, yarn.lock
-
-# Backend: an SBOM (best) or the output of the build tool.
-syft dir:backend -o cyclonedx-json="$out/backend-bom.json"
-# mvn -f backend dependency:list -DincludeScope=runtime -DoutputFile="$out/deps-maven.txt"
-
-# Images: the packages of the operating system.
-for image in registry.example.org/app:1.4.2; do
-  name="$(basename "${image%%:*}")"
-  docker run --rm --entrypoint sh "$image" -c \
-    'cat /etc/os-release; dpkg-query -W -f "\${Package} \${Version} \${source:Package} \${source:Version}\n"' > "$out/os-$name.txt"
-  # Alpine: docker run --rm --entrypoint apk "$image" info -v > "$out/os-$name.txt"
-done
-
-rm -f libraries.zip
-(cd "$out" && zip -qr - .) > libraries.zip
-----
-
-* From a zip only files ending in `.json`, `.lock`, `.lockfile`, `.yaml`, `.yml`, `.txt` or `.mod` are read, in
-  any directory; the format is told from the content. Files and directories starting with a dot (`.npmrc`, `.env`),
-  `gradle.properties`, `settings.xml` and all other files are skipped unread, a zip in the zip isn't unpacked.
-* Limits: 10 files at once, 10 MB per zip, 5 MB per file, 50 MB and 100 lists from the zips of an upload, 20,000
-  libraries. The SBOMs of many repositories and images at once go into an area instead, see
-  <<cve_pilot_sbom_import>>.
-* The preview lists every file of the zip with its format and the number of libraries; a file that isn't recognised
-  is marked, so a mistake of the script is seen before anything is applied.
-* With _Replace the libraries uploaded earlier_, the libraries missing in the upload are removed: always upload the complete zip of the component.
-
-*Packages of a container image.* Java images often bring native libraries of the operating system, e.g. brotli
-(`libbrotli1`), zlib or OpenSSL; their vulnerabilities show only in the package list of the image, not in the
-libraries of the build. For `eclipse-temurin` (Ubuntu) and other Debian- or Ubuntu-based images:
-
-[source,bash]
-----
-docker run --rm --entrypoint sh eclipse-temurin:21-jre -c \
-  'cat /etc/os-release; dpkg-query -W -f "\${Package} \${Version} \${source:Package} \${source:Version}\n"' > os-temurin.txt
-grep brotli os-temurin.txt   # e.g. libbrotli1 1.1.0-2build2 brotli 1.1.0-2build2
-----
-
-The Alpine variant (`eclipse-temurin:21-jre-alpine`) lists with `apk info -v`, Red Hat based images (UBI) with
-`rpm -qa`. Images without a package manager (distroless, scratch) need an SBOM of the image:
-`syft eclipse-temurin:21-jre -o cyclonedx-json > os-temurin.json`. The distributions backport fixes without
-changing the upstream version, so only the distribution tells whether the installed version is affected. The lines of
-`/etc/os-release` (the release) and the source package of each package (`openssl` for `libssl3`) let CVE-Pilot ask
-the advisories of Debian and Ubuntu, as an SBOM does; a list of `${Package} ${Version}` only is matched by the name
-of the package against the NVD, its findings are possible ones.
-
-*Where a library was found.* Every library keeps the file it came from with the upload (in a zip with its path), and
-for an SBOM of an image the place inside it, e.g. `image-postgres.cdx.json: /usr/local/bin/gosu`. The findings, the
-list of the libraries and the export show it; libraries uploaded before get it with the next upload.
-
-*Programs in an image.* An SBOM of an image lists the Go standard library (`stdlib`) of every Go program in it with the
-version of Go it was built with. An old program (e.g. `gosu` in many database images) brings all vulnerabilities of
-the standard library fixed since; an update of the image or of the program fixes all of them at once. Advisories for
-other operating systems only (e.g. Windows) don't match a component that runs on Linux, i.e. one with packages of a
-Linux distribution.
-
-[[cve_pilot_sbom_import]]
-=== CVE-Pilot: bulk import of SBOMs into an area
-
-A project with many repositories and container images is scanned as a whole by some tools: their output is a zip with
-an SBOM per repository (often with further ones of its modules) and per image, besides logs, raw reports of the
-scanner and an SBOM of everything together. Such a zip is imported into an *area* (_Import SBOMs_ in the dialog of the
-area; whoever may change the area):
-
-. Choose the zip and _Read_ it. The server reads it as a whole; only the libraries of the SBOMs are kept.
-. The preview lists one row per repository and per container image, with the code and name proposed, the number of
-  libraries and what happens: _New_, _Update_ (already in the area, its libraries are replaced), _Code taken_ (by an
-  area or a system of another area; another code makes it importable), _Aggregate_ (an SBOM listing the libraries of
-  the others; left out, they would be there twice), _No libraries_. Code and name can be changed, rows ticked off.
-  The status and the changes shown are those of the code proposed: a code changed to the one of a system already in
-  the area replaces the libraries of its component `SBOM`.
-. _Import_ stores the ticked rows, each on its own: a failing one is reported, the others are stored. The components
-  are matched against the vulnerabilities once at the end.
-
-How the SBOMs are assigned, independent of the tool that wrote them:
-
-* An SBOM of a container image (`metadata.component.type` is `container`) belongs to its image (name and tag): a
-  component of the system _Container images_ of the area (code `<area>-IMAGES`, or `<area>-IMAGES-2` and so on if another
-  area has it).
-* Every other SBOM belongs to the uppermost folder on its path that holds an SBOM itself, e.g. `repositories/app/`
-  for `repositories/app/bom.cdx.json` and `repositories/app/native/x/bom.cdx.json`: a system of the area named after
-  the folder, with the component `SBOM`. An SBOM in the top folder of the zip is one of its own. An SBOM of all
-  repositories therefore belongs there, not next to them: `repositories/all.cdx.json` would make one system of all.
-* Only CycloneDX and SPDX as JSON are read; components without a purl with a version (files, declarations with an
-  unresolved version) are left out and counted.
-* Importing the zip again updates the same systems and components: the libraries read from lists are replaced,
-  technologies entered by hand stay. Systems of the area the zip has nothing for stay as they are.
-* Limits: the size of the zip per area, 20 MB unless the security officer sets another for the area (field in the
-  dialog of the area, up to the cap configured by the administrator); 20,000 entries; every file unpacked at most 1 GB,
-  all together at most 20 times the zip; 20,000 libraries per repository or image. A reverse proxy in front of
-  ProjectForge has a limit of its own for the size of a request (nginx: `client_max_body_size`).
-* The read zip is not stored; its plan is kept for an hour, until it is imported or another zip is read. One zip per
-  user is uploaded and read at a time.
-
-[[cve_pilot_inventory_delete]]
-=== CVE-Pilot: delete a part of the inventory
-
-_Delete_ in the dialog of an area, a system, an instance or a component removes it with everything below it: the
-areas, systems, instances and components, their libraries and technologies and all their findings, whatever their
-status, with their history. This can't be undone. Before, a list shows what goes, each entry with its numbers of
-findings, libraries and technologies, the totals at the bottom; nothing is deleted until it is confirmed.
-
-* Deleting needs write access to the entry (a member of its group, or the security officer); it covers everything
-  below it.
-* The last instance of a system stays: every system has one. Delete the system instead.
-* The vulnerabilities themselves stay; only their findings in the deleted part go.
-
-[[cve_pilot_case_ai]]
-=== CVE-Pilot: research a case with AI
-
-Researching a new case, with or without CVE, takes time: what is affected, how serious it is, which version fixes it,
-what helps until then. _Research with AI_ (list of the cases, or a new case; security team only) prepares this
-research for an approved AI system. There is no direct connection to an AI system: the prompt is copied there, and
-its answer is pasted back.
-
-. Enter the kind (CVE or incident), the CVE id if there is one, what it is about, the sources (one URL per line) and
-  further notes. If the CVE is in the NVD import already, its description, CVSS, CWE and references go into the prompt
-  as well; if there is a case for it already, the dialog links it instead.
-. _Create prompt_ shows the prompt in a step of its own: copy it, or download it as a file, into an approved AI
-  system. Every step has the way back, the entries are kept. The prompt asks for one JSON block in a fixed format: title, summary, priority
-  with reason, fix version, workaround, measures for techies and non-techies, client advisory, references, affected
-  versions, open questions and sources. The meaning of the priorities P1 to P4 is part of the prompt.
-. Paste the answer (or drop its file). Text around the JSON block doesn't matter. The answer is checked against the
-  format; what is wrong is named per field.
-. The preview shows every value with a copy button, so it also serves as a template for an existing case. _Create
-  case_ creates a new case, assigned to oneself, and opens its file.
-
-* The prompt leaves ProjectForge: no names of internal systems, customers or persons, no internal host names or
-  credentials. Use approved AI systems only.
-* The answer is a proposal: affected versions, open questions and sources are added to the description, marked as
-  created with the help of an AI system. Check everything before the case is released to the employees, especially
-  the priority and the measures.
-* What the AI system can't know is left out: assignee, team checks and the fix criteria of the client agent.
-
-[[cve_pilot_case_file]]
-=== CVE-Pilot: download and import a case
-
-_Download as JSON_ in the file of a case saves the case as a file: kind, code, title, description, priority with
-reason, fix version, workaround, measures, references, client advisory and the fix criteria of the client agent, as
-stored. Status, assignee, ratings, team checks and the discussion are not part of it.
-
-_Import case_ (list of the cases, or a new case; security team only) creates a new case from such a file, e.g. to copy
-a case into another instance of ProjectForge: paste the file or drop it, check the preview, _Create case_. The new
-case is assigned to oneself and its file opens. A CVE that has a case already is refused; an incident gets the next
-code of the year.
-It also takes the answer of an AI system to the prompt of <<cve_pilot_case_ai,research with AI>>, e.g. one saved as a
-file; quotes made typographic by copying (`“…”`) are straightened.
-
-[[cve_pilot_finding_report]]
-=== CVE-Pilot: export the findings of a project
-
-The open findings of a node of the inventory (area, system, instance or component) and below can be exported as one
-JSON file: the download icon in the row of a node with findings (_CVE-Pilot > Systems_). It contains what one may
-see: per vulnerability the data of the NVD (description, CVSS, CWE, KEV, references), the case of the security team
-(priority, fix version, workaround, measures) and the technologies that matched, with their versions, package URLs,
-where they were found and the instances they matched in. The most urgent come first. Before them, `libraries`
-summarizes the vulnerabilities per library: their number, the highest severity and the version from which on none of
-them matches (`fixVersion`), so one update shows as one task.
-
-A click on the counts of findings in the row opens the tab _Findings_ of the node's dialog: its open findings one by
-one (CVE, case, instance, component, technology, where it was found, what matched), with their counts and a filter by
-certainty; a click on a finding opens the file of the CVE. _Libraries_ switches to one row per library: its CVEs, how
-many of them affected, the highest severity, the update that fixes them and where it was found; a click on a library
-shows its findings. With uploads from more than one file, a select above narrows both views to the findings of one
-file (or those without a location), the key figures and counts included. _Check again_ at the bottom matches the components below the node against all vulnerabilities
-again, which otherwise happens by itself after every import and every change (by hand e.g. after the catalogue was
-changed); the message tells how many findings are new, changed or removed. Above them, tiles show the number of CVEs and their severity (critical, high,
-medium/low, actively exploited); hovering over the counts in the row shows the same tiles.
-A click on a tile filters the findings by it, a click on _CVEs_ shows all again. The button _Export findings_ at the bottom of the dialog exports them.
-
-* _Replace internal names_ (on by default) replaces the codes and names of areas, systems, instances and components
-  by neutral ones (`S1`, `S1-I1`, `C1`). The names of libraries and products stay.
-* _Report by package_ downloads the vulnerabilities per package (library and version) as PDF, Excel or JSON, e.g. to
-  pass them on: tiles per severity, an overview with the highest score and the version that fixes all of them, then
-  per package its vulnerabilities with score, description, affected versions and a link to the NVD or the advisory.
-  The selection of vulnerabilities and the replaced names apply to it as well.
-* The dialog also has a prompt for an approved AI system, with the report attached: it asks how to fix every
-  vulnerability in this project. Is the project really affected, which version fixes it and how is it forced for a
-  transitive dependency (overrides, constraints, dependencyManagement), what helps until then, how is the fix
-  verified. The assessment of the security team takes precedence. Copy the prompt or download it as a file.
-* The answer of the AI system is a proposal: check versions and build snippets before using them.
-
-[[cve_pilot_adhoc_check]]
-=== CVE-Pilot: ad-hoc check of files
-
-_CVE-Pilot > Ad-hoc check_ checks files against all vulnerabilities without touching the inventory. Everybody with the
-reader role may use it; nothing is stored, and the result stays with the person who started the check (it is dropped
-about an hour after the end).
-
-* Drop or choose up to 10 files: the lists of libraries known from the upload to a component (lockfiles such as
-  `package-lock.json`, `yarn.lock` or `pnpm-lock.yaml`, SBOMs in CycloneDX or SPDX, output of Maven or Gradle,
-  package lists of containers), or a zip with such lists. Which formats there are and how to produce them is described
-  in <<cve_pilot_libraries,CVE-Pilot: libraries of a component>>; the page links to it.
-* A bar per file shows how many of its packages are checked. The packages are compared with the vulnerabilities
-  imported from the NVD with the rules of the inventory: a match by CPE or the catalogue entry with a version range
-  is _affected_, one by name or without a version only _possibly affected_. Only vulnerabilities imported so far
-  count, i.e. those above the configured minimum score.
-* The result lists the vulnerabilities, the most urgent first, with the package, its version and the file. The case of
-  the security team (priority, fix version) is shown where there is one.
-* As with the findings of a project, the result can be downloaded as JSON and comes with a prompt for an approved AI
-  system that asks how to fix every vulnerability. _Replace the names of the files_ (on by default) turns them into
-  `F1`, `F2`, … because their paths often carry project names. The _Report by package_ (PDF, Excel, JSON) is there
-  as well.
-
-[[cve_pilot_notifications]]
-=== CVE-Pilot: notifications
-
-Notifications are set up by an admin as rules (page _Notification rules_). Three rule types belong to the
-CVE-Pilot. Nobody is notified until such a rule exists; the admin chooses the recipients (except for the reminder of team
-checks) and the delivery (in the app, by mail) for each rule.
-
-* *New findings of the CVE-Pilot*: the responsible team of an affected system (the group of the system or of the nearest
-  area above) is notified right after the matching found something new; the recipients of the rule get it in copy. A rule
-  starts from a CVSS severity (known exploited vulnerabilities always), optionally with possible findings and
-  vulnerabilities not yet rated. A new rule starts with a text that names no details: _For a system in your
-  responsibility there may be updates_, with a link to the list; who may see what is decided there. The text can name
-  the vulnerabilities and systems with the variables of the rule instead.
-* *Outdated lists of libraries of the CVE-Pilot*: the findings of a component are only as good as its list of libraries.
-  If the last list of a component was applied more than the given number of days ago (30 by default), the responsible
-  team and the recipients in copy are told, at most once a week; the notification is resolved as soon as the list is
-  updated. Components that never had a list from a file are left out.
-* *Unanswered team checks of a case of the CVE-Pilot*: the rule names a case. The members asked by one of its team
-  checks that every member answers, who haven't answered yet (as the team check lists them under _Not answered yet_), are
-  reminded, at most once a day; how often follows from the schedule of the rule, or it is triggered by hand. Only they
-  are notified, recipients given in the rule aren't used. The notification is resolved as soon as the member answered,
-  and expires when the case is closed.
-* Everybody is told only of the systems and instances they may see.
+The vulnerability management (inventory, libraries, findings, cases, notifications) has its own document:
+link:/docs/cve-pilot/[CVE-Pilot].
 
 [[further_features]]
 === Further features

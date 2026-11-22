@@ -44,6 +44,7 @@ class LoggingFilterTest {
       "/denied/../react/mypage",
       "/next",
       "/next/mypage/dynamic",
+      "/rsApiKey/cveradar/component/1/libraries",
     )
     var counter = 0
     Mockito.`when`(request.requestURI).thenAnswer { knownUris[counter] }

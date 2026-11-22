@@ -65,6 +65,7 @@
     "addresses": "Addresses",
     "birthName": "Birth name",
     "birthday": "Birthday",
+    "birthdayYearUnknown": "Year unknown",
     "book": {
       "export": {
         "_": "Excel-Export",
@@ -886,6 +887,7 @@
       },
       "visible": "visible"
     },
+    "firstDayOfWeek": "First day of week",
     "holiday": {
       "ascension": "Ascension",
       "ashWednesday": "Ash Wednesday",
@@ -1792,6 +1794,8 @@
         "_": "Forecast",
         "tooltip": "Forecast export for actual orderbook list. The start date will be taken from the period of performance begin. If not present it uses 01/01/[actual year]."
       },
+      "forecastInPeriod": "Forecast in period",
+      "forecastPeriod": "Forecast invoicing",
       "forecastType": {
         "_": "Forecast type",
         "currentMonth": "Current month",
@@ -3389,6 +3393,10 @@
     }
   },
   "loading": "Loading...",
+  "locale": {
+    "de": "German",
+    "en": "English"
+  },
   "log": {
     "level": {
       "_": "Level",
@@ -3832,6 +3840,8 @@
     "schedule": {
       "day": "Day",
       "dayOfWeek": "Weekday",
+      "immediate": "Notify immediately after detection",
+      "immediateInfo": "In addition to the schedule, the rule is checked hourly (7 am to 7 pm); new events are notified right away, already notified recipients are not notified again.",
       "info": "The rules are checked once a day in the morning.",
       "mode": {
         "DAILY": "Every working day",
@@ -6288,6 +6298,11 @@
         "validation": "Code not correct or two-factor authentication not configured."
       },
       "lastSuccessful2FA": "Last successful 2FA check",
+      "passkey": {
+        "recommendation": "Strong recommendation: set up a passkey. It takes only a few seconds and saves you entering a code at every future login.",
+        "setupHint": "After login: click your name at the top right, open “My account” and choose “Two-factor authentication”.",
+        "setupLink": "Set up a passkey now"
+      },
       "password": {
         "wrong": "Password check failed."
       },
@@ -6724,6 +6739,10 @@
   "values": "Values",
   "webauthn": {
     "add": "Add passkey or security key",
+    "browser": {
+      "info": "The app cannot register a passkey or security key itself. Open this page in the browser of the device for that (menu “Open in browser”): you log in there once, then a passkey can be added.",
+      "open": "Set up in the browser"
+    },
     "choice": {
       "any": {
         "info": "The browser offers all options, e.g. a phone nearby or a password manager.",

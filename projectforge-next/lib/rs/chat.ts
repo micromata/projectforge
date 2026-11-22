@@ -71,6 +71,11 @@ export function chatFileUrl(
   return `${BASE}/conversation/${conversationId}/file/${encodeURIComponent(fileId)}${download ? "?download=true" : ""}`;
 }
 
+/** The url of a file of a conversation shown inline in the browser (PDF, image, text), 415 for any other type. */
+export function chatFilePreviewUrl(conversationId: number, fileId: string) {
+  return `${BASE}/conversation/${conversationId}/file/${encodeURIComponent(fileId)}/preview`;
+}
+
 /** The thumbnail of the link preview of a message; the id changes with the preview (cached by the browser). */
 export function chatLinkPreviewImageUrl(messageId: number, imageId: string) {
   return `${BASE}/message/${messageId}/linkPreviewImage?v=${encodeURIComponent(imageId)}`;

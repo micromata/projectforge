@@ -237,6 +237,16 @@ SMS and mail do. So next's 2FA dialog (`two-factor-form.tsx`, context `session`)
 3. It answers with the event `pf-app-2fa` `{ok}` (`twoFactorScript.ts`); next repeats the refused request (the CSRF
    token of the new session follows by the retry of `client.ts`). No reload, the page keeps its state.
 
+**Open in the system browser:** every page can be shown in the system browser (More menu "Im Browser öffnen",
+`WebScreen.openInBrowser`): it has a session of its own, the user logs in there (the app token can't create one). Pages of
+next can ask for it too: the page posts `{"pf":"openInBrowser","path":…}` (`openPageInBrowser`, `lib/app-bridge.ts`; same
+origin only, `path` optional, only a path of next, else the page shown now; `browserTarget` in `openInBrowser.ts`), if the
+app has `(openInBrowser)` in its user agent (`appOpensPageInBrowser`). The passkey setup uses it: registering a passkey
+(`/2FASetup`, `WebAuthnSection`, the recommendation beside the code entry) fails in the WebView for the same reason as
+WebAuthn at the login, and needs a browser session (challenge and fresh 2FA live in the HTTP session). next shows "Set up in
+the browser" instead of the add buttons; older apps get the explanatory text only. Nothing comes back, the user returns to
+the app by hand.
+
 ## Client log
 
 `core/log/appLog.ts` (`appLog`) records what is needed to find out why something fails, in particular behind

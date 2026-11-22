@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDateRange,
+  formatDayMonth,
   formatMonthRange,
   formatNumberUpTo,
   formatPercentageDecimal,
@@ -97,5 +98,13 @@ describe("formatMonthRange", () => {
   it("is half-open and empty as a date range is", () => {
     expect(formatMonthRange("2026-03-01", null, CTX)).toBe("März 2026 – …");
     expect(formatMonthRange(null, undefined, CTX)).toBe("");
+  });
+});
+
+describe("formatDayMonth", () => {
+  it("leaves the year out and doesn't shift the day", () => {
+    const ctx: FormatContext = { ...CTX, timeZone: "America/New_York" };
+    expect(formatDayMonth("2000-05-12", ctx)).toBe("12.05.");
+    expect(formatDayMonth(null, ctx)).toBe("");
   });
 });

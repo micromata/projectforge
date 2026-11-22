@@ -58,6 +58,8 @@ test.describe("order book", { tag: "@lane-order" }, () => {
     for (const column of ORDER_PAGE.columns) {
       // Offered in the column panel, not on the page until the user switches them on.
       if ("hiddenByDefault" in column && column.hiddenByDefault) continue;
+      // Only there with its filter set, which the reset in beforeEach clears.
+      if ("revealedByFilter" in column && column.revealedByFilter) continue;
       const name = columnIdOf(column);
       const key = columnHeaderKeyOf(column, AUFTRAG_METADATA);
       await expect(

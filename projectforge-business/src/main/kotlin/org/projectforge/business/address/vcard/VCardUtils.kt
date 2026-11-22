@@ -29,6 +29,7 @@ import ezvcard.parameter.AddressType
 import ezvcard.parameter.EmailType
 import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
+import ezvcard.util.PartialDate
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
@@ -44,6 +45,9 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 object VCardUtils {
+    /** Year used by Apple Contacts for a birthday without year (also in vCard 3.0, which has no partial dates). */
+    const val APPLE_NO_YEAR = 1604
+
     @JvmStatic
     fun buildVCard(
         addressDO: AddressDO,
@@ -116,8 +120,12 @@ object VCardUtils {
         postalAddress.country = addressDO.postalCountry
         vcard.addAddress(postalAddress)
         addressDO.birthday?.let { birthday ->
-            // PartialDate is not supported in V3.0, using java.util.Date:
-            vcard.birthday = Birthday(birthday)
+            if (addressDO.birthdayYearUnknown) {
+                vcard.birthday = Birthday(PartialDate.builder().month(birthday.monthValue).date(birthday.dayOfMonth).build())
+            } else {
+                // PartialDate is not supported in V3.0, using java.util.Date:
+                vcard.birthday = Birthday(birthday)
+            }
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment?.trim())
@@ -181,6 +189,16 @@ object VCardUtils {
     ): String { //See: https://github.com/mangstadt/ez-vcard
         val vcard = buildVCard(addressDO, imageUrl, imageType)
         var vcardString = Ezvcard.write(vcard).version(vCardVersion.ezVCardType).go()
+        val noYearBirthday = addressDO.birthday?.takeIf { addressDO.birthdayYearUnknown }
+        if (noYearBirthday != null && vCardVersion == VCardVersion.V_3_0) {
+            // vCard 3.0 has no partial dates: use the convention of Apple (year 1604 and X-APPLE-OMIT-YEAR).
+            vcardString = vcardString.replace(
+                Regex("(?m)^BDAY:.*$"),
+                "BDAY;X-APPLE-OMIT-YEAR=$APPLE_NO_YEAR:%d-%02d-%02d".format(
+                    APPLE_NO_YEAR, noYearBirthday.monthValue, noYearBirthday.dayOfMonth
+                )
+            )
+        }
         // Fix TYPE parameter for iOS compatibility: Apple expects uppercase (TYPE=JPEG, TYPE=PNG)
         // but ez-vcard generates lowercase (TYPE=jpeg, TYPE=png)
         vcardString = vcardString.replace("TYPE=jpeg", "TYPE=JPEG", ignoreCase = false)
@@ -280,9 +298,19 @@ object VCardUtils {
             val year = partialDate.year
             val month = partialDate.month
             val date = partialDate.date
-            address.birthday = LocalDate.of(year ?: 2000, month ?: 1, date ?: 1)
+            if (month != null && date != null) {
+                address.birthdayYearUnknown = year == null
+                address.birthday = LocalDate.of(year ?: AddressDO.BIRTHDAY_PLACEHOLDER_YEAR, month, date)
+            } else {
+                address.birthday = null // Can't be stored without month and day.
+            }
         } else {
-            address.birthday = PFDateTime.fromTemporalOrNull(birthday?.date)?.localDate
+            val day = PFDateTime.fromTemporalOrNull(birthday?.date)?.localDate
+            // Apple Contacts exports a birthday without year as 1604 (BDAY;X-APPLE-OMIT-YEAR=1604:1604-05-12).
+            val yearUnknown = day != null && (day.year == APPLE_NO_YEAR ||
+                    birthday?.getParameter("X-APPLE-OMIT-YEAR") != null)
+            address.birthdayYearUnknown = yearUnknown
+            address.birthday = if (yearUnknown) day?.withYear(AddressDO.BIRTHDAY_PLACEHOLDER_YEAR) else day
         }
         for (note in vcard.notes) {
             var noteValue = note.value ?: ""

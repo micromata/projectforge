@@ -276,6 +276,14 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     open var birthday: LocalDate? = null
 
     /**
+     * If true, the year of the birthday is unknown (e.g. imported from an address book without the year). The year of
+     * [birthday] is then only a placeholder ([BIRTHDAY_PLACEHOLDER_YEAR], a leap year) and must never be displayed.
+     */
+    @PropertyInfo(i18nKey = "address.birthdayYearUnknown")
+    @get:Column(name = "birthday_year_unknown", nullable = false)
+    open var birthdayYearUnknown: Boolean = false
+
+    /**
      * Time stamp of last image modification (or deletion). Useful for history of changes.
      */
     @get:Column(name = "image_last_update")
@@ -551,6 +559,9 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
         get() = getTransientAttribute("image") as? AddressImageDO
 
     companion object {
+        /** Placeholder year of a birthday with unknown year (a leap year, so that February 29th stays valid). */
+        const val BIRTHDAY_PLACEHOLDER_YEAR = 2000
+
         /**
          * Used for representation in the data base and for hibernate search (lucene).
          */

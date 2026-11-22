@@ -175,6 +175,7 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
         val data = mutableMapOf<String, Any?>(
             "contactPerson" to recipient,
             "auftrag" to order,
+            "netSum" to BigDecimal("60500"),
             "operationType" to "UPDATE",
             "requestUrl" to "https://projectforge.example.org/next/order/4711",
             "notificationSettingsUrl" to "https://projectforge.example.org/next/order/4711?notificationSettings",

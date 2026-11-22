@@ -101,6 +101,8 @@ export class UserStatusStore {
   private listeners = new Set<() => void>();
   private api: ApiClient | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
+  /** Counts the renewed logins: a refusal of a poll started before the last one says nothing about the new cookies. */
+  private renewals = 0;
   private reloadTimer: ReturnType<typeof setTimeout> | null = null;
   private appState: { remove(): void } | null = null;
 
@@ -145,10 +147,24 @@ export class UserStatusStore {
     this.emit();
   }
 
+  /**
+   * The login was renewed (by the banner or by a tab): the notice of the expired SSO proxy goes at once, the status is
+   * loaded again (a refusal brings the notice back).
+   */
+  loginRenewed = () => {
+    this.renewals++;
+    if (this.state.proxyExpired) {
+      this.state = { ...this.state, proxyExpired: false };
+      this.emit();
+    }
+    void this.refresh();
+  };
+
   /** Loads the status again; offline (or on an error) the last one stays. */
   refresh = async () => {
     const api = this.api;
     if (api == null) return;
+    const renewals = this.renewals;
     try {
       const status = await api.get<UserStatusResult>('/rs/userStatus', { renewLogin: false });
       if (this.api !== api) return;
@@ -169,7 +185,8 @@ export class UserStatusStore {
       appLog.debug('status', `User status not loaded: ${String(e)}`);
       // Only a loaded status ends it: offline it stays as it was.
       const refused = e instanceof ApiException && e.messageKey === PROXY_REFUSED_KEY;
-      if (refused && this.api === api && !this.state.proxyExpired) {
+      // A poll started before the renewal was refused with the old cookies: no news.
+      if (refused && this.api === api && renewals === this.renewals && !this.state.proxyExpired) {
         appLog.info('status', 'Polling refused by the SSO proxy: renewal of the login offered');
         this.state = { ...this.state, proxyExpired: true };
         this.emit();

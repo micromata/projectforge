@@ -58,6 +58,8 @@ export interface AddressDetail {
   comment?: string | null;
   /** ISO date `yyyy-MM-dd`. */
   birthday?: string | null;
+  /** The year of [birthday] is only a placeholder and not shown. */
+  birthdayYearUnknown?: boolean;
   instantMessaging?: unknown;
   addressbookList?: AddressbookRef[] | null;
   /** Whether the address is a favorite of the logged-in user. */
