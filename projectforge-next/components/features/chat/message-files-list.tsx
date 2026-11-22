@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { File01Icon, FolderOpenIcon } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { AttachmentViewButton } from "@/components/shared/attachments/attachment-view-button";
 import { chatFileUrl } from "@/lib/rs/chat";
 import type { ChatFile } from "@/lib/rs/chat-types";
 import { cn } from "@/lib/utils";
@@ -16,9 +17,12 @@ import { cn } from "@/lib/utils";
 export function MessageFilesList({
   conversationId,
   files,
+  onView,
 }: {
   conversationId: number;
   files: ChatFile[];
+  /** Shows a previewable file (PDF, text) in the viewer; no eye without it. */
+  onView?: (file: ChatFile) => void;
 }) {
   const t = useTranslations();
   if (files.length === 0) return null;
@@ -50,6 +54,10 @@ export function MessageFilesList({
                 >
                   {content}
                 </a>
+                <AttachmentViewButton
+                  attachment={{ fileId: file.fileId, name: file.name }}
+                  onView={onView && (() => onView(file))}
+                />
                 <HintTooltip text={t("chat.file.openArea")}>
                   <Link
                     href={`/datatransfer/${file.areaId}`}

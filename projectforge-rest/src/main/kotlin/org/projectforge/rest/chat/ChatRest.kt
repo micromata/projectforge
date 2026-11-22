@@ -38,6 +38,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.rest.AttachmentPreview
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.RestError
@@ -105,6 +106,9 @@ class ChatRest {
 
     @Autowired
     private lateinit var fileService: ChatFileService
+
+    @Value("\${projectforge.security.csp-header-value:}")
+    private var cspHeaderValue: String? = null
 
     @Value("\${spring.servlet.multipart.max-request-size:110MB}")
     private lateinit var maxRequestSizeConfig: String
@@ -437,6 +441,23 @@ class ChatRest {
             .header("X-Content-Type-Options", "nosniff")
             .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePrivate())
             .body(InputStreamResource(inputStream))
+    }
+
+    /**
+     * The preview of a file of the conversation (PDF, image, text; 415 for any other type), same access as
+     * [downloadFile]. The type is detected by the content, see [AttachmentPreview].
+     */
+    @AccessChecked("ChatFileService.download: read access of the host to the conversation, file of a visible message of it")
+    @GetMapping("conversation/{id}/file/{fileId}/preview")
+    fun previewFile(
+        @PathVariable id: Long,
+        @PathVariable fileId: String,
+        response: HttpServletResponse,
+    ): ResponseEntity<InputStreamResource> {
+        val context = chatService.requireContext(id)
+        val (attachment, file) = fileService.download(context, fileId) ?: return ResponseEntity.notFound().build()
+        val (fileObject, inputStream) = file
+        return AttachmentPreview.response(fileObject.fileName ?: attachment.name, inputStream, response, cspHeaderValue)
     }
 
     /**
