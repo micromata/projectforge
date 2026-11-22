@@ -29,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.TestPropertySource
 import java.io.File
 
 /**
@@ -42,6 +43,7 @@ import java.io.File
  * service has to arrange for itself: writing a history entry asks the access checker about the
  * logged-in user, and no user at all counts as a restricted one.
  */
+@TestPropertySource(properties = ["projectforge.development.e2e-accounts.groups.full-access-user=e2e-extra-group"])
 class E2ETestAccountsServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var e2eTestAccountsService: E2ETestAccountsService
@@ -88,6 +90,20 @@ class E2ETestAccountsServiceTest : AbstractTestBase() {
             userService.getInternalByUsername(fullAccess.username)?.id,
             "No second user of the same name.",
         )
+    }
+
+    @Test
+    fun `groups named by property are created and assigned to the role`(@TempDir homeDir: File) {
+        ThreadLocalUserContext.clear() // As at startup: nobody is logged in.
+        e2eTestAccountsService.ensureAccounts(homeDir)
+        val group = userGroupCache.getGroupByName("e2e-extra-group")
+        Assertions.assertNotNull(group, "The group named by the property is created.")
+        val fullAccess = userService.getInternalByUsername("e2e-full-access")!!
+        val normalo = userService.getInternalByUsername("e2e-normalo")!!
+        Assertions.assertTrue(userGroupCache.isUserMemberOfGroup(fullAccess.id, group!!.id), "The role is a member.")
+        Assertions.assertFalse(userGroupCache.isUserMemberOfGroup(normalo.id, group.id), "Other roles are not.")
+        e2eTestAccountsService.ensureAccounts(homeDir)
+        Assertions.assertEquals(group.id, userGroupCache.getGroupByName("e2e-extra-group")?.id, "No second group.")
     }
 
     @Test

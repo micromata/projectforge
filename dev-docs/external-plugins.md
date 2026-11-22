@@ -62,7 +62,8 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   set `PF_EXTRA_PLUGINS`. So the core is always the one you work in. `PF_EXTRA_PLUGINS` set explicitly wins,
   `PF_NO_EXTERNAL_PLUGINS=1` skips it: a dev slot then runs without the plugin (its pages are switched off).
   A slot created by `setup <n>`/`renew <n>` has `projectforge.plugins.ensure-active=cveradar`, so the plugin is active as soon as
-  its jar is there; add that line to a slot made earlier.
+  its jar is there; add that line to a slot made earlier. The same setup makes `e2e-full-access` a reader, writer and security officer
+  of the plugin (`projectforge.development.e2e-accounts.groups.<role>`, groups are created when missing, `E2ETestAccountsService`).
 - In the plugin repository, `bin/pf.sh [--core <dir>] <command>` does the same the other way round; the submodule is only
   the default there (fresh clone, CI, release pin), `--core`, `PF_CORE_DIR` or `pfCoreDir` choose your checkout.
 - `bin/pfDev.sh release` needs the checkouts of the external plugins for a published release: comma separated in

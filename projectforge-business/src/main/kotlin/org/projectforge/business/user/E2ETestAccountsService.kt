@@ -31,11 +31,13 @@ import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.core.env.Environment
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.io.File
@@ -70,6 +72,9 @@ private val log = KotlinLogging.logger {}
 class E2ETestAccountsService {
     @Autowired
     private lateinit var configurationService: ConfigurationService
+
+    @Autowired
+    private lateinit var environment: Environment
 
     @Autowired
     private lateinit var databaseService: DatabaseService
@@ -353,10 +358,36 @@ class E2ETestAccountsService {
                 groupDO.id
             }
         }
-        if (missing.isNotEmpty()) {
+        val extra = extraGroupIds(account, user, changes)
+        if (missing.isNotEmpty() || extra.isNotEmpty()) {
             // The cache is reloaded once at the end of ensureAccounts, hence updateUserGroupCache = false.
-            groupDao.assignGroupByIds(user, missing, null, false)
+            groupDao.assignGroupByIds(user, missing + extra, null, false)
             changes.any = true
+        }
+    }
+
+    /**
+     * The groups of the property `projectforge.development.e2e-accounts.groups.<role>` (comma separated names), for
+     * plugins and settings whose roles are groups of the instance, e.g. `cve-radar-read`. Groups that don't exist yet
+     * are created, so a fresh development instance needs no manual setup. The core knows none of these names: the
+     * property is written by `bin/pfDev.sh setup`.
+     *
+     * @return The ids of the groups the user isn't a member of yet.
+     */
+    private fun extraGroupIds(account: E2ETestAccount, user: PFUserDO, changes: Changes): List<Long> {
+        val names = environment.getProperty("$EXTRA_GROUPS_PROPERTY.${account.role}").orEmpty()
+            .split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        return names.mapNotNull { name ->
+            val existing = userGroupCache.getGroupByName(name)
+            val group = existing ?: GroupDO().also {
+                it.name = name
+                it.description = "E2E test accounts: group of the development instance."
+                it.localGroup = true // Not to be synchronized with any external user management.
+                groupDao.insert(it, checkAccess = false)
+                changes.any = true
+                log.info { "Created the group '$name' for the E2E test account '${account.username}'." }
+            }
+            group.id?.takeIf { existing == null || !userGroupCache.isUserMemberOfGroup(user.id, it) }
         }
     }
 
@@ -460,6 +491,9 @@ class E2ETestAccountsService {
         const val FILENAME = "testAccounts.txt"
 
         private const val PASSWORD_LENGTH = 20
+
+        /** Followed by `.<role>`: comma separated names of further groups the account is a member of. */
+        const val EXTRA_GROUPS_PROPERTY = "projectforge.development.e2e-accounts.groups"
     }
 }
 
