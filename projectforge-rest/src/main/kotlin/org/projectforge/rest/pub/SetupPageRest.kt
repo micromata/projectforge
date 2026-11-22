@@ -25,9 +25,11 @@ package org.projectforge.rest.pub
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.business.admin.RegionalSettings
 import org.projectforge.business.admin.SetupService
 import org.projectforge.business.admin.SetupTarget
 import org.projectforge.framework.persistence.database.DatabaseService
+import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +38,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.DayOfWeek
+import java.util.Currency
 import java.util.TimeZone
 
 private val log = KotlinLogging.logger {}
@@ -61,6 +65,14 @@ open class SetupPageRest {
         val defaultTimeZone: String = TimeZone.getDefault().id,
         /** Sorted list of all available time zone IDs + display names for the timezone picker. */
         val availableTimeZones: List<TimeZoneInfo> = emptyList(),
+        /** The regional settings of the running system (preset of the form), see [RegionalSettings]. */
+        val regional: RegionalSettings = RegionalSettings(),
+        /** Selectable values of the regional settings: locales, [TimeNotation] and [DayOfWeek] names. */
+        val availableLocales: List<String> = SetupService.LOCALES,
+        val availableTimeNotations: List<String> = TimeNotation.entries.map { it.name },
+        val availableFirstDaysOfWeek: List<String> = DayOfWeek.entries.map { it.name },
+        /** ISO 4217 codes for the currency picker (names and symbols are formatted by the client). */
+        val availableCurrencies: List<String> = Currency.getAvailableCurrencies().map { it.currencyCode }.sorted(),
     )
 
     /** Response for GET /rsPublic/setup/progress. */
@@ -81,6 +93,12 @@ open class SetupPageRest {
         val calendarDomain: String = "",
         val sysopEMail: String? = null,
         val feedbackEMail: String? = null,
+        /** Regional settings, written to projectforge.properties and applied without a restart. Blank = unchanged. */
+        val currency: String? = null,
+        val currencySymbol: String? = null,
+        val defaultLocale: String? = null,
+        val defaultTimeNotation: String? = null,
+        val defaultFirstDayOfWeek: String? = null,
     )
 
     /** Response for POST /rsPublic/setup. */
@@ -117,6 +135,7 @@ open class SetupPageRest {
             alreadyInitialized = false,
             defaultTimeZone = TimeZone.getDefault().id,
             availableTimeZones = timeZones,
+            regional = setupService.currentRegionalSettings(),
         )
     }
 
@@ -152,8 +171,16 @@ open class SetupPageRest {
             passwordRepeat = body.passwordRepeat,
             calendarDomain = body.calendarDomain.ifBlank { "local" },
         )
-        if (errors.isNotEmpty()) {
-            val first = errors.first()
+        val regionalSettings = RegionalSettings(
+            currency = body.currency,
+            currencySymbol = body.currencySymbol,
+            defaultLocale = body.defaultLocale,
+            defaultTimeNotation = body.defaultTimeNotation,
+            defaultFirstDayOfWeek = body.defaultFirstDayOfWeek,
+        )
+        val allErrors = errors + setupService.validateRegional(regionalSettings)
+        if (allErrors.isNotEmpty()) {
+            val first = allErrors.first()
             return SetupResult(success = false, message = first.message, field = first.field)
         }
 
@@ -168,6 +195,7 @@ open class SetupPageRest {
             calendarDomain = body.calendarDomain.ifBlank { "local" },
             sysopEMail = body.sysopEMail?.takeIf { it.isNotBlank() },
             feedbackEMail = body.feedbackEMail?.takeIf { it.isNotBlank() },
+            regionalSettings = regionalSettings,
         )
 
         return SetupResult(

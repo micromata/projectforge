@@ -7,7 +7,7 @@ changes; outline it again before rendering. Every logo asset of the repository i
 by
 
 ```bash
-python3 -I dev-docs/logo/render-logos.py   # needs rsvg-convert (librsvg) and magick (ImageMagick)
+python3 -I dev-docs/logo/render-logos.py   # (argument `terminal`: only the wizard's flames) needs rsvg-convert (librsvg) and magick (ImageMagick)
 ```
 
 Never edit the rendered files by hand; change a master (or the script) and run it again. The `square` masters are
@@ -23,4 +23,5 @@ rendered nowhere; they are for use outside the repository (profile pictures, sli
 | `projectforge-app/assets/icon.png`, `splash-icon.png`                                  | icon dark, full-bleed; flames | app icon (opaque), splash               |
 | `projectforge-app/assets/adaptive-icon.png`                                            | flames at 50 %, transparent   | Android adaptive icon (foreground)      |
 | `projectforge-business/src/main/resources/images/default-logo.png`                     | horizontal light, no plate    | Wallet pass of the business card (logo) |
+| `projectforge-application/src/main/resources/setup/terminal-flames.txt`                | flames, 16 × 16 pixels        | flames of the console setup wizard      |
 | `projectforge-business/src/main/resources/images/default-icon.png`                     | flames, transparent           | Wallet pass of the business card (icon) |

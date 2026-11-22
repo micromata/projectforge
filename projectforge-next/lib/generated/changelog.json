@@ -3,11 +3,20 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.13",
-    "date" : "2026-11-17",
+    "date" : "2026-11-22",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Chat: PDFs and text files of a message can be previewed (eye button) like attachments elsewhere." ]
+    }, {
+      "type" : "changed",
+      "items" : [ {
+        "title" : "First setup",
+        "items" : [ "The graphical and the full-screen terminal wizard are gone: a small menu in the terminal shows directory, port, domain and database with their defaults and lets you change each of them (return saves and continues); in a terminal with colors every page starts on a cleared screen, with the flames of the logo.", "Currency, language, time notation and first day of the week are chosen on the setup page in the browser and take effect at once, without a restart. The same applies to a change of these parameters in the properties editor.", "The setup page is grouped into account, time and region and optional e-mail addresses, and offers the currency as a searchable list.", "The currency symbol of new installations was shown as garbled characters instead of the euro sign.", "A banner with the address of the new instance closes the start output on the console, so it isn't lost between the log lines." ]
+      } ]
+    }, {
       "type" : "fixed",
-      "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one." ]
+      "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one.", "{app} Refused by the SSO proxy: one browser login is enough for all open tabs, a cancelled login is not opened again by the next request, and the notice of the expired SSO login disappears right after the login." ]
     } ]
   },
   "groups" : [ {

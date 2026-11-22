@@ -95,12 +95,34 @@
       "emptyDatabase": "Productive system",
       "emptyDatabase_description": "Creates an empty database containing only the administrator account you set up here. The right choice for real, productive use."
     },
+    "regional": {
+      "locale": "Default language",
+      "currency": "Currency",
+      "currencySymbol": "Currency symbol",
+      "currencySymbolHint": "Shown behind amounts. Filled in with the currency, change it only if needed."
+    },
     "finish": "Finish",
     "submitting": "Setting up…",
     "alreadyInitialized": "The system has already been set up.",
     "loadError": "The setup page could not be loaded.",
     "unknownError": "An unexpected error occurred. Please check the server log.",
-    "backToLogin": "Go to login"
+    "backToLogin": "Go to login",
+    "section": {
+      "account": {
+        "_": "Administrator account",
+        "description": "The first user, with all rights."
+      },
+      "region": {
+        "_": "Time and region",
+        "description": "Defaults for all users, each user can choose their own. Saved in projectforge.properties, effective at once."
+      },
+      "notifications": {
+        "_": "E-mail addresses (optional)",
+        "description": "For error reports and feedback; can be set later in the configuration."
+      }
+    },
+    "sysopEMail": "Administration e-mail address",
+    "feedbackEMail": "Feedback e-mail address"
   },
   "statusBar": {
     "copyright": "©{years} by Micromata GmbH",

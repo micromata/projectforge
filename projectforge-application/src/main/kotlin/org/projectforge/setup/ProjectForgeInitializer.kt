@@ -43,7 +43,7 @@ object ProjectForgeInitializer {
   @JvmStatic
   fun initialize(setupData: SetupData?): File? {
     val applicationHomeDir = setupData?.applicationHomeDir
-      ?: return giveUpAndSystemExit("No directory configured in wizard.")
+      ?: return giveUpAndSystemExit("The setup wizard was canceled, nothing was created.")
 
     if (ProjectForgeHomeFinder.isProjectForgeSourceCodeRepository(applicationHomeDir)) {
       giveUpAndSystemExit("ProjectForge shouldn't use source code repository as home directory: $applicationHomeDir")
@@ -78,10 +78,6 @@ object ProjectForgeInitializer {
         result = replace(result, "server.port", "$serverPort")
         result = replace(result, "projectforge.domain", domainService.domain)
         result = replace(result, "projectforge.servletContextPath", domainService.contextPath)
-        result = replace(result, "projectforge.currencySymbol", setupData.currencySymbol)
-        result = replace(result, "projectforge.defaultLocale", setupData.defaultLocale)
-        result = replace(result, "projectforge.defaultTimeNotation", setupData.defaultTimeNotation)
-        result = replace(result, "projectforge.defaultFirstDayOfWeek", setupData.defaultFirstDayOfWeek)
         if (setupData.developmentMode) {
           result = replace(result, "projectforge.web.development.enableCORSFilter", "true")
         }

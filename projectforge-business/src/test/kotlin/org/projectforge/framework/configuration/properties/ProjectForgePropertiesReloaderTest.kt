@@ -119,4 +119,40 @@ class ProjectForgePropertiesReloaderTest {
         assertFalse(reloader.reload(file))
         assertEquals(null, reloader.activeValue("projectforge.availability.types"))
     }
+
+    @Test
+    fun `regional settings take effect without a restart`() {
+        val file = File(dir, ProjectForgePropertiesFile.FILENAME)
+        val environment = StandardEnvironment()
+        val name = "Config resource 'file [${file.absolutePath}]' via location 'file:${file.absolutePath}'"
+        environment.propertySources.addLast(
+            MapPropertySource(
+                name,
+                mapOf(
+                    "projectforge.currencySymbol" to "$",
+                    "projectforge.currency" to "USD",
+                    "projectforge.defaultLocale" to "de",
+                    "projectforge.defaultTimeNotation" to "H12",
+                    "projectforge.defaultFirstDayOfWeek" to "SUNDAY",
+                )
+            )
+        )
+        val configurationService = ConfigurationService()
+        val reloader = ProjectForgePropertiesReloader(environment, listOf(configurationService))
+        listOf(
+            "projectforge.currencySymbol", "projectforge.currency", "projectforge.defaultLocale",
+            "projectforge.defaultTimeNotation", "projectforge.defaultFirstDayOfWeek",
+        ).forEach { assertTrue(reloader.isLive(it), it) }
+
+        file.writeText(
+            "projectforge.currencySymbol=CHF\nprojectforge.currency=CHF\nprojectforge.defaultLocale=en\n" +
+                "projectforge.defaultTimeNotation=H24\nprojectforge.defaultFirstDayOfWeek=MONDAY\n"
+        )
+        assertTrue(reloader.reload(file))
+        assertEquals("CHF", configurationService.currencySymbol)
+        assertEquals("CHF", configurationService.currency)
+        assertEquals(java.util.Locale.ENGLISH, configurationService.defaultLocale)
+        assertEquals(org.projectforge.framework.time.TimeNotation.H24, configurationService.defaultTimeNotation)
+        assertEquals(java.time.DayOfWeek.MONDAY, configurationService.defaultFirstDayOfWeek)
+    }
 }

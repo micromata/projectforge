@@ -21,26 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard.lanterna
+package org.projectforge.business.configuration
 
-import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI
-import org.projectforge.setup.SetupContext
-import org.projectforge.setup.wizard.AbstractSetupWizard
-import org.projectforge.setup.wizard.GUIContext
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Test
 
-class LantGUIContext(
-        setupMain: AbstractSetupWizard,
-        val textGUI: MultiWindowTextGUI,
-        var terminalSize: TerminalSize,
-        val setupContext: SetupContext
-): GUIContext(Mode.CONSOLE, setupMain) {
-    var windowSize: TerminalSize = TerminalSize.ZERO
-        set(value) {
-            field = TerminalSize(value.columns - 15, value.rows - 5)
+class ConfigurationServiceMojibakeTest {
+    @Test
+    fun `a euro sign read as ISO-8859-1 is repaired`() {
+        val broken = String("€".toByteArray(Charsets.UTF_8), Charsets.ISO_8859_1)
+        assertEquals("â\u0082¬", broken)
+        assertEquals("€", ConfigurationService.fixMojibake(broken))
+    }
+
+    @Test
+    fun `correct and other texts stay as they are`() {
+        listOf("€", "$", "CHF", "£", "kr", "Fr.", "ä", "äö", "").forEach {
+            assertEquals(it, ConfigurationService.fixMojibake(it), it)
         }
-
-    init {
-        windowSize = terminalSize
+        assertNull(ConfigurationService.fixMojibake(null))
     }
 }

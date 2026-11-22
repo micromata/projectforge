@@ -229,7 +229,6 @@ dependencies {
     implementation(libs.com.googlecode.ez.vcard)
     implementation(libs.org.freemarker)
     implementation(libs.com.googlecode.gson)
-    implementation(libs.com.googlecode.lanterna)
     implementation(libs.com.thoughtworks.xstream)
     implementation(libs.com.webauthn4j.core)
     /*implementation(libs.com.webauthn4j.spring.security.core) {
@@ -348,6 +347,9 @@ tasks.named("processResources") {
 // HotswapAgent (bin/pfDev.sh run): a toolchain of that version and vendor, found by Gradle's toolchain detection
 // (org.gradle.java.installations.paths). The JVM args are separated by newlines, so paths may contain spaces.
 tasks.named<BootRun>("bootRun") {
+    // The setup wizard of a new home directory asks on the console; without this the forked JVM has no input at all
+    // (the wizard then runs through with its defaults).
+    standardInput = System.`in`
     providers.gradleProperty("pfBootRunJavaVersion").orNull?.let { version ->
         val vendorName = providers.gradleProperty("pfBootRunJavaVendor").orNull
         javaLauncher.set(javaToolchains.launcherFor {

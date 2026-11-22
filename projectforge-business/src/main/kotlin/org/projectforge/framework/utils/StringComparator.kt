@@ -37,9 +37,20 @@ object StringComparator {
         it.strength = Collator.SECONDARY // a == A, a < Ä
     }
 
-    private val defaultCollator: Collator by lazy {
-        val locale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
-        Collator.getInstance(locale)
+    @Volatile
+    private var _defaultCollator: Collator? = null
+
+    private val defaultCollator: Collator
+        get() = _defaultCollator ?: run {
+            val locale = ConfigurationServiceAccessor.get().defaultLocale ?: Locale.getDefault()
+            Collator.getInstance(locale).also { _defaultCollator = it }
+        }
+
+    /**
+     * Forces the default collator to be created again, e. g. after the default locale was changed.
+     */
+    fun resetDefaultCollator() {
+        _defaultCollator = null
     }
 
     private val german = Locale.of("de")
