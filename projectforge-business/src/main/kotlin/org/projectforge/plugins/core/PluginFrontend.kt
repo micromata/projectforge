@@ -33,7 +33,7 @@ package org.projectforge.plugins.core
  * app ([sdkVersion]); the app refuses a bundle of a version it doesn't know.
  *
  * @param sdkVersion The version of the plugin sdk (the bridge of the app) the bundle was built against.
- * @param assetDir The directory of the files below `plugins-assets`, e.g. `cveradar/1.2.3`. Put the version in it:
+ * @param assetDir The directory of the files below `plugins-assets`, e.g. `example/1.2.3`. Put the version in it:
  *   the urls are cached immutably.
  * @param entry The module with the `activate` function, relative to [assetDir].
  * @param css Style sheets, relative to [assetDir], loaded before the first page of the plugin is rendered.
@@ -56,7 +56,7 @@ class PluginFrontend(
         }
     }
 
-    /** The url below the app, e.g. `/next/plugins-assets/cveradar/1.2.3/plugin.js`. */
+    /** The url below the app, e.g. `/next/plugins-assets/example/1.2.3/plugin.js`. */
     fun url(file: String): String = "$ASSETS_URL$assetDir/$file"
 
     companion object {

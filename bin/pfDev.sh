@@ -439,7 +439,7 @@ check_release_jar_plugins() {
   done
 }
 
-# Name of the plugin of the jar <jar> built for <version>, e.g. cveradar (projectforge-plugin-cveradar-X.Y.Z.jar).
+# Name of the plugin of the jar <jar> built for <version>, e.g. example (projectforge-plugin-example-X.Y.Z.jar).
 plugin_name_of_jar() {
   local name
   name="$(basename "$1" .jar)"
@@ -616,7 +616,7 @@ release() {
       published=-PreleasePublished=false
     fi
   fi
-  # A published release ships the jar, which must contain the external plugins (e.g. the CVE-Pilot).
+  # A published release ships the jar, which must contain the external plugins (each is pinned in plugins-bin/).
   local is_published
   if [[ -n "$published" ]]; then
     [[ "$published" == *=true ]] && is_published=true || is_published=false

@@ -63,7 +63,8 @@ pinned by `modules.test.ts`.
 - The texts of the plugin are its own: the bundle is in the plugin jar, the build of its frontend generates one catalog per
   locale (all keys, flat) and names them in the manifest (`messages`); the app merges them while the plugin is active. No
   `gen` run here for a new text of the plugin.
-- The e2e specs of the plugin (`e2e/cve-pilot-*.spec.ts`) are here, they need the infrastructure of this package.
+- The e2e specs of a plugin are its own (`plugin/e2e` in its repository, `bin/pf.sh e2e <slot>`): they use the fixtures and the
+  configuration of this package (`e2e/fixtures`, `playwright.config.ts`); `userFormat` merges the texts of the active plugins.
 - The plugin build needs `npm ci` of this package (the names a package exports are read from its `node_modules`).
 - `HostPluginRuntime` is only typed for the bridge itself; the plugin source is type-checked against the app's files, not yet in its build.
 - Plugin css is untested; Tailwind does not see plugin sources.

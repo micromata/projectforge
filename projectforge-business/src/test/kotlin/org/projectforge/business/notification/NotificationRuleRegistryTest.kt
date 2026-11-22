@@ -47,8 +47,8 @@ class NotificationRuleRegistryTest : AbstractTestBase() {
     @Test
     fun `the params of a rule saved before read unchanged`() {
         val json = """{"referredMonth":"PREVIOUS","vacationExpiry":"YEAR_END","daysBeforeExpiry":10,"passwordMaxAgeDays":60,""" +
-                """"kost2MissingMonths":3,"dueWorkingDays":5,"cvrMinSeverity":"LOW","cvrIncludePossible":true,""" +
-                """"cvrIncludeUnscored":false,"cvrMaxAgeDays":40,"cvrCaseId":null,"linkMode":"MENU_ITEM","linkMenuItem":"TIMESHEET_LIST"}"""
+                """"kost2MissingMonths":3,"dueWorkingDays":5,"pluginMinSeverity":"LOW","pluginIncludePossible":true,""" +
+                """"pluginIncludeUnscored":false,"pluginMaxAgeDays":40,"pluginCaseId":null,"linkMode":"MENU_ITEM","linkMenuItem":"TIMESHEET_LIST"}"""
         val params = rule(VacationLeftRuleHandler.TYPE, json).readParams()
         assertEquals(NotificationParams.LinkMode.MENU_ITEM, params.linkMode)
         assertEquals("TIMESHEET_LIST", params.linkMenuItem)

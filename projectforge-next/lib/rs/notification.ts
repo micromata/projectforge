@@ -34,7 +34,7 @@ export interface NotificationRuleParam {
   min?: number | null;
   max?: number | null;
   options?: { value: string; label: string }[] | null;
-  /** ENTITY: the rest category of the autocompletion, e.g. `cvrcase`. */
+  /** ENTITY: the rest category of the autocompletion, e.g. `book`. */
   entity?: string | null;
 }
 

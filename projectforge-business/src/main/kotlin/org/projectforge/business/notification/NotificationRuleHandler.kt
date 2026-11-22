@@ -150,7 +150,7 @@ interface NotificationRuleHandler {
     fun exampleVariables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> = emptyMap()
 
     /**
-     * The display names of the entities referred to by the params of the rule by param name (e.g. `cvrCaseId` to the
+     * The display names of the entities referred to by the params of the rule by param name (e.g. a `caseId` to the
      * case), for the editor: the rest module doesn't know the entities of a plugin.
      */
     fun paramDisplayNames(rule: NotificationRuleDO): Map<String, String> = emptyMap()

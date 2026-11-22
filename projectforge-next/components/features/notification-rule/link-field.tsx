@@ -15,7 +15,7 @@ import type { LinkMode } from "./types";
 
 const NAME = "linkMenuItem";
 /**
- * The two choices that are no menu item; a menu item id (of the core or of a plugin, e.g. `cveradar`)
+ * The two choices that are no menu item; a menu item id (of the core or of a plugin)
  * has no colon, so these can't collide.
  */
 const DEFAULT = ":default";

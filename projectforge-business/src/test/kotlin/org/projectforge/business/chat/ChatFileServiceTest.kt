@@ -75,7 +75,7 @@ class ChatFileServiceTest {
         assertEquals(emptyList<ChatAttachment>(), service.store(context, emptyList()), "a message without files passes")
     }
 
-    /** A host like the discussion of a CVE case: written by everybody, no files. */
+    /** A host like the discussion of a case: written by everybody, no files. */
     private class NoFilesHost : ChatHost {
         override val hostType = "noFiles"
         override val searchableAcrossConversations = false
