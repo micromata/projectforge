@@ -637,10 +637,12 @@ image::/uploads/screenshots/2026-ChatList.png[image]
 [[chat_rooms]]
 === Chat rooms
 
-Anybody may create a chat room (*New chat room*) and choose its participants: users and groups. Group
-membership is checked at the moment of access, so whoever joins a group later is in at once, and whoever
-leaves it is out. The owner of a room and its moderators edit or delete the room, hide messages of others
-with a reason (e.g. off-topic or confidential content) and see the history of edited messages.
+Anybody may create a chat room (*New chat room*) and choose its participants: users and groups.
+
+* *Groups:* the membership is checked at the moment of access, so whoever joins a group later is in at once, and
+  whoever leaves it is out.
+* *Owner and moderators:* edit or delete the room, hide messages of others with a reason (e.g. off-topic or
+  confidential content) and see the history of edited messages.
 
 Files sent in a room are stored in its data transfer area "Chat: …" and kept as long as the room says
 (*Files available*, 30 days by default); then they are deleted.
@@ -705,15 +707,20 @@ image::/uploads/screenshots/2026-ChatThread.png[image]
 [[chat_report_block]]
 === Reporting and blocking
 
-In the menu of a message of somebody else (click the message to show its actions) *Report* sends the message to the
-administrators, with an optional reason. They get the message text (the first 500 characters), the reporter and the
-author, and can deactivate the account of the author; they can't open the conversation. The report can block the author
-at the same time.
+*Report:* in the menu of a message of somebody else (click the message to show its actions) *Report* sends the message
+to the administrators, with an optional reason.
 
-*Block user* (menu of the author, or the button in the head of a direct message) ends the direct messages with this
-user: neither of you can write in the conversation, it stays readable. In rooms, the messages of a blocked user are shown
-folded (*Show* opens one), and you get no notifications, mentions or search hits from them. The blocked user isn't told.
-*Unblock user* removes the block, also in the list *Blocked users* next to the sound settings of the chat.
+* They get the message text (the first 500 characters), the reporter and the author.
+* They can deactivate the account of the author; they can't open the conversation.
+* The report can block the author at the same time.
+
+*Block user* (menu of the author, or the button in the head of a direct message):
+
+* *Direct messages:* they end; neither of you can write in the conversation, it stays readable.
+* *Rooms:* the messages of a blocked user are shown folded (*Show* opens one), and you get no notifications, mentions
+  or search hits from them.
+* The blocked user isn't told.
+* *Unblock user* removes the block, also in the list *Blocked users* next to the sound settings of the chat.
 
 [[chat_search]]
 === Search
@@ -765,12 +772,17 @@ What it protects against: database backups, log files, the chat history and admi
 data – none of them ever contains the text. It does not protect the screen or the clipboard of either side.
 The browser needs a secure connection (https).
 
-Technically, each browser creates a key pair for the conversation (WebCrypto, ECDH P-256); the private key
-can't be exported and lives only in the memory of the page. The common key is derived from both (HKDF-SHA-256)
-and encrypts each message with AES-GCM (256 bit) and a fresh initialization vector; conversation, sender and a
-counter are bound into each message, so a message can neither be replayed nor reordered unnoticed. The server
-only sees the public keys and the cipher text, keeps them in memory and deletes them when they are picked up.
-The fingerprint covers both public keys, so comparing it reveals a server that put its own keys in between.
+Technically:
+
+* *Keys:* each browser creates a key pair for the conversation (WebCrypto, ECDH P-256); the private key can't be
+  exported and lives only in the memory of the page.
+* *Encryption:* the common key is derived from both (HKDF-SHA-256) and encrypts each message with AES-GCM (256 bit)
+  and a fresh initialization vector.
+* *Replay:* conversation, sender and a counter are bound into each message, so a message can neither be replayed nor
+  reordered unnoticed.
+* *Server:* it only sees the public keys and the cipher text, keeps them in memory and deletes them when they are
+  picked up.
+* *Fingerprint:* it covers both public keys, so comparing it reveals a server that put its own keys in between.
 
 [[chat_privacy]]
 === Who reads along
@@ -915,12 +927,13 @@ another time sheet of the same user, except for a shared cost element (see below
 [[shared_cost_element]]
 ==== Shared cost element
 
-Time sheets of the same user may overlap in time, if at least one of the two is booked on a shared
-cost element and both don't belong to the same project. A time sheet is booked on a shared cost element
-if its cost 2 unit has *Shared costs* set to yes. If the cost 2 unit leaves it empty (*As structure
-element*) or there is no cost 2 unit, the checkbox *Shared cost element* of the structure element (or
-of an ancestor) decides. A cost 2 unit set to no takes precedence: its time sheets don't count as
-shared, even on a shared cost element.
+Time sheets of the same user may overlap in time, if at least one of the two is booked on a shared cost element and
+both don't belong to the same project. Whether a time sheet is booked on a shared cost element:
+
+* *Cost 2 unit with _Shared costs_ set to yes:* shared.
+* *Cost 2 unit set to no:* not shared, even on a shared cost element. It takes precedence.
+* *Cost 2 unit empty (_As structure element_) or no cost 2 unit:* the checkbox *Shared cost element* of the structure
+  element (or of an ancestor) decides.
 
 Never allowed, shared or not, are overlaps:
 
@@ -1052,13 +1065,15 @@ template.
 [[assignment_of_cost_units]]
 ==== Assignment of cost units
 
-It's recommended to try this feature for a better understanding. +
-You may assign positions of invoices to cost 1 and cost 2 units (*Cost id assignments*). An auto
-completion helps you to find the cost units very fast. You may enter numbers of cost units as well as
-text (e. g. the description, customer or type of a cost unit). +
-An unlimited number of assignments is supported. The amount may be given as amount or as percent value
-(e. g. 10%). ProjectForge® highlights positions whose amount isn't completely assigned yet
-(*Cost id assignment difference*).
+It's recommended to try this feature for a better understanding. You may assign positions of invoices to cost 1 and
+cost 2 units (*Cost id assignments*):
+
+* *Entry:* an auto completion helps you to find the cost units very fast. You may enter numbers of cost units as well as
+  text (e. g. the description, customer or type of a cost unit).
+* *Number:* unlimited assignments are supported.
+* *Amount:* given as amount or as percent value (e. g. 10%).
+* *Control:* ProjectForge® highlights positions whose amount isn't completely assigned yet (*Cost id assignment
+  difference*).
 
 Positions and assignments already saved are marked as deleted first and may be restored until you
 save the invoice.
@@ -1240,12 +1255,16 @@ objectives, choose a period and create the report. The XML is kept until you log
 . For multiple include lists a record must match all include lists (logical 'and').
 . If a record matches at least one entry of any exclude list, this record will be excluded.
 
-The method `String.matches(regExp)` is used for evaluating the regular expressions. You may refer
-to the expression syntax of the Java class `java.util.regex.Pattern` for a better understanding. For
-your convenience ProjectForge® modifies the configured expressions automatically before usage: all
-points ('.') will be escaped and the wildcard character '*' is replaced by '.*'. You may suppress the
-automatic modification by prepending an apostrophe, e. g. "'^5\.510.*" will not be modified (only
-the apostrophe itself is removed before evaluation). +
+The method `String.matches(regExp)` is used for evaluating the regular expressions. You may refer to the expression
+syntax of the Java class `java.util.regex.Pattern` for a better understanding. For your convenience ProjectForge®
+modifies the configured expressions automatically before usage:
+
+* all points ('.') will be escaped,
+* the wildcard character '*' is replaced by '.*'.
+
+You may suppress the automatic modification by prepending an apostrophe, e. g. "'^5\.510.*" will not be modified (only
+the apostrophe itself is removed before evaluation).
+
 Examples:
 
 * +++"3.*"+++ -> +++"3\..*"+++ (matches all strings beginning with "3.").

@@ -651,10 +651,11 @@ image::/uploads/screenshots/2026-ChatList-de.png[Bild]
 === Chaträume
 
 Chaträume kann jede und jeder anlegen (*Neuer Chatraum*) und die Teilnehmenden wählen: Benutzer und Gruppen.
-Die Gruppenmitgliedschaft wird beim Zugriff geprüft – wer später in eine Gruppe kommt, ist sofort dabei, wer
-sie verlässt, ist draußen. Besitzer und Moderatoren eines Raums bearbeiten oder löschen ihn, blenden
-Nachrichten anderer mit einer Begründung aus (z. B. themenfremd oder vertraulich) und sehen die Historie
-bearbeiteter Nachrichten.
+
+* *Gruppen:* die Mitgliedschaft wird beim Zugriff geprüft – wer später in eine Gruppe kommt, ist sofort dabei, wer sie
+  verlässt, ist draußen.
+* *Besitzer und Moderatoren:* bearbeiten oder löschen den Raum, blenden Nachrichten anderer mit einer Begründung aus
+  (z. B. themenfremd oder vertraulich) und sehen die Historie bearbeiteter Nachrichten.
 
 Dateien eines Raums liegen in seinem Datentransfer-Bereich „Chat: …“ und bleiben so lange, wie der Raum es
 festlegt (*Dateien verfügbar*, standardmäßig 30 Tage); danach werden sie gelöscht.
@@ -720,16 +721,21 @@ image::/uploads/screenshots/2026-ChatThread-de.png[Bild]
 [[chat_report_block]]
 === Melden und Blockieren
 
-Im Menü einer Nachricht von anderen (Nachricht anklicken, dann erscheinen die Aktionen) schickt *Melden* die Nachricht
-mit einem optionalen Grund an die Administratoren. Sie erhalten den Text der Nachricht (die ersten 500 Zeichen), wer
-gemeldet hat und von wem die Nachricht ist, und können das Konto des Autors deaktivieren; das Gespräch können sie nicht
-öffnen. Beim Melden lässt sich der Autor gleich blockieren.
+*Melden:* im Menü einer Nachricht von anderen (Nachricht anklicken, dann erscheinen die Aktionen) schickt *Melden* die
+Nachricht mit einem optionalen Grund an die Administratoren.
 
-*Nutzer blockieren* (Menü des Autors oder die Schaltfläche im Kopf einer Direktnachricht) beendet die
-Direktnachrichten mit diesem Nutzer: Keiner von beiden kann im Gespräch schreiben, es bleibt lesbar. In Räumen werden die
-Nachrichten eines blockierten Nutzers eingeklappt angezeigt (*Anzeigen* öffnet eine), und von ihm kommen keine
-Benachrichtigungen, Erwähnungen oder Suchtreffer mehr. Der blockierte Nutzer erfährt davon nichts. *Blockierung
-aufheben* entfernt die Sperre, auch in der Liste *Blockierte Nutzer* neben den Toneinstellungen des Chats.
+* Sie erhalten den Text der Nachricht (die ersten 500 Zeichen), wer gemeldet hat und von wem die Nachricht ist.
+* Sie können das Konto des Autors deaktivieren; das Gespräch können sie nicht öffnen.
+* Beim Melden lässt sich der Autor gleich blockieren.
+
+*Nutzer blockieren* (Menü des Autors oder die Schaltfläche im Kopf einer Direktnachricht):
+
+* *Direktnachrichten:* sie enden; keiner von beiden kann im Gespräch schreiben, es bleibt lesbar.
+* *Räume:* die Nachrichten eines blockierten Nutzers werden eingeklappt angezeigt (*Anzeigen* öffnet eine), und von ihm
+  kommen keine Benachrichtigungen, Erwähnungen oder Suchtreffer mehr.
+* Der blockierte Nutzer erfährt davon nichts.
+* *Blockierung aufheben* entfernt die Sperre, auch in der Liste *Blockierte Nutzer* neben den Toneinstellungen des
+  Chats.
 
 [[chat_search]]
 === Suche
@@ -782,13 +788,18 @@ Wovor es schützt: vor Datenbank-Backups, Logdateien, dem Chatverlauf und Admini
 keines davon enthält je den Text. Bildschirm und Zwischenablage der Beteiligten sind nicht geschützt. Der
 Browser braucht eine sichere Verbindung (https).
 
-Technisch erzeugt jeder Browser für das Gespräch ein Schlüsselpaar (WebCrypto, ECDH P-256); der private
-Schlüssel lässt sich nicht exportieren und liegt nur im Speicher der Seite. Der gemeinsame Schlüssel wird aus
-beiden abgeleitet (HKDF-SHA-256) und verschlüsselt jede Nachricht mit AES-GCM (256 Bit) und einem frischen
-Initialisierungsvektor; Gespräch, Absender und ein Zähler sind in jede Nachricht eingebunden, sodass sich eine
-Nachricht weder unbemerkt wiederholen noch umsortieren lässt. Der Server sieht nur die öffentlichen Schlüssel
-und den Chiffretext, hält sie im Speicher und löscht sie beim Abholen. Der Fingerabdruck umfasst beide
-öffentlichen Schlüssel – sein Vergleich deckt einen Server auf, der eigene Schlüssel dazwischengeschoben hat.
+Technisch:
+
+* *Schlüssel:* jeder Browser erzeugt für das Gespräch ein Schlüsselpaar (WebCrypto, ECDH P-256); der private Schlüssel
+  lässt sich nicht exportieren und liegt nur im Speicher der Seite.
+* *Verschlüsselung:* der gemeinsame Schlüssel wird aus beiden abgeleitet (HKDF-SHA-256) und verschlüsselt jede
+  Nachricht mit AES-GCM (256 Bit) und einem frischen Initialisierungsvektor.
+* *Wiederholung:* Gespräch, Absender und ein Zähler sind in jede Nachricht eingebunden, sodass sich eine Nachricht
+  weder unbemerkt wiederholen noch umsortieren lässt.
+* *Server:* er sieht nur die öffentlichen Schlüssel und den Chiffretext, hält sie im Speicher und löscht sie beim
+  Abholen.
+* *Fingerabdruck:* er umfasst beide öffentlichen Schlüssel – sein Vergleich deckt einen Server auf, der eigene
+  Schlüssel dazwischengeschoben hat.
 
 [[chat_privacy]]
 === Wer mitliest
@@ -938,13 +949,14 @@ Kosten (siehe unten).
 [[shared_cost_element]]
 ==== Strukturelement mit geteilten Kosten
 
-Zeitberichte desselben Benutzers dürfen sich zeitlich überschneiden, wenn mindestens einer der beiden auf
-ein Strukturelement mit geteilten Kosten gebucht ist und beide nicht zum selben Projekt gehören. Ein
-Zeitbericht gilt als auf geteilte Kosten gebucht, wenn bei seinem Kost2 *Geteilte Kosten* auf Ja steht.
-Lässt der Kost2 das Feld leer (*Wie Strukturelement*) oder gibt es keinen Kost2, entscheidet die Checkbox
-*Strukturelement mit geteilten Kosten* des Strukturelements (oder eines übergeordneten Elements). Ein auf
-Nein gesetzter Kost2 hat Vorrang: Seine Zeitberichte zählen nicht als geteilt, auch nicht auf einem
-Strukturelement mit geteilten Kosten.
+Zeitberichte desselben Benutzers dürfen sich zeitlich überschneiden, wenn mindestens einer der beiden auf ein
+Strukturelement mit geteilten Kosten gebucht ist und beide nicht zum selben Projekt gehören. Ob ein Zeitbericht auf
+geteilte Kosten gebucht ist:
+
+* *Kost2 mit _Geteilte Kosten_ auf Ja:* geteilt.
+* *Kost2 auf Nein:* nicht geteilt, auch nicht auf einem Strukturelement mit geteilten Kosten. Er hat Vorrang.
+* *Kost2 leer (_Wie Strukturelement_) oder kein Kost2:* es entscheidet die Checkbox *Strukturelement mit geteilten
+  Kosten* des Strukturelements (oder eines übergeordneten Elements).
 
 Niemals erlaubt, ob geteilt oder nicht, sind Überschneidungen:
 
@@ -1077,14 +1089,15 @@ Rechnungsvorlage des Unternehmens.
 [[assignment_of_cost_units]]
 ==== Zuordnung von Kostenträgern
 
-Für ein besseres Verständnis empfiehlt es sich, diese Funktion einfach auszuprobieren. +
-Positionen von Rechnungen lassen sich Kost1 und Kost2 zuordnen (*Kostzuweisungen*). Eine
-Autovervollständigung hilft, die Kostenträger sehr schnell zu finden. Eingegeben werden können sowohl
-Nummern von Kostenträgern als auch Text (z. B. die Beschreibung, der Kunde oder die Art eines
-Kostenträgers). +
-Beliebig viele Zuordnungen werden unterstützt. Der Betrag lässt sich als Betrag oder als Prozentwert
-angeben (z. B. 10%). ProjectForge® hebt Positionen hervor, deren Betrag noch nicht vollständig zugeordnet
-ist (*Kostzuweisungfehlbetrag*).
+Für ein besseres Verständnis empfiehlt es sich, diese Funktion einfach auszuprobieren. Positionen von Rechnungen lassen
+sich Kost1 und Kost2 zuordnen (*Kostzuweisungen*):
+
+* *Eingabe:* eine Autovervollständigung hilft, die Kostenträger sehr schnell zu finden. Eingegeben werden können sowohl
+  Nummern von Kostenträgern als auch Text (z. B. die Beschreibung, der Kunde oder die Art eines Kostenträgers).
+* *Anzahl:* beliebig viele Zuordnungen werden unterstützt.
+* *Betrag:* als Betrag oder als Prozentwert angeben (z. B. 10%).
+* *Kontrolle:* ProjectForge® hebt Positionen hervor, deren Betrag noch nicht vollständig zugeordnet ist
+  (*Kostzuweisungfehlbetrag*).
 
 Bereits gespeicherte Positionen und Zuordnungen werden zunächst als gelöscht markiert und lassen sich bis
 zum Speichern der Rechnung wiederherstellen.
@@ -1273,12 +1286,16 @@ erhalten. Beispiel:
 . Bei mehreren Include-Listen muss ein Buchungssatz zu allen Include-Listen passen (logisches 'und').
 . Passt ein Buchungssatz auf mindestens einen Eintrag einer Exclude-Liste, wird er ausgeschlossen.
 
-Zur Auswertung der regulären Ausdrücke wird die Methode `String.matches(regExp)` verwendet. Für ein
-besseres Verständnis hilft die Ausdruckssyntax der Java-Klasse `java.util.regex.Pattern`. Zur
-Vereinfachung verändert ProjectForge® die konfigurierten Ausdrücke vor der Verwendung automatisch: Alle
-Punkte ('.') werden maskiert und der Platzhalter '*' wird durch '.*' ersetzt. Ein vorangestellter Apostroph
-verhindert diese automatische Veränderung, z. B. wird "'^5\.510.*" nicht verändert (nur der Apostroph
-selbst wird vor der Auswertung entfernt). +
+Zur Auswertung der regulären Ausdrücke wird die Methode `String.matches(regExp)` verwendet. Für ein besseres
+Verständnis hilft die Ausdruckssyntax der Java-Klasse `java.util.regex.Pattern`. Zur Vereinfachung verändert
+ProjectForge® die konfigurierten Ausdrücke vor der Verwendung automatisch:
+
+* Alle Punkte ('.') werden maskiert.
+* Der Platzhalter '*' wird durch '.*' ersetzt.
+
+Ein vorangestellter Apostroph verhindert diese automatische Veränderung, z. B. wird "'^5\.510.*" nicht verändert (nur
+der Apostroph selbst wird vor der Auswertung entfernt).
+
 Beispiele:
 
 * +++"3.*"+++ -> +++"3\..*"+++ (passt auf alle Zeichenketten, die mit "3." beginnen).
