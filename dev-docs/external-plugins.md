@@ -11,8 +11,10 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   its section (`renamedNextSections`) join `PageRoutes` when the plugin is initialized, the redirects of old links in
   `OrphanedLinkFilter` follow; its settings are documented in its jar (below); its frontend is loaded at runtime
   ([plugin-frontend.md](next/plugin-frontend.md)).
-- **Still registered here:** `ExternalPlugins` (`projectforge-business/.../plugins/core/ExternalPlugins.kt`) knows each such plugin:
-  id, next routes, prefix of its generated field metadata, package of its entities.
+- **Nothing registered here:** the core has no list of such plugins. The generators tell the entities of an external plugin
+  by its jar (`pf.extraPlugins`): `gen` writes the field metadata of this repository's entities only, and
+  `generatePluginMetadata` (gradle task of `projectforge-application`, `-Ppf.metadata.out=<dir>`, `-Ppf.metadata.check=true`
+  to verify) writes the metadata of the plugin's entities for its frontend (`bin/pf.sh metadata` in the plugin repository).
 - **Binary into the build:** `-Ppf.extraPlugins=<jar or directory>[,...]` (or the environment variable
   `PF_EXTRA_PLUGINS`) adds the jars to the runtime classpath of `projectforge-application`: boot jar
   (`BOOT-INF/lib`), `bootRun` and the generators. The plugin is found by the `ServiceLoader` as every other one
