@@ -411,7 +411,7 @@ open class OrderEntityRest : // open: proxied by Spring.
       }.toMap()
     }
     forecastSums?.let { sums ->
-      result.resultSet?.filterIsInstance<Auftrag>()?.forEach { row -> row.forecastSumInPeriod = sums[row.id] }
+      result.resultSet.filterIsInstance<Auftrag>()?.forEach { row -> row.forecastSumInPeriod = sums[row.id] }
     }
     if (resultSet.offset == null) {
       // Non-paged POST list: the result set is the whole result, so its statistics are the whole result's.

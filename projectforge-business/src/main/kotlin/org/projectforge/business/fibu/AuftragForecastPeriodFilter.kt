@@ -38,7 +38,7 @@ class AuftragForecastPeriodFilter(
     private val forecastPeriodSums: ForecastPeriodSums,
 ) : CustomResultFilter<AuftragDO> {
     override fun match(list: MutableList<AuftragDO>, element: AuftragDO): Boolean {
-        val orderInfo = AuftragsCache.instance.getOrderInfo(element) ?: return false
+        val orderInfo = AuftragsCache.instance.getOrderInfo(element)
         return forecastPeriodSums.sumInPeriod(orderInfo, from, until).signum() != 0
     }
 }
