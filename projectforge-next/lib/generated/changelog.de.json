@@ -7,7 +7,10 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge)." ]
+      "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).", "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile.", "Login per SSO: Mit der neuen Property projectforge.2fa.ssoSessionMaxAgeMinutes gilt ein SSO-Login als zweiter Faktor, der so lange zurückliegt (z. B. 480 bei einer SSO-Session von 8 Stunden). Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten immer einen eigenen zweiten Faktor." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Eingabe des zweiten Faktors: Wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten; das spart künftig die Code-Eingabe bei jeder Anmeldung." ]
     }, {
       "type" : "changed",
       "items" : [ {
@@ -16,7 +19,7 @@
       } ]
     }, {
       "type" : "fixed",
-      "items" : [ "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen.", "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung." ]
+      "items" : [ "Forecast: Der Betrag eines Zahlungsplans bleibt im Monat seines Datums. Der Rest einer Position (Nettosumme abzüglich Zahlungsplänen) wird zusätzlich darauf verteilt, statt den geplanten Betrag zu ersetzen.", "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen.", "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher geht die Einrichtungsseite jetzt im Browser des Geräts weiter. Seiten des Servers können die App bitten, sie im Browser anzuzeigen, wie es der Menüpunkt „Im Browser öffnen“ für jede Seite tut.", "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung." ]
     } ]
   },
   "groups" : [ {
