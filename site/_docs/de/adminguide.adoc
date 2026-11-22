@@ -933,6 +933,8 @@ projectforge.2fa.expiryPeriod.days90=
 # Anzahl der Tage, nach denen eine 2FA erforderlich ist, wenn "angemeldet bleiben" genutzt wird. Ohne "angemeldet
 # bleiben" und wenn gesetzt, ist nach jeder Anmeldung eine 2FA erforderlich.
 projectforge.2fa.loginExpiryDays=30
+# Optional: maximales Alter der SSO-Session (Login per OAuth2/OIDC) in Minuten, siehe Abschnitt OAuth2. Leer: SSO ist nur der Login.
+projectforge.2fa.ssoSessionMaxAgeMinutes=
 # Optional: keine E-Mail als zweiter Faktor für Mitglieder dieser Gruppen (kommagetrennt):
 projectforge.2fa.disableMail2FAForGroups=PF_Admin
 ----
@@ -1290,6 +1292,18 @@ Nach einer erfolgreichen OAuth2-Anmeldung ermittelt ProjectForge das lokale Benu
 . Gibt es weiterhin keinen Treffer, wird die Anmeldung abgelehnt.
 
 Deaktivierte Benutzer werden unabhängig von einer gültigen OAuth2-Session immer abgelehnt.
+
+*Zweiter Faktor nach einem SSO-Login:* Ist ProjectForge selbst für Benutzer, Passwörter und Gruppen zuständig, akzeptiert
+aber den Login des SSO-Servers, wird `projectforge.2fa.ssoSessionMaxAgeMinutes` auf die maximale Lebensdauer der
+SSO-Session gesetzt (z. B. `480` für 8 Stunden). Ein SSO-Login gilt dann als zweiter Faktor, der so lange zurückliegt
+(ungünstigster Fall: die gemeinsame SSO-Session läuft gleich ab). Ablaufzeiträume aus `projectforge.2fa.expiryPeriod.*`,
+die länger sind (z. B. `days30`), sind durch den SSO-Login erfüllt; gleich lange oder kürzere (z. B. `hours8`, `hours1`,
+`minutes10` für Admin-Seiten, „Mein Konto“ und Passwortänderung) verlangen einen zweiten Faktor von ProjectForge. Ohne die
+Property (Standard) ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten immer einen eigenen zweiten
+Faktor. Benutzer aus `projectforge.2fa.exemptUsers` werden nie gefragt. Der SSO-Login erfüllt auch
+`projectforge.2fa.loginExpiryDays` (kein zweiter Faktor direkt nach dem Login). Die Property nur setzen, wenn der
+SSO-Server selbst einen zweiten Faktor (MFA) erzwingt; ProjectForge prüft nicht, wie der SSO-Server den Benutzer
+authentifiziert hat.
 
 [[external_gateway_mode]]
 ==== Externer Gateway-Modus

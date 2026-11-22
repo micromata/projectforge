@@ -100,6 +100,36 @@ class My2FAServiceTest : AbstractTestBase() {
     )
   }
 
+  /**
+   * projectforge.2fa.ssoSessionMaxAgeMinutes: a login via SSO counts as a 2FA done as long ago as the SSO session may
+   * last. Longer expiry periods are fulfilled, equal or shorter ones need a 2FA of ProjectForge.
+   */
+  @Test
+  fun ssoLoginCountsAsOldSecondFactorTest() {
+    val config = My2FARequestConfiguration()
+    Assertions.assertNull(config.getLastSuccessful2FAAfterSsoLogin("user"), "Not configured: SSO is only the login.")
+    config.internalSetSsoSessionMaxAgeMinutes4TestCases(0)
+    Assertions.assertNull(config.getLastSuccessful2FAAfterSsoLogin("user"), "0 means not configured.")
+    config.internalSetSsoSessionMaxAgeMinutes4TestCases(480)
+    config.internalSetExemptUsers4TestCases("exempt")
+    Assertions.assertNull(config.getLastSuccessful2FAAfterSsoLogin("Exempt"), "Exempt users need no 2FA anyway.")
+    val now = System.currentTimeMillis()
+    Assertions.assertEquals(now - 8 * TimeUnit.HOUR.millis, config.getLastSuccessful2FAAfterSsoLogin("user", now))
+
+    logon(TEST_USER)
+    val handler = My2FARequestHandlerTest.getHandler("/min1", "/min10", "/hour1", "/hour8", "/day30")
+    ThreadLocalUserContext.userContext!!.lastSuccessful2FA = config.getLastSuccessful2FAAfterSsoLogin("user")
+    for (uri in listOf("/min1", "/min10", "/hour1", "/hour8")) {
+      Assertions.assertEquals(0L, handler.getRemainingPeriod(uri), "$uri: 2FA of ProjectForge required after SSO.")
+    }
+    Assertions.assertTrue(
+      handler.getRemainingPeriod("/day30")!! > 29 * TimeUnit.DAY.millis,
+      "A period of 30 days is fulfilled by the SSO login (8 hours ago).",
+    )
+    ThreadLocalUserContext.userContext!!.lastSuccessful2FA = null
+    Assertions.assertEquals(0L, handler.getRemainingPeriod("/day30"), "Without configuration, SSO never counts.")
+  }
+
   @Test
   fun disabledTest() {
     my2FAService.setDisabled(null)
