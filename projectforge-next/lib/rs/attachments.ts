@@ -130,6 +130,9 @@ export interface AttachmentRef {
   listId?: string;
   /** The endpoints to call, see [AttachmentService.base]. Defaults to `AttachmentsServicesRest`. */
   base?: string;
+  /** Fixed urls for a source that isn't `AttachmentsServicesRest` (e.g. the files of a chat message). */
+  previewUrl?: string;
+  downloadUrl?: string;
 }
 
 const BASE = "/rs/attachments";
@@ -311,6 +314,7 @@ export function deleteAttachments(
  * is why no token is needed — the call is a GET and changes nothing.
  */
 export function attachmentDownloadUrl(ref: AttachmentRef): string {
+  if (ref.downloadUrl) return ref.downloadUrl;
   const params = new URLSearchParams({
     fileId: ref.fileId,
     listId: ref.listId ?? DEFAULT_LIST_ID,
@@ -364,6 +368,7 @@ export function previewKind(
  * [attachmentDownloadUrl]. Answers 415 for a file of another format.
  */
 export function attachmentPreviewUrl(ref: AttachmentRef): string {
+  if (ref.previewUrl) return ref.previewUrl;
   const params = new URLSearchParams({
     fileId: ref.fileId,
     listId: ref.listId ?? DEFAULT_LIST_ID,

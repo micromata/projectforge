@@ -40,6 +40,7 @@ class EmphasizedLogSupport @JvmOverloads constructor(
     private val innerLength: Int
     private var logLevel = LogLevel.INFO
     private var started = false
+    private var stdout = false
 
     constructor(log: Logger, alignment: Alignment) : this(log, Priority.IMPORTANT, alignment)
 
@@ -85,6 +86,17 @@ class EmphasizedLogSupport @JvmOverloads constructor(
      */
     fun setLogLevel(logLevel: LogLevel): EmphasizedLogSupport {
         this.logLevel = logLevel
+        return this
+    }
+
+    /**
+     * Writes the lines to System.out instead of the log (no timestamp, level and logger in front of every line), for
+     * messages to the user on the console, e.g. before the application exits.
+     *
+     * @return this for chaining.
+     */
+    fun toStdout(): EmphasizedLogSupport {
+        this.stdout = true
         return this
     }
 
@@ -140,7 +152,8 @@ class EmphasizedLogSupport @JvmOverloads constructor(
     }
 
     private fun logLine(msg: String) {
-        if (logLevel == LogLevel.ERROR) log.error(msg)
+        if (stdout) println(msg)
+        else if (logLevel == LogLevel.ERROR) log.error(msg)
         else if (logLevel == LogLevel.WARN) log.warn(msg)
         else log.info(msg)
     }

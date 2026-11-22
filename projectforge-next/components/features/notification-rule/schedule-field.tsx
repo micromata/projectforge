@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { cn } from "@/lib/utils";
@@ -19,7 +20,7 @@ const WEEKDAYS = [
 
 /**
  * When the rule runs by itself (NotificationSchedule): the mode, and the day or weekday it needs.
- * The rules are checked once a day in the morning, so a day is all there is to choose.
+ * The rules are checked once a day in the morning; "immediately" adds the hourly check for new events.
  */
 export function ScheduleField({ className }: { className?: string }) {
   const t = useTranslations();
@@ -74,6 +75,12 @@ export function ScheduleField({ className }: { className?: string }) {
           }))}
         />
       )}
+      <CheckboxField
+        className="sm:col-span-2"
+        name="scheduleImmediate"
+        label={t("notification.schedule.immediate")}
+        hint={t("notification.schedule.immediateInfo")}
+      />
     </div>
   );
 }

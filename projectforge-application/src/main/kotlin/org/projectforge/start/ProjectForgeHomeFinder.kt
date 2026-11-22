@@ -32,9 +32,8 @@ import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.setup.ProjectForgeInitializer.initialize
 import org.projectforge.setup.SetupContext
 import org.projectforge.setup.SetupData
-import org.projectforge.setup.wizard.lanterna.LantSetupWizard.Companion.run
-import org.projectforge.setup.wizard.swing.SwingSetupWizard.Companion.run
-import java.awt.GraphicsEnvironment
+import org.projectforge.setup.wizard.ConsoleSetupWizard
+import org.projectforge.setup.wizard.SystemSetupConsole
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -53,9 +52,12 @@ private val log = KotlinLogging.logger {}
  *
  */
 class ProjectForgeHomeFinder {
-  private var userAcceptsGraphicalTerminal: WizardMode? = null
+  private var userAcceptsWizard: WizardMode? = null
 
-  private enum class WizardMode { DESKTOP, CONSOLE, NONE }
+  /** One console for all questions of the setup, they have to read the same input. */
+  private val console = SystemSetupConsole()
+
+  private enum class WizardMode { CONSOLE, NONE }
 
   /**
    * Tries to find ProjectForge's home dir. If not found or isn't initialized, a setup wizard is started.
@@ -182,37 +184,23 @@ class ProjectForgeHomeFinder {
 
       val setupContext = SetupContext()
       if (setupContext.runAsDockerContainer) {
-        userAcceptsGraphicalTerminal = WizardMode.CONSOLE
-      } else if (userAcceptsGraphicalTerminal == null) {
-        val answer = if (!setupContext.graphicModeSupported || GraphicsEnvironment.isHeadless()) {
-          ConsoleTimeoutReader("Do you want to enter the setup wizard (Y/n)?", "y")
-            .ask()
-        } else {
-          object : ConsoleTimeoutReader(
-            "Do you want to enter the setup wizard? (1), 2, 3\n *(1) Graphical wizard (default)\n  (2) Console based wizard\n  (3) Abort",
-            "1"
-          ) {
-            override fun answerValid(answer: String): Boolean {
-              return answer in arrayOf("1", "2", "3")
-            }
-          }.ask()
+        userAcceptsWizard = WizardMode.CONSOLE
+      } else if (userAcceptsWizard == null) {
+        // No answer in time (null) aborts: nobody is there to run the wizard.
+        log.info {
+          "ProjectForge is waiting $WIZARD_QUESTION_TIMEOUT_SECONDS seconds for your input on console (if running " +
+              "without console, ProjectForge will continue anyway)."
         }
-        userAcceptsGraphicalTerminal =
-          if (answer?.startsWith("y", ignoreCase = true) == true || answer == "2") {
-            WizardMode.CONSOLE
-          } else if (answer == "1") {
-            WizardMode.DESKTOP
-          } else {
-            WizardMode.NONE
-          }
+        val answer = console.askYesNoOrNull("Do you want to enter the setup wizard?", true, WIZARD_QUESTION_TIMEOUT_SECONDS)
+        userAcceptsWizard = if (answer == true) {
+          WizardMode.CONSOLE
+        } else {
+          WizardMode.NONE
+        }
       }
-      if (userAcceptsGraphicalTerminal != WizardMode.NONE) {
+      if (userAcceptsWizard != WizardMode.NONE) {
         try {
-          val setupData: SetupData? = if (userAcceptsGraphicalTerminal == WizardMode.CONSOLE) {
-            run(appHomeDir, setupContext)
-          } else {
-            run(appHomeDir)
-          }
+          val setupData: SetupData? = ConsoleSetupWizard.run(appHomeDir, setupContext, console)
           appHomeDir = initialize(setupData)
           saveUserPrefHomeDir(appHomeDir!!)
           return appHomeDir
@@ -254,6 +242,7 @@ class ProjectForgeHomeFinder {
   }
 
   companion object {
+    private const val WIZARD_QUESTION_TIMEOUT_SECONDS = 30L
     const val ENV_PROJECTFORGE_HOME = "PROJECTFORGE_HOME"
     const val COMMAND_LINE_VAR_HOME_DIR = "home.dir"
     private val DIR_NAMES = arrayOf("ProjectForge", "Projectforge", "projectforge")

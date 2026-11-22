@@ -11,6 +11,20 @@ export interface TimeZoneInfo {
   displayName: string;
 }
 
+/** Regional settings of projectforge.properties; blank or missing = unchanged. */
+export interface RegionalSettings {
+  /** ISO 4217 code, e.g. EUR. */
+  currency?: string | null;
+  /** Symbol behind amounts, e.g. €. */
+  currencySymbol?: string | null;
+  /** One of SetupState.availableLocales. */
+  defaultLocale?: string | null;
+  /** One of SetupState.availableTimeNotations (H12, H24). */
+  defaultTimeNotation?: string | null;
+  /** One of SetupState.availableFirstDaysOfWeek (MONDAY, ...). */
+  defaultFirstDayOfWeek?: string | null;
+}
+
 /** Response for GET /rsPublic/setup/status. */
 export interface SetupState {
   alreadyInitialized: boolean;
@@ -18,6 +32,13 @@ export interface SetupState {
   defaultCalendarDomain: string;
   defaultTimeZone: string;
   availableTimeZones: TimeZoneInfo[];
+  /** The regional settings of the running system (preset of the form). */
+  regional: RegionalSettings;
+  availableLocales: string[];
+  availableTimeNotations: string[];
+  availableFirstDaysOfWeek: string[];
+  /** ISO 4217 codes for the currency picker. */
+  availableCurrencies: string[];
 }
 
 /** Response for GET /rsPublic/setup/progress. */
@@ -29,7 +50,7 @@ export interface SetupProgress {
 }
 
 /** Request body for POST /rsPublic/setup. */
-export interface SetupPayload {
+export interface SetupPayload extends RegionalSettings {
   setupTarget: "EMPTY_DATABASE" | "TEST_DATA";
   username: string;
   password: string;

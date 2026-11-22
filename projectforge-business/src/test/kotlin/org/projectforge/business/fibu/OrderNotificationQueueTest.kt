@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
@@ -36,6 +37,24 @@ class OrderNotificationQueueTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var prefService: OrderNotificationPrefService
+
+    @Autowired
+    private lateinit var auftragDao: AuftragDao
+
+    @Test
+    fun `the digest amount is the net sum of the positions, none for a deleted order`() {
+        val order = AuftragDO().also {
+            it.status = AuftragsStatus.BEAUFTRAGT
+            it.addPosition(AuftragsPositionDO().also { pos ->
+                pos.number = 1
+                pos.status = AuftragsStatus.BEAUFTRAGT
+                pos.nettoSumme = BigDecimal("1000.00")
+            })
+        }
+        assertEquals(0, BigDecimal("1000.00").compareTo(auftragDao.digestAmount(order)))
+        order.deleted = true
+        assertNull(auftragDao.digestAmount(order))
+    }
 
     @Test
     fun `the latest change of an order replaces the queued one`() {

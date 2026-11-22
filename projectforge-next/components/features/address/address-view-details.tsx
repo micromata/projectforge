@@ -4,7 +4,7 @@ import { leafKeyOf } from "@/lib/leaf-key";
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDayMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { addressImageUrl, type AddressViewData } from "@/lib/rs/address";
 import { AddressFavoriteToggle } from "./address-favorite-toggle";
@@ -37,7 +37,11 @@ export function AddressViewDetails({
     { label: t("address.positionText"), value: address.positionText },
     {
       label: t("address.birthday"),
-      value: address.birthday ? formatDate(address.birthday, ctx) : null,
+      value: address.birthday
+        ? address.birthdayYearUnknown
+          ? formatDayMonth(address.birthday, ctx)
+          : formatDate(address.birthday, ctx)
+        : null,
     },
     { label: t("address.website"), value: address.website, kind: "web" },
     {

@@ -116,6 +116,20 @@ export function formatDate(value: unknown, ctx: FormatContext): string {
 }
 
 /**
+ * Day and month of a calendar day without the year, e.g. 17.06. — for a birthday whose year is unknown (the year
+ * of the value is only a placeholder). Formatted in UTC like [formatDate].
+ */
+export function formatDayMonth(value: unknown, ctx: FormatContext): string {
+  const date = toDate(value);
+  if (!date) return "";
+  return new Intl.DateTimeFormat(ctx.locale, {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+/**
  * A 1-based month as its two-digit number, e.g. 9 → "09". Locale-independent by design (a bare number,
  * not a name): the accounting month is written the way the payroll files spell it. Empty for a non-number.
  */

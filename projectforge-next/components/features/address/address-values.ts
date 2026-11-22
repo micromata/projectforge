@@ -67,6 +67,7 @@ export function toFormValues(address: AddressDetail): AddressValues {
     addressbookList: (address.addressbookList ?? []).map(
       (book) => toPickerRef(book, book.displayName ?? book.title)!
     ),
+    birthdayYearUnknown: address.birthdayYearUnknown ?? false,
     isFavoriteCard: address.isFavoriteCard ?? false,
     instantMessaging: address.instantMessaging ?? null,
     hasImage: address.hasImage ?? false,

@@ -33,6 +33,9 @@
 - title: Sicherheit & Integration
   icon: shield-check
   url: /de/features/#security_integration
+- title: CVE-Pilot
+  icon: radar
+  url: /de/docs/cve-pilot/
 - title: Betrieb & Erweiterbarkeit
   icon: puzzle
   url: /de/features/#operations_extensibility

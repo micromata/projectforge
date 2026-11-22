@@ -89,6 +89,12 @@ object AddressImportSupport {
         return if (additionalChanges.isEmpty()) null else additionalChanges.joinToString(", ")
     }
 
+    /** ISO date, or `--MM-DD` for a birthday without year (also accepted by the text import). */
+    private fun birthdayString(birthday: java.time.LocalDate?, yearUnknown: Boolean?): String? {
+        birthday ?: return null
+        return if (yearUnknown == true) "--%02d-%02d".format(birthday.monthValue, birthday.dayOfMonth) else birthday.toString()
+    }
+
     /**
      * The fields of the vCard next to the ones of the database, for the comparison in the text parser of the
      * address form: field name -> map with the values "vcf" and "db". A field is left out if both are blank.
@@ -114,7 +120,7 @@ object AddressImportSupport {
         addField("firstName", vcfData?.firstName, dbData?.firstName)
         addField("name", vcfData?.name, dbData?.name)
         addField("birthName", vcfData?.birthName, dbData?.birthName)
-        addField("birthday", vcfData?.birthday?.toString(), dbData?.birthday?.toString())
+        addField("birthday", birthdayString(vcfData?.birthday, vcfData?.birthdayYearUnknown), birthdayString(dbData?.birthday, dbData?.birthdayYearUnknown))
         // Organization
         addField("organization", vcfData?.organization, dbData?.organization)
         addField("division", vcfData?.division, dbData?.division)

@@ -179,7 +179,7 @@ class NotificationService {
                 var lastError: String? = null
                 val run = DeliveryRun()
                 notificationRuleDao.selectActive().forEach { rule ->
-                    if (!rule.readSchedule().isDue(today) || rule.lastRun?.let { toLocalDate(it) } == today) {
+                    if (!rule.readSchedule().runsAt(today, rule.lastRun?.let { toLocalDate(it) })) {
                         return@forEach
                     }
                     if (registry.handler(rule) == null) {

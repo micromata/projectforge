@@ -46,6 +46,7 @@ export const addressSchema = z.object({
   email: m.nullableString("email"),
   privateEmail: m.nullableString("privateEmail"),
   birthday: z.string().nullable(),
+  birthdayYearUnknown: m.booleanField("birthdayYearUnknown"),
   communicationLanguage: z.string().nullable(),
   organization: m.nullableString("organization"),
   division: m.nullableString("division"),

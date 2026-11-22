@@ -25,7 +25,7 @@ import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
 import { fetch as expoFetch } from 'expo/fetch';
 import * as WebBrowser from 'expo-web-browser';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { HttpFetch, withTimeout } from './api/http';
 import { CALLBACK_URL, OpenBrowser } from './auth/appLogin';
@@ -50,10 +50,35 @@ export const platformHttp: HttpFetch = withTimeout(
  * session of an SSO proxy), Custom Tabs on Android. Not ephemeral: the SSO session of the browser is the point.
  */
 export const platformOpenBrowser: OpenBrowser = async (url) => {
-  const result = await WebBrowser.openAuthSessionAsync(url, CALLBACK_URL, { preferEphemeralSession: false });
+  const open = () => WebBrowser.openAuthSessionAsync(url, CALLBACK_URL, { preferEphemeralSession: false });
+  let result;
+  try {
+    result = await open();
+  } catch (e) {
+    // "The authentication session could not be started": the app isn't active yet (just back from the background) or
+    // the previous session is still closing. Once more, when the app is active.
+    appLog.warn('login', `Browser session not started: ${String(e)}, once more`);
+    await untilActive(3_000);
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    result = await open();
+  }
   appLog.debug('login', `Browser session: ${result.type}`);
   return result.type === 'success' ? result.url : null;
 };
+
+/** Resolves when the app is active, at the latest after [maxMillis]. */
+function untilActive(maxMillis: number): Promise<void> {
+  if (AppState.currentState === 'active') return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      subscription.remove();
+      resolve();
+    };
+    const timer = setTimeout(done, maxMillis);
+    const subscription = AppState.addEventListener('change', (next) => next === 'active' && done());
+  });
+}
 
 /** The version of the app as `version+build`, e.g. `1.1.0+6` (as the Flutter app: header, user agent, menu). */
 export const appVersion: string = versionWithBuild(

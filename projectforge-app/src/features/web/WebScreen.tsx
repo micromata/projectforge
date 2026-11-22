@@ -34,7 +34,7 @@ import type {
 } from 'react-native-webview/lib/WebViewTypes';
 
 import { ApiException, PROXY_REFUSED_KEY } from '../../core/api/apiException';
-import { authController } from '../../core/auth/authController';
+import { authController, useAuth } from '../../core/auth/authController';
 import { SharedFiles } from '../../core/files/sharedFiles';
 import { errorText, t } from '../../core/i18n/translations';
 import { appLog, LogSanitizer } from '../../core/log/appLog';
@@ -319,7 +319,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       }
       lastProxyRenewal.current = Date.now();
       appLog.info('web', 'Login of the SSO proxy: renewal of the login in the system browser');
-      if (await authController.reauthenticate()) {
+      if (await authController.reauthenticateAutomatically()) {
         appLog.info('web', `Login renewed: load ${LogSanitizer.url(url)}`);
         load(url);
       } else {
@@ -581,8 +581,20 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       return;
     }
     const path = requestedUrl.current ?? initialPath;
+    if (!(await authController.api?.proxyRefuses())) {
+      appLog.info('web', 'Retry: the SSO proxy lets the app through, no new login');
+      await open(path, true, false);
+      return;
+    }
     appLog.info('web', 'Retry after a refusal of the SSO proxy: new login');
-    if (!(await authController.reauthenticate())) {
+    renewingProxy.current = true;
+    let renewed: boolean;
+    try {
+      renewed = await authController.reauthenticate();
+    } finally {
+      renewingProxy.current = false;
+    }
+    if (!renewed) {
       appLog.info('web', 'Renewal not done: refusal of the SSO proxy shown');
       showError(t('app.proxy.refused'), true);
       return;
@@ -590,6 +602,20 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
     lastProxyRenewal.current = Date.now();
     await open(path, true, false);
   };
+
+  // Another tab or the banner renewed the login (one cookie jar): a refusal shown here is over.
+  const { renewals } = useAuth();
+  const seenRenewals = useRef(renewals);
+  useEffect(() => {
+    if (seenRenewals.current === renewals) return;
+    seenRenewals.current = renewals;
+    if (error?.proxyRefusal && !renewingProxy.current) {
+      appLog.info('web', 'Login renewed elsewhere: refusal of the SSO proxy dropped, page loaded again');
+      void open(requestedUrl.current ?? initialPath, true, false);
+    }
+    // Only a renewal triggers it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renewals]);
 
   // The hardware back of Android goes back in the pages of the tab shown.
   useEffect(() => {

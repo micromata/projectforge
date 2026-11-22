@@ -8,7 +8,6 @@ com-google-zxing-core = "3.5.4"
 com-google-zxing-javase = "3.5.4"
 com-googlecode-ez-vcard = "0.12.2"
 com-googlecode-gson = "2.14.0"
-com-googlecode-lanterna = "3.1.5"
 com-thoughtworks-xstream = "1.4.21"
 com-webauthn4j-core = "0.30.3.RELEASE" # 0.31+ pulls Jackson 3.x which conflicts
 #com-webauthn4j-spring-security-core = "0.10.0.RELEASE"
@@ -103,7 +102,6 @@ com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com
 com-google-zxing-core = { module = "com.google.zxing:core", version.ref = "com-google-zxing-core" }
 com-google-zxing-javase = { module = "com.google.zxing:javase", version.ref = "com-google-zxing-javase" }
 com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard" }
-com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna" }
 com-thoughtworks-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream" }
 com-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-core" }
 #com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-spring-security-core" }

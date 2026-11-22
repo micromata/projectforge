@@ -25,6 +25,7 @@ package org.projectforge.business.admin
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.testdata.TestDataSeeder
 import org.projectforge.business.user.E2ETestAccountsService
@@ -32,13 +33,18 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.configuration.properties.ProjectForgePropertiesService
+import org.projectforge.framework.configuration.properties.PropertyChange
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.TimeNotation
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.DayOfWeek
+import java.util.Currency
 import java.util.TimeZone
 
 private val log = KotlinLogging.logger {}
@@ -52,6 +58,23 @@ data class SetupValidationError(
     val field: String,
     /** Already-localised human-readable error message. */
     val message: String,
+)
+
+/**
+ * The regional settings of projectforge.properties (currency, locale, time notation, first day of week), chosen on the
+ * setup page. A null or blank value leaves the setting as it is.
+ */
+data class RegionalSettings(
+    /** ISO 4217 code, e. g. EUR (`projectforge.currency`). */
+    val currency: String? = null,
+    /** The symbol shown behind amounts, e. g. € (`projectforge.currencySymbol`). */
+    val currencySymbol: String? = null,
+    /** One of [SetupService.LOCALES]. */
+    val defaultLocale: String? = null,
+    /** Name of a [TimeNotation]. */
+    val defaultTimeNotation: String? = null,
+    /** Name of a [DayOfWeek]. */
+    val defaultFirstDayOfWeek: String? = null,
 )
 
 /**
@@ -88,12 +111,80 @@ class SetupService {
     @Autowired
     private lateinit var e2eTestAccountsService: E2ETestAccountsService
 
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
+    private lateinit var propertiesService: ProjectForgePropertiesService
+
     /**
      * The progress of a running [finish] in percent (only the test data is measured), null if no setup is running.
      */
     @Volatile
     var progress: Int? = null
         private set
+
+    /** The values the running system uses, as preset of the setup page. */
+    fun currentRegionalSettings(): RegionalSettings = RegionalSettings(
+        currency = configurationService.currency,
+        currencySymbol = configurationService.currencySymbol,
+        defaultLocale = configurationService.defaultLocale?.language,
+        defaultTimeNotation = configurationService.defaultTimeNotation?.name,
+        defaultFirstDayOfWeek = configurationService.defaultFirstDayOfWeek?.name,
+    )
+
+    /**
+     * Validates the regional settings before [finish] is called. Only whitelisted values and a short currency symbol
+     * are accepted, they are written into projectforge.properties.
+     */
+    fun validateRegional(settings: RegionalSettings): List<SetupValidationError> {
+        val errors = mutableListOf<SetupValidationError>()
+        fun invalid(field: String) =
+            errors.add(SetupValidationError(field, I18nHelper.getLocalizedMessage("validation.error.generic")))
+        settings.currency?.takeIf { it.isNotBlank() }?.let {
+            if (runCatching { Currency.getInstance(it.trim().uppercase()) }.isFailure) invalid("currency")
+        }
+        settings.currencySymbol?.takeIf { it.isNotBlank() }?.let {
+            if (it.trim().length > MAX_CURRENCY_SYMBOL_LENGTH || it.any { ch -> ch.isISOControl() || ch == '\\' }) {
+                invalid("currencySymbol")
+            }
+        }
+        settings.defaultLocale?.takeIf { it.isNotBlank() }?.let { if (it !in LOCALES) invalid("defaultLocale") }
+        settings.defaultTimeNotation?.takeIf { it.isNotBlank() }?.let {
+            if (TimeNotation.entries.none { entry -> entry.name == it }) invalid("defaultTimeNotation")
+        }
+        settings.defaultFirstDayOfWeek?.takeIf { it.isNotBlank() }?.let {
+            if (DayOfWeek.entries.none { entry -> entry.name == it }) invalid("defaultFirstDayOfWeek")
+        }
+        return errors
+    }
+
+    /**
+     * Writes the regional settings into projectforge.properties and applies them without a restart (see
+     * [ConfigurationService.reload]). Failing to do so (e. g. a read-only file) doesn't abort the setup, the settings
+     * can be changed later in the properties editor.
+     *
+     * Pre-condition: [validateRegional] returned no errors.
+     */
+    fun applyRegionalSettings(settings: RegionalSettings) {
+        val changes = listOfNotNull(
+            settings.currency?.takeIf { it.isNotBlank() }?.let { PropertyChange("projectforge.currency", it.trim().uppercase()) },
+            settings.currencySymbol?.takeIf { it.isNotBlank() }?.let { PropertyChange("projectforge.currencySymbol", it.trim()) },
+            settings.defaultLocale?.takeIf { it.isNotBlank() }?.let { PropertyChange("projectforge.defaultLocale", it) },
+            settings.defaultTimeNotation?.takeIf { it.isNotBlank() }?.let { PropertyChange("projectforge.defaultTimeNotation", it) },
+            settings.defaultFirstDayOfWeek?.takeIf { it.isNotBlank() }?.let { PropertyChange("projectforge.defaultFirstDayOfWeek", it) },
+        )
+        if (changes.isEmpty()) return
+        try {
+            val file = propertiesService.propertiesFile
+            propertiesService.save(changes, file.read().version)
+            if (!propertiesService.applySaved()) {
+                log.warn { "The regional settings are saved, but couldn't be applied without a restart." }
+            }
+        } catch (ex: Exception) {
+            log.error(ex) { "Can't save the regional settings to projectforge.properties: ${ex.message}" }
+        }
+    }
 
     /**
      * Validates setup parameters before [finish] is called.
@@ -153,9 +244,12 @@ class SetupService {
         calendarDomain: String,
         sysopEMail: String?,
         feedbackEMail: String?,
+        regionalSettings: RegionalSettings? = null,
     ): PFUserDO {
         progress = 0
         try {
+            // First, so the test data and the following steps already use them.
+            regionalSettings?.let { applyRegionalSettings(it) }
             return internalFinish(target, adminUsername, password, timeZone, calendarDomain, sysopEMail, feedbackEMail)
         } finally {
             progress = null
@@ -223,5 +317,12 @@ class SetupService {
         } else {
             log.warn { "Configuration param $param not found — can be configured later in admin settings." }
         }
+    }
+
+    companion object {
+        /** The locales the application has texts for. */
+        val LOCALES = listOf("en", "de")
+
+        private const val MAX_CURRENCY_SYMBOL_LENGTH = 5
     }
 }

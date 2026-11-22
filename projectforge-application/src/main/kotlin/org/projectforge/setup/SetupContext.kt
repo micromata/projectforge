@@ -41,9 +41,6 @@ class SetupContext {
    */
   var dockerMode: DockerMode? = null
 
-  val graphicModeSupported: Boolean
-    get() = dockerMode == null
-
   val runAsDockerContainer: Boolean
     get() = dockerMode != null
 

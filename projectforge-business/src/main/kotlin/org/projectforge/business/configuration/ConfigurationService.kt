@@ -38,7 +38,9 @@ import org.projectforge.jira.JiraConfig
 import org.projectforge.framework.configuration.*
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.configuration.properties.ReloadableProperties
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.TimeNotation
+import org.projectforge.framework.utils.StringComparator
 import org.projectforge.common.FileUtils
 import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
@@ -254,9 +256,20 @@ open class ConfigurationService : ReloadableProperties {
    * The customized logo of the web app takes effect without a restart: it is read on every use (LogoServiceRest, the
    * system status, mails, pdf exports), only the resolved files are cached and dropped here.
    */
-  override val reloadableKeys = listOf(LOGO_FILE_KEY, LOGO_FILE_DARK_KEY, LOGO_HEIGHT_KEY)
+  override val reloadableKeys = listOf(
+    LOGO_FILE_KEY, LOGO_FILE_DARK_KEY, LOGO_HEIGHT_KEY,
+    CURRENCY_SYMBOL_KEY, CURRENCY_KEY, DEFAULT_LOCALE_KEY, DEFAULT_TIME_NOTATION_KEY, DEFAULT_FIRST_DAY_OF_WEEK_KEY,
+  )
 
   override fun reload(environment: Environment) {
+    // The regional settings are read on every use (static caches are reset below), so they take effect immediately:
+    environment.getProperty(CURRENCY_SYMBOL_KEY)?.let { currencySymbol = fixMojibake(it) }
+    environment.getProperty(CURRENCY_KEY)?.let { currency = it }
+    environment.getProperty(DEFAULT_LOCALE_KEY, Locale::class.java)?.let { defaultLocale = it }
+    environment.getProperty(DEFAULT_TIME_NOTATION_KEY, TimeNotation::class.java)?.let { defaultTimeNotation = it }
+    environment.getProperty(DEFAULT_FIRST_DAY_OF_WEEK_KEY, DayOfWeek::class.java)?.let { defaultFirstDayOfWeek = it }
+    PFDay.resetWeekFields()
+    StringComparator.resetDefaultCollator()
     logoFileName = environment.getProperty(LOGO_FILE_KEY)
     logoFileNameDark = environment.getProperty(LOGO_FILE_DARK_KEY, "")
     logoHeightString = environment.getProperty(LOGO_HEIGHT_KEY, "")
@@ -267,6 +280,7 @@ open class ConfigurationService : ReloadableProperties {
   @PostConstruct
   private fun init() {
     ConfigurationServiceAccessor.setConfigurationService(this)
+    currencySymbol = fixMojibake(currencySymbol)
     staticApplicationHomeDir = applicationHomeDir
     ensureDir(File(applicationHomeDir))
     ConfigXmlMigration.init(applicationHomeDir)
@@ -657,6 +671,17 @@ open class ConfigurationService : ReloadableProperties {
   }
 
   companion object {
+    /**
+     * Spring reads projectforge.properties as ISO-8859-1, but older installations got a UTF-8 file with a plain `€`
+     * (shown as `â‚¬`). Reads such a text as UTF-8 again; any other text is returned unchanged.
+     */
+    @JvmStatic
+    fun fixMojibake(text: String?): String? {
+      if (text.isNullOrEmpty() || text.any { it.code > 0xFF }) return text
+      val decoded = String(text.toByteArray(Charsets.ISO_8859_1), Charsets.UTF_8)
+      return if (decoded.length < text.length && !decoded.contains('\uFFFD')) decoded else text
+    }
+
     /** Upper bound of [vacationAutoBookingDays]: the first run of the job books a week back at most. */
     const val MAX_VACATION_AUTO_BOOKING_DAYS = 7L
 
@@ -723,6 +748,11 @@ open class ConfigurationService : ReloadableProperties {
     const val MIN_LOGO_HEIGHT = 12
     const val MAX_LOGO_HEIGHT = 48
 
+    private const val CURRENCY_SYMBOL_KEY = "projectforge.currencySymbol"
+    private const val CURRENCY_KEY = "projectforge.currency"
+    private const val DEFAULT_LOCALE_KEY = "projectforge.defaultLocale"
+    private const val DEFAULT_TIME_NOTATION_KEY = "projectforge.defaultTimeNotation"
+    private const val DEFAULT_FIRST_DAY_OF_WEEK_KEY = "projectforge.defaultFirstDayOfWeek"
     private const val LOGO_FILE_KEY = "projectforge.logoFile"
 
     private const val LOGO_FILE_DARK_KEY = "projectforge.logoFileDark"

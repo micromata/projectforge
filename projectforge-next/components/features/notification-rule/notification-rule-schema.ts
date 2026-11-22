@@ -49,6 +49,7 @@ export const notificationRuleSchema = z.object({
     "WEEKLY",
   ]),
   scheduleDay: count,
+  scheduleImmediate: z.boolean(),
   scheduleDayOfWeek: z
     .enum([
       "MONDAY",

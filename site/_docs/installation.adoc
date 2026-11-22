@@ -18,7 +18,7 @@ untranslated: true
 == Express installation
 
 You can run ProjectForge as a Docker container or directly as an executable JAR file. Both ways end with the same
-setup wizard and the same setup page in your browser.
+setup wizard in the terminal and the same setup page in your browser.
 
 Once ProjectForge is running, the link:/docs/quickstart/[Quick start] shows how to set up your company, your team and
 your first project. All configuration options (database, mail, LDAP, identity provider, 2FA, backups, ...) are
@@ -68,7 +68,7 @@ For tests or small installations you may use the embedded database. For producti
 This is the recommended way to run ProjectForge with Docker, with the embedded database or your own PostgreSQL.
 
 1. First start: `docker run -t -i -p 127.0.0.1:8080:8080 -v $HOME/ProjectForge:/ProjectForge --name projectforge micromata/projectforge`
-2. Without a `projectforge.properties` in the home directory, the console setup wizard is shown, see <<The installation setup wizard (for all installations)>>.
+2. Without a `projectforge.properties` in the home directory, the setup wizard is shown, see <<The installation setup wizard (for all installations)>>.
    The selection of the home directory is skipped in Docker.
 3. Open http://localhost:8080 and complete the <<The setup page,setup page>>.
 4. Stop ProjectForge by pressing `CTRL-C` or with `docker stop projectforge`.
@@ -148,43 +148,29 @@ For updating, stop ProjectForge, replace the JAR file and start the new version.
 === The installation setup wizard (for all installations)
 
 On the first start (no initialized home directory), ProjectForge asks you to enter the setup wizard. Go for it.
-There is a console wizard as well as a graphical wizard (desktop application), depending on your environment. If your
-system supports both, you may choose. Both editions have the same functionality.
+The wizard is a small menu in the terminal. Its main page shows the settings needed before ProjectForge can start, each
+with its default. Colors and the flames of the logo are shown if your terminal understands them (otherwise plain text).
 
-[#img-setup-wizard-1]
-.The setup wizard (terminal edition) for choosing ProjectForge's home directory. This step is skipped in Docker.
-[link=/uploads/setup-wizard-step-1.png]
-image::/uploads/setup-wizard-step-1.png[Setup wizard - step 1,400]
+[#img-setup-wizard]
+.The setup wizard (terminal): main page with a PostgreSQL database and the result of its connection test.
+[link=/uploads/setup-wizard.png]
+image::/uploads/setup-wizard.png[Setup wizard - main page,600]
 
-[#img-setup-wizard-2]
-.The setup wizard (terminal edition) for configuring the basic settings.
-[link=/uploads/setup-wizard-step-2.png]
-image::/uploads/setup-wizard-step-2.png[Setup wizard - step 2, 400]
-
-[#img-setup-wizard-jdbc]
-.The setup wizard (graphical edition) for configuring and testing the database connection.
-[link=/uploads/setup-wizard-gui-jdbc.png]
-image::/uploads/setup-wizard-gui-jdbc.png[Setup wizard - database settings,400]
-
-You may leave most settings as they are. You can change them later in `projectforge.properties`.
+Choose an entry by its number or letter, change the value (Return keeps the current one) and you are back on the main
+page. *s* (or just Return) saves and continues, *q* quits. Without a terminal the defaults are used. Currency, language,
+time notation and the first day of the week are chosen later on the <<The setup page,setup page>> in your browser.
 
 [cols="1,3"]
 |===
-h|Directory | ProjectForge's home directory including configuration, database, logs and working directories.
-h|Domain | The public URL of your installation (http://localhost:8080 for test systems), including a servlet context, if any. It's used e.g. for links in e-mail notifications.
-h|Port | ProjectForge starts the server on this port (8080 should be fine in most cases; it can't be changed in Docker).
-h|Database | *Embedded* uses the built-in database (HSQLDB), fine for tests, development or small instances. *PostgreSQL* is recommended for productive use. In the docker compose stack only PostgreSQL is offered, the single container supports the embedded database as well.
-h|Jdbc settings | For PostgreSQL, enter the connection values and check them with *Test connection*.
-h|Currency | The default currency.
-h|Locale | The default locale for new users (English or German). Every user can choose their own language.
-h|First day | The first day of the week in calendar views.
-h|Time | The default time notation (H24 or H12, customizable by the users).
-h|Setting | Start ProjectForge – if checked, ProjectForge is started after clicking *Finish*. For the embedded database, the database is created.
-h|Setting | Enable CORS filter – for frontend development only. Never use it on productive systems!
+h|Home directory | ProjectForge's home directory including configuration, database, logs and working directories (default: `ProjectForge` in your home directory). Not shown in Docker.
+h|Port | ProjectForge starts the server on this port (8080 should be fine in most cases). Not shown in Docker, where the port is chosen with `-p`.
+h|Domain | The public URL of your installation (http://localhost:8080 for test systems), including a servlet context, if any. It's used e.g. for links in e-mail notifications. It follows the port until you enter it.
+h|Database | *Embedded* uses the built-in database (HSQLDB), fine for tests, development or small instances. *PostgreSQL* is recommended for productive use: its menu has JDBC url, user and password. The connection is tested after every change (and on demand with *t*), the result is shown below the values. In the docker compose stack only PostgreSQL is offered, the single container supports the embedded database as well.
+h|Development mode | Enables the CORS filter, for frontend development only. Never use it on productive systems! (Not shown in Docker.)
 |===
 
 The wizard writes `projectforge.properties` into the home directory, including a randomly
-generated password pepper and token encryption key. After clicking *Finish*, ProjectForge is initialized and started.
+generated password pepper and token encryption key. After saving, ProjectForge is initialized and started.
 Open your browser at `http://localhost:8080` (or your domain, e.g. `https://projectforge.acme.com`).
 
 [NOTE]
@@ -215,9 +201,10 @@ h|Target | *Productive system* creates an empty database containing only the adm
 h|User name | The user name of the initial administrator (default: `admin`).
 h|Password | The administrator's password (entered twice).
 h|Default time zone | Default time zone for all users who haven't chosen their own in _My account_.
+h|Regional settings | Default language, time notation, first day of the week and the currency (picked from a searchable list, the symbol is filled in and can be changed). They are written to `projectforge.properties` and take effect at once, no restart is needed. Every user can choose their own language, time notation and first day of the week in _My account_.
 h|Calendar domain | Used for world-wide unique ids of calendar events, e.g. your domain name (default: `local`).
-h|Administrators | ProjectForge sends e-mails to this address (or these comma-separated addresses) in case of special errors.
-h|Feed-back | Optional address for user feedback (e.g. your help desk).
+h|Administration e-mail (optional, folded) | ProjectForge sends e-mails to this address (or these comma-separated addresses) in case of special errors.
+h|Feedback e-mail (optional, folded) | Address for user feedback (e.g. your help desk).
 |===
 
 Click *Finish*. ProjectForge initializes the database and takes you to the login page, where you sign in with the

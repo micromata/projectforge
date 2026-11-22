@@ -166,6 +166,18 @@ export const ORDER_PAGE = definePage<
       dataType: "AMOUNT",
       size: 120,
     },
+    // What the forecast expects to be invoiced in the period of the "forecast invoicing" filter: the column
+    // is there only while that filter is set, as nothing is calculated without it.
+    {
+      id: "forecastSumInPeriod",
+      labelKey: "fibu.auftrag.forecastInPeriod",
+      accessor: (row) => row.forecastSumInPeriod ?? null,
+      dataType: "AMOUNT",
+      size: 130,
+      // Depends on the period of the filter, which the backend's sort by an order's cached values doesn't know.
+      sortable: false,
+      revealedByFilter: "forecastPeriod",
+    },
     // Not invoiced, although marked as fully invoiced — e.g. an invoice was cancelled afterwards. Nothing else
     // shows this amount as to be invoiced, so it is shown by default (with the matching "fakturiert" filter it is
     // the list to work through). Sorted by the backend (OrderEntityRest.COMPUTED_SORT_PROPERTIES).

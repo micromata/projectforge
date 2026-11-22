@@ -203,3 +203,74 @@ test('a client of the old server sends nothing of the new login and cannot end i
   expect(renewals).toBe(0);
   expect(controller.getState().status).toBe('loggedIn');
 });
+
+test('a second renewal right after the first needs no new login', async () => {
+  const { controller } = await loggedIn({ userId: 1, deviceId: 10 });
+  const before = controller.getState().renewals;
+  expect(await controller.reauthenticate()).toBe(true);
+  const requestsBefore = controller.getState().session?.token;
+  expect(await controller.reauthenticate()).toBe(true);
+  expect(controller.getState().renewals).toBe(before + 1);
+  expect(controller.getState().session?.token).toBe(requestsBefore);
+});
+
+describe('the cooldown of the automatic renewal', () => {
+  /** A controller whose browser answers by [answer]: 'cancel', 'fail' (throws) or 'ok'. */
+  async function withBrowser() {
+    const { http } = fakeHttp((request) => {
+      if (request.url.endsWith('/rsPublic/systemStatus')) return { body: { appname: 'ProjectForge', version: '9.3' } };
+      return { body: { userId: 1, deviceId: 10, token: 'new' } };
+    });
+    const browser = { opened: 0, answer: 'cancel' as 'cancel' | 'fail' | 'ok' };
+    const store = new SessionStore(memoryStore({}));
+    await store.save(userA);
+    const controller = new AuthController({
+      http,
+      appLogin: new AppLogin(http, nodeCrypto, async (url) => {
+        browser.opened++;
+        if (browser.answer === 'fail') throw new Error('The authentication session could not be started.');
+        return browser.answer === 'cancel'
+          ? null
+          : `projectforge://auth?code=c&state=${new URL(url).searchParams.get('state')}`;
+      }),
+      sessionStore: store,
+      cookieStore: { setCookies: async () => [], cookieHeader: async () => null, clearAll: async () => undefined },
+      cache: { clearAll: () => undefined },
+      files: { clearAll: () => undefined },
+      userStatus: { start: async () => undefined, stop: () => undefined },
+    } as unknown as ConstructorParameters<typeof AuthController>[0]);
+    await controller.restore();
+    return { controller, browser };
+  }
+
+  afterEach(() => jest.restoreAllMocks());
+
+  test('after a cancelled login no request opens the browser again, the user still can', async () => {
+    const { controller, browser } = await withBrowser();
+    expect(await controller.reauthenticateAutomatically()).toBe(false);
+    expect(await controller.reauthenticateAutomatically()).toBe(false);
+    expect(browser.opened).toBe(1);
+    browser.answer = 'ok';
+    expect(await controller.reauthenticate()).toBe(true);
+    expect(browser.opened).toBe(2);
+    // The success cleared the cooldown.
+    expect(await controller.reauthenticateAutomatically()).toBe(true);
+  });
+
+  test('it ends after a minute', async () => {
+    const { controller, browser } = await withBrowser();
+    const now = Date.now();
+    await controller.reauthenticateAutomatically();
+    jest.spyOn(Date, 'now').mockReturnValue(now + 61_000);
+    await controller.reauthenticateAutomatically();
+    expect(browser.opened).toBe(2);
+  });
+
+  test('a failure other than a cancel does not start it', async () => {
+    const { controller, browser } = await withBrowser();
+    browser.answer = 'fail';
+    expect(await controller.reauthenticateAutomatically()).toBe(false);
+    expect(await controller.reauthenticateAutomatically()).toBe(false);
+    expect(browser.opened).toBe(2);
+  });
+});

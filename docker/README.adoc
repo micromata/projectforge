@@ -83,7 +83,7 @@ Afterwards log in with the admin account. All plugins are active (banking, data 
 marketing, skill matrix, to-do, memo, IHK, liquidity planning, license management).
 
 Alternatively skip step 2 and run the container with `-t -i` instead of `-d`: without
-`/ProjectForge/projectforge.properties` the entrypoint runs the console setup wizard in the foreground.
+`/ProjectForge/projectforge.properties` the entrypoint runs the console setup wizard (a small menu) in the foreground; it needs a terminal (`-t -i`, in docker compose `stdin_open: true` and `tty: true` plus `docker attach`), otherwise the defaults are used.
 The embedded database is the default there, the base directory selection is skipped in docker mode.
 
 ==== Resetting, and useful commands
@@ -164,6 +164,6 @@ architecture plus one for the multi-arch tags. Please refer /dev-docs/deployment
 
 - *Can't access port 8080?* +
   The built-in main `application.properties` defines `server.address=localhost`, therefore this port can't be exported to the host system. In docker mode
-  ProjectForge forces `server.address=0.0.0.0` (see `LantSetupWizard`), so the setup wizard writes this value into
+  ProjectForge forces `server.address=0.0.0.0` (see `ConsoleSetupWizard`), so the setup wizard writes this value into
   `/ProjectForge/projectforge.properties`. When seeding that file manually, set `server.address=0.0.0.0` yourself. +
   Through the `docker run` option `-p 8080:8080` the port is exported to the host.

@@ -57,6 +57,7 @@ export interface NotificationRuleDetail {
   scheduleMode?: ScheduleMode;
   scheduleDay?: number;
   scheduleDayOfWeek?: DayOfWeek | null;
+  scheduleImmediate?: boolean;
   /** The values of the params of the rule type by key; an entity as `{id, displayName}`. */
   params?: Record<string, unknown>;
   recipientGroups?: Ref[];

@@ -373,7 +373,7 @@ check_external_plugins() {
 run_external_plugins() {
   local task="$1" dir
   while read -r dir; do
-    (cd "$dir" && ./gradlew -PpfCoreDir="$ROOT" ":plugin:$task")
+    (cd "$dir" && ./gradlew -PpfCoreDir="$ROOT" ":plugin:$task") || exit 1
   done < <(external_plugins)
 }
 
@@ -381,7 +381,12 @@ run_external_plugins() {
 build_external_plugins() {
   local version="$1" dir jars=() found
   while read -r dir; do
-    (cd "$dir" && ./gradlew -q -PpfCoreDir="$ROOT" :plugin:jar) >&2
+    # Explicit exit: called as "$(…) || exit 1", where set -e is off, so a failed build would go on with an old jar.
+    echo "External plugin $dir: building :plugin:jar against $ROOT ..." >&2
+    if ! (cd "$dir" && ./gradlew -PpfCoreDir="$ROOT" :plugin:jar) >&2; then
+      echo "External plugin $dir: the build failed." >&2
+      exit 1
+    fi
     found=("$dir"/plugin/build/libs/*-"$version".jar)
     if [[ ${#found[@]} -ne 1 || ! -f "${found[0]}" ]]; then
       echo "External plugin $dir: expected one jar plugin/build/libs/*-$version.jar." >&2
@@ -397,13 +402,21 @@ build_external_plugins() {
 # build/external-plugins/, so a later gradle run in the plugin repository (for another checkout) doesn't replace the
 # jar under a running server. PF_NO_EXTERNAL_PLUGINS=1 skips this (the plugin's pages are switched off then).
 use_external_plugins() {
-  [[ -z "${PF_EXTRA_PLUGINS:-}" && -z "${PF_NO_EXTERNAL_PLUGINS:-}" && -n "$(external_plugins)" ]] || return 0
+  if [[ -n "${PF_EXTRA_PLUGINS:-}" ]]; then
+    echo "External plugins: taken from PF_EXTRA_PLUGINS, not built: $PF_EXTRA_PLUGINS" >&2
+    return 0
+  elif [[ -n "${PF_NO_EXTERNAL_PLUGINS:-}" ]]; then
+    echo "External plugins: skipped (PF_NO_EXTERNAL_PLUGINS)" >&2
+    return 0
+  fi
+  [[ -n "$(external_plugins)" ]] || return 0
   local version jars jar copies=() target="$ROOT/build/external-plugins"
   version="$(sed -n 's/^version=//p' "$ROOT/gradle.properties")"
   jars="$(build_external_plugins "$version")" || exit 1
   mkdir -p "$target"
   IFS=',' read -r -a list <<< "$jars"
   for jar in ${list[@]+"${list[@]}"}; do
+    echo "External plugin: copying $jar to $target/" >&2
     cp "$jar" "$target/"
     copies+=("$target/$(basename "$jar")")
   done

@@ -23,38 +23,11 @@
 
 package org.projectforge.setup.wizard
 
-import org.projectforge.framework.time.TimeNotation
-import org.projectforge.framework.utils.LabelValueBean
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.setup.SetupData
 import org.projectforge.start.ProjectForgeApplication
 import org.projectforge.start.ProjectForgeHomeFinder
 import java.io.File
-import java.time.DayOfWeek
-
 
 object FinalizeScreenSupport {
-    fun saveValues(setupData: SetupData,
-                   domain: String,
-                   portText: String,
-                   currencySymbol: String,
-                   defaultLocaleSelectedIndex: Int,
-                   defaultFirstDayOfWeekSelectedIndex: Int,
-                   defaultTimeNotationSelectedIndex: Int,
-                   startServer: Boolean,
-                   developmentMode: Boolean
-    ) {
-        var port = NumberHelper.parseInteger(portText) ?: 8080
-        setupData.domain = domain
-        setupData.serverPort = if (port in 1..65535) port else 8080
-        setupData.currencySymbol = currencySymbol
-        setupData.defaultLocale = listOfLocales[defaultLocaleSelectedIndex].value
-        setupData.defaultFirstDayOfWeek = listOfWeekdays[defaultFirstDayOfWeekSelectedIndex].value
-        setupData.defaultTimeNotation = listOfTimeNotations[defaultTimeNotationSelectedIndex].value
-        setupData.startServer = startServer
-        setupData.developmentMode = developmentMode
-    }
-
     fun getDirText(dir: File?): String {
         return if (dir == null)
             "Please specify directory."
@@ -68,45 +41,7 @@ object FinalizeScreenSupport {
             "Exists and will be checked for configuration."
     }
 
-    fun getInfoText(portText: String, dir: File): String {
-        val sb = StringBuilder()
-        sb.append("Please open your favorite browser after startup: http://localhost:$portText and enjoy it!\n\n")
-        if (ProjectForgeHomeFinder.isStandardProjectForgeUserDir(dir)) {
-            sb.append("You chose the standard directory of ProjectForge, that will be found by ProjectForge automatically (OK).\n\n")
-        } else {
-            sb.append("You chose a directory different to ${File(System.getProperty("user.home"), "ProjectForge")}. That's OK.\n")
-            sb.append("To be sure, that this directory is found by the ProjectForge server, please refer log files or home page.\n\n")
-        }
-        sb.append("Press 'Finish' for starting the initialization and for starting-up the server.")
-        return sb.toString()
-    }
-
     fun configFileAlreadyExists(baseDir: File?): Boolean {
         return baseDir != null && File(baseDir, ProjectForgeApplication.PROPERTIES_FILENAME).exists()
     }
-
-    val listOfLocales = listOf(
-            LabelValueBean("en - English", "en"),
-            LabelValueBean("de - Deutsch", "de")
-    )
-
-    val listOfTimeNotations = listOf(
-            LabelValueBean("H24", TimeNotation.H24),
-            LabelValueBean("H12", TimeNotation.H12)
-    )
-
-    val listOfWeekdays = listOf(
-            LabelValueBean("Monday", DayOfWeek.MONDAY),
-            LabelValueBean("Tuesday", DayOfWeek.TUESDAY),
-            LabelValueBean("Wednesday", DayOfWeek.WEDNESDAY),
-            LabelValueBean("Thursday", DayOfWeek.THURSDAY),
-            LabelValueBean("Friday", DayOfWeek.FRIDAY),
-            LabelValueBean("Saturday", DayOfWeek.SATURDAY),
-            LabelValueBean("Sunday", DayOfWeek.SUNDAY)
-    )
-
-    val listOfDatabases = listOf(
-            LabelValueBean("Embedded", "HSQL"),
-            LabelValueBean("PostgreSQL", "POSTGRES")
-    )
 }

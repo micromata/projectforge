@@ -844,6 +844,9 @@ export interface PageDef<
    * legacy React list showed as a modal: a quick look (a phone number, an e-mail) that leaves the list, its
    * filter and its scroll position where they were. The page of the entry stays what direct links (a search
    * hit, a link of another page) open. [onRowClick] wins where it names a route.
+   *
+   * The open entry is the url's `view` param (`<route>?view=<id>`): the dialog can be shared, a reload shows it
+   * again and Back closes it (see useUrlDialog).
    */
   rowDialog?: ComponentType<{ id: number; onClose: () => void }>;
   /**

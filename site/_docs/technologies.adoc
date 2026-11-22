@@ -95,7 +95,6 @@ newer, Java 21 in production).
 |ical4j / ez-vcard |4.4 / 0.12 |Calendar (iCal) and address (vCard, CardDAV) formats.
 |JFreeChart, Apache Batik (SVG) |1.5 / 1.19 |Charts and Gantt diagrams.
 |MPXJ |16.9 |Export of MS Project plans.
-|Lanterna |3.1 |Console setup wizard.
 |===
 
 === Frontend

@@ -40,6 +40,7 @@ private val log = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["spring.security.oauth2.client.registration.authentik.client-id"])
 open class OAuth2LoginSuccessHandler(
     private val oAuth2UserService: OAuth2UserService,
+    private val my2FARequestConfiguration: My2FARequestConfiguration,
 ) : AuthenticationSuccessHandler {
 
     override fun onAuthenticationSuccess(
@@ -54,7 +55,12 @@ open class OAuth2LoginSuccessHandler(
             response.sendRedirect("/")
             return
         }
-        LoginService.internalLogin(request, UserContext(pfUser))
+        val userContext = UserContext(pfUser)
+        // The SSO login counts as a second factor done as long ago as the SSO session may last at most (if configured).
+        my2FARequestConfiguration.getLastSuccessful2FAAfterSsoLogin(pfUser.username)?.let {
+            userContext.lastSuccessful2FA = it
+        }
+        LoginService.internalLogin(request, userContext)
         log.info { "OAuth2 session established for user '${pfUser.username}'" }
         response.sendRedirect("/")
     }
