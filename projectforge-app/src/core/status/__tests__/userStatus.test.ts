@@ -248,3 +248,19 @@ test('an error of the server is no refusal of the SSO proxy', async () => {
   await store.refresh();
   expect(store.get().proxyExpired).toBe(false);
 });
+
+test('a renewed login takes the notice of the expired SSO proxy away at once, a new refusal brings it back', async () => {
+  let answer: 'ok' | 'proxy' = 'ok';
+  const { client } = api(() =>
+    answer === 'proxy' ? { status: 302, headers: { location: 'https://sso.example.org/login' } } : { body: { theme: 'light' } },
+  );
+  const store = await started(client);
+  answer = 'proxy';
+  await store.refresh();
+  expect(store.get().proxyExpired).toBe(true);
+  store.loginRenewed();
+  expect(store.get().proxyExpired).toBe(false);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(store.get().proxyExpired).toBe(true);
+});

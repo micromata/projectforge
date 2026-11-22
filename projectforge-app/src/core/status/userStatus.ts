@@ -145,6 +145,18 @@ export class UserStatusStore {
     this.emit();
   }
 
+  /**
+   * The login was renewed (by the banner or by a tab): the notice of the expired SSO proxy goes at once, the status is
+   * loaded again (a refusal brings the notice back).
+   */
+  loginRenewed = () => {
+    if (this.state.proxyExpired) {
+      this.state = { ...this.state, proxyExpired: false };
+      this.emit();
+    }
+    void this.refresh();
+  };
+
   /** Loads the status again; offline (or on an error) the last one stays. */
   refresh = async () => {
     const api = this.api;

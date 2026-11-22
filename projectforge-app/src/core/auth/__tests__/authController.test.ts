@@ -203,3 +203,13 @@ test('a client of the old server sends nothing of the new login and cannot end i
   expect(renewals).toBe(0);
   expect(controller.getState().status).toBe('loggedIn');
 });
+
+test('a second renewal right after the first needs no new login', async () => {
+  const { controller } = await loggedIn({ userId: 1, deviceId: 10 });
+  const before = controller.getState().renewals;
+  expect(await controller.reauthenticate()).toBe(true);
+  const requestsBefore = controller.getState().session?.token;
+  expect(await controller.reauthenticate()).toBe(true);
+  expect(controller.getState().renewals).toBe(before + 1);
+  expect(controller.getState().session?.token).toBe(requestsBefore);
+});

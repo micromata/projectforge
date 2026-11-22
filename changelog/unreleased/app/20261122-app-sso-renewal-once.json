@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "{app} Refused by the SSO proxy with several tabs open: one browser login is enough, the other tabs load their page again by themselves.",
+  "de": "{app} Abweisung durch den SSO-Proxy bei mehreren offenen Tabs: Eine Anmeldung im Browser genügt, die anderen Tabs laden ihre Seite selbst neu."
+}
