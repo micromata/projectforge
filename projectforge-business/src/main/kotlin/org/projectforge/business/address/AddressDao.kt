@@ -373,6 +373,21 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (StringUtils.isBlank(obj.uid)) {
             obj.uid = UUID.randomUUID().toString()
         }
+        normalizeBirthday(obj)
+    }
+
+    /**
+     * Without a birthday there is no flag; for a birthday without year the year is the placeholder, whatever was
+     * posted (the year is never shown then, and must not come back, if the flag is cleared later).
+     */
+    private fun normalizeBirthday(obj: AddressDO) {
+        val birthday = obj.birthday
+        if (birthday == null) {
+            obj.birthdayYearUnknown = false
+        } else if (obj.birthdayYearUnknown && birthday.year != AddressDO.BIRTHDAY_PLACEHOLDER_YEAR) {
+            // 2000 is a leap year, so no day gets invalid.
+            obj.birthday = birthday.withYear(AddressDO.BIRTHDAY_PLACEHOLDER_YEAR)
+        }
     }
 
     /**
@@ -576,6 +591,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
      */
     override fun onUpdate(obj: AddressDO, dbObj: AddressDO) {
         super.onUpdate(obj, dbObj)
+        normalizeBirthday(obj)
         obj.imagePublicToken = dbObj.imagePublicToken
     }
 

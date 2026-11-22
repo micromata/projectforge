@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Notification rules: a rule can additionally be set to notify immediately after an event is detected. It is then also checked hourly, and new events are notified right away, besides the chosen schedule.",
-  "de": "Benachrichtigungsregeln: Eine Regel kann zusätzlich so eingestellt werden, dass sofort nach dem Erkennen eines Ereignisses benachrichtigt wird. Sie wird dann auch stündlich geprüft, neue Ereignisse werden zusätzlich zum gewählten Zeitplan sofort gemeldet."
-}

@@ -94,6 +94,7 @@ class AddressImportDTO(
     var form: FormOfAddress? = null,
     var birthName: String? = null,
     var birthday: LocalDate? = null,
+    var birthdayYearUnknown: Boolean = false,
 
     // Business contact
     var email: String? = null,
@@ -320,6 +321,7 @@ class AddressImportDTO(
             // AddressDO::form, // Excluded from comparison - VCards typically don't contain form of address
             AddressDO::birthName,
             AddressDO::birthday,
+            AddressDO::birthdayYearUnknown,
             AddressDO::email,
             AddressDO::businessPhone,
             AddressDO::mobilePhone,
@@ -363,6 +365,7 @@ class AddressImportDTO(
         this.form = src.form
         this.birthName = src.birthName
         this.birthday = src.birthday
+        this.birthdayYearUnknown = src.birthdayYearUnknown
         this.email = src.email
         this.businessPhone = src.businessPhone
         this.mobilePhone = src.mobilePhone
@@ -407,6 +410,7 @@ class AddressImportDTO(
         dest.form = this.form
         dest.birthName = this.birthName
         dest.birthday = this.birthday
+        dest.birthdayYearUnknown = this.birthdayYearUnknown
         dest.email = this.email
         dest.businessPhone = this.businessPhone
         dest.mobilePhone = this.mobilePhone

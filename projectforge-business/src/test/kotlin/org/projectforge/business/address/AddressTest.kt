@@ -69,6 +69,33 @@ class AddressTest : AbstractTestBase() {
     }
 
     @Test
+    fun `birthday without year is stored with the placeholder year and without an age`() {
+        logon(ADMIN)
+        val address = AddressDO()
+        address.name = "Birthday without year"
+        address.birthday = java.time.LocalDate.of(1980, 5, 12)
+        address.birthdayYearUnknown = true
+        addressDao.insert(address)
+        val stored = addressDao.find(address.id)!!
+        Assertions.assertTrue(stored.birthdayYearUnknown)
+        Assertions.assertEquals(java.time.LocalDate.of(AddressDO.BIRTHDAY_PLACEHOLDER_YEAR, 5, 12), stored.birthday)
+        val birthdayAddress = BirthdayAddress(stored)
+        birthdayAddress.setAge(java.util.Date())
+        Assertions.assertEquals(-1, birthdayAddress.age)
+
+        // Update normalises as well, and a removed birthday clears the flag:
+        stored.birthday = java.time.LocalDate.of(1999, 2, 28)
+        addressDao.update(stored)
+        Assertions.assertEquals(
+            java.time.LocalDate.of(AddressDO.BIRTHDAY_PLACEHOLDER_YEAR, 2, 28),
+            addressDao.find(address.id)!!.birthday
+        )
+        stored.birthday = null
+        addressDao.update(stored)
+        Assertions.assertFalse(addressDao.find(address.id)!!.birthdayYearUnknown)
+    }
+
+    @Test
     fun testSaveAndUpdate() {
         logon(ADMIN)
         val a1 = AddressDO()

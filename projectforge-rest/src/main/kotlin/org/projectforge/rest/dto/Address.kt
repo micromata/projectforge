@@ -77,6 +77,8 @@ class Address(
     var fingerprint: String? = null,
     var comment: String? = null,
     var birthday: LocalDate? = null,
+    /** If true, the year of [birthday] is unknown and only a placeholder. */
+    var birthdayYearUnknown: Boolean = false,
     var imageData: ByteArray? = null,
     var imageDataPreview: ByteArray? = null,
     /**

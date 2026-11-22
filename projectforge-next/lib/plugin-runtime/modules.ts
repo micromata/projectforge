@@ -85,6 +85,7 @@ import * as nextNavigation from "next/navigation";
 import * as nextLink from "next/link";
 import * as zod from "zod";
 import * as reactTable from "@tanstack/react-table";
+import * as recharts from "recharts";
 
 export const PLUGIN_MODULES: Record<string, Record<string, unknown>> = {
   "components/data-table": dataTable,
@@ -166,4 +167,6 @@ export const PLUGIN_MODULES: Record<string, Record<string, unknown>> = {
   "next/link": nextLink,
   zod: zod,
   "@tanstack/react-table": reactTable,
+  // The charts of a plugin draw with the very recharts of components/ui/chart: a second copy has no context of the first.
+  recharts: recharts,
 };

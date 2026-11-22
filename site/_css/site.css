@@ -1173,9 +1173,12 @@ a.changelog-pill-docker:hover {
 }
 .pf-lightbox img {
   display: block;
-  min-height: 0;
+  flex: none;
+  width: auto;
+  height: auto;
   max-width: 100%;
-  max-height: 100%;
+  /* Viewport based instead of a percentage of the flex container: Safari sizes such an image too small. */
+  max-height: calc(100dvh - 8.5rem);
   object-fit: contain;
   border-radius: 0.5rem;
   background: var(--color-card);

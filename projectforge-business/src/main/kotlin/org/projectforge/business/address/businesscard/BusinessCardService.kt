@@ -166,7 +166,7 @@ open class BusinessCardService {
             card.privateStreet, card.privateZipCode, card.privateCity, card.privateCountry,
         )
         val birthdayValid = card.birthday.isNullOrBlank() ||
-                runCatching { java.time.LocalDate.parse(card.birthday!!.trim()) }.isSuccess
+                BusinessCardVCard.parseBirthday(card.birthday) != null
         if (texts.any { (it?.length ?: 0) > MAX_LENGTH } || (card.comment?.length ?: 0) > MAX_COMMENT_LENGTH ||
             !birthdayValid
         ) {
@@ -332,7 +332,9 @@ open class BusinessCardService {
                 it.privateZipCode = address.privateZipCode
                 it.privateCity = address.privateCity
                 it.privateCountry = address.privateCountry
-                it.birthday = address.birthday?.toString()
+                it.birthday = address.birthday?.let { birthday ->
+                    if (address.birthdayYearUnknown) "--%02d-%02d".format(birthday.monthValue, birthday.dayOfMonth) else birthday.toString()
+                }
             }
         }
     }

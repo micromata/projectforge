@@ -277,6 +277,51 @@ class VCardUtilsTest {
     }
 
     @Test
+    fun `test birthday without year`() {
+        TestSetup.init()
+
+        val vcard = """
+            BEGIN:VCARD
+            VERSION:4.0
+            FN:Jane Doe
+            N:Doe;Jane;;;
+            BDAY:--0512
+            END:VCARD
+        """.trimIndent()
+        val address = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(vcard)[0])
+        assertEquals(LocalDate.of(AddressDO.BIRTHDAY_PLACEHOLDER_YEAR, 5, 12), address.birthday)
+        assertTrue(address.birthdayYearUnknown)
+
+        // Round trip:
+        val exported = VCardUtils.buildVCardString(address)
+        assertTrue(exported.contains("BDAY:--0512"), exported)
+        val again = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(exported)[0])
+        assertEquals(address.birthday, again.birthday)
+        assertTrue(again.birthdayYearUnknown)
+
+        // vCard 3.0 has no partial dates, the export must not fail:
+        val exportedV3 = VCardUtils.buildVCardString(address, VCardVersion.V_3_0)
+        assertTrue(exportedV3.contains("BDAY;X-APPLE-OMIT-YEAR=1604:1604-05-12"), exportedV3)
+        val againV3 = VCardUtils.buildAddressDO(VCardUtils.parseVCardsFromString(exportedV3)[0])
+        assertTrue(againV3.birthdayYearUnknown)
+        assertEquals(address.birthday, againV3.birthday)
+
+        // Apple Contacts: 1604 without a year.
+        val apple = VCardUtils.buildAddressDO(
+            VCardUtils.parseVCardsFromString("BEGIN:VCARD\nVERSION:3.0\nFN:A B\nN:B;A;;;\nBDAY:1604-05-12\nEND:VCARD")[0]
+        )
+        assertTrue(apple.birthdayYearUnknown)
+        assertEquals(LocalDate.of(AddressDO.BIRTHDAY_PLACEHOLDER_YEAR, 5, 12), apple.birthday)
+
+        // A complete date doesn't set the flag:
+        val full = VCardUtils.buildAddressDO(
+            VCardUtils.parseVCardsFromString("BEGIN:VCARD\nVERSION:4.0\nFN:A B\nN:B;A;;;\nBDAY:19851231\nEND:VCARD")[0]
+        )
+        assertFalse(full.birthdayYearUnknown)
+        assertEquals(LocalDate.of(1985, 12, 31), full.birthday)
+    }
+
+    @Test
     fun `test parse special characters and umlauts`() {
         TestSetup.init()
         val vcard = """

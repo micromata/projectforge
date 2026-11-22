@@ -62,6 +62,8 @@ export interface AppAddress {
   private?: AppPostalAddress | null;
   /** ISO date `yyyy-MM-dd`. */
   birthday?: string | null;
+  /** The year of `birthday` is only a placeholder and must not be shown. */
+  birthdayYearUnknown?: boolean;
   comment?: string | null;
   hasImage?: boolean;
   writeAccess?: boolean;
