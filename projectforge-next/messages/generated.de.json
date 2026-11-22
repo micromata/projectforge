@@ -1794,6 +1794,8 @@
         "_": "Forecast",
         "tooltip": "Export des Forecasts für die aktuelle Auftragsliste. Das Startdatum wird aus dem Leistungszeitraum Start Filter verwendet. Wenn nicht angegeben wird der 01.01.[aktuelles Jahr] verwendet."
       },
+      "forecastInPeriod": "Forecast im Zeitraum",
+      "forecastPeriod": "Forecast-Fakturierung",
       "forecastType": {
         "_": "Forecast-Typ",
         "currentMonth": "Aktueller Monat",
@@ -6296,6 +6298,11 @@
         "validation": "Code nicht gültig oder die Zweifaktor-Authentifizierung ist noch nicht eingerichtet."
       },
       "lastSuccessful2FA": "Letzte erfolgreiche 2FA-Prüfung",
+      "passkey": {
+        "recommendation": "Deutliche Empfehlung: Einen Passkey einrichten. Das geht sehr leicht, dauert nur wenige Sekunden und spart künftig bei jeder Anmeldung die Code-Eingabe.",
+        "setupHint": "Nach der Anmeldung: oben rechts auf den eigenen Namen klicken, „Mein Zugang“ öffnen und dort „2. Faktor einrichten“ wählen.",
+        "setupLink": "Jetzt Passkey einrichten"
+      },
       "password": {
         "wrong": "Passwortprüfung fehlgeschlagen."
       },

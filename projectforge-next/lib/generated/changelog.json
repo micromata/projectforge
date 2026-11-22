@@ -7,7 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: PDFs and text files of a message can be previewed (eye button) like attachments elsewhere." ]
+      "items" : [ "Chat: PDFs and text files of a message can be previewed (eye button) like attachments elsewhere.", "Order book: new filter \"Forecast invoicing\" with a period. It lists the orders the forecast expects to invoice in that period, with the amount in the column \"Forecast in period\", which appears while the filter is set, and its sum in the statistics line.", "Login via SSO: the new property projectforge.2fa.ssoSessionMaxAgeMinutes lets an SSO login count as a second factor done that long ago (e.g. 480 for an SSO session of 8 hours). Without it, SSO is only the login and ProjectForge always asks for its own second factor on protected pages." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Second factor entry: users without a passkey get a strong recommendation to set one up, which saves entering a code at every login." ]
     }, {
       "type" : "changed",
       "items" : [ {
@@ -16,7 +19,7 @@
       } ]
     }, {
       "type" : "fixed",
-      "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one.", "{app} Refused by the SSO proxy: one browser login is enough for all open tabs, a cancelled login is not opened again by the next request, and the notice of the expired SSO login disappears right after the login." ]
+      "items" : [ "Forecast: the amount of a payment schedule stays in the month of its date. The rest of a position (net sum minus payment schedules) is distributed on top of it, instead of replacing the scheduled amount.", "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one.", "{app} Refused by the SSO proxy: one browser login is enough for all open tabs, a cancelled login is not opened again by the next request, and the notice of the expired SSO login disappears right after the login." ]
     } ]
   },
   "groups" : [ {
