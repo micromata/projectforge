@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormAlert } from "@/components/shared/form-alert";
+import { PasskeyRecommendation } from "@/components/shared/passkey-recommendation";
 import { WebAuthnButton } from "@/components/shared/web-authn-button";
 import { AppBrowser2FAButton } from "@/components/shared/app-browser-2fa-button";
 import { appConfirms2FAInBrowser, isInApp } from "@/lib/app-mode";
@@ -106,6 +107,7 @@ export function TwoFactorForm({
   return (
     <form onSubmit={handleVerify} className="grid gap-4">
       {hint && <FormAlert tone="info">{hint}</FormAlert>}
+      <PasskeyRecommendation context={context} methods={methods} />
       <p className="text-sm text-muted-foreground">
         {tb("user.My2FACode.authentification.info")}
       </p>

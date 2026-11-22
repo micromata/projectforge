@@ -198,6 +198,11 @@ filters and, by default, the paging work on the client, because `getList` return
 at once (up to `maxRows`). A page with `serverPaging` fetches one page at a time instead, see
 [list-paging.md](list-paging.md).
 
+Columns can depend on the filter: `revealedByFilter: "<filter field>"` (see `lib/page-def/types.ts`) keeps a column
+out of the page, and out of the column panel, until the pill filter of that field has a value (used by the order book's
+"forecast in period" column, whose amounts only exist for the filter's period). Such a column is not sortable by the
+backend unless it is declared `sortable: false`, when its values are not a cached property of the entity.
+
 Two behaviours worth knowing because they are invisible in the declaration:
 
 - **Row highlight on return.** The backend remembers per user which entry was edited last

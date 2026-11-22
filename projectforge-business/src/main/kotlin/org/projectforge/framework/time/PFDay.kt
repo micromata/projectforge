@@ -399,6 +399,7 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
 
         internal val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+        @Volatile
         private var _weekFields: WeekFields? = null
 
         internal val weekFields: WeekFields
@@ -408,8 +409,16 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
                 newValue
             }
 
-        fun resetWeekFieldsForTest() {
+        /**
+         * Forces the recalculation of the week fields, e. g. after the default locale or the default first day of week
+         * were changed ([org.projectforge.business.configuration.ConfigurationService.reload]).
+         */
+        fun resetWeekFields() {
             _weekFields = null
+        }
+
+        fun resetWeekFieldsForTest() {
+            resetWeekFields()
         }
 
         private fun calculateWeekFields(): WeekFields {

@@ -2,7 +2,7 @@
 """
 Renders every ProjectForge logo asset of the repository from the master SVGs in master/.
 
-Run from anywhere: python3 -I dev-docs/logo/render-logos.py
+Run from anywhere: python3 -I dev-docs/logo/render-logos.py   (`terminal` as argument: only the flames of the wizard)
 Needs rsvg-convert (librsvg) and magick (ImageMagick) on the PATH.
 
 The masters square and icon have a background plate (rounded rect), horizontal is transparent. Derived here:
@@ -36,6 +36,11 @@ WORDMARK_CONTENT = (100.7, 65.15, 1458.5, 423.65)
 # Preview image of the website (og:image): the format link previews show uncropped, the wordmark taking 75 % of its width.
 PREVIEW_SIZE = (1200, 630)
 PREVIEW_WORDMARK = 0.75
+# The flames in the terminal (setup wizard): pixels per side; two pixel rows make one text line (half blocks).
+TERMINAL_FLAMES_PIXELS = 16
+# Pixels less opaque than this are drawn transparent.
+TERMINAL_FLAMES_MIN_ALPHA = 96
+TERMINAL_FLAMES_FILE = "projectforge-application/src/main/resources/setup/terminal-flames.txt"
 
 
 def around(box: tuple[int, int, int, int], fraction: float) -> tuple[float, float, float, float]:
@@ -116,6 +121,35 @@ def ico(svg: Path, path: str) -> None:
     print(f"  {path}")
 
 
+def terminal_flames() -> None:
+    """The flames as pixels for the half-block rendering of the setup wizard (TerminalLogo): one text line per two
+    pixel rows, one cell per column as `rrggbb/rrggbb` (upper/lower pixel), `-` for a transparent pixel."""
+    size = TERMINAL_FLAMES_PIXELS
+    with tempfile.TemporaryDirectory() as tmp:
+        svg = Path(tmp) / "flames.svg"
+        svg.write_text(
+            without_plate(read_master("projectforge-icon-light.svg"), FLAME_SQUARE, "ProjectForge"), encoding="utf-8"
+        )
+        image = Path(tmp) / "flames.png"
+        subprocess.run(["rsvg-convert", "-w", str(size), "-h", str(size), "-o", str(image), str(svg)], check=True)
+        dump = subprocess.run(
+            ["magick", str(image), "-depth", "8", "txt:-"], check=True, capture_output=True, text=True
+        ).stdout
+    pixels: dict[tuple[int, int], str] = {}
+    for line in dump.splitlines():
+        match = re.match(r"(\d+),(\d+): \((\d+),(\d+),(\d+),(\d+)\)", line)
+        if match:
+            x, y, r, g, b, a = (int(v) for v in match.groups())
+            pixels[(x, y)] = f"{r:02x}{g:02x}{b:02x}" if a >= TERMINAL_FLAMES_MIN_ALPHA else "-"
+    lines = []
+    for y in range(0, size, 2):
+        lines.append(" ".join(f"{pixels[(x, y)]}/{pixels[(x, y + 1)]}" for x in range(size)))
+    target = ROOT / TERMINAL_FLAMES_FILE
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"  {TERMINAL_FLAMES_FILE}")
+
+
 def main() -> None:
     print("SVG:")
     wordmark_light = without_plate(read_master("projectforge-horizontal-light.svg"), WORDMARK_BOX, "ProjectForge")
@@ -167,6 +201,15 @@ def main() -> None:
     print("Wallet pass logo (largest logo box 480 x 150):")
     png(site_logo, "projectforge-business/src/main/resources/images/default-logo.png", 480)
 
+    print("Flames for the terminal (setup wizard):")
+    terminal_flames()
+
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if sys.argv[1:] == ["terminal"]:
+        # Only the flames of the setup wizard (the rest is rendered by every run without argument).
+        terminal_flames()
+    else:
+        main()

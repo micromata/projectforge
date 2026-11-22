@@ -115,7 +115,8 @@ public class ProjectForgeApplication {
    * @return Does return nothing, System.exit() was called before.
    */
   public static File giveUpAndSystemExit(String message) {
-    EmphasizedLogSupport el = new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT);
+    // On the console only: lines with timestamp, level and logger would hide the example below.
+    EmphasizedLogSupport el = new EmphasizedLogSupport(log, EmphasizedLogSupport.Alignment.LEFT).toStdout();
     if (message != null) {
       el.log(message).log("");
     }
@@ -130,8 +131,24 @@ public class ProjectForgeApplication {
             .log("     'java -D" + ProjectForgeHomeFinder.COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ...', or")
             .log("  5. create a directory and define it as system environment variable")
             .log("     '" + ProjectForgeHomeFinder.getHomeEnvironmentVariableDefinition() + "'.")
+            .log("")
             .log("Hope to see You again ;-)")
             .logEnd();
+    // Below the box and without decoration, so that it can be copied into a file directly:
+    System.out.println();
+    System.out.println("For a setup without the wizard (e.g. in a script), create the file '" + PROPERTIES_FILENAME
+            + "' in the home directory (any long random strings as secrets):");
+    System.out.println();
+    System.out.println("server.port=8080");
+    System.out.println("projectforge.domain=http://localhost:8080");
+    System.out.println("projectforge.security.passwordPepper=<random string>");
+    System.out.println("projectforge.security.authenticationTokenEncryptionKey=<random string>");
+    System.out.println("# Embedded database is used, unless PostgreSQL is configured:");
+    System.out.println("#spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge");
+    System.out.println("#spring.datasource.username=projectforge");
+    System.out.println("#spring.datasource.password=mysecret");
+    System.out.println("#spring.datasource.driver-class-name=org.postgresql.Driver");
+    System.out.println();
     System.exit(1);
     return null;
   }

@@ -176,7 +176,9 @@ object Constants {
 
   val MILLIS_PER_WEEK_BD = BigDecimal(MILLIS_PER_WEEK)
 
-  val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get()?.currencySymbol ?: "€"
+  /** Read on every use: the currency symbol can be changed without a restart (setup page, properties editor). */
+  val CURRENCY_SYMBOL: String
+    get() = ConfigurationServiceAccessor.get()?.currencySymbol ?: "€"
 
   @JvmStatic
   fun isTimesheetCalendarId(id: Long?): Boolean {

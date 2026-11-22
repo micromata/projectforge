@@ -90,6 +90,9 @@ class ForecastOrderPosInfo(
     lateinit var toBeInvoicedSum: BigDecimal
         private set
     private var futureInvoicesAmountRest = BigDecimal.ZERO
+
+    /** The sum of the open payment schedule amounts put into their months by [handlePaymentSchedules]. */
+    private var scheduledSum = BigDecimal.ZERO
     var difference = BigDecimal.ZERO
         private set
     lateinit var paymentSchedules: List<OrderInfo.PaymentScheduleInfo>
@@ -152,7 +155,7 @@ class ForecastOrderPosInfo(
                 // be invoiced right now.
                 val value = minOf(weightedNetSumWithoutPaymentSchedule, toBeInvoicedSum)
                 if (value.abs() > BigDecimal.ONE) { // Ignore rounding errors.
-                    setMonthValue(overdueMonth, value)
+                    addMonthValue(overdueMonth, value)
                 }
                 return
             }
@@ -176,12 +179,13 @@ class ForecastOrderPosInfo(
         }
     }
 
-    private fun setMonthValue(day: PFDay, value: BigDecimal) {
+    /** Adds to the value of the month, e.g. to the amount of a payment schedule already in it. */
+    private fun addMonthValue(day: PFDay, value: BigDecimal) {
         val month = months.find { it.date == day.beginOfMonth }
         if (month == null) {
             log.error { "Oups, can't find month $day of order position $orderPosString: $this" }
         } else {
-            month.toBeInvoicedSum = value
+            month.toBeInvoicedSum += value
         }
     }
 
@@ -220,6 +224,7 @@ class ForecastOrderPosInfo(
                 }
                 if (sum != BigDecimal.ZERO) {
                     current.toBeInvoicedSum = sum
+                    scheduledSum += sum
                 }
             }
         }
@@ -263,11 +268,17 @@ class ForecastOrderPosInfo(
         // Distribution must not start before the current month (baseMonth) nor before firstMonth (forecast-type
         // dependent begin), and must skip any month already invoiced.
         val effectiveStart = maxOf(firstMonth, baseMonth, firstNotInvoicedMonth ?: baseMonth)
+        // What is left to distribute: the amounts of the payment schedules are already in their months and stay there.
+        val budget = if (scheduledSum.signum() == 0) {
+            toBeInvoicedSum
+        } else {
+            maxOf(BigDecimal.ZERO, minOf(toBeInvoicedSum - scheduledSum, weightedNetSumWithoutPaymentSchedule))
+        }
         val remainingMonthCount = months.count { it.date >= effectiveStart }.toLong()
         val partlyNetSum = if (remainingMonthCount > 0) {
-            toBeInvoicedSum.divide(BigDecimal.valueOf(remainingMonthCount), RoundingMode.HALF_UP)
+            budget.divide(BigDecimal.valueOf(remainingMonthCount), RoundingMode.HALF_UP)
         } else {
-            toBeInvoicedSum
+            budget
         }
         // Determine the per-month forecast rate and whether the last month absorbs the remaining budget:
         // - PAUSCHALE: a fixed monthly rate over the whole performance period. Under-invoicing does NOT raise the
@@ -310,7 +321,7 @@ class ForecastOrderPosInfo(
 
             else -> partlyNetSum
         }
-        futureInvoicesAmountRest = toBeInvoicedSum
+        futureInvoicesAmountRest = budget
         var lastAssignedMonth: MonthEntry? = null
         months.forEachIndexed { index, monthEntry ->
             val month = monthEntry.date
@@ -334,7 +345,7 @@ class ForecastOrderPosInfo(
                         }
                     }
                     if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)
-                        setMonthValue(month, value)
+                        addMonthValue(month, value)
                         lastAssignedMonth = monthEntry
                     }
                     futureInvoicesAmountRest -= value // Don't forecast more than to be invoiced.

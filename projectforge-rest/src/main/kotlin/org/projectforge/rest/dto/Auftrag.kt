@@ -87,6 +87,11 @@ class Auftrag(
     var fakturiertSum: BigDecimal? = null,
     var zuFakturierenSum: BigDecimal? = null,
     /**
+     * Amount the forecast expects to be invoiced in the period of the list's forecast filter; only set in the list
+     * while that filter is active.
+     */
+    var forecastSumInPeriod: BigDecimal? = null,
+    /**
      * Amount not invoiced, although positions or payment schedules are marked as fully invoiced (see
      * [OrderInfo.fehlbetrag]); null if none.
      */

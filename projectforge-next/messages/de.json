@@ -95,12 +95,34 @@
       "emptyDatabase": "Produktivsystem",
       "emptyDatabase_description": "Legt eine leere Datenbank an, die nur das hier eingerichtete Administrator-Konto enthält. Die richtige Wahl für den echten Produktivbetrieb."
     },
+    "regional": {
+      "locale": "Standardsprache",
+      "currency": "Währung",
+      "currencySymbol": "Währungssymbol",
+      "currencySymbolHint": "Wird hinter Beträgen angezeigt. Wird mit der Währung vorbelegt, nur bei Bedarf ändern."
+    },
     "finish": "Abschließen",
     "submitting": "Einrichten…",
     "alreadyInitialized": "Das System wurde bereits eingerichtet.",
     "loadError": "Die Setup-Seite konnte nicht geladen werden.",
     "unknownError": "Ein unerwarteter Fehler ist aufgetreten. Bitte Serverlog prüfen.",
-    "backToLogin": "Zur Anmeldung"
+    "backToLogin": "Zur Anmeldung",
+    "section": {
+      "account": {
+        "_": "Administrator-Konto",
+        "description": "Der erste Benutzer, mit allen Rechten."
+      },
+      "region": {
+        "_": "Zeit und Region",
+        "description": "Vorgaben für alle Benutzer, jeder kann eigene wählen. Werden in projectforge.properties gespeichert und sind sofort wirksam."
+      },
+      "notifications": {
+        "_": "E-Mail-Adressen (optional)",
+        "description": "Für Fehlermeldungen und Feedback; kann später in der Konfiguration gesetzt werden."
+      }
+    },
+    "sysopEMail": "E-Mail-Adresse der Administration",
+    "feedbackEMail": "E-Mail-Adresse für Feedback"
   },
   "statusBar": {
     "copyright": "©{years} by Micromata GmbH",

@@ -21,12 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard.swing
+package org.projectforge.business.configuration
 
-import org.projectforge.setup.wizard.AbstractSetupWizard
-import org.projectforge.setup.wizard.GUIContext
-import javax.swing.JFrame
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Test
 
-class SwingGUIContext(
-        setupMain: AbstractSetupWizard,
-        val mainFrame: JFrame) : GUIContext(Mode.DESKTOP, setupMain)
+class ConfigurationServiceMojibakeTest {
+    @Test
+    fun `a euro sign read as ISO-8859-1 is repaired`() {
+        val broken = String("€".toByteArray(Charsets.UTF_8), Charsets.ISO_8859_1)
+        assertEquals("â\u0082¬", broken)
+        assertEquals("€", ConfigurationService.fixMojibake(broken))
+    }
+
+    @Test
+    fun `correct and other texts stay as they are`() {
+        listOf("€", "$", "CHF", "£", "kr", "Fr.", "ä", "äö", "").forEach {
+            assertEquals(it, ConfigurationService.fixMojibake(it), it)
+        }
+        assertNull(ConfigurationService.fixMojibake(null))
+    }
+}

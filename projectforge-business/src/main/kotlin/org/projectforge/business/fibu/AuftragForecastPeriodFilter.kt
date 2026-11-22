@@ -21,26 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.setup.wizard.lanterna
+package org.projectforge.business.fibu
 
-import com.googlecode.lanterna.TerminalSize
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI
-import org.projectforge.setup.SetupContext
-import org.projectforge.setup.wizard.AbstractSetupWizard
-import org.projectforge.setup.wizard.GUIContext
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import java.time.LocalDate
 
-class LantGUIContext(
-        setupMain: AbstractSetupWizard,
-        val textGUI: MultiWindowTextGUI,
-        var terminalSize: TerminalSize,
-        val setupContext: SetupContext
-): GUIContext(Mode.CONSOLE, setupMain) {
-    var windowSize: TerminalSize = TerminalSize.ZERO
-        set(value) {
-            field = TerminalSize(value.columns - 15, value.rows - 5)
-        }
-
-    init {
-        windowSize = terminalSize
+/**
+ * Matches orders for which the forecast expects something to be invoiced in the given period, see
+ * [ForecastPeriodSums.sumInPeriod].
+ * @param from First day of the period; the whole month counts.
+ * @param until Last day of the period; the whole month counts.
+ */
+class AuftragForecastPeriodFilter(
+    val from: LocalDate,
+    val until: LocalDate,
+    private val forecastPeriodSums: ForecastPeriodSums,
+) : CustomResultFilter<AuftragDO> {
+    override fun match(list: MutableList<AuftragDO>, element: AuftragDO): Boolean {
+        val orderInfo = AuftragsCache.instance.getOrderInfo(element) ?: return false
+        return forecastPeriodSums.sumInPeriod(orderInfo, from, until).signum() != 0
     }
 }

@@ -124,6 +124,9 @@ open class OrderEntityRest : // open: proxied by Spring.
   private lateinit var forecastExport: ForecastExport
 
   @Autowired
+  private lateinit var forecastPeriodSums: ForecastPeriodSums
+
+  @Autowired
   private lateinit var orderStatisticsCache: OrderStatisticsCache
 
   @Autowired
@@ -398,9 +401,24 @@ open class OrderEntityRest : // open: proxied by Spring.
     magicFilter: MagicFilter,
   ): ResultSet<*> {
     val result = super.postProcessResultSet(resultSet, request, magicFilter)
+    val forecastPeriod = forecastPeriod(magicFilter)
+    // The amounts the forecast expects in the asked period per order, next to the order's sums (same numbers as the
+    // export). Calculated once for the rows and, in the non-paged list, for the statistics.
+    val forecastSums = forecastPeriod?.let { period ->
+      resultSet.resultSet.mapNotNull { order ->
+        val info = auftragsCache.getOrderInfo(order.id) ?: return@mapNotNull null
+        order.id!! to forecastPeriodSums.sumInPeriod(info, period.first, period.second)
+      }.toMap()
+    }
+    forecastSums?.let { sums ->
+      result.resultSet?.filterIsInstance<Auftrag>()?.forEach { row -> row.forecastSumInPeriod = sums[row.id] }
+    }
     if (resultSet.offset == null) {
       // Non-paged POST list: the result set is the whole result, so its statistics are the whole result's.
-      result.statistics = OrderStatistics(baseDao.buildStatistik(resultSet.resultSet))
+      result.statistics = OrderStatistics(
+        baseDao.buildStatistik(resultSet.resultSet),
+        forecastSums?.values?.fold(BigDecimal.ZERO, BigDecimal::add),
+      )
     }
     // Server-side paged: resultSet.resultSet is one page; the whole-result statistics were computed over the
     // full id list in aggregate() and carried through the DTO transform, so they are left as they are here.
@@ -425,7 +443,7 @@ open class OrderEntityRest : // open: proxied by Spring.
    * to the sum beside it — a sum of 0.00 over 0 orders is a line the client leaves out, exactly as the
    * Wicket page hides it.
    */
-  class OrderStatistics(statistics: AuftragsStatistik) {
+  class OrderStatistics(statistics: AuftragsStatistik, val forecastSumInPeriod: BigDecimal? = null) {
     val netSum: BigDecimal = statistics.nettoSum
     val counter: Int = statistics.counter
     val akquiseSum: BigDecimal = statistics.akquiseSum
@@ -474,6 +492,14 @@ open class OrderEntityRest : // open: proxied by Spring.
         NEXT_INVOICE_DATE_FILTER,
         UIFilterElement.FilterType.DATE,
         label = translate("fibu.auftrag.nextInvoice"),
+      )
+    )
+    // The months the forecast expects an invoice in, see ForecastPeriodSums. Consumed in preProcessMagicFilter.
+    elements.add(
+      UIFilterElement(
+        FORECAST_PERIOD_FILTER,
+        UIFilterElement.FilterType.DATE,
+        label = translate("fibu.auftrag.forecastPeriod"),
       )
     )
     val statusFilter = elements.find { it is UIFilterElement && it.id == "status" } as UIFilterElement
@@ -579,11 +605,29 @@ open class OrderEntityRest : // open: proxied by Spring.
         filters.add(AuftragNextInvoiceDateFilter(from, until))
       }
     }
+    source.entries.find { it.field == FORECAST_PERIOD_FILTER }?.let { entry ->
+      entry.synthetic = true // No property of AuftragDO, but calculated by the forecast.
+      forecastPeriod(source)?.let { filters.add(AuftragForecastPeriodFilter(it.first, it.second, forecastPeriodSums)) }
+    }
     addPeriodOfPerformanceCriterion(target, source)
     customerFilter.addCriterion(target, source)
     businessUnitFilter.addCriterion(target, source)
     projectFilter.addCriterion(target, source)
     return filters
+  }
+
+  /**
+   * The period of the [FORECAST_PERIOD_FILTER] entry (first and last day, both inclusive). If only one end is
+   * given, the period is the month of that one; null without the entry or without any date.
+   */
+  private fun forecastPeriod(filter: MagicFilter): Pair<LocalDate, LocalDate>? {
+    val entry = filter.entries.find { it.field == FORECAST_PERIOD_FILTER } ?: return null
+    val from = PFDayUtils.parseDate(entry.value.fromValue)
+    val until = PFDayUtils.parseDate(entry.value.toValue)
+    val first = from ?: until ?: return null
+    val last = until ?: from ?: return null
+    // An upside-down period asks for the same months, rather than for nothing.
+    return if (first <= last) Pair(first, last) else Pair(last, first)
   }
 
   /**
@@ -652,8 +696,17 @@ open class OrderEntityRest : // open: proxied by Spring.
    */
   override fun aggregate(ids: LongArray, filter: MagicFilter): Any? {
     val statistics = AuftragsStatistik()
-    ids.forEach { id -> auftragsCache.getOrderInfo(id)?.let { statistics.add(it) } }
-    return OrderStatistics(statistics)
+    val forecastPeriod = forecastPeriod(filter)
+    var forecastSum: BigDecimal? = forecastPeriod?.let { BigDecimal.ZERO }
+    ids.forEach { id ->
+      auftragsCache.getOrderInfo(id)?.let {
+        statistics.add(it)
+        if (forecastPeriod != null) {
+          forecastSum = forecastSum!! + forecastPeriodSums.sumInPeriod(it, forecastPeriod.first, forecastPeriod.second)
+        }
+      }
+    }
+    return OrderStatistics(statistics, forecastSum)
   }
 
   /**
@@ -1705,6 +1758,9 @@ open class OrderEntityRest : // open: proxied by Spring.
 
     /** Id of the next-invoice-date filter, see [AuftragNextInvoiceDateFilter]. */
     internal const val NEXT_INVOICE_DATE_FILTER = "nextInvoiceDate"
+
+    /** Id of the forecast period filter, see [AuftragForecastPeriodFilter]. */
+    internal const val FORECAST_PERIOD_FILTER = "forecastPeriod"
 
     /** The two date properties the combined filter replaces in the filter field list. */
     private val PERIOD_OF_PERFORMANCE_FIELDS = setOf("periodOfPerformanceBegin", "periodOfPerformanceEnd")
