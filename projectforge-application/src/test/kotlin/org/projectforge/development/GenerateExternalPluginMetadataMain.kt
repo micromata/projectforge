@@ -49,6 +49,11 @@ object GenerateExternalPluginMetadataMain {
     }
     val expected = GenerateNextFieldMetadataMain.generate(entities, "@/lib/metadata/types")
     val existing = outDir.listFiles { file -> file.name.endsWith(".generated.ts") }.orEmpty().associateBy { it.name }
+    // Leftovers are deleted below: never do that in a directory holding the metadata of this repository.
+    val coreFiles = GenerateNextFieldMetadataMain.generate(GenerateNextFieldMetadataMain.entityClasses()).keys
+    require(existing.keys.none { it in coreFiles }) {
+      "${outDir.path} holds the field metadata of this repository, not of a plugin: check pf.metadata.out."
+    }
     val problems = mutableListOf<String>()
     expected.forEach { (name, content) ->
       val file = File(outDir, name)

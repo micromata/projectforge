@@ -46,7 +46,8 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
 - `-PpfCoreDir=<worktree>` builds against a local worktree instead of the submodule.
 - Artifact `plugin/build/libs/projectforge-plugin-cveradar-<version>.jar`, the version is the one of ProjectForge.
 - `bin/pf.sh <pfDev.sh command>` there builds the jar and runs this repository's `pfDev.sh` with it
-  (`PF_EXTRA_PLUGINS`), e.g. `run 1` or `gen` (regenerates `lib/metadata/cvr-*` here, commit them here).
+  (`PF_EXTRA_PLUGINS`), e.g. `run 1`, or `metadata` (writes the field metadata of the plugin's entities into the plugin's frontend with
+  `generatePluginMetadata`; `gen` here writes the metadata of this repository only).
 
 ## Development and release
 
