@@ -319,7 +319,7 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
       }
       lastProxyRenewal.current = Date.now();
       appLog.info('web', 'Login of the SSO proxy: renewal of the login in the system browser');
-      if (await authController.reauthenticate()) {
+      if (await authController.reauthenticateAutomatically()) {
         appLog.info('web', `Login renewed: load ${LogSanitizer.url(url)}`);
         load(url);
       } else {
