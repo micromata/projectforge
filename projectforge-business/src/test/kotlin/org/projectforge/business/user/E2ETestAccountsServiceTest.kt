@@ -23,13 +23,16 @@
 
 package org.projectforge.business.user
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.TestPropertySource
+import org.springframework.core.env.ConfigurableEnvironment
+import org.springframework.core.env.MapPropertySource
 import java.io.File
 
 /**
@@ -43,8 +46,27 @@ import java.io.File
  * service has to arrange for itself: writing a history entry asks the access checker about the
  * logged-in user, and no user at all counts as a restricted one.
  */
-@TestPropertySource(properties = ["projectforge.development.e2e-accounts.groups.full-access-user=e2e-extra-group"])
 class E2ETestAccountsServiceTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var environment: ConfigurableEnvironment
+
+    // Set on the shared context's environment: @TestPropertySource would create a second Spring context in
+    // the same JVM, fighting over the Lucene index lock and the static singletons of the other tests.
+    @BeforeEach
+    fun addExtraGroupProperty() {
+        environment.propertySources.addFirst(
+            MapPropertySource(
+                PROPERTY_SOURCE,
+                mapOf("${E2ETestAccountsService.EXTRA_GROUPS_PROPERTY}.full-access-user" to "e2e-extra-group"),
+            ),
+        )
+    }
+
+    @AfterEach
+    fun removeExtraGroupProperty() {
+        environment.propertySources.remove(PROPERTY_SOURCE)
+    }
+
     @Autowired
     private lateinit var e2eTestAccountsService: E2ETestAccountsService
 
@@ -225,5 +247,9 @@ class E2ETestAccountsServiceTest : AbstractTestBase() {
             "...which is the one the file now names.",
         )
         Assertions.assertTrue(File(homeDir, E2ETestAccountsService.FILENAME).exists(), "The file is back.")
+    }
+
+    companion object {
+        private const val PROPERTY_SOURCE = "e2eTestAccountsServiceTest"
     }
 }
