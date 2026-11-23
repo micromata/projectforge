@@ -6,6 +6,7 @@ import { FeatureGuard } from "@/components/shared/feature-guard";
 import { EntityEditModalHost } from "@/components/shared/edit/entity-edit-modal-host";
 import { PluginMessagesProvider } from "@/components/plugin-runtime/plugin-messages-provider";
 import { JobToasts } from "@/components/shared/jobs/job-toasts";
+import { NetworkErrorText } from "@/components/shared/network-error-text";
 import { NotificationToasts } from "@/components/shared/notifications/notification-toasts";
 import { TwoFactorProvider } from "@/components/shared/two-factor-provider";
 import { UnsavedChangesDialogHost } from "@/components/shared/unsaved-changes-dialog-host";
@@ -20,6 +21,7 @@ export default function AuthenticatedLayout({
     <AuthGuard>
       {/* Protected actions may demand a (new) second factor at any time. */}
       {/* Here and not on the page starting a job: a re-index outlives the list page it was started from. */}
+      <NetworkErrorText />
       <JobToasts />
       {/* The user's notifications shown as toasts, on whatever page the poll finds them. */}
       <NotificationToasts />

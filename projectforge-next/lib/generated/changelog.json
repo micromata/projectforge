@@ -10,7 +10,7 @@
       "items" : [ "Lists: the export menu has a new entry \"Copy table\" that puts the header and all rows of the current filter on the clipboard, ready to paste into Excel or Numbers." ]
     }, {
       "type" : "improved",
-      "items" : [ "Tables: cost unit numbers (Kost1/Kost2) are shown in a monospaced font in all lists, like amounts, so they line up." ]
+      "items" : [ "Tables: cost unit numbers (Kost1/Kost2) are shown in a monospaced font in all lists, like amounts, so they line up.", "CVE-Pilot: the buttons for uploading libraries (SBOM etc.) stay visible at the bottom of the dialog and no longer need scrolling.", "CVE-Pilot: counts (findings, libraries, entries) are shown in the number format of the user, with thousands separators." ]
     }, {
       "type" : "changed",
       "items" : [ "Order book statistics (contribution margin and forecast): the comparison columns, tiles and chart lines name their period (e.g. \"2024/2025\", or \"2024\" for a calendar year) instead of \"previous year\" and \"year before previous year\"." ]

@@ -4064,7 +4064,8 @@
     "frontend": {
       "error": {
         "load": "The plugin {name} could not be loaded.",
-        "manifests": "The plugins could not be loaded."
+        "manifests": "The plugins could not be loaded.",
+        "network": "The server cannot be reached. Please check your connection and try again."
       }
     }
   },
