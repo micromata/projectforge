@@ -17,6 +17,7 @@ test.describe("order head layout", { tag: "@parallel" }, () => {
     // generator can only export as a nested object plus a `_` leaf (see labelKeyFor).
     const nummer = page.getByRole("textbox", {
       name: format.t("fibu.auftrag.nummer._"),
+      exact: true, // "Bestellnummer Kunde" and "Vertragsnummer" contain the label as well.
     });
     const angebot = page.getByRole("textbox", {
       name: format.t("fibu.auftrag.angebot.datum"),
