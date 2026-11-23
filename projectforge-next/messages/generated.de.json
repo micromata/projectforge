@@ -2264,6 +2264,25 @@
       },
       "costCenter": "Kostenstelle (BT-19)",
       "country": "Land (BT-55)",
+      "customerDataSheet": {
+        "_": "Kunden-Datenabgleich",
+        "column": {
+          "correction": "Korrektur",
+          "current": "Aktuelle Daten",
+          "field": "Feld"
+        },
+        "confirmation": "Datum, Name und Unterschrift",
+        "filenamePrefix": "Datenabgleich",
+        "intro": "Die Rechnungen werden mit den folgenden Daten gestellt. Bitte prüfen, Fehlendes ergänzen und das Blatt zurücksenden.",
+        "section": {
+          "contact": "Ansprechpartner",
+          "eInvoice": "E-Rechnung",
+          "recipient": "Rechnungsempfänger",
+          "references": "Referenzen und Zahlung"
+        },
+        "title": "Rechnungsdaten des Kunden",
+        "tooltip": "Erzeugt ein PDF mit den Rechnungsdaten dieses Kontos: Bekanntes ist eingetragen, der Rest bleibt leer. Zum Versand an den Kunden zum Abgleich."
+      },
       "eInvoice": "E-Rechnung",
       "eInvoiceEmail": "E-Mail-Adresse Rechnungseingang Kunde (BT-49)",
       "leitwegId": {
@@ -4069,7 +4088,8 @@
     "frontend": {
       "error": {
         "load": "Das Plugin {name} konnte nicht geladen werden.",
-        "manifests": "Die Plugins konnten nicht geladen werden."
+        "manifests": "Die Plugins konnten nicht geladen werden.",
+        "network": "Der Server ist nicht erreichbar. Bitte Verbindung prüfen und erneut versuchen."
       }
     }
   },

@@ -2264,6 +2264,25 @@
       },
       "costCenter": "Cost center (BT-19)",
       "country": "Country (BT-55)",
+      "customerDataSheet": {
+        "_": "Customer data sheet",
+        "column": {
+          "correction": "Correction",
+          "current": "Current data",
+          "field": "Field"
+        },
+        "confirmation": "Date, name and signature",
+        "filenamePrefix": "CustomerDataSheet",
+        "intro": "Invoices are written with the data below. Please check it, complete what is missing and send the sheet back.",
+        "section": {
+          "contact": "Contact person",
+          "eInvoice": "E-invoice",
+          "recipient": "Invoice recipient",
+          "references": "References and payment"
+        },
+        "title": "Invoice data of the customer",
+        "tooltip": "Creates a PDF with the invoice data of this account: what is known is filled in, the rest is left blank. To send to the customer for checking."
+      },
       "eInvoice": "E-Invoice",
       "eInvoiceEmail": "Invoice recipient email of the customer (BT-49)",
       "leitwegId": {
@@ -4069,7 +4088,8 @@
     "frontend": {
       "error": {
         "load": "The plugin {name} could not be loaded.",
-        "manifests": "The plugins could not be loaded."
+        "manifests": "The plugins could not be loaded.",
+        "network": "The server cannot be reached. Please check your connection and try again."
       }
     }
   },
