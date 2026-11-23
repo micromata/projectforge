@@ -2259,6 +2259,10 @@
       },
       "costCenter": "Cost center (BT-19)",
       "country": "Country (BT-55)",
+      "customerDataSheet": {
+        "_": "Customer data sheet",
+        "tooltip": "Creates a PDF with the invoice data of this account: what is known is filled in, the rest is left blank. To send to the customer for checking."
+      },
       "eInvoice": "E-Invoice",
       "eInvoiceEmail": "Invoice recipient email of the customer (BT-49)",
       "leitwegId": {

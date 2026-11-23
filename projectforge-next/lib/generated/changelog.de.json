@@ -7,10 +7,13 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Listen: Das Export-Menü hat einen neuen Eintrag „Tabelle kopieren“, der Kopfzeile und alle Zeilen des aktuellen Filters in die Zwischenablage legt, zum Einfügen in Excel oder Numbers." ]
+      "items" : [ "Konten: Der Block E-Rechnung hat einen neuen Button „Kunden-Datenabgleich“, der ein PDF mit den Rechnungsdaten des Kontos erzeugt (Bekanntes ist eingetragen, der Rest bleibt leer), zum Versand an den Kunden zum Abgleich.", "Listen: Das Export-Menü hat einen neuen Eintrag „Tabelle kopieren“, der Kopfzeile und alle Zeilen des aktuellen Filters in die Zwischenablage legt, zum Einfügen in Excel oder Numbers." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Tabellen: Kostenträger- und Kostenstellennummern (Kost1/Kost2) werden in allen Listen wie Beträge in Festbreitenschrift angezeigt, damit sie untereinander ausgerichtet sind." ]
     }, {
       "type" : "fixed",
-      "items" : [ "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen.", "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher geht die Einrichtungsseite jetzt im Browser des Geräts weiter. Seiten des Servers können die App bitten, sie im Browser anzuzeigen, wie es der Menüpunkt „Im Browser öffnen“ für jede Seite tut.", "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung." ]
+      "items" : [ "Sipgate: Schlägt das Lesen der Sipgate-Kontakte fehl, wird der Kontaktabgleich abgebrochen, statt alle Kontakte als fehlend zu behandeln (was die Abgleich-Einträge löschte und bei jedem Lauf versuchte, jeden Kontakt neu anzulegen). Fehlerantworten von Sipgate protokollieren jetzt den mitgelieferten Grund.", "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen.", "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher geht die Einrichtungsseite jetzt im Browser des Geräts weiter. Seiten des Servers können die App bitten, sie im Browser anzuzeigen, wie es der Menüpunkt „Im Browser öffnen“ für jede Seite tut.", "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung." ]
     } ]
   },
   "groups" : [ {

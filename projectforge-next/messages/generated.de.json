@@ -2259,6 +2259,10 @@
       },
       "costCenter": "Kostenstelle (BT-19)",
       "country": "Land (BT-55)",
+      "customerDataSheet": {
+        "_": "Kunden-Datenabgleich",
+        "tooltip": "Erzeugt ein PDF mit den Rechnungsdaten dieses Kontos: Bekanntes ist eingetragen, der Rest bleibt leer. Zum Versand an den Kunden zum Abgleich."
+      },
       "eInvoice": "E-Rechnung",
       "eInvoiceEmail": "E-Mail-Adresse Rechnungseingang Kunde (BT-49)",
       "leitwegId": {

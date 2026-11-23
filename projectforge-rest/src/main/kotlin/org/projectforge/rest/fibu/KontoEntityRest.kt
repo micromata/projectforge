@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.EInvoiceSellerConfig
+import org.projectforge.business.fibu.KontoCustomerDataSheetPdfExport
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.KontoStatus
@@ -35,6 +36,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.utils.IntRanges
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Konto
@@ -42,7 +44,9 @@ import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -64,6 +68,9 @@ class KontoEntityRest
 
     @Autowired
     private lateinit var sellerConfig: EInvoiceSellerConfig
+
+    @Autowired
+    private lateinit var customerDataSheetPdfExport: KontoCustomerDataSheetPdfExport
 
     /**
      * Feeds the generic `account/autosearch` (AbstractEntityRest.getAutoCompleteObjects) used by the
@@ -157,6 +164,19 @@ class KontoEntityRest
     fun getSellerBankAccounts(): List<SellerBankAccount> {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
         return sellerConfig.bankAccounts.map { SellerBankAccount(value = it.name, label = it.displayName) }
+    }
+
+    /**
+     * The customer data sheet of the account as PDF (see [KontoCustomerDataSheetPdfExport]): the invoice data of the
+     * account to send to the customer for checking.
+     *
+     * Read only, so a GET; [baseDao] `find` checks the read access of the logged-in user and throws without it.
+     */
+    @AccessChecked("DAO: find access (KontoDao.find checks read access)")
+    @GetMapping("customerDataSheet/{id}")
+    fun getCustomerDataSheet(@PathVariable("id") id: Long): ResponseEntity<*> {
+        val konto = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()
+        return RestUtils.downloadFile(customerDataSheetPdfExport.filename(konto), customerDataSheetPdfExport.export(konto))
     }
 
     /** One entry of the `sellerBankAccountName` select, see [getSellerBankAccounts]. */

@@ -1,6 +1,7 @@
 import { eInvoiceAddressFields } from "@/components/shared/invoice/e-invoice-address-fields";
 import { KONTO_METADATA } from "@/lib/metadata/konto.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { CustomerDataSheetButton } from "./customer-data-sheet-button";
 import { AccountSellerBankAccountField } from "./account-seller-bank-account-field";
 import {
   accountSchema,
@@ -71,6 +72,8 @@ export const ACCOUNT_PAGE = definePage<
         // What an e-invoice to this account is addressed with (Wicket's heading `fibu.konto.eInvoice`).
         id: "eInvoice",
         titleKey: "fibu.konto.eInvoice",
+        // The sheet of what is entered here, to send to the customer for checking.
+        headerActions: CustomerDataSheetButton,
         // The layout an invoice's address block has as well, which is prefilled from this one (see
         // eInvoiceAddressFields).
         ...eInvoiceAddressFields<typeof KONTO_METADATA>({

@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Accounts: the e-invoice block has a new button \"Customer data sheet\" that creates a PDF with the invoice data of the account (what is known is filled in, the rest is blank), to send to the customer for checking.",
+  "de": "Konten: Der Block E-Rechnung hat einen neuen Button „Kunden-Datenabgleich“, der ein PDF mit den Rechnungsdaten des Kontos erzeugt (Bekanntes ist eingetragen, der Rest bleibt leer), zum Versand an den Kunden zum Abgleich."
+}
