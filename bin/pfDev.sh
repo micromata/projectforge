@@ -190,6 +190,15 @@ projectforge.gateway.push.enabled=false
 # Sipgate off: the copied token would sync every address change with the real Sipgate account, importing its
 # contacts into this test database (blank token = not configured, see SipgateConfiguration.isConfigured).
 projectforge.sipgate.token=
+# The CVE-Pilot (backend in a repository of its own, a binary on the class path via PF_EXTRA_PLUGINS/bin/pf.sh) is
+# active as soon as its jar is there; without the jar the id is simply unknown and ignored.
+projectforge.plugins.ensure-active=cveradar
+# The E2E test account with every right is also a reader, writer and security officer of the CVE-Pilot (groups are
+# created when missing, see E2ETestAccountsService); the other accounts stay without the plugin's roles.
+projectforge.plugin.cveradar.readGroup=cve-radar-read
+projectforge.plugin.cveradar.writeGroup=cve-radar-write
+projectforge.plugin.cveradar.securityOfficerGroup=security-officers
+projectforge.development.e2e-accounts.groups.full-access-user=cve-radar-read,cve-radar-write,security-officers
 # Number ranges of customers and projects (as in application-test.properties): the test data's customers
 # 300-304 belong to range 5, so their projects get Kost2. Without ranges a fresh database has free numbers
 # and no Kost2 (see NumberRangeService).

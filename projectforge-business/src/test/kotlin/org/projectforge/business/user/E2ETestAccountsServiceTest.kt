@@ -23,12 +23,16 @@
 
 package org.projectforge.business.user
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.ConfigurableEnvironment
+import org.springframework.core.env.MapPropertySource
 import java.io.File
 
 /**
@@ -43,6 +47,26 @@ import java.io.File
  * logged-in user, and no user at all counts as a restricted one.
  */
 class E2ETestAccountsServiceTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var environment: ConfigurableEnvironment
+
+    // Set on the shared context's environment: @TestPropertySource would create a second Spring context in
+    // the same JVM, fighting over the Lucene index lock and the static singletons of the other tests.
+    @BeforeEach
+    fun addExtraGroupProperty() {
+        environment.propertySources.addFirst(
+            MapPropertySource(
+                PROPERTY_SOURCE,
+                mapOf("${E2ETestAccountsService.EXTRA_GROUPS_PROPERTY}.full-access-user" to "e2e-extra-group"),
+            ),
+        )
+    }
+
+    @AfterEach
+    fun removeExtraGroupProperty() {
+        environment.propertySources.remove(PROPERTY_SOURCE)
+    }
+
     @Autowired
     private lateinit var e2eTestAccountsService: E2ETestAccountsService
 
@@ -88,6 +112,20 @@ class E2ETestAccountsServiceTest : AbstractTestBase() {
             userService.getInternalByUsername(fullAccess.username)?.id,
             "No second user of the same name.",
         )
+    }
+
+    @Test
+    fun `groups named by property are created and assigned to the role`(@TempDir homeDir: File) {
+        ThreadLocalUserContext.clear() // As at startup: nobody is logged in.
+        e2eTestAccountsService.ensureAccounts(homeDir)
+        val group = userGroupCache.getGroupByName("e2e-extra-group")
+        Assertions.assertNotNull(group, "The group named by the property is created.")
+        val fullAccess = userService.getInternalByUsername("e2e-full-access")!!
+        val normalo = userService.getInternalByUsername("e2e-normalo")!!
+        Assertions.assertTrue(userGroupCache.isUserMemberOfGroup(fullAccess.id, group!!.id), "The role is a member.")
+        Assertions.assertFalse(userGroupCache.isUserMemberOfGroup(normalo.id, group.id), "Other roles are not.")
+        e2eTestAccountsService.ensureAccounts(homeDir)
+        Assertions.assertEquals(group.id, userGroupCache.getGroupByName("e2e-extra-group")?.id, "No second group.")
     }
 
     @Test
@@ -209,5 +247,9 @@ class E2ETestAccountsServiceTest : AbstractTestBase() {
             "...which is the one the file now names.",
         )
         Assertions.assertTrue(File(homeDir, E2ETestAccountsService.FILENAME).exists(), "The file is back.")
+    }
+
+    companion object {
+        private const val PROPERTY_SOURCE = "e2eTestAccountsServiceTest"
     }
 }

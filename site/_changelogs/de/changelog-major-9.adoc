@@ -1,13 +1,74 @@
 ---
 title: "ProjectForge 9"
-date: 2026-11-20
-sort_key: "2026-11-20 0062"
+date: 2026-11-23
+sort_key: "2026-11-23 0063"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-14.changelog-release]
+=== ProjectForge 9.2.14 veröffentlicht
+
+[.changelog-source]
+__2026-11-23, Tag https://github.com/micromata/projectforge/tree/9.2.14-RELEASE[9.2.14-RELEASE]__ +++{% include release-pills.html tag="9.2.14-RELEASE" docker="9.2.14" %}+++
+
+[.changelog-checksum]
+SHA-256 von projectforge-application-9.2.14.jar: `+48930854872495922330e152f51c47a40ecf79ecebb8dc4859bd1f10da017f48+`
+
+- **Auftragsbuch**: Filter „Forecast-Fakturierung“ mit Zeitraum
+- **Forecast**: Zahlungsplan bleibt in seinem Monat
+- **Erstsetup**: vereinfachter Terminal-Wizard, Einstellungen wirken sofort
+- **Zweiter Faktor**: SSO-Login kann als solcher gelten, Passkey-Empfehlung
+- **Chat**: Vorschau für PDFs und Textdateien
+
+.Überblick
+[%collapsible]
+====
+- **Auftragsbuch:** der neue Filter „Forecast-Fakturierung“ listet die Aufträge, die laut Forecast in einem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“ und dessen Summe in der Statistikzeile.
+- **Forecast:** der Betrag eines Zahlungsplans bleibt im Monat seines Datums; der Rest einer Position wird zusätzlich darauf verteilt, statt ihn zu ersetzen.
+- **Erstsetup:** der grafische und der Vollbild-Terminal-Wizard sind durch ein kleines Terminal-Menü ersetzt; Währung, Sprache, Zeitformat und Wochenbeginn werden im Browser gewählt und wirken ohne Neustart, und das Währungssymbol neuer Installationen wird korrekt angezeigt.
+- **Zweiter Faktor:** mit `+projectforge.2fa.ssoAmrValues+` gilt ein SSO-Login als zweiter Faktor, wenn der SSO-Server eine passende Authentifizierungsmethode meldet; wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten.
+- **Chat:** PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).
+- Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile.
+- Login per SSO: Mit der neuen Property projectforge.2fa.ssoAmrValues (z. B. mfa,otp,hwk) gilt ein SSO-Login als zweiter Faktor, durchgeführt zum auth_time des ID-Tokens, wenn der SSO-Server eine dieser Authentifizierungsmethoden (amr) meldet. Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten einen eigenen zweiten Faktor.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Eingabe des zweiten Faktors: Wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten; das spart künftig die Code-Eingabe bei jeder Anmeldung.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- **Erstsetup**
+  * Der grafische und der Vollbild-Terminal-Wizard entfallen: Ein kleines Menü im Terminal zeigt Verzeichnis, Port, Domain und Datenbank mit ihren Vorgaben und erlaubt, jeden Wert zu ändern (Return speichert und macht weiter); in einem Terminal mit Farben beginnt jede Seite auf einem geleerten Bildschirm, mit den Flammen des Logos.
+  * Währung, Sprache, Zeitformat und Wochenbeginn werden auf der Setup-Seite im Browser gewählt und wirken sofort, ohne Neustart. Das gilt auch für eine Änderung dieser Parameter im Properties-Editor.
+  * Die Setup-Seite ist in Konto, Zeit und Region sowie optionale E-Mail-Adressen gegliedert und bietet die Währung als durchsuchbare Liste an.
+  * Das Währungssymbol neuer Installationen wurde als unlesbare Zeichen statt als Euro-Zeichen angezeigt.
+  * Ein Banner mit der Adresse der neuen Instanz schließt die Startausgabe auf der Konsole ab, damit sie nicht zwischen den Logzeilen untergeht.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Forecast: Der Betrag eines Zahlungsplans bleibt im Monat seines Datums. Der Rest einer Position (Nettosumme abzüglich Zahlungsplänen) wird zusätzlich darauf verteilt, statt den geplanten Betrag zu ersetzen.
+
+++++
+{% include download-link.html %}
+++++
+====
 
 [discrete#release-9-2-13.changelog-release]
 === ProjectForge 9.2.13 veröffentlicht

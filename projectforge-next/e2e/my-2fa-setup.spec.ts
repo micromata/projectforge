@@ -77,4 +77,36 @@ test.describe("2FA setup", { tag: "@parallel" }, () => {
       .click();
     await expect(page).toHaveURL(/\/next\/2FASetup$/);
   });
+
+  test("in the app the passkey is set up in the system browser", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    // The app's WebView: its user agent and the bridge of react-native-webview, which records what the page posts.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "userAgent", {
+        get: () =>
+          "Mozilla/5.0 ProjectForgeApp/1.5.0 (browser2FA) (openInBrowser)",
+      });
+      const posted: string[] = [];
+      (window as unknown as Record<string, unknown>).posted = posted;
+      (window as unknown as Record<string, unknown>).ReactNativeWebView = {
+        postMessage: (message: string) => posted.push(message),
+      };
+    });
+    await goto(page, "/2FASetup");
+    await expect(
+      page.getByRole("button", { name: t("webauthn.add"), exact: true })
+    ).toHaveCount(0);
+    await page
+      .getByRole("button", { name: t("webauthn.browser.open") })
+      .click();
+    const posted = await page.evaluate(
+      () => (window as unknown as { posted: string[] }).posted
+    );
+    expect(posted.map((it) => JSON.parse(it))).toContainEqual({
+      pf: "openInBrowser",
+      path: null,
+    });
+  });
 });

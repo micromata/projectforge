@@ -198,8 +198,19 @@ for (const list of LISTS) {
         const expected = [first, second].map((pick) => pick[checklist.by]);
         const rows = (await response.json()).resultSet as Row[];
         expect(rows.length).toBeGreaterThan(0);
-        for (const row of rows)
-          expect(expected).toContain(await checklist.cell(row, page));
+        // The pill names a project followed by its customer in brackets, the list cell only the project.
+        const matches = (pick: unknown, cell: unknown) =>
+          pick === cell ||
+          (typeof pick === "string" &&
+            typeof cell === "string" &&
+            pick.startsWith(`${cell} (`));
+        for (const row of rows) {
+          const cell = await checklist.cell(row, page);
+          expect(
+            expected.some((pick) => matches(pick, cell)),
+            `${String(cell)} is one of ${JSON.stringify(expected)}`
+          ).toBe(true);
+        }
 
         // The closed pill names both picks.
         const pill = page.getByRole("button", {

@@ -468,7 +468,10 @@ export const WebScreen = forwardRef<WebScreenHandle, Props>(function WebScreen(
   const openInBrowser = (url: string | null) => {
     if (!url) return;
     appLog.info('web', `Page ${LogSanitizer.url(url)} opened in the browser`);
-    void Linking.openURL(url).catch((e) => appLog.warn('web', `Not opened outside the app: ${String(e)}`));
+    Linking.openURL(url).catch((e) => {
+      appLog.warn('web', `Not opened outside the app: ${String(e)}`);
+      Alert.alert(t('app.web.openInBrowser.failed'));
+    });
   };
 
   /**

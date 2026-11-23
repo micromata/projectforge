@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Order book: new filter \"Forecast invoicing\" with a period. It lists the orders the forecast expects to invoice in that period, with the amount in the column \"Forecast in period\", which appears while the filter is set, and its sum in the statistics line.",
-  "de": "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile."
-}

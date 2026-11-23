@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { isPluginActive } from "./fixtures/plugins";
 import type { IhkInit } from "../components/features/ihk/types";
 
 /**
@@ -14,6 +15,10 @@ test.describe("ihk", { tag: "@parallel" }, () => {
   test("asks for the settings, or offers the week's report", async ({
     loggedInPage: page,
   }) => {
+    test.skip(
+      !(await isPluginActive(page.request, "ihk")),
+      "the ihk plugin is not active on this instance"
+    );
     const { t } = await userFormat(page);
     const response = await page.request.get("/rs/ihk/init");
     expect(response.ok()).toBe(true);

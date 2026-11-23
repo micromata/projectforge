@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Second factor entry: users without a passkey get a strong recommendation to set one up, which saves entering a code at every login.",
-  "de": "Eingabe des zweiten Faktors: Wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten; das spart künftig die Code-Eingabe bei jeder Anmeldung."
-}

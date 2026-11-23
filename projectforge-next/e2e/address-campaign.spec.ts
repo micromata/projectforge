@@ -4,6 +4,7 @@ import { ADDRESS_CAMPAIGN_METADATA } from "../lib/metadata/address-campaign.gene
 import { ADDRESS_CAMPAIGN_PAGE } from "../components/features/address-campaign/address-campaign.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 import { writeHeaders } from "./fixtures/seed";
+import { isPluginActive } from "./fixtures/plugins";
 
 /**
  * The address campaign page of the marketing plugin against the live backend (see ADDRESS_CAMPAIGN_PAGE
@@ -14,6 +15,10 @@ import { writeHeaders } from "./fixtures/seed";
  */
 test.describe("address campaign", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
+    test.skip(
+      !(await isPluginActive(page.request, "marketing")),
+      "the marketing plugin is not active on this instance"
+    );
     await page.request
       .post("/rs/addressCampaign/filter/reset", {
         headers: await writeHeaders(page.request),
