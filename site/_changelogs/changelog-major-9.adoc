@@ -1,13 +1,71 @@
 ---
 title: "ProjectForge 9"
-date: 2026-11-20
-sort_key: "2026-11-20 0062"
+date: 2026-11-23
+sort_key: "2026-11-23 0063"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-14.changelog-release]
+=== ProjectForge 9.2.14 released
+
+[.changelog-source]
+__2026-11-23, tag https://github.com/micromata/projectforge/tree/9.2.14-RELEASE[9.2.14-RELEASE]__ +++{% include release-pills.html tag="9.2.14-RELEASE" docker="9.2.14" %}+++
+
+- **Order book**: filter "Forecast invoicing" with a period
+- **Forecast**: payment schedule stays in its month
+- **First setup**: simplified terminal wizard, settings take effect at once
+- **Second factor**: SSO login can count as one, passkey recommendation
+- **Chat**: preview of PDFs and text files
+
+.Overview
+[%collapsible]
+====
+- **Order book:** the new filter "Forecast invoicing" lists the orders the forecast expects to invoice in a period, with the amount in the column "Forecast in period" and its sum in the statistics line.
+- **Forecast:** the amount of a payment schedule stays in the month of its date; the rest of a position is distributed on top of it instead of replacing it.
+- **First setup:** the graphical and the full-screen terminal wizard are replaced by a small terminal menu; currency, language, time notation and first day of the week are chosen in the browser and take effect without a restart, and the currency symbol of new installations is shown correctly.
+- **Second factor:** with `+projectforge.2fa.ssoAmrValues+` an SSO login counts as a second factor if the SSO server reports a matching authentication method; users without a passkey get a strong recommendation to set one up.
+- **Chat:** PDFs and text files of a message can be previewed like attachments elsewhere.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Chat: PDFs and text files of a message can be previewed (eye button) like attachments elsewhere.
+- Order book: new filter "Forecast invoicing" with a period. It lists the orders the forecast expects to invoice in that period, with the amount in the column "Forecast in period", which appears while the filter is set, and its sum in the statistics line.
+- Login via SSO: the new property projectforge.2fa.ssoAmrValues (e.g. mfa,otp,hwk) lets an SSO login count as a second factor, done at the auth_time of the ID token, if the SSO server reports one of these authentication methods (amr). Without it, SSO is only the login and ProjectForge asks for its own second factor on protected pages.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Second factor entry: users without a passkey get a strong recommendation to set one up, which saves entering a code at every login.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- **First setup**
+  * The graphical and the full-screen terminal wizard are gone: a small menu in the terminal shows directory, port, domain and database with their defaults and lets you change each of them (return saves and continues); in a terminal with colors every page starts on a cleared screen, with the flames of the logo.
+  * Currency, language, time notation and first day of the week are chosen on the setup page in the browser and take effect at once, without a restart. The same applies to a change of these parameters in the properties editor.
+  * The setup page is grouped into account, time and region and optional e-mail addresses, and offers the currency as a searchable list.
+  * The currency symbol of new installations was shown as garbled characters instead of the euro sign.
+  * A banner with the address of the new instance closes the start output on the console, so it isn't lost between the log lines.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Forecast: the amount of a payment schedule stays in the month of its date. The rest of a position (net sum minus payment schedules) is distributed on top of it, instead of replacing the scheduled amount.
+
+++++
+{% include download-link.html %}
+++++
+====
 
 [discrete#release-9-2-13.changelog-release]
 === ProjectForge 9.2.13 released

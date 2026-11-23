@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Forecast: the amount of a payment schedule stays in the month of its date. The rest of a position (net sum minus payment schedules) is distributed on top of it, instead of replacing the scheduled amount.",
-  "de": "Forecast: Der Betrag eines Zahlungsplans bleibt im Monat seines Datums. Der Rest einer Position (Nettosumme abzüglich Zahlungsplänen) wird zusätzlich darauf verteilt, statt den geplanten Betrag zu ersetzen."
-}

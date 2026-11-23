@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Login via SSO: the new property projectforge.2fa.ssoAmrValues (e.g. mfa,otp,hwk) lets an SSO login count as a second factor, done at the auth_time of the ID token, if the SSO server reports one of these authentication methods (amr). Without it, SSO is only the login and ProjectForge asks for its own second factor on protected pages.",
-  "de": "Login per SSO: Mit der neuen Property projectforge.2fa.ssoAmrValues (z. B. mfa,otp,hwk) gilt ein SSO-Login als zweiter Faktor, durchgeführt zum auth_time des ID-Tokens, wenn der SSO-Server eine dieser Authentifizierungsmethoden (amr) meldet. Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten einen eigenen zweiten Faktor."
-}
