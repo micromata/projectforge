@@ -60,7 +60,7 @@ export function ExportMenu({
         {copyTable && (
           <ExportMenuItem
             icon={Copy01Icon}
-            label={t("table.copy")}
+            label={t("table.copy._")}
             description={t("table.copy.description")}
             disabled={copyTable.isPending}
             onSelect={() => void copyTable.copy()}

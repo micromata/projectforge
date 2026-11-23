@@ -2,24 +2,15 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.2.13",
+    "version" : "9.2.14",
     "date" : "2026-11-23",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).", "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile.", "Login per SSO: Mit der neuen Property projectforge.2fa.ssoAmrValues (z. B. mfa,otp,hwk) gilt ein SSO-Login als zweiter Faktor, durchgeführt zum auth_time des ID-Tokens, wenn der SSO-Server eine dieser Authentifizierungsmethoden (amr) meldet. Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten einen eigenen zweiten Faktor.", "Listen: Das Export-Menü hat einen neuen Eintrag „Tabelle kopieren“, der Kopfzeile und alle Zeilen des aktuellen Filters in die Zwischenablage legt, zum Einfügen in Excel oder Numbers." ]
-    }, {
-      "type" : "improved",
-      "items" : [ "Eingabe des zweiten Faktors: Wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten; das spart künftig die Code-Eingabe bei jeder Anmeldung." ]
-    }, {
-      "type" : "changed",
-      "items" : [ {
-        "title" : "Erstsetup",
-        "items" : [ "Der grafische und der Vollbild-Terminal-Wizard entfallen: Ein kleines Menü im Terminal zeigt Verzeichnis, Port, Domain und Datenbank mit ihren Vorgaben und erlaubt, jeden Wert zu ändern (Return speichert und macht weiter); in einem Terminal mit Farben beginnt jede Seite auf einem geleerten Bildschirm, mit den Flammen des Logos.", "Währung, Sprache, Zeitformat und Wochenbeginn werden auf der Setup-Seite im Browser gewählt und wirken sofort, ohne Neustart. Das gilt auch für eine Änderung dieser Parameter im Properties-Editor.", "Die Setup-Seite ist in Konto, Zeit und Region sowie optionale E-Mail-Adressen gegliedert und bietet die Währung als durchsuchbare Liste an.", "Das Währungssymbol neuer Installationen wurde als unlesbare Zeichen statt als Euro-Zeichen angezeigt.", "Ein Banner mit der Adresse der neuen Instanz schließt die Startausgabe auf der Konsole ab, damit sie nicht zwischen den Logzeilen untergeht." ]
-      } ]
+      "items" : [ "Listen: Das Export-Menü hat einen neuen Eintrag „Tabelle kopieren“, der Kopfzeile und alle Zeilen des aktuellen Filters in die Zwischenablage legt, zum Einfügen in Excel oder Numbers." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Forecast: Der Betrag eines Zahlungsplans bleibt im Monat seines Datums. Der Rest einer Position (Nettosumme abzüglich Zahlungsplänen) wird zusätzlich darauf verteilt, statt den geplanten Betrag zu ersetzen.", "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen.", "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher geht die Einrichtungsseite jetzt im Browser des Geräts weiter. Seiten des Servers können die App bitten, sie im Browser anzuzeigen, wie es der Menüpunkt „Im Browser öffnen“ für jede Seite tut.", "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung." ]
+      "items" : [ "{app} Wechsel auf einen anderen Server: Späte Antworten des alten Servers landen nicht mehr im Adressbuch des neuen.", "{app} Passkey einrichten: Die App kann selbst keinen registrieren, daher geht die Einrichtungsseite jetzt im Browser des Geräts weiter. Seiten des Servers können die App bitten, sie im Browser anzuzeigen, wie es der Menüpunkt „Im Browser öffnen“ für jede Seite tut.", "{app} Abweisung durch den SSO-Proxy: Eine Anmeldung im Browser genügt für alle offenen Tabs, eine abgebrochene Anmeldung wird nicht von der nächsten Anfrage erneut geöffnet, und der Hinweis auf die abgelaufene SSO-Anmeldung verschwindet direkt nach der Anmeldung." ]
     } ]
   },
   "groups" : [ {
@@ -74,6 +65,32 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-2-14",
+      "version" : "9.2.14",
+      "date" : "2026-11-23",
+      "title" : "ProjectForge 9.2.14 veröffentlicht",
+      "tag" : "9.2.14-RELEASE",
+      "downloadLink" : true,
+      "sha256" : "48930854872495922330e152f51c47a40ecf79ecebb8dc4859bd1f10da017f48",
+      "summary" : [ "**Auftragsbuch**: Filter „Forecast-Fakturierung“ mit Zeitraum", "**Forecast**: Zahlungsplan bleibt in seinem Monat", "**Erstsetup**: vereinfachter Terminal-Wizard, Einstellungen wirken sofort", "**Zweiter Faktor**: SSO-Login kann als solcher gelten, Passkey-Empfehlung", "**Chat**: Vorschau für PDFs und Textdateien" ],
+      "overview" : [ "**Auftragsbuch:** der neue Filter „Forecast-Fakturierung“ listet die Aufträge, die laut Forecast in einem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“ und dessen Summe in der Statistikzeile.", "**Forecast:** der Betrag eines Zahlungsplans bleibt im Monat seines Datums; der Rest einer Position wird zusätzlich darauf verteilt, statt ihn zu ersetzen.", "**Erstsetup:** der grafische und der Vollbild-Terminal-Wizard sind durch ein kleines Terminal-Menü ersetzt; Währung, Sprache, Zeitformat und Wochenbeginn werden im Browser gewählt und wirken ohne Neustart, und das Währungssymbol neuer Installationen wird korrekt angezeigt.", "**Zweiter Faktor:** mit `projectforge.2fa.ssoAmrValues` gilt ein SSO-Login als zweiter Faktor, wenn der SSO-Server eine passende Authentifizierungsmethode meldet; wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten.", "**Chat:** PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).", "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile.", "Login per SSO: Mit der neuen Property projectforge.2fa.ssoAmrValues (z. B. mfa,otp,hwk) gilt ein SSO-Login als zweiter Faktor, durchgeführt zum auth_time des ID-Tokens, wenn der SSO-Server eine dieser Authentifizierungsmethoden (amr) meldet. Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten einen eigenen zweiten Faktor." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "Eingabe des zweiten Faktors: Wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten; das spart künftig die Code-Eingabe bei jeder Anmeldung." ]
+      }, {
+        "type" : "changed",
+        "items" : [ {
+          "title" : "Erstsetup",
+          "items" : [ "Der grafische und der Vollbild-Terminal-Wizard entfallen: Ein kleines Menü im Terminal zeigt Verzeichnis, Port, Domain und Datenbank mit ihren Vorgaben und erlaubt, jeden Wert zu ändern (Return speichert und macht weiter); in einem Terminal mit Farben beginnt jede Seite auf einem geleerten Bildschirm, mit den Flammen des Logos.", "Währung, Sprache, Zeitformat und Wochenbeginn werden auf der Setup-Seite im Browser gewählt und wirken sofort, ohne Neustart. Das gilt auch für eine Änderung dieser Parameter im Properties-Editor.", "Die Setup-Seite ist in Konto, Zeit und Region sowie optionale E-Mail-Adressen gegliedert und bietet die Währung als durchsuchbare Liste an.", "Das Währungssymbol neuer Installationen wurde als unlesbare Zeichen statt als Euro-Zeichen angezeigt.", "Ein Banner mit der Adresse der neuen Instanz schließt die Startausgabe auf der Konsole ab, damit sie nicht zwischen den Logzeilen untergeht." ]
+        } ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "Forecast: Der Betrag eines Zahlungsplans bleibt im Monat seines Datums. Der Rest einer Position (Nettosumme abzüglich Zahlungsplänen) wird zusätzlich darauf verteilt, statt den geplanten Betrag zu ersetzen." ]
+      } ]
+    }, {
       "id" : "9-2-13",
       "version" : "9.2.13",
       "date" : "2026-11-20",

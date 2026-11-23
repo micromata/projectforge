@@ -16,7 +16,7 @@ test.describe("copy table", { tag: "@lane-user" }, () => {
     const shown = await rows.count();
 
     await page.getByRole("button", { name: t("export"), exact: true }).click();
-    await page.getByRole("menuitem", { name: t("table.copy") }).click();
+    await page.getByRole("menuitem", { name: t("table.copy._") }).click();
     await expect(page.getByText(t("table.copy.failed"))).toHaveCount(0);
 
     const text = await page.evaluate(() => navigator.clipboard.readText());

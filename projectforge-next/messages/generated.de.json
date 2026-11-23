@@ -6747,7 +6747,7 @@
   "webauthn": {
     "add": "Passkey oder Sicherheitsschlüssel hinzufügen",
     "browser": {
-      "info": "In der App kann kein Passkey und kein Sicherheitsschlüssel eingerichtet werden. Dafür diese Seite im Browser des Geräts öffnen (Menü „Im Browser öffnen“): Dort erfolgt einmal die Anmeldung, danach kann ein Passkey hinzugefügt werden.",
+      "info": "In der App kann kein Passkey und kein Sicherheitsschlüssel eingerichtet werden. Dafür diese Seite im Browser des Geräts öffnen (Menü „Im Browser öffnen“): Dort erfolgt einmal die Anmeldung, danach kann ein Passkey hinzugefügt werden. Bei einem Single Sign-on funktioniert dort die gewohnte Anmeldung ebenso.",
       "open": "Im Browser einrichten"
     },
     "choice": {
