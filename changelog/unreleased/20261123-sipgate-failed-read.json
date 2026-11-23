@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Sipgate: if reading the remote contacts fails, the contact sync is aborted instead of treating all contacts as missing (which deleted the sync records and tried to create every contact again on each run). Error answers of Sipgate now log the reason they carry.",
-  "de": "Sipgate: Schlägt das Lesen der Sipgate-Kontakte fehl, wird der Kontaktabgleich abgebrochen, statt alle Kontakte als fehlend zu behandeln (was die Abgleich-Einträge löschte und bei jedem Lauf versuchte, jeden Kontakt neu anzulegen). Fehlerantworten von Sipgate protokollieren jetzt den mitgelieferten Grund."
-}

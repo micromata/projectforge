@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "CVE-Pilot: the buttons for uploading libraries (SBOM etc.) stay visible at the bottom of the dialog and no longer need scrolling.",
-  "de": "CVE-Pilot: Die Buttons zum Hochladen von Bibliotheken (SBOM etc.) bleiben unten im Dialog sichtbar, ohne scrollen zu müssen."
-}
