@@ -1,5 +1,6 @@
 "use client";
 
+import { previousPeriodLabels } from "@/lib/period-label";
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef, Table } from "@tanstack/react-table";
@@ -78,6 +79,7 @@ export function ContributionMarginProjectTable({
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
   const labels = useStatisticsLabels();
+  const { prevYear, prevPrevYear } = previousPeriodLabels(data.months[0]);
   const ctx = useFormatContext();
   const { total } = data;
   const withProjectGroup = hasProjectGroup(data.projects);
@@ -166,16 +168,20 @@ export function ContributionMarginProjectTable({
       amount("costs", t("costs")),
       amount("profit", t("profit")),
       percentage("percentage", t("percentage"), (row) => row.costs),
-      amount("prevYearProfit", t("prevYear")),
-      percentage("prevYearPercentage", t("prevYearPercentage"), (row) =>
-        Math.max(0, -row.prevYearProfit)
+      amount("prevYearProfit", t("prevYear", { arg0: prevYear })),
+      percentage(
+        "prevYearPercentage",
+        t("prevYearPercentage", { arg0: prevYear }),
+        (row) => Math.max(0, -row.prevYearProfit)
       ),
-      amount("prevPrevYearProfit", t("prevPrevYear")),
-      percentage("prevPrevYearPercentage", t("prevPrevYearPercentage"), (row) =>
-        Math.max(0, -row.prevPrevYearProfit)
+      amount("prevPrevYearProfit", t("prevPrevYear", { arg0: prevPrevYear })),
+      percentage(
+        "prevPrevYearPercentage",
+        t("prevPrevYearPercentage", { arg0: prevPrevYear }),
+        (row) => Math.max(0, -row.prevPrevYearProfit)
       ),
     ];
-  }, [t, labels, ctx, data, total, withProjectGroup]);
+  }, [t, labels, prevYear, prevPrevYear, ctx, data, total, withProjectGroup]);
 
   return (
     <StatisticsTable<Row>

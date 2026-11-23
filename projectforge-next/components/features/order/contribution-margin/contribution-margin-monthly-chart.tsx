@@ -60,8 +60,8 @@ export function ContributionMarginMonthlyChart({
   const t = useTranslations("fibu.auftrag.contributionMargin");
   const ctx = useFormatContext();
   const config = useMemo<ChartConfig>(
-    () => contributionMarginChartConfig(t),
-    [t]
+    () => contributionMarginChartConfig(t, data.months[0]),
+    [t, data.months]
   );
   const rows = useMemo(() => contributionMarginChartRows(data), [data]);
   const scale = useMemo(() => amountScale(rows), [rows]);

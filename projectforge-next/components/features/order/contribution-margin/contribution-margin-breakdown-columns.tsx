@@ -1,5 +1,6 @@
 "use client";
 
+import { previousPeriodLabels } from "@/lib/period-label";
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -26,6 +27,7 @@ export function useBreakdownColumns(
 ): ColumnDef<Row, unknown>[] {
   const t = useTranslations("fibu.auftrag.contributionMargin");
   const ctx = useFormatContext();
+  const { prevYear } = previousPeriodLabels(data.months[0]);
   return useMemo<ColumnDef<Row, unknown>[]>(() => {
     const money = (value: number) => (
       <span className={cn("tabular-nums", value < 0 && "text-destructive")}>
@@ -82,12 +84,12 @@ export function useBreakdownColumns(
         ),
         100
       ),
-      column("prevYear", t("prevYear"), (row) =>
+      column("prevYear", t("prevYear", { arg0: prevYear }), (row) =>
         money(row.series.sums.prevYearProfit)
       ),
       column(
         "prevYearPercentage",
-        t("prevYearPercentage"),
+        t("prevYearPercentage", { arg0: prevYear }),
         (row) => (
           <ContributionMarginPercentage
             percentage={row.series.sums.prevYearPercentage}
@@ -98,5 +100,5 @@ export function useBreakdownColumns(
         100
       ),
     ];
-  }, [t, ctx, data, expanded, onToggle]);
+  }, [t, ctx, data, expanded, onToggle, prevYear]);
 }

@@ -1,5 +1,6 @@
 import type { ChartConfig } from "@/components/ui/chart";
 import { formatMonthName, type FormatContext } from "@/lib/format";
+import { previousPeriodLabels } from "@/lib/period-label";
 import {
   FORECAST_CHART_STATUSES,
   type ForecastChartData,
@@ -86,8 +87,10 @@ export function lineDashArray(key: SeriesKey): string | undefined {
 
 /** The chart config of both charts: labels and colours of all statuses and lines. */
 export function buildForecastChartConfig(
-  t: (key: string) => string
+  t: (key: string, values?: Record<string, string>) => string,
+  firstMonth?: string | null
 ): ChartConfig {
+  const period = previousPeriodLabels(firstMonth);
   const config: ChartConfig = {};
   FORECAST_CHART_STATUSES.forEach((status) => {
     config[status] = {
@@ -108,11 +111,13 @@ export function buildForecastChartConfig(
     color: SERIES_COLORS.plan,
   };
   config.prevYear = {
-    label: t("fibu.auftrag.forecast.chart.prevYear"),
+    label: t("fibu.auftrag.forecast.chart.prevYear", { arg0: period.prevYear }),
     color: SERIES_COLORS.prevYear,
   };
   config.prevPrevYear = {
-    label: t("fibu.auftrag.forecast.chart.prevPrevYear"),
+    label: t("fibu.auftrag.forecast.chart.prevPrevYear", {
+      arg0: period.prevPrevYear,
+    }),
     color: SERIES_COLORS.prevPrevYear,
   };
   return config;

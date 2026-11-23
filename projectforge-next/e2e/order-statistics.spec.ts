@@ -107,11 +107,21 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
       "fibu.projekt.projekte",
       "fibu.auftrag.positions",
       "fibu.rechnung.rechnungen",
-      "fibu.auftrag.statistics.tables.invoicesPrevYear",
-      "fibu.auftrag.statistics.tables.invoicesPrevPrevYear",
     ]) {
       await expect(
         page.getByRole("tab", { name: new RegExp(`^${escape(format.t(key))}`) })
+      ).toBeVisible();
+    }
+    // The two comparison tabs name their period ("Rechnungen 2024/2025"), not "previous year".
+    for (const key of [
+      "fibu.auftrag.statistics.tables.invoicesPrevYear",
+      "fibu.auftrag.statistics.tables.invoicesPrevPrevYear",
+    ]) {
+      const label = format.t(key, { arg0: "@@" }).split("@@")[0];
+      await expect(
+        page.getByRole("tab", {
+          name: new RegExp(`^${escape(label)}\\d{4}(/\\d{4})?`),
+        })
       ).toBeVisible();
     }
     await page

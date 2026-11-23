@@ -38,7 +38,10 @@ export function OrderForecastMonthlyChart({
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const config = useMemo(() => buildForecastChartConfig(t), [t]);
+  const config = useMemo(
+    () => buildForecastChartConfig(t, data.months[0]),
+    [t, data.months]
+  );
   const rows = useMemo(() => monthlyRows(data), [data]);
   const bars = useMemo(() => monthlyBarKeys(data), [data]);
   const compareBars = useMemo(() => monthlyCompareBarKeys(data), [data]);

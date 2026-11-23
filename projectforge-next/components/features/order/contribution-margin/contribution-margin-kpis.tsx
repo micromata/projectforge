@@ -1,5 +1,6 @@
 "use client";
 
+import { previousPeriodLabels } from "@/lib/period-label";
 import { useTranslations } from "next-intl";
 import { KpiTile } from "@/components/shared/kpi-tile";
 import { useFormatContext } from "@/hooks/use-format";
@@ -35,6 +36,7 @@ export function ContributionMarginKpis({
   const prevYearCosts = total.prevYearRevenue - total.prevYearProfit;
   const prevPrevYearCosts =
     total.prevPrevYearRevenue - total.prevPrevYearProfit;
+  const period = previousPeriodLabels(data.months[0]);
   const target = t("target", { arg0: data.targetPercentage });
   const untilText = (date: string | null | undefined) =>
     date ? t("until", { arg0: formatDate(date, ctx) }) : undefined;
@@ -60,18 +62,27 @@ export function ContributionMarginKpis({
           large
         />
       </KpiTile>
-      <KpiTile noteRight={prevYearUntil} label={t("prevYearRevenue")}>
+      <KpiTile
+        noteRight={prevYearUntil}
+        label={t("prevYearRevenue", { arg0: period.prevYear })}
+      >
         {amount(total.prevYearRevenue)}
       </KpiTile>
-      <KpiTile noteRight={prevYearUntil} label={t("prevYearCosts")}>
+      <KpiTile
+        noteRight={prevYearUntil}
+        label={t("prevYearCosts", { arg0: period.prevYear })}
+      >
         {formatCurrency(prevYearCosts, ctx, 0)}
       </KpiTile>
-      <KpiTile noteRight={prevYearUntil} label={t("prevYear")}>
+      <KpiTile
+        noteRight={prevYearUntil}
+        label={t("prevYear", { arg0: period.prevYear })}
+      >
         {amount(total.prevYearProfit)}
       </KpiTile>
       <KpiTile
         noteRight={prevYearUntil}
-        label={t("prevYearPercentage")}
+        label={t("prevYearPercentage", { arg0: period.prevYear })}
         note={target}
       >
         <ContributionMarginPercentage
@@ -81,18 +92,27 @@ export function ContributionMarginKpis({
           large
         />
       </KpiTile>
-      <KpiTile noteRight={prevPrevYearUntil} label={t("prevPrevYearRevenue")}>
+      <KpiTile
+        noteRight={prevPrevYearUntil}
+        label={t("prevPrevYearRevenue", { arg0: period.prevPrevYear })}
+      >
         {amount(total.prevPrevYearRevenue)}
       </KpiTile>
-      <KpiTile noteRight={prevPrevYearUntil} label={t("prevPrevYearCosts")}>
+      <KpiTile
+        noteRight={prevPrevYearUntil}
+        label={t("prevPrevYearCosts", { arg0: period.prevPrevYear })}
+      >
         {formatCurrency(prevPrevYearCosts, ctx, 0)}
       </KpiTile>
-      <KpiTile noteRight={prevPrevYearUntil} label={t("prevPrevYear")}>
+      <KpiTile
+        noteRight={prevPrevYearUntil}
+        label={t("prevPrevYear", { arg0: period.prevPrevYear })}
+      >
         {amount(total.prevPrevYearProfit)}
       </KpiTile>
       <KpiTile
         noteRight={prevPrevYearUntil}
-        label={t("prevPrevYearPercentage")}
+        label={t("prevPrevYearPercentage", { arg0: period.prevPrevYear })}
         note={target}
       >
         <ContributionMarginPercentage
