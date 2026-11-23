@@ -115,6 +115,11 @@ Shared options: `size` (in pixels; the fixed table layout ignores `minSize`, so 
 `minSize`, `className`, `align`, `filterKind` (`null` = offer none), `cell`, `pinned`, `labelKey`,
 `headerLabelKey` (a shorter header where the full label does not fit).
 
+**Numbers look the same everywhere** (`lib/cell-styles.ts`): amounts, decimals and whole numbers are
+`font-mono tabular-nums` (derived from the `dataType` in a declared list; `NumericText` in hand-built
+tables), cost unit numbers (`5.100.01.02`) are `font-mono` — declare them with `kind: "cost"` (`CostText` /
+`costColumn` in hand-built tables, `kind: "cost"` in an `ImportColumn`). Do not set `font-mono` by hand.
+
 **Pinning** is only a starting point. `defaultPinningOf(columns)` derives the initial pinning from the
 declarations, in declaration order per edge — so the pinned edge and the column order are one
 statement and cannot drift, and a "reset columns" returns to exactly that.

@@ -6,6 +6,7 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatYearMonth } from "@/lib/format";
 import type { ContributionMarginTimesheetRow } from "@/lib/rs/order";
 import {
+  costColumn,
   hasProjectGroup,
   moneyColumn,
   numberColumn,
@@ -40,7 +41,7 @@ export function ContributionMarginTimesheetTable({ rows }: { rows: Row[] }) {
       textColumn<Row>("customer", t.customer, (row) => row.customer, 180),
       textColumn<Row>("project", t.project, (row) => row.project, 220),
       ...projectGroupColumns<Row>(withProjectGroup, t.projectGroup),
-      textColumn<Row>("kost2", t.kost2, (row) => row.kost2, 110),
+      costColumn<Row>("kost2", t.kost2, (row) => row.kost2, 110),
       numberColumn<Row>("hours", t.hours, (row) => row.hours, ctx),
       moneyColumn<Row>("costs", t.costs, (row) => row.costs, ctx, {
         className: () => PRELIMINARY_CLASS,

@@ -45,6 +45,12 @@ interface ColumnBase<Row> {
   /** Extra classes of the default cell; ignored when `cell` is given. */
   className?: string;
   /**
+   * `"cost"` marks a column of cost unit numbers (`5.100.01.02`): they read monospaced like every other
+   * cost number (see `COST_CELL_CLASS`). Numbers (amounts, decimals, ints) need no mark, their data type
+   * says so. Ignored when `cell` is given.
+   */
+  kind?: "cost";
+  /**
    * Extra classes of the table cell itself (`<td>`), for every renderer: a tinted background that sets a
    * column apart from the others — the comparison campaign's values beside the campaign's own (see
    * ADDRESS_CAMPAIGN_VALUE_PAGE). A background colour given here replaces the cell's opaque default, so it has
@@ -210,9 +216,7 @@ export interface PeriodColumn<M extends EntityMetadata> extends Omit<
 }
 
 export type ColumnDeclaration<Row, M extends EntityMetadata> =
-  | FieldColumn<Row, M>
-  | ComputedColumn<Row>
-  | PeriodColumn<M>;
+  FieldColumn<Row, M> | ComputedColumn<Row> | PeriodColumn<M>;
 
 interface FieldBase {
   /**

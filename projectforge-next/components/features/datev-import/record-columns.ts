@@ -55,7 +55,7 @@ export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
   {
     field: "kost1",
     headerKey: "fibu.kost1",
-    kind: "text",
+    kind: "cost",
     diff: true,
     tooltipField: "kost1Info",
     width: 110,
@@ -63,7 +63,7 @@ export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
   {
     field: "kost2",
     headerKey: "fibu.kost2",
-    kind: "text",
+    kind: "cost",
     diff: true,
     tooltipField: "kost2Info",
     width: 110,

@@ -110,6 +110,7 @@ export function useDeclaredColumns<
                 format,
                 t: translate,
                 className: declaration.className,
+                cost: declaration.kind === "cost",
                 // The active search term, off the table meta (see useDataTable): every default text
                 // cell highlights the match, without this builder knowing the term itself.
                 highlight: ctx.table.options.meta?.highlight,

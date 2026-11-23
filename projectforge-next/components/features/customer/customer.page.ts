@@ -55,7 +55,7 @@ export const CUSTOMER_PAGE = definePage<
     // The formatted number ("5.123", "1.0007", or a free one), read as one — the same value the legacy list leads with. The
     // raw `nummer` behind it is the sort property (CustomerPagesRest.postProcessMagicFilter maps the `kost` sort
     // onto it), so the column keeps the metadata order.
-    { name: "kost", size: 110, className: "font-mono" },
+    { name: "kost", size: 110, kind: "cost" },
     { name: "identifier", size: 140 },
     { name: "name", size: 260 },
     { name: "division", size: 180 },

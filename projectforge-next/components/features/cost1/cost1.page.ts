@@ -41,7 +41,8 @@ export const COST1_PAGE = definePage<
     {
       name: "formattedNumber",
       size: 120,
-      className: "font-mono font-semibold",
+      kind: "cost",
+      className: "font-semibold",
     },
     { name: "kostentraegerStatus", size: 110 },
     { name: "description", size: 400 },

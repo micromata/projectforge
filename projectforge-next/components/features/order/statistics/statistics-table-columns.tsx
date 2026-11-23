@@ -10,6 +10,10 @@ import {
   type FormatContext,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import {
+  CostText,
+  NumericText,
+} from "@/components/data-table/cells/number-text";
 
 /**
  * Column builders of the data tables of the order statistics (forecast and contribution margin): the
@@ -34,11 +38,9 @@ export function Money({
 }) {
   if (value == null) return null;
   return (
-    <span
-      className={cn("tabular-nums", value < 0 && "text-destructive", className)}
-    >
+    <NumericText className={cn(value < 0 && "text-destructive", className)}>
       {formatCurrency(value, ctx)}
-    </span>
+    </NumericText>
   );
 }
 
@@ -65,6 +67,23 @@ export function textColumn<T>(
     meta: { label, filterKind: "text" },
     cell: ({ row }) => value(row.original) ?? "",
     footer,
+  };
+}
+
+/** A cost unit number column (`5.100.01.02`), left-aligned and monospaced like every cost number. */
+export function costColumn<T>(
+  id: string,
+  label: string,
+  value: (row: T) => string | null | undefined,
+  size = 110
+): Col<T> {
+  return {
+    id,
+    accessorFn: (row) => value(row) ?? "",
+    header: label,
+    size,
+    meta: { label, filterKind: "text" },
+    cell: ({ row }) => <CostText>{value(row.original) ?? ""}</CostText>,
   };
 }
 
@@ -150,9 +169,9 @@ export function numberColumn<T>(
     sortUndefined: "last",
     meta: { label, align: "right", filterKind: "number" },
     cell: ({ row }) => (
-      <span className="tabular-nums">
+      <NumericText>
         {formatNumber(value(row.original), ctx, fractionDigits)}
-      </span>
+      </NumericText>
     ),
   };
 }

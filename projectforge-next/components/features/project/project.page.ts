@@ -63,7 +63,7 @@ export const PROJECT_PAGE = definePage<
       labelKey: "fibu.projekt.projektnummer",
       accessor: (row) => row.kostFormatted ?? "",
       size: 100,
-      className: "font-mono",
+      kind: "cost",
     },
     { name: "identifier", size: 120 },
     // The customer, by name and division; sorted by the entity's own paths (`kunde`, not `customer`).

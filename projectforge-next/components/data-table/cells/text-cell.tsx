@@ -1,6 +1,7 @@
 import { formatDisplayName, formatValue } from "@/lib/format";
 import { getByPath } from "@/lib/dynamic/path";
 import { cn } from "@/lib/utils";
+import { cellClassFor } from "@/lib/cell-styles";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { isRefArray, RefList } from "@/components/shared/ref-list";
 import { inactiveRefClass, type InactiveFlags } from "@/lib/page-def/reference";
@@ -36,7 +37,7 @@ export function TextCell({
       // Right-aligned columns are the numeric ones (amounts, counts): monospaced digits so they line up.
       className={cn(
         "block truncate",
-        spec.align === "right" && "text-right tabular-nums",
+        spec.align === "right" && cellClassFor("numeric", "text-right"),
         refClass
       )}
       // Shown by the table's one delegated tooltip, see useOverflowTooltip.

@@ -88,6 +88,7 @@ export const ACCOUNTING_RECORD_PAGE = definePage<
       accessor: (row) => row.kost1?.displayName ?? "",
       referenceKey: "kost1",
       size: 150,
+      kind: "cost",
     },
     {
       id: "kost2.displayName",
@@ -95,6 +96,7 @@ export const ACCOUNTING_RECORD_PAGE = definePage<
       accessor: (row) => row.kost2?.displayName ?? "",
       referenceKey: "kost2",
       size: 150,
+      kind: "cost",
     },
     {
       id: "konto.displayName",

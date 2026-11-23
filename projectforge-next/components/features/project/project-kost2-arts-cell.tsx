@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { useTranslations } from "next-intl";
+import { cellClassFor } from "@/lib/cell-styles";
 import type { Kost2ArtSelection } from "./types";
 
 /**
@@ -29,7 +30,7 @@ export function ProjectKost2ArtsCell({
     .join("\n");
   return (
     <span
-      className="block truncate font-mono text-muted-foreground"
+      className={cellClassFor("cost", "block truncate text-muted-foreground")}
       data-tooltip={tooltip}
     >
       {arts.map((art, index) => (

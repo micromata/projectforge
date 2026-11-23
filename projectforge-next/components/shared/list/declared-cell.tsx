@@ -9,6 +9,7 @@ import {
   type FormatContext,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { cellClassFor } from "@/lib/cell-styles";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { BooleanCell } from "@/components/data-table/cells/boolean-cell";
 import { isRefArray, RefList } from "@/components/shared/ref-list";
@@ -19,6 +20,8 @@ export interface DeclaredCellContext {
   /** Translator without a namespace, for the constants of an enum field. */
   t: (key: string) => string;
   className?: string;
+  /** A cost unit number: monospaced (see `COST_CELL_CLASS`). */
+  cost?: boolean;
   /** The active search term, highlighted wherever it matched the cell text (see HighlightedText). */
   highlight?: string;
 }
@@ -34,7 +37,7 @@ export interface DeclaredCellContext {
 export function declaredCell(
   value: unknown,
   field: FieldMetadata,
-  { format, t, className, highlight }: DeclaredCellContext
+  { format, t, className, cost, highlight }: DeclaredCellContext
 ): ReactNode {
   if (value == null || value === "") return null;
 
@@ -43,6 +46,14 @@ export function declaredCell(
   const mark = (text: string) => (
     <HighlightedText text={text} query={highlight} />
   );
+
+  if (cost) {
+    return (
+      <span className={cellClassFor("cost", className)}>
+        {mark(cellText(value))}
+      </span>
+    );
+  }
 
   const enumValue = field.enumValues?.find((v) => v.value === value);
   if (enumValue) {
@@ -78,13 +89,13 @@ export function declaredCell(
     // which the entities declare with two digits as well (`@Column(scale = 2)`).
     case "AMOUNT":
       return (
-        <span className={cn("font-mono tabular-nums", className)}>
+        <span className={cellClassFor("numeric", className)}>
           {mark(formatCurrency(value, format))}
         </span>
       );
     case "DECIMAL":
       return (
-        <span className={cn("font-mono tabular-nums", className)}>
+        <span className={cellClassFor("numeric", className)}>
           {mark(formatNumber(value, format, 2))}
         </span>
       );
@@ -92,7 +103,7 @@ export function declaredCell(
     case "INT":
     case "LONG":
       return (
-        <span className={cn("font-mono tabular-nums", className)}>
+        <span className={cellClassFor("numeric", className)}>
           {mark(String(value))}
         </span>
       );

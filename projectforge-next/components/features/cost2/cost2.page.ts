@@ -40,7 +40,8 @@ export const COST2_PAGE = definePage<
     {
       name: "formattedNumber",
       size: 120,
-      className: "font-mono font-semibold",
+      kind: "cost",
+      className: "font-semibold",
     },
     // The Kost2Art the number's last part names, and whether its costs are invoiced. The name only for
     // cost units of a project (of a number range): for the others it misleads (vacation as "Akquise"), as

@@ -117,6 +117,7 @@ export const TASK_PAGE = definePage<
       accessor: (row) => row.kost2WildCard ?? "",
       tooltip: (row) => row.kost2ListAsLines ?? undefined,
       size: 100,
+      kind: "cost",
       sortable: false,
       filterKind: null,
       visible: ({ variables }) => variables?.kost2Configured === true,

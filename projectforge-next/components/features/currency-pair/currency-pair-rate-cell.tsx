@@ -2,6 +2,7 @@
 
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumberUpTo } from "@/lib/format";
+import { NumericText } from "@/components/data-table/cells/number-text";
 
 /** The digits a conversion rate is stored with (`CurrencyConversionRateDO`, `scale = 8`). */
 export const RATE_FRACTION_DIGITS = 8;
@@ -10,8 +11,8 @@ export const RATE_FRACTION_DIGITS = 8;
 export function CurrencyPairRateCell({ value }: { value: unknown }) {
   const ctx = useFormatContext();
   return (
-    <span className="font-mono tabular-nums">
+    <NumericText>
       {formatNumberUpTo(value, ctx, RATE_FRACTION_DIGITS)}
-    </span>
+    </NumericText>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { cellClassFor } from "@/lib/cell-styles";
 import { useFormatContext } from "@/hooks/use-format";
 import { diffOf, formatByKind, isNumericKind, tooltipOf } from "./import-model";
 import type { ImportColumn, ImportEntry } from "./import-types";
@@ -25,14 +26,19 @@ export function ImportDiffCell({ entry, column }: Props) {
   const ctx = useFormatContext();
   const { current, old, hasDiff } = diffOf(entry, column);
   const currentText = formatByKind(current, column.kind, ctx);
-  // Amounts, year and month read as monospaced digits, as they do in the invoice lists (see isNumericKind).
-  const numeric = isNumericKind(column.kind);
+  // Amounts, year and month read as monospaced digits and cost units monospaced, as in every other table
+  // (see lib/cell-styles).
+  const numberClass = isNumericKind(column.kind)
+    ? cellClassFor("numeric")
+    : column.kind === "cost"
+      ? cellClassFor("cost")
+      : undefined;
   const tooltip = tooltipOf(entry, column);
 
   if (!column.diff || !hasDiff) {
     return (
       <span
-        className={cn("block truncate", numeric && "tabular-nums")}
+        className={cn("block truncate", numberClass)}
         data-tooltip={tooltip}
       >
         {currentText}
@@ -44,19 +50,11 @@ export function ImportDiffCell({ entry, column }: Props) {
   return (
     <span className="flex flex-col leading-tight" data-tooltip={tooltip}>
       <span
-        className={cn(
-          "truncate text-brand-pink line-through",
-          numeric && "tabular-nums"
-        )}
+        className={cn("truncate text-brand-pink line-through", numberClass)}
       >
         {oldText}
       </span>
-      <span
-        className={cn(
-          "truncate text-brand-green-dark",
-          numeric && "tabular-nums"
-        )}
-      >
+      <span className={cn("truncate text-brand-green-dark", numberClass)}>
         {currentText}
       </span>
     </span>

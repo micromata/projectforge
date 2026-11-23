@@ -136,6 +136,7 @@ export const CREDITOR_INVOICE_PAGE = definePage<
       labelKey: "fibu.kost1",
       accessor: (row) => row.kost1List ?? "",
       size: 150,
+      kind: "cost",
       tooltip: (row) => row.kost1Info,
     },
     {
@@ -143,6 +144,7 @@ export const CREDITOR_INVOICE_PAGE = definePage<
       labelKey: "fibu.kost2",
       accessor: (row) => row.kost2List ?? "",
       size: 150,
+      kind: "cost",
       tooltip: (row) => row.kost2Info,
     },
     editorsColumn<CreditorInvoiceListRow>(),
