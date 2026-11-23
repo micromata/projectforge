@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.2.14 released",
       "tag": "9.2.14-RELEASE",
       "downloadLink": true,
+      "sha256": "48930854872495922330e152f51c47a40ecf79ecebb8dc4859bd1f10da017f48",
       "summary": [
         "**Order book**: filter \"Forecast invoicing\" with a period",
         "**Forecast**: payment schedule stays in its month",

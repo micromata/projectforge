@@ -68,6 +68,7 @@
       "title" : "ProjectForge 9.2.14 released",
       "tag" : "9.2.14-RELEASE",
       "downloadLink" : true,
+      "sha256" : "48930854872495922330e152f51c47a40ecf79ecebb8dc4859bd1f10da017f48",
       "summary" : [ "**Order book**: filter \"Forecast invoicing\" with a period", "**Forecast**: payment schedule stays in its month", "**First setup**: simplified terminal wizard, settings take effect at once", "**Second factor**: SSO login can count as one, passkey recommendation", "**Chat**: preview of PDFs and text files" ],
       "overview" : [ "**Order book:** the new filter \"Forecast invoicing\" lists the orders the forecast expects to invoice in a period, with the amount in the column \"Forecast in period\" and its sum in the statistics line.", "**Forecast:** the amount of a payment schedule stays in the month of its date; the rest of a position is distributed on top of it instead of replacing it.", "**First setup:** the graphical and the full-screen terminal wizard are replaced by a small terminal menu; currency, language, time notation and first day of the week are chosen in the browser and take effect without a restart, and the currency symbol of new installations is shown correctly.", "**Second factor:** with `projectforge.2fa.ssoAmrValues` an SSO login counts as a second factor if the SSO server reports a matching authentication method; users without a passkey get a strong recommendation to set one up.", "**Chat:** PDFs and text files of a message can be previewed like attachments elsewhere." ],
       "sections" : [ {

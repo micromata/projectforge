@@ -15,6 +15,9 @@ Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
 [.changelog-source]
 __2026-11-23, Tag https://github.com/micromata/projectforge/tree/9.2.14-RELEASE[9.2.14-RELEASE]__ +++{% include release-pills.html tag="9.2.14-RELEASE" docker="9.2.14" %}+++
 
+[.changelog-checksum]
+SHA-256 von projectforge-application-9.2.14.jar: `+48930854872495922330e152f51c47a40ecf79ecebb8dc4859bd1f10da017f48+`
+
 - **Auftragsbuch**: Filter „Forecast-Fakturierung“ mit Zeitraum
 - **Forecast**: Zahlungsplan bleibt in seinem Monat
 - **Erstsetup**: vereinfachter Terminal-Wizard, Einstellungen wirken sofort
