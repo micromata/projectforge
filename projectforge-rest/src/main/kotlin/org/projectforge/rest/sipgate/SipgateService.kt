@@ -188,6 +188,7 @@ open class SipgateService {
       limit: Int = 5000,
       maxNumberOfPages: Int = 100,
       debugConsoleOutForTesting: Boolean = false,
+      throwOnError: Boolean = false,
     ): List<T> {
       try {
         // Parameters: limit=<pagesize>, offset=<page>
@@ -225,9 +226,11 @@ open class SipgateService {
         } else {
           log.error(ex) { "Can't read entries of type $entityName: ${ex.message}" }
         }
+        if (throwOnError) throw ex
         return mutableListOf()
       } catch (ex: Exception) {
         log.error(ex) { "Can't read entries of type $entityName (may-be no access): ${ex.message}" }
+        if (throwOnError) throw ex
         return mutableListOf()
       }
     }

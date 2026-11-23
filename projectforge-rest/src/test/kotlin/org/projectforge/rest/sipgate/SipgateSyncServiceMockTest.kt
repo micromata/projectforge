@@ -111,7 +111,12 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
     private inner class MockContactService : SipgateContactService() {
         val contactList = createContactList()
 
-        override fun getList(offset: Int, limit: Int, maxNumberOfPages: Int): List<SipgateContact> {
+        override fun getList(
+            offset: Int,
+            limit: Int,
+            maxNumberOfPages: Int,
+            throwOnError: Boolean,
+        ): List<SipgateContact> {
             return contactList
         }
 

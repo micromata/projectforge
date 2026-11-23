@@ -57,7 +57,16 @@ abstract class AbstractSipgateEntityService<T>(
 
   abstract fun setId(obj: T, id: String)
 
-  open fun getList(offset: Int = 0, limit: Int = 5000, maxNumberOfPages: Int = 100): List<T> {
+  /**
+   * @param throwOnError If true, a failing request is rethrown instead of answering an empty list. A caller that
+   * derives deletions or creations from the list must not mistake a failed read for "nothing exists remotely".
+   */
+  open fun getList(
+    offset: Int = 0,
+    limit: Int = 5000,
+    maxNumberOfPages: Int = 100,
+    throwOnError: Boolean = false,
+  ): List<T> {
     return SipgateService.getList(
       webClient,
       sipgateClient,
@@ -68,6 +77,7 @@ abstract class AbstractSipgateEntityService<T>(
       maxNumberOfPages = maxNumberOfPages,
       debugConsoleOutForTesting = debugConsoleOutForTesting,
       listDataClass = listDataClass,
+      throwOnError = throwOnError,
     )
   }
 

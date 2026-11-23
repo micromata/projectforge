@@ -889,7 +889,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     private fun updateSyncObjects(syncContext: SyncContext) {
         // Get remote contacts and local addresses
         syncContext.remoteContacts =
-            sipgateContactService.getList().filter { it.scope == SipgateContact.Scope.SHARED }.toMutableList()
+            sipgateContactService.getList(throwOnError = true).filter { it.scope == SipgateContact.Scope.SHARED }.toMutableList()
         log.info { "Trying to match ${syncContext.remoteContacts.size} remote contacts." }
         // Load already matched contacts
         syncContext.syncDOList = loadAll().toMutableList()

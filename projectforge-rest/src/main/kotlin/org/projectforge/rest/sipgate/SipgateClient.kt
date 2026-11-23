@@ -133,7 +133,11 @@ class SipgateClient {
           if (debugConsoleOutForTesting) {
             println("Error: ${response.statusCode()}")
           }
-          throw HttpException(response.statusCode(), "Error response: ${response.statusCode()}")
+          // The body of an error answer holds Sipgate's reason (e.g. which field is invalid): keep it for the log.
+          return@exchangeToMono response.bodyToMono(String::class.java).defaultIfEmpty("").flatMap { body ->
+            val reason = if (body.isBlank()) "" else ": ${body.take(500)}"
+            Mono.error<T>(HttpException(response.statusCode(), "Error response: ${response.statusCode()}$reason"))
+          }
         }
       }
       .block()
