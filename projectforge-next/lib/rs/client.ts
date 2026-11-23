@@ -19,6 +19,25 @@ export class RsError extends Error {
   }
 }
 
+let networkErrorText: (() => string) | null = null;
+
+/** The localized text for a request that never reached the server (registered by the app shell). */
+export function setNetworkErrorText(text: (() => string) | null): void {
+  networkErrorText = text;
+}
+
+/**
+ * A fetch that never reached the server rejects with the browser's own text ("NetworkError when attempting
+ * to fetch resource."), English and technical: replace it by the user's language where the shell has
+ * registered one. An abort stays an AbortError, which callers rely on.
+ */
+function rethrowNetworkError(e: unknown): never {
+  if (e instanceof TypeError && networkErrorText) {
+    throw new RsError(0, networkErrorText());
+  }
+  throw e;
+}
+
 // Body Spring sends (403) when My2FARequestHandler demands a second factor for a
 // protected action, see RestAuthenticationUtils.doFilter / TwoFactorRequired.
 interface TwoFactorRequiredBody {
@@ -138,7 +157,7 @@ export async function rawRequest(
         : {}),
       ...(init.headers ?? {}),
     },
-  });
+  }).catch(rethrowNetworkError);
   if (res.status === 403) {
     const body = (await res
       .clone()

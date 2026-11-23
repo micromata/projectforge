@@ -15,6 +15,11 @@ Nutzer außerhalb von Finance sollen sich nicht mit Buchungskonten beschäftigen
 - Der Button „aus Konto ergänzen“ im Auftrag holt die Kontaktdaten serverseitig. Nutzer sehen nur die übernommenen Werte,
   nie das Konto.
 
+**Überholt diese Empfehlung teilweise:** Finance sagt, das DATEV-Konto ist der Debitor, also die Firma, die zahlt, und
+sie kann vom Kunden abweichen (Konzern als Kunde, Rechnungen an Töchter). `kunde.konto` ist dann das falsche Konto. Es
+braucht einen Weg, den Debitor am Auftrag festzulegen, ohne dass Nutzer ohne Kontorecht Konten lesen. Entschieden, siehe
+[Debitor am Auftrag](#debitor-am-auftrag).
+
 ## Reihenfolge
 
 | Schritt | Inhalt                                                                                              | Stand       |
@@ -23,9 +28,9 @@ Nutzer außerhalb von Finance sollen sich nicht mit Buchungskonten beschäftigen
 | 1       | Kontoliste: Filter Debitoren / Kreditoren / Sachkonten (konfigurierte Nummernkreise, `AccountingConfig`) | umgesetzt   |
 | 2       | Kontomaske: BT-58 unter BT-56, BT-Nummern an den Feldern, fehlende gängige BT-Felder (siehe unten)  | teils       |
 | 3       | Auftrag: BT-12, BT-13 (`customerOrderNumber`, auch Position), BT-19, BT-56/58 mit Vorrang vor dem Konto, Leistungszeitraum (BT-73/74) im Zahlplan | umgesetzt (ohne Snapshots/Excel) |
-| 4       | Rechnung auf Knopfdruck, Variante 1 (Gesamtauftrag, Position, Zahlplanposition)                      | offen       |
+| 4       | Rechnung auf Knopfdruck, Variante 1 (Gesamtauftrag, Position, Zahlplanposition)                      | in Arbeit (Zahlplanposition-Button fehlt noch im Plan) |
 | 5       | Rechnungsassistent (Variante 2)                                                                      | später      |
-| 6       | Kunden-Datenabgleichsblatt als PDF aus der Kontomaske                                                 | offen       |
+| 6       | Kunden-Datenabgleichsblatt als PDF aus der Kontomaske                                                 | umgesetzt   |
 
 ## Bereits vorhanden
 
@@ -53,3 +58,23 @@ Zahlungsbedingungen, Käufer-Referenz), ist offen und kommt mit den Fragen an Fi
   und füllt nur Leeres; Voraussetzung ist das Recht, Aufträge anzulegen.
 - Bewusst nicht ergänzt: Orderbook-Snapshots (`orderbooksnapshots/*`) und die Excel-Exporte (`OrderExport`,
   `ForecastExport`); sie brauchen die Rechnungsdaten nicht. Bei Bedarf nachziehen.
+
+## Lücken gegenüber dem Anforderungsdokument
+
+- **Debitor am Auftrag:** siehe oben und unten.
+- **Button je Zahlplanposition:** Das Dokument nennt drei Buttons (Gesamtauftrag, Position, Zahlplanposition). Der Plan in
+  `invoice-from-order.md` kennt nur Gesamtauftrag und Position; Raten fließen in die Position ein. Ein Link je Rate fehlt.
+- **Mehrere Bestellnummern beim Gesamtauftrag:** Haben die Positionen unterschiedliche Bestellnummern des Kunden, müssen
+  getrennte Rechnungen entstehen. Beim Button „Gesamtauftrag“ ist offen, ob er dann fragt, warnt oder pro Nummer eine
+  Rechnung vorschlägt. Der Wizard (Schritt 5) gibt in diesem Fall eine Fehlermeldung aus.
+- **Auswahlfenster bei mehreren Positionen:** im Plan durch Buttons je Position ersetzt; Finance bestätigen lassen.
+- **Wizard (Variante 2):** Fragen „Zahlplan oder Positionsbereich?“ und „Welche Positionen?“ plus Validierung der
+  Bestellnummern. Zukunftsidee: weitere Freitext-Positionen (z. B. weiterberechnete Tokenkosten).
+- **Weitere gängige BT-Felder am Konto** und das **Datenabgleichsblatt** (Schritt 6) sind offen.
+
+## Debitor am Auftrag
+
+Entschieden: Nur Finance füllt das Feld (Debitor, `KontoDO` des Zahlers). Für Nutzer ohne Kontorecht ist es schreibgeschützt
+(Nummer und Name, ohne Lesezugriff auf das Konto). Ohne Eintrag gilt `kunde.konto`. Der Server nimmt das Feld nur von
+Nutzern mit Kontorecht an, ein gesendeter Wert von anderen wird ignoriert. Eine Pflicht bei „beauftragt“ und die Option
+„anlegen“ mit Mail gibt es nicht.

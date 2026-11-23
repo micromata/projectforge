@@ -1,6 +1,6 @@
 # Rechnung aus dem Auftrag anlegen
 
-**Status:** Plan, nicht begonnen. Wartet auf die Rücksprache mit Finance (siehe [Offene Fragen](#offene-fragen-an-finance)).
+**Status:** Plan, nicht begonnen. Finance hat geantwortet, die Entscheidungen stehen unter [Entscheidungen von Finance](#entscheidungen-von-finance).
 
 ## Ausgangslage
 
@@ -86,18 +86,24 @@ Vorbelegung geht beim Reload verloren.
 - Im Browser: Auftrag mit Zahlplan, ganzer Auftrag und einzelne Position; ohne Rechnungsrecht ist kein Button zu
   sehen.
 
-## Offene Fragen an Finance
+## Entscheidungen von Finance
 
-1. Ist die Betragsregel oben richtig, also fällige Zahlplanraten, sonst der Rest? Oder lieber immer der Rest, oder
-   den Betrag leer lassen?
-2. Nicht fällige Raten: weglassen (Vorschlag), oder mit Betrag 0 übernehmen?
-3. Positionstext: nur der Titel der Auftragsposition, oder Titel und Bemerkung? Bei einer Rate der Kommentar der
-   Rate?
-4. Abrechnung nach Personentagen: Menge = Personentage und Einzelpreis = Tagessatz, statt Menge 1 und Gesamtbetrag?
-5. Betreff: der Titel des Auftrags, oder leer?
-6. Zahlungsziel: Es gibt keinen Standard je Kunde/Konto. Leer lassen, oder das der letzten Rechnung des Kunden
-   übernehmen?
-7. Sollen Kostenzuweisungen (Kost1/Kost2) vorbelegt werden, z. B. Kost2 aus dem Projekt?
-8. Ist die Kundenreferenz am Auftrag tatsächlich die Bestellnummer des Kunden, oder steht dort auch anderes (alte
-   Auftragsnummern)? Davon hängt ab, ob sie als BT-13 übernommen werden darf.
-9. Ist ein Rücksprung zum Auftrag nach dem Speichern nötig?
+1. **Positionstext:** Titel der Auftragsposition. Bei einer Zahlplanrate kommen Position und Bemerkung der Rate in den Text.
+2. **Einheit:** Bei der Menge ist eine Einheit wählbar (Stunden, Tage, Stück). Im Auftragsbuch kommt ein Tagessatz bzw.
+   Stundensatz dazu, aus dem sich der Betrag berechnet.
+3. **Betreff:** Titel des Auftrags.
+4. **Zahlungsziel:** In den Stammdaten des Kontos hinterlegt (z. B. 90 Tage); die Rechnung übernimmt es von dort.
+5. **Kostenzuweisungen:** werden vorbelegt.
+6. **Bestellnummer:** Die Nummer der Position hat Vorrang. Fehlt sie, gilt die aus dem Reiter Rechnungsdaten des Auftrags.
+7. **Zahlplan:** Die Position ist Pflichtfeld; es gilt die Bestellnummer der Position.
+8. **Raten ohne Position** gibt es nicht, Raten und Positionen mischen sich also nicht. Die Sonderregel oben entfällt.
+
+### Debitor
+
+Das DATEV-Konto ist der Debitor, die Firma, die zahlt. Er kann vom Kunden abweichen (Konzern als Kunde, Rechnungen an
+Töchter) und lässt sich daher nicht aus dem Kunden ableiten. Nur Finance hat Zugriff auf die Konten: Die Vorbelegung setzt
+das Konto nur, wenn es eindeutig feststeht; ein Auswahlfeld dafür bekommen nur Nutzer mit Konto-Recht.
+
+### Weiter als Annahme
+
+Betragsregel wie oben (mit Satz: Menge × Satz), nicht fällige Raten entfallen, kein Rücksprung zum Auftrag nach dem Speichern.
