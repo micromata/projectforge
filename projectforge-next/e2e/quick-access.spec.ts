@@ -245,8 +245,10 @@ async function focusSearch(page: Page, format: UserFormat): Promise<Locator> {
   await expect(async () => {
     await page.getByRole("button", { name: menuTrigger(format) }).click();
     await expect(field).toBeVisible({ timeout: 1000 });
+    // Inside the retry: a page that is still settling (a calendar right after a navigation) can close
+    // the panel again after the field showed, which a check outside would wait on in vain.
+    await expect(results(page)).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 30_000 });
-  await expect(results(page)).toBeVisible();
   return field;
 }
 
