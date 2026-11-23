@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "CVE-Pilot: counts (findings, libraries, entries) are shown in the number format of the user, with thousands separators.",
-  "de": "CVE-Pilot: Anzahlen (Findings, Bibliotheken, Einträge) werden im Zahlenformat des Benutzers mit Tausendertrennzeichen angezeigt."
-}

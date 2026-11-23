@@ -1,13 +1,65 @@
 ---
 title: "ProjectForge 9"
 date: 2026-11-23
-sort_key: "2026-11-23 0063"
+sort_key: "2026-11-23 0064"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-2-15.changelog-release]
+=== ProjectForge 9.2.15 released
+
+[.changelog-source]
+__2026-11-23, tag https://github.com/micromata/projectforge/tree/9.2.15-RELEASE[9.2.15-RELEASE]__ +++{% include release-pills.html tag="9.2.15-RELEASE" docker="9.2.15" mini=true %}+++
+
+- **Accounts**: customer data sheet as PDF
+- **Lists**: "Copy table" for Excel and Numbers
+- **Order book statistics**: third comparison year, periods named
+- **Sipgate**: failed read no longer wipes the contact sync
+- **CVE-Pilot**: number format, upload buttons always visible
+
+.Overview
+[%collapsible]
+====
+- **Accounts:** the e-invoice block has a button "Customer data sheet" that creates a PDF with the invoice data of the account, to send to the customer for checking.
+- **Lists:** the export menu has a new entry "Copy table" that puts the header and all rows of the current filter on the clipboard, ready to paste into Excel or Numbers.
+- **Order book statistics:** contribution margin and forecast get a third comparison period, and comparison columns, tiles and chart lines name their period (e.g. "2024/2025") instead of "previous year".
+- **Tables:** cost unit numbers (Kost1/Kost2) are shown in a monospaced font in all lists, like amounts.
+- **Sipgate:** if reading the remote contacts fails, the contact sync is aborted instead of treating all contacts as missing; error answers now log their reason.
+- **CVE-Pilot:** counts are shown in the number format of the user, and the buttons for uploading libraries stay visible at the bottom of the dialog.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Accounts: the e-invoice block has a new button "Customer data sheet" that creates a PDF with the invoice data of the account (what is known is filled in, the rest is blank), to send to the customer for checking.
+- Lists: the export menu has a new entry "Copy table" that puts the header and all rows of the current filter on the clipboard, ready to paste into Excel or Numbers.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Tables: cost unit numbers (Kost1/Kost2) are shown in a monospaced font in all lists, like amounts, so they line up.
+- CVE-Pilot: the buttons for uploading libraries (SBOM etc.) stay visible at the bottom of the dialog and no longer need scrolling.
+- CVE-Pilot: counts (findings, libraries, entries) are shown in the number format of the user, with thousands separators.
+- Order book statistics (contribution margin and forecast): a third comparison period, three years before the selected start, in the figures, tables, tabs and charts. The Excel export of the forecast is unchanged.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Order book statistics (contribution margin and forecast): the comparison columns, tiles and chart lines name their period (e.g. "2024/2025", or "2024" for a calendar year) instead of "previous year" and "year before previous year".
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Sipgate: if reading the remote contacts fails, the contact sync is aborted instead of treating all contacts as missing (which deleted the sync records and tried to create every contact again on each run). Error answers of Sipgate now log the reason they carry.
+====
 
 [discrete#release-9-2-14.changelog-release]
 === ProjectForge 9.2.14 released
