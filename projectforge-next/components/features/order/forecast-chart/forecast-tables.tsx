@@ -40,7 +40,6 @@ export function ForecastTables({
   params: ForecastChartSettings;
   enabled: boolean;
 }) {
-  const t = useStatisticsLabels();
   const [tab, setTab] = useState("projects");
   /** The project the positions were opened for from the overview; cleared by any other tab change. */
   const [focusProjectId, setFocusProjectId] = useState<number | null>(null);
@@ -53,6 +52,7 @@ export function ForecastTables({
     enabled,
     placeholderData: keepPreviousData,
   });
+  const t = useStatisticsLabels(query.data?.months[0]);
   if (query.isError) {
     return (
       <p className="text-sm text-destructive">

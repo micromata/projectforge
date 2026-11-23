@@ -1,3 +1,4 @@
+import { previousPeriodLabels } from "@/lib/period-label";
 import type { ChartConfig } from "@/components/ui/chart";
 import { niceScale, type AxisScale } from "@/lib/chart-scale";
 import { CHART_ROLE } from "@/lib/charts/roles";
@@ -48,16 +49,21 @@ export interface ContributionMarginChartRow {
 }
 
 export function contributionMarginChartConfig(
-  t: (key: string) => string
+  t: (key: string, values?: Record<string, string>) => string,
+  firstMonth?: string | null
 ): ChartConfig {
+  const period = previousPeriodLabels(firstMonth);
   return {
     revenue: { label: t("revenue"), color: CHART_ROLE.positive },
     costs: { label: t("costs"), color: CHART_ROLE.negative },
     profit: { label: t("profit"), color: YEAR_COLOR.current },
-    prevYear: { label: t("prevYear"), color: YEAR_COLOR.prevYear },
+    prevYear: {
+      label: t("prevYear", { arg0: period.prevYear }),
+      color: YEAR_COLOR.prevYear,
+    },
     percentage: { label: t("percentage"), color: YEAR_COLOR.current },
     prevYearPercentage: {
-      label: t("prevYearPercentage"),
+      label: t("prevYearPercentage", { arg0: period.prevYear }),
       color: YEAR_COLOR.prevYear,
     },
   };

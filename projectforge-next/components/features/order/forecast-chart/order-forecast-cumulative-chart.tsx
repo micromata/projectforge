@@ -34,7 +34,10 @@ export function OrderForecastCumulativeChart({
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const config = useMemo(() => buildForecastChartConfig(t), [t]);
+  const config = useMemo(
+    () => buildForecastChartConfig(t, data.months[0]),
+    [t, data.months]
+  );
   const rows = useMemo(() => cumulativeRows(data), [data]);
   const keys = useMemo(() => cumulativeLineKeys(data), [data]);
   const showYear = spansMultipleYears(data);

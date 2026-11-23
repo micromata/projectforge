@@ -30,7 +30,7 @@ export function ForecastProjectTable({
   /** Opens the positions of the project of the clicked row. */
   onProjectClick: (projectId: number) => void;
 }) {
-  const t = useStatisticsLabels();
+  const t = useStatisticsLabels(tables.months[0]);
   const ctx = useFormatContext();
   const rows = tables.projects;
   const withPlan = rows.some((row) => row.plan != null);

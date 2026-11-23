@@ -2,16 +2,21 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { previousPeriodLabels } from "@/lib/period-label";
 
 /**
  * The column and tab labels of the data tables of the order statistics, in one place. Most are the
  * bundle's shared keys (customer, project, cost units, the order and invoice fields, the series of the
  * charts); only what has no key elsewhere lives under `fibu.auftrag.statistics.tables`.
+ *
+ * [firstMonth] (`yyyy-MM`) is the first month of the 12 months window of the tables: the labels of the two
+ * comparison periods name their years (`2024/2025`) instead of "previous year".
  */
-export function useStatisticsLabels() {
+export function useStatisticsLabels(firstMonth?: string | null) {
   const t = useTranslations();
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    const period = previousPeriodLabels(firstMonth);
+    return {
       // Shared keys:
       customer: t("fibu.kunde._"),
       project: t("fibu.projekt._"),
@@ -41,8 +46,12 @@ export function useStatisticsLabels() {
       difference: t("fibu.common.difference"),
       forecast: t("fibu.auftrag.forecast.chart.total"),
       plan: t("fibu.auftrag.forecast.chart.plan"),
-      prevYear: t("fibu.auftrag.forecast.chart.prevYear"),
-      prevPrevYear: t("fibu.auftrag.forecast.chart.prevPrevYear"),
+      prevYear: t("fibu.auftrag.forecast.chart.prevYear", {
+        arg0: period.prevYear,
+      }),
+      prevPrevYear: t("fibu.auftrag.forecast.chart.prevPrevYear", {
+        arg0: period.prevPrevYear,
+      }),
       revenue: t("fibu.auftrag.contributionMargin.revenue"),
       costs: t("fibu.auftrag.contributionMargin.costs"),
       profit: t("fibu.auftrag.contributionMargin.profit"),
@@ -55,9 +64,14 @@ export function useStatisticsLabels() {
       // Only here:
       heading: t("fibu.auftrag.statistics.tables.heading"),
       months: t("fibu.auftrag.statistics.tables.months"),
-      invoicesPrevYear: t("fibu.auftrag.statistics.tables.invoicesPrevYear"),
+      invoicesPrevYear: t("fibu.auftrag.statistics.tables.invoicesPrevYear", {
+        arg0: period.prevYear,
+      }),
       invoicesPrevPrevYear: t(
-        "fibu.auftrag.statistics.tables.invoicesPrevPrevYear"
+        "fibu.auftrag.statistics.tables.invoicesPrevPrevYear",
+        {
+          arg0: period.prevPrevYear,
+        }
       ),
       orderStatus: t("fibu.auftrag.statistics.tables.orderStatus"),
       positionStatus: t("fibu.auftrag.statistics.tables.positionStatus"),
@@ -66,9 +80,8 @@ export function useStatisticsLabels() {
       warning: t("fibu.auftrag.statistics.tables.warning"),
       forecastDetails: t("fibu.auftrag.statistics.tables.forecastDetails"),
       preliminaryLegend: t("fibu.auftrag.statistics.tables.preliminaryLegend"),
-    }),
-    [t]
-  );
+    };
+  }, [t, firstMonth]);
 }
 
 export type StatisticsLabels = ReturnType<typeof useStatisticsLabels>;
