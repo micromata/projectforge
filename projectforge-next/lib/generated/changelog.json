@@ -3,9 +3,12 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.14",
-    "date" : "2026-11-22",
+    "date" : "2026-11-23",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Lists: the export menu has a new entry \"Copy table\" that puts the header and all rows of the current filter on the clipboard, ready to paste into Excel or Numbers." ]
+    }, {
       "type" : "fixed",
       "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one.", "{app} Setting up a passkey: the app cannot register one itself, so the setup page now continues in the browser of the device. Pages of the server can ask the app to show them in the browser, as the \"Open in browser\" menu entry does for every page.", "{app} Refused by the SSO proxy: one browser login is enough for all open tabs, a cancelled login is not opened again by the next request, and the notice of the expired SSO login disappears right after the login." ]
     } ]

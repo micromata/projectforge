@@ -14,7 +14,7 @@ import {
 } from "@/lib/page-def/define-page";
 import type { ColumnDeclaration } from "@/lib/page-def/types";
 import { inactiveRefClass, type InactiveFlags } from "@/lib/page-def/reference";
-import { declaredCell } from "./declared-cell";
+import { declaredCell, declaredCellText } from "./declared-cell";
 import { periodColumnDef } from "./declared-period-column";
 
 /** A field the entity has no metadata for (a computed column) is plain text. */
@@ -83,6 +83,8 @@ export function useDeclaredColumns<
           filterKind: filterKind ?? undefined,
           wrap: declaration.wrap,
           cellClassName: declaration.cellClassName,
+          exportText: (value: unknown) =>
+            declaredCellText(value, field, { format, t: translate }),
         },
         // Left to the table's default (sortable) unless the declaration opts out — see
         // ColumnBase.sortable.

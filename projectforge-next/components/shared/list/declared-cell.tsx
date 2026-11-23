@@ -118,3 +118,34 @@ function cellText(value: unknown): string {
   }
   return String(value);
 }
+
+/**
+ * The plain text of what [declaredCell] shows for the same value, for the clipboard copy of a table:
+ * formatted exactly as in the cell (amount, date, enum text), a reference by its display name, several
+ * references joined by a comma, a boolean as yes/no. Empty for no value.
+ */
+export function declaredCellText(
+  value: unknown,
+  field: FieldMetadata,
+  { format, t }: Pick<DeclaredCellContext, "format" | "t">
+): string {
+  if (value == null || value === "") return "";
+  const enumValue = field.enumValues?.find((v) => v.value === value);
+  if (enumValue)
+    return enumValue.i18nKey ? t(enumValue.i18nKey) : enumValue.value;
+  switch (field.dataType) {
+    case "BOOLEAN":
+      return value === true || value === "true" ? t("yes") : t("no");
+    case "TIMESTAMP":
+      return formatTimestampMinutes(value, format);
+    case "DATE":
+      return formatDate(value, format);
+    case "AMOUNT":
+      return formatCurrency(value, format);
+    case "DECIMAL":
+      return formatNumber(value, format, 2);
+    default:
+      if (Array.isArray(value)) return value.map(cellText).join(", ");
+      return cellText(value);
+  }
+}

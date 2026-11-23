@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   DataTable,
+  CopyTableProvider,
   DataTableColumnPanel,
   FilterFavoritesMenu,
   FilterPills,
@@ -15,6 +16,7 @@ import {
   useStoredColumnState,
   type ColumnState,
 } from "@/components/data-table";
+import { CopyOnlyExportMenu } from "@/components/shared/list/copy-only-export-menu";
 import { ScriptPageButtons } from "@/components/features/script/script-page-buttons";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { PageShell } from "@/components/shared/page-shell";
@@ -376,87 +378,94 @@ function DeclaredList<
   const content = (
     <ListPageShell
       toolbar={
-        <ListToolbar
-          compact={embedded && compact}
-          lead={toolbarLead}
-          viewSwitch={viewSwitch}
-          // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
-          // heading and the parent of `task.title.list.select`), and the bare key would throw.
-          title={t(leafKeyOf(page.titleKey, t.has))}
-          // Through leafKeyOf too: `menu.fibu` is a label and the parent of the finance menu entries.
-          category={t(leafKeyOf(page.categoryKey, t.has))}
-          searchValue={list.globalFilter}
-          onSearchChange={list.setGlobalFilter}
-          // Only where this user may add one: without the right the button is left out, as the
-          // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
-          addHref={targets.canAdd ? targets.addHref : undefined}
-          experimental={page.experimental}
-          selectionActive={mode.active}
-          selectionToggle={
-            page.massUpdate &&
-            updateAccess !== false && (
-              <SelectionModeToggle
-                active={mode.active}
-                onToggle={() => (mode.active ? mode.leave() : mode.enter())}
-              />
-            )
-          }
-          actions={
-            <>
-              {ListActions && <ListActions filter={list.filter} />}
-              {/* Not on a transient jump: the scripts get the stored filter, which isn't this one. */}
-              {!transient && (
-                <ScriptPageButtons target={`list:${page.entity}`} />
-              )}
-            </>
-          }
-          menu={ListMenu && <ListMenu />}
-          gearMenu={
-            <ListGearMenu entity={page.entity}>
-              {GearMenuActions && <GearMenuActions />}
-            </ListGearMenu>
-          }
-          // The result hit the backend's row cap, so it is incomplete — a prominent red warning
-          // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap
-          // that was reached (see useMagicFilterQuery.truncated). Beside it the backend's warning about
-          // the result (a time sheet filter too vague to list anything), in the same place.
-          notice={
-            (list.truncated || list.resultWarning) && (
-              <>
-                {list.truncated && (
-                  <ListTruncationNotice count={list.rowCount} />
-                )}
-                {list.resultWarning && (
-                  <ListNotice tone="warning">{list.resultWarning}</ListNotice>
-                )}
-              </>
-            )
-          }
-          columnPanel={
-            <DataTableColumnPanel
-              table={list.table}
-              onReset={list.resetColumns}
-              className="h-6 rounded-full px-2.5 text-xs"
-            />
-          }
-          filterCount={Object.keys(list.filters.values).length}
-          filterPills={
-            <FilterPills
-              elements={list.filters.elements}
-              values={list.filters.values}
-              onChange={list.applyValues}
-              searchString={list.filter.searchString}
-              periodKinds={page.filterPeriodKinds}
-              defaultPeriodKind={page.filterDefaultPeriodKind}
-              trailing={
-                <FilterFavoritesMenu
-                  favorites={list.favorites}
-                  className="h-6 gap-1 rounded-full px-2.5 text-xs"
+        <CopyTableProvider
+          table={table}
+          entity={page.entity}
+          filter={list.filter}
+        >
+          <ListToolbar
+            compact={embedded && compact}
+            lead={toolbarLead}
+            viewSwitch={viewSwitch}
+            // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
+            // heading and the parent of `task.title.list.select`), and the bare key would throw.
+            title={t(leafKeyOf(page.titleKey, t.has))}
+            // Through leafKeyOf too: `menu.fibu` is a label and the parent of the finance menu entries.
+            category={t(leafKeyOf(page.categoryKey, t.has))}
+            searchValue={list.globalFilter}
+            onSearchChange={list.setGlobalFilter}
+            // Only where this user may add one: without the right the button is left out, as the
+            // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
+            addHref={targets.canAdd ? targets.addHref : undefined}
+            experimental={page.experimental}
+            selectionActive={mode.active}
+            selectionToggle={
+              page.massUpdate &&
+              updateAccess !== false && (
+                <SelectionModeToggle
+                  active={mode.active}
+                  onToggle={() => (mode.active ? mode.leave() : mode.enter())}
                 />
-              }
-            />
-          }
-        />
+              )
+            }
+            actions={
+              <>
+                {ListActions && <ListActions filter={list.filter} />}
+                {/* Not on a transient jump: the scripts get the stored filter, which isn't this one. */}
+                {!transient && (
+                  <ScriptPageButtons target={`list:${page.entity}`} />
+                )}
+                <CopyOnlyExportMenu />
+              </>
+            }
+            menu={ListMenu && <ListMenu />}
+            gearMenu={
+              <ListGearMenu entity={page.entity}>
+                {GearMenuActions && <GearMenuActions />}
+              </ListGearMenu>
+            }
+            // The result hit the backend's row cap, so it is incomplete — a prominent red warning
+            // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap
+            // that was reached (see useMagicFilterQuery.truncated). Beside it the backend's warning about
+            // the result (a time sheet filter too vague to list anything), in the same place.
+            notice={
+              (list.truncated || list.resultWarning) && (
+                <>
+                  {list.truncated && (
+                    <ListTruncationNotice count={list.rowCount} />
+                  )}
+                  {list.resultWarning && (
+                    <ListNotice tone="warning">{list.resultWarning}</ListNotice>
+                  )}
+                </>
+              )
+            }
+            columnPanel={
+              <DataTableColumnPanel
+                table={list.table}
+                onReset={list.resetColumns}
+                className="h-6 rounded-full px-2.5 text-xs"
+              />
+            }
+            filterCount={Object.keys(list.filters.values).length}
+            filterPills={
+              <FilterPills
+                elements={list.filters.elements}
+                values={list.filters.values}
+                onChange={list.applyValues}
+                searchString={list.filter.searchString}
+                periodKinds={page.filterPeriodKinds}
+                defaultPeriodKind={page.filterDefaultPeriodKind}
+                trailing={
+                  <FilterFavoritesMenu
+                    favorites={list.favorites}
+                    className="h-6 gap-1 rounded-full px-2.5 text-xs"
+                  />
+                }
+              />
+            }
+          />
+        </CopyTableProvider>
       }
       banner={page.statistics?.({
         statistics: list.statistics,

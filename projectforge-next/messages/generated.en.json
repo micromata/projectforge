@@ -5810,6 +5810,13 @@
     "testSystem": "Test system"
   },
   "table": {
+    "copy": {
+      "_": "Copy table",
+      "description": "Can be imported into Excel, Numbers and the like.",
+      "done": "{arg0} rows copied to the clipboard",
+      "failed": "The table could not be copied.",
+      "truncated": "The result is incomplete: the list hit its row limit. Narrow the filter to copy everything."
+    },
     "showing": "Showing"
   },
   "task": {
