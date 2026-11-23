@@ -47,6 +47,8 @@ function totalOf(
   const prevYearProfit = sum("prevYearProfit");
   const prevPrevYearRevenue = sum("prevPrevYearRevenue");
   const prevPrevYearProfit = sum("prevPrevYearProfit");
+  const prevPrevPrevYearRevenue = sum("prevPrevPrevYearRevenue");
+  const prevPrevPrevYearProfit = sum("prevPrevPrevYearProfit");
   return {
     revenue,
     costs: sum("costs"),
@@ -57,6 +59,12 @@ function totalOf(
     prevYearPercentage: percentageOf(prevYearRevenue, prevYearProfit),
     prevPrevYearRevenue,
     prevPrevYearProfit,
+    prevPrevPrevYearRevenue,
+    prevPrevPrevYearProfit,
+    prevPrevPrevYearPercentage: percentageOf(
+      prevPrevPrevYearRevenue,
+      prevPrevPrevYearProfit
+    ),
     prevPrevYearPercentage: percentageOf(
       prevPrevYearRevenue,
       prevPrevYearProfit
@@ -79,7 +87,9 @@ export function ContributionMarginProjectTable({
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
   const labels = useStatisticsLabels();
-  const { prevYear, prevPrevYear } = previousPeriodLabels(data.months[0]);
+  const { prevYear, prevPrevYear, prevPrevPrevYear } = previousPeriodLabels(
+    data.months[0]
+  );
   const ctx = useFormatContext();
   const { total } = data;
   const withProjectGroup = hasProjectGroup(data.projects);
@@ -108,7 +118,8 @@ export function ContributionMarginProjectTable({
         | "costs"
         | "profit"
         | "prevYearProfit"
-        | "prevPrevYearProfit",
+        | "prevPrevYearProfit"
+        | "prevPrevPrevYearProfit",
       label: string
     ): ColumnDef<Row, unknown> => ({
       id: key,
@@ -121,7 +132,11 @@ export function ContributionMarginProjectTable({
       footer: ({ table }) => money(totalOf(table, total)[key]),
     });
     const percentage = (
-      key: "percentage" | "prevYearPercentage" | "prevPrevYearPercentage",
+      key:
+        | "percentage"
+        | "prevYearPercentage"
+        | "prevPrevYearPercentage"
+        | "prevPrevPrevYearPercentage",
       label: string,
       // The costs, telling a loss without revenue (red "–") from an empty row.
       costs: (row: Row | typeof total) => number
@@ -180,8 +195,27 @@ export function ContributionMarginProjectTable({
         t("prevPrevYearPercentage", { arg0: prevPrevYear }),
         (row) => Math.max(0, -row.prevPrevYearProfit)
       ),
+      amount(
+        "prevPrevPrevYearProfit",
+        t("prevPrevPrevYear", { arg0: prevPrevPrevYear })
+      ),
+      percentage(
+        "prevPrevPrevYearPercentage",
+        t("prevPrevPrevYearPercentage", { arg0: prevPrevPrevYear }),
+        (row) => Math.max(0, -row.prevPrevPrevYearProfit)
+      ),
     ];
-  }, [t, labels, prevYear, prevPrevYear, ctx, data, total, withProjectGroup]);
+  }, [
+    t,
+    labels,
+    prevYear,
+    prevPrevYear,
+    prevPrevPrevYear,
+    ctx,
+    data,
+    total,
+    withProjectGroup,
+  ]);
 
   return (
     <StatisticsTable<Row>

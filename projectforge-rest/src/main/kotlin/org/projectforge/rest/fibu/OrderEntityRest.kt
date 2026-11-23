@@ -1205,7 +1205,9 @@ open class OrderEntityRest : // open: proxied by Spring.
     val magicFilter = statisticsFilterService.saveCurrentFilter(request.filter ?: MagicFilter())
     // Empty months (instead of no body) if neither order positions nor invoices were found:
     return forecastStatistics(magicFilter, settings)?.chart
-      ?: ForecastChartData(emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), null, null)
+      ?: ForecastChartData(
+        emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), emptyList(), null, null,
+      )
   }
 
   /**

@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { Bar, CartesianGrid, ComposedChart, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { useTranslations } from "next-intl";
 import { ChartContainer, ChartLegend } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
@@ -13,6 +20,7 @@ import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
 import type { ForecastChartData } from "@/lib/rs/order";
 import {
   buildForecastChartConfig,
+  hasForecastData,
   formatChartMonth,
   monthlyBarKeys,
   lineDashArray,
@@ -39,7 +47,7 @@ export function OrderForecastMonthlyChart({
   const t = useTranslations();
   const ctx = useFormatContext();
   const config = useMemo(
-    () => buildForecastChartConfig(t, data.months[0]),
+    () => buildForecastChartConfig(t, data.months[0], hasForecastData(data)),
     [t, data.months]
   );
   const rows = useMemo(() => monthlyRows(data), [data]);
@@ -67,6 +75,8 @@ export function OrderForecastMonthlyChart({
       stroke={`var(--color-${key})`}
       strokeWidth={1.5}
       strokeDasharray={lineDashArray(key)}
+      // The years show their line style (dotted or solid) in the legend; the plan keeps its colour square.
+      legendType={key === "plan" ? "rect" : "line"}
       fill={`var(--color-${key})`}
       fillOpacity={CHART_BAR_FILL_OPACITY / 3}
       isAnimationActive={false}
@@ -109,12 +119,25 @@ export function OrderForecastMonthlyChart({
           tickFormatter={(value) => formatCurrency(value, ctx, 0)}
         />
         <ChartValueTooltip
+          labels={{ ist: t("fibu.auftrag.forecast.chart.ist") }}
           config={config}
           formatValue={(value) => formatCurrency(value, ctx, 0)}
           formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
         />
         <ChartLegend
-          content={<SeriesLegendContent config={config} reversed />}
+          content={
+            <SeriesLegendContent
+              config={config}
+              // As the bars from left to right: the plan, the stack from its top down, then the years newest first.
+              order={[
+                "plan",
+                ...[...bars].reverse(),
+                "prevYear",
+                "prevPrevYear",
+                "prevPrevPrevYear",
+              ]}
+            />
+          }
         />
         {compareBars.includes("plan") && compareBar("plan")}
         {bars.map((key) => (
@@ -129,6 +152,15 @@ export function OrderForecastMonthlyChart({
             isAnimationActive={false}
           />
         ))}
+        {/* Invisible: only puts the sum of the stack (invoiced plus all forecast parts) into the tooltip. */}
+        <Line
+          dataKey="stackSum"
+          stroke="none"
+          dot={false}
+          activeDot={false}
+          legendType="none"
+          isAnimationActive={false}
+        />
         {compareBars.filter((key) => key !== "plan").map(compareBar)}
       </ComposedChart>
     </ChartContainer>

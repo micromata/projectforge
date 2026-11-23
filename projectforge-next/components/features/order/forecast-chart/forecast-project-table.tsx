@@ -65,6 +65,12 @@ export function ForecastProjectTable({
         ctx
       ),
       moneyColumn<Row>(
+        "prevPrevPrevYear",
+        t.prevPrevPrevYear,
+        (row) => row.prevPrevPrevYear,
+        ctx
+      ),
+      moneyColumn<Row>(
         "difference",
         t.difference,
         (row) => row.difference,

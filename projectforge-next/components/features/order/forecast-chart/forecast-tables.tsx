@@ -75,6 +75,7 @@ export function ForecastTables({
   const ist = invoices("IST");
   const prevYear = invoices("PREV_YEAR");
   const prevPrevYear = invoices("PREV_PREV_YEAR");
+  const prevPrevPrevYear = invoices("PREV_PREV_PREV_YEAR");
   return (
     <section
       className={cn(
@@ -146,6 +147,17 @@ export function ForecastTables({
             content: (
               <ForecastInvoiceTable
                 rows={prevPrevYear}
+                onOpenForecast={setForecastOrder}
+              />
+            ),
+          },
+          {
+            value: "invoicesPrevPrevPrevYear",
+            label: t.invoicesPrevPrevPrevYear,
+            count: prevPrevPrevYear.length,
+            content: (
+              <ForecastInvoiceTable
+                rows={prevPrevPrevYear}
                 onOpenForecast={setForecastOrder}
               />
             ),

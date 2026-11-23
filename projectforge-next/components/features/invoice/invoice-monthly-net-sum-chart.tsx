@@ -21,8 +21,8 @@ import {
 } from "./invoice-net-sum-series";
 
 /**
- * The monthly net sums as grouped bars — one bar per year in each month, oldest at the front of the group
- * and this year at the back. The bar counterpart of the cumulative curves ({@link InvoiceCumulativeNetSumChart}); the
+ * The monthly net sums as grouped bars — one bar per year in each month, this year at the front (left) of the group
+ * and the oldest at the back, as in the forecast chart. The bar counterpart of the cumulative curves ({@link InvoiceCumulativeNetSumChart}); the
  * two share their colours and their year labels (see `invoice-net-sum-series.ts`).
  */
 export function InvoiceMonthlyNetSumChart({
@@ -80,7 +80,7 @@ export function InvoiceMonthlyNetSumChart({
           formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
         />
         <ChartLegend
-          content={<SeriesLegendContent config={config} reversed />}
+          content={<SeriesLegendContent config={config} />}
         />
         {keys.map((key) => (
           <Bar

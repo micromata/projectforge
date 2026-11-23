@@ -111,7 +111,9 @@ class ContributionMarginCalculatorTest {
       ContributionMarginEntry(PROJECT_A, LocalDate.of(2025, 3, 31), revenue = BigDecimal("80")),
       ContributionMarginEntry(PROJECT_B, LocalDate.of(2024, 3, 15), costs = BigDecimal("-30")),
       ContributionMarginEntry(PROJECT_B, LocalDate.of(2024, 4, 15), revenue = BigDecimal("120")),
-      ContributionMarginEntry(PROJECT_B, LocalDate.of(2023, 12, 31), revenue = BigDecimal("1000")), // Too old.
+      ContributionMarginEntry(PROJECT_B, LocalDate.of(2023, 12, 31), revenue = BigDecimal("1000")), // Three years back.
+      ContributionMarginEntry(PROJECT_A, LocalDate.of(2023, 12, 1), costs = BigDecimal("-400")),
+      ContributionMarginEntry(PROJECT_B, LocalDate.of(2022, 12, 31), revenue = BigDecimal("1000")), // Too old.
       ContributionMarginEntry(PROJECT_B, LocalDate.of(2027, 1, 1), revenue = BigDecimal("1000")), // After the period.
     )
     val data = calculator(bookingImportEnd = LocalDate.of(2026, 12, 31)).calculate(entries, ::info, null, ContributionMarginConfig())
@@ -124,6 +126,10 @@ class ContributionMarginCalculatorTest {
     assertEquals(BigDecimal("90"), data.total.prevPrevYearProfit)
     assertEquals(BigDecimal("120"), data.total.prevPrevYearRevenue)
     assertEquals(BigDecimal("75.0"), data.total.prevPrevYearPercentage)
+    assertEquals(BigDecimal("600"), data.total.prevPrevPrevYearProfit)
+    assertEquals(BigDecimal("1000"), data.total.prevPrevPrevYearRevenue)
+    assertEquals(BigDecimal("60.0"), data.total.prevPrevPrevYearPercentage)
+    assertEquals(BigDecimal("600"), data.projects.sumOf { it.prevPrevPrevYearProfit })
     assertEquals(BigDecimal("100.0"), data.total.prevYearPercentage)
     assertEquals(BigDecimal("100.0"), data.prevYearPercentage[2])
     assertEquals(BigDecimal("100.0"), data.prevYearPercentage[3]) // Cumulated: March carries on.
@@ -163,6 +169,7 @@ class ContributionMarginCalculatorTest {
     assertEquals(LocalDate.of(2026, 9, 30), data.valuesEnd)
     assertEquals(LocalDate.of(2025, 12, 31), data.prevYearValuesEnd)
     assertEquals(LocalDate.of(2024, 12, 31), data.prevPrevYearValuesEnd)
+    assertEquals(LocalDate.of(2023, 12, 31), data.prevPrevPrevYearValuesEnd)
     // August and September are preliminary; October and later have no values at all:
     assertEquals(List(7) { false } + List(2) { true } + List(3) { false }, data.preliminary)
     assertEquals(BigDecimal("100.0"), data.percentage[8])

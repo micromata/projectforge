@@ -79,7 +79,7 @@ export function InvoiceCumulativeNetSumChart({
           formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
         />
         <ChartLegend
-          content={<SeriesLegendContent config={config} reversed />}
+          content={<SeriesLegendContent config={config} />}
         />
         {keys.map((key) => (
           <Line

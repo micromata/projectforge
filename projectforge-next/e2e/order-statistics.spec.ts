@@ -116,6 +116,7 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     for (const key of [
       "fibu.auftrag.statistics.tables.invoicesPrevYear",
       "fibu.auftrag.statistics.tables.invoicesPrevPrevYear",
+      "fibu.auftrag.statistics.tables.invoicesPrevPrevPrevYear",
     ]) {
       const label = format.t(key, { arg0: "@@" }).split("@@")[0];
       await expect(

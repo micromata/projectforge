@@ -42,14 +42,13 @@ export function yearDashArray(key: string): string | undefined {
 }
 
 /**
- * The keys of every series present — what both charts map over to place their bars and lines. Reversed
- * against `data.series` (which arrives newest year first) so the marks read oldest first: in the grouped
- * bars the oldest year sits at the front of each month's group and the current year at the back, and the
- * legend follows the same order. Each key still carries its own year's colour and label (both are looked
- * up by key, not by position), so only the drawing order changes.
+ * The keys of every series present — what both charts map over to place their bars and lines. In the order of
+ * `data.series` (newest year first), like the forecast charts: in the grouped bars the current year sits at the
+ * front (left) of each month's group and the oldest at the back. Each key carries its own year's colour and label
+ * (both are looked up by key, not by position).
  */
 export function seriesKeys(data: InvoiceNetSumChartData): string[] {
-  return data.series.map((_, index) => seriesKey(index)).reverse();
+  return data.series.map((_, index) => seriesKey(index));
 }
 
 /** A row per month, each year's net sum of that month under its series key — the bars' data. */

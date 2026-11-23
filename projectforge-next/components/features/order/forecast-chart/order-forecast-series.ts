@@ -36,7 +36,8 @@ const SERIES_COLORS = {
   total: "var(--chart-forecast-total)",
   plan: "var(--chart-forecast-plan)",
   prevYear: "var(--chart-forecast-prev-year)",
-  prevPrevYear: "var(--chart-forecast-prev-prev-year)",
+  prevPrevYear: "var(--chart-forecast-total)",
+  prevPrevPrevYear: "var(--chart-forecast-prev-prev-year)",
 } as const;
 
 export type SeriesKey = keyof typeof SERIES_COLORS;
@@ -69,26 +70,48 @@ export function monthlyBarKeys(
  */
 export function monthlyCompareBarKeys(data: ForecastChartData): SeriesKey[] {
   return data.plan
-    ? ["plan", "prevYear", "prevPrevYear"]
-    : ["prevYear", "prevPrevYear"];
+    ? ["plan", "prevYear", "prevPrevYear", "prevPrevPrevYear"]
+    : ["prevYear", "prevPrevYear", "prevPrevPrevYear"];
+}
+
+/**
+ * Whether the window still contains forecast: remaining forecast in the current or a later month. Values of past
+ * months don't count, a window that ended before today is all invoiced.
+ */
+export function hasForecastData(
+  data: ForecastChartData,
+  today: Date = new Date()
+): boolean {
+  const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  return data.months.some(
+    (month, i) =>
+      month >= currentMonth &&
+      Object.values(data.forecastByStatus).some(
+        (values) => (values?.[i] ?? 0) !== 0
+      )
+  );
 }
 
 /** The line keys of the cumulated chart; the plan only if one was calculated. */
 export function cumulativeLineKeys(data: ForecastChartData): SeriesKey[] {
   return data.plan
-    ? ["total", "plan", "prevYear", "prevPrevYear"]
-    : ["total", "prevYear", "prevPrevYear"];
+    ? ["total", "plan", "prevYear", "prevPrevYear", "prevPrevPrevYear"]
+    : ["total", "prevYear", "prevPrevYear", "prevPrevPrevYear"];
 }
 
-/** The pre-previous year is drawn dotted, as in the Excel; all other lines are solid. */
+/** The two older comparison years are dotted, like in the invoice charts (see `invoice-net-sum-series.ts`); all other lines are solid. */
 export function lineDashArray(key: SeriesKey): string | undefined {
-  return key === "prevPrevYear" ? "2 3" : undefined;
+  return key === "prevPrevYear" || key === "prevPrevPrevYear"
+    ? "2 3"
+    : undefined;
 }
 
 /** The chart config of both charts: labels and colours of all statuses and lines. */
 export function buildForecastChartConfig(
   t: (key: string, values?: Record<string, string>) => string,
-  firstMonth?: string | null
+  firstMonth?: string | null,
+  /** Whether the window contains forecast data (remaining forecast), not only invoices. */
+  withForecast = false
 ): ChartConfig {
   const period = previousPeriodLabels(firstMonth);
   const config: ChartConfig = {};
@@ -98,12 +121,21 @@ export function buildForecastChartConfig(
       color: STATUS_COLORS[status],
     };
   });
+  // The window's years, with "/Forecast" if it still contains forecast data: "2026/Forecast" or "2025".
+  const currentLabel = withForecast
+    ? `${period.current}/${t("fibu.auftrag.forecast.chart.total")}`
+    : period.current;
   config.ist = {
-    label: t("fibu.auftrag.forecast.chart.ist"),
+    label: currentLabel,
     color: SERIES_COLORS.ist,
   };
+  // The sum of the stack (invoiced plus all forecast parts), shown in the tooltip of the monthly chart only.
+  config.stackSum = {
+    label: currentLabel,
+    color: SERIES_COLORS.total,
+  };
   config.total = {
-    label: t("fibu.auftrag.forecast.chart.totalLegend"),
+    label: currentLabel,
     color: SERIES_COLORS.total,
   };
   config.plan = {
@@ -119,6 +151,12 @@ export function buildForecastChartConfig(
       arg0: period.prevPrevYear,
     }),
     color: SERIES_COLORS.prevPrevYear,
+  };
+  config.prevPrevPrevYear = {
+    label: t("fibu.auftrag.forecast.chart.prevPrevPrevYear", {
+      arg0: period.prevPrevPrevYear,
+    }),
+    color: SERIES_COLORS.prevPrevPrevYear,
   };
   return config;
 }
@@ -136,9 +174,16 @@ export function monthlyRows(
       }
     });
     row.ist = data.ist[i] ?? 0;
+    row.stackSum =
+      row.ist +
+      FORECAST_CHART_STATUSES.reduce(
+        (sum, status) => sum + (data.forecastByStatus[status]?.[i] ?? 0),
+        0
+      );
     row.total = data.total[i] ?? 0;
     row.prevYear = data.prevYear[i] ?? 0;
     row.prevPrevYear = data.prevPrevYear[i] ?? 0;
+    row.prevPrevPrevYear = data.prevPrevPrevYear[i] ?? 0;
     if (data.plan) {
       row.plan = data.plan[i] ?? 0;
     }
@@ -158,6 +203,7 @@ export function cumulativeRows(
     ["plan", data.plan],
     ["prevYear", data.prevYear],
     ["prevPrevYear", data.prevPrevYear],
+    ["prevPrevPrevYear", data.prevPrevPrevYear],
   ];
   const sums = series.map(() => 0);
   return data.months.map((month, i) => {

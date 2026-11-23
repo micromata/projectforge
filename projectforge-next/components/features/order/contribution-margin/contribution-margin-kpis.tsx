@@ -37,12 +37,15 @@ export function ContributionMarginKpis({
   const prevPrevYearCosts =
     total.prevPrevYearRevenue - total.prevPrevYearProfit;
   const period = previousPeriodLabels(data.months[0]);
+  const prevPrevPrevYearCosts =
+    total.prevPrevPrevYearRevenue - total.prevPrevPrevYearProfit;
   const target = t("target", { arg0: data.targetPercentage });
   const untilText = (date: string | null | undefined) =>
     date ? t("until", { arg0: formatDate(date, ctx) }) : undefined;
   const until = untilText(data.valuesEnd);
   const prevYearUntil = untilText(data.prevYearValuesEnd);
   const prevPrevYearUntil = untilText(data.prevPrevYearValuesEnd);
+  const prevPrevPrevYearUntil = untilText(data.prevPrevPrevYearValuesEnd);
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <KpiTile noteRight={until} label={t("revenue")} note={preliminary}>
@@ -118,6 +121,38 @@ export function ContributionMarginKpis({
         <ContributionMarginPercentage
           percentage={total.prevPrevYearPercentage}
           costs={Math.max(0, prevPrevYearCosts)}
+          limits={data}
+          large
+        />
+      </KpiTile>
+      <KpiTile
+        noteRight={prevPrevPrevYearUntil}
+        label={t("prevPrevPrevYearRevenue", { arg0: period.prevPrevPrevYear })}
+      >
+        {amount(total.prevPrevPrevYearRevenue)}
+      </KpiTile>
+      <KpiTile
+        noteRight={prevPrevPrevYearUntil}
+        label={t("prevPrevPrevYearCosts", { arg0: period.prevPrevPrevYear })}
+      >
+        {formatCurrency(prevPrevPrevYearCosts, ctx, 0)}
+      </KpiTile>
+      <KpiTile
+        noteRight={prevPrevPrevYearUntil}
+        label={t("prevPrevPrevYear", { arg0: period.prevPrevPrevYear })}
+      >
+        {amount(total.prevPrevPrevYearProfit)}
+      </KpiTile>
+      <KpiTile
+        noteRight={prevPrevPrevYearUntil}
+        label={t("prevPrevPrevYearPercentage", {
+          arg0: period.prevPrevPrevYear,
+        })}
+        note={target}
+      >
+        <ContributionMarginPercentage
+          percentage={total.prevPrevPrevYearPercentage}
+          costs={Math.max(0, prevPrevPrevYearCosts)}
           limits={data}
           large
         />

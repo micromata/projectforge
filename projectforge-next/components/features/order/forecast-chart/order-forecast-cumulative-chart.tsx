@@ -12,6 +12,7 @@ import { niceScale } from "@/lib/chart-scale";
 import type { ForecastChartData } from "@/lib/rs/order";
 import {
   buildForecastChartConfig,
+  hasForecastData,
   cumulativeLineKeys,
   cumulativeRows,
   formatChartMonth,
@@ -35,7 +36,7 @@ export function OrderForecastCumulativeChart({
   const t = useTranslations();
   const ctx = useFormatContext();
   const config = useMemo(
-    () => buildForecastChartConfig(t, data.months[0]),
+    () => buildForecastChartConfig(t, data.months[0], hasForecastData(data)),
     [t, data.months]
   );
   const rows = useMemo(() => cumulativeRows(data), [data]);
@@ -82,7 +83,18 @@ export function OrderForecastCumulativeChart({
           formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
         />
         <ChartLegend
-          content={<SeriesLegendContent config={config} reversed />}
+          content={
+            <SeriesLegendContent
+              config={config}
+              order={[
+                "plan",
+                "total",
+                "prevYear",
+                "prevPrevYear",
+                "prevPrevPrevYear",
+              ]}
+            />
+          }
         />
         {keys.map((key) => (
           <Line

@@ -1632,6 +1632,10 @@
         "ordersWithoutProject": "{arg0} der ausgewählten Aufträge haben kein Projekt und werden nicht berücksichtigt.",
         "percentage": "DB %",
         "preliminary": "vorläufig",
+        "prevPrevPrevYear": "DB1 {arg0}",
+        "prevPrevPrevYearCosts": "Kosten {arg0}",
+        "prevPrevPrevYearPercentage": "DB % {arg0}",
+        "prevPrevPrevYearRevenue": "Erlöse {arg0}",
         "prevPrevYear": "DB1 {arg0}",
         "prevPrevYearCosts": "Kosten {arg0}",
         "prevPrevYearPercentage": "DB % {arg0}",
@@ -1758,6 +1762,7 @@
             "tooltip": "Optional: Der Forecast des Auftragsbuch-Snapshots dieses Tages (bzw. des nächstgelegenen) wird als Plan angezeigt. Leer lassen, um den Plan auszublenden."
           },
           "planningDateUsed": "Plan des Auftragsbuch-Snapshots vom {arg0}",
+          "prevPrevPrevYear": "{arg0}",
           "prevPrevYear": "{arg0}",
           "prevYear": "{arg0}",
           "snapshotDate": {
@@ -1769,8 +1774,7 @@
             "_": "Erster Monat des Forecasts",
             "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
           },
-          "total": "Forecast",
-          "totalLegend": "Forecast/Ist"
+          "total": "Forecast"
         },
         "config": {
           "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
@@ -1908,6 +1912,7 @@
           "bookedDate": "Gebucht am",
           "forecastDetails": "Forecast-Analyse des Auftrags anzeigen",
           "heading": "Zugrundeliegende Daten",
+          "invoicesPrevPrevPrevYear": "Rechnungen {arg0}",
           "invoicesPrevPrevYear": "Rechnungen {arg0}",
           "invoicesPrevYear": "Rechnungen {arg0}",
           "months": "Monats-DB",

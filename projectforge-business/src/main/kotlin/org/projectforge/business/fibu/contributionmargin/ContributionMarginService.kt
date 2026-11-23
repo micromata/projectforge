@@ -268,7 +268,7 @@ open class ContributionMarginService {
       loadParts(missing, calculator, bookingImportEnd, config)
     }.values.flatMap { it.entries }
     val allocatedEntries = contributionMarginCache.get(context.copy(breakdown = true), ids) { missing ->
-      val entries = allocatedEntries(missing, calculator.prevPrevYearBegin, calculator.periodValuesEnd, config)
+      val entries = allocatedEntries(missing, calculator.prevPrevPrevYearBegin, calculator.periodValuesEnd, config)
         .groupBy { it.projectId }
       missing.associateWith { ContributionMarginCache.ProjectPart(entries[it].orEmpty(), emptyList()) }
     }.values.flatMap { it.entries }
@@ -473,7 +473,7 @@ open class ContributionMarginService {
   ): Map<Long, ContributionMarginCache.ProjectPart> {
     val allKost2ToProject = kost2ToProject(null, config)
     val source = load(
-      projectIds, calculator.prevPrevYearBegin, calculator.periodValuesEnd, bookingImportEnd, config, allKost2ToProject,
+      projectIds, calculator.prevPrevPrevYearBegin, calculator.periodValuesEnd, bookingImportEnd, config, allKost2ToProject,
     )
     val invoiceRows = if (calculator.periodValuesEnd < calculator.periodBegin) {
       emptyList()

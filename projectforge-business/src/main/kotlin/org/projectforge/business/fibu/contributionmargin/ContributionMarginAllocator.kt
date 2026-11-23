@@ -226,7 +226,7 @@ object ContributionMarginAllocator {
     val sums = series.sums
     return (series.revenue + series.costs + series.prevYear + listOf(
       sums.revenue, sums.costs, sums.prevYearProfit, sums.prevPrevYearProfit, sums.prevYearRevenue,
-      sums.prevPrevYearRevenue,
+      sums.prevPrevYearRevenue, sums.prevPrevPrevYearProfit, sums.prevPrevPrevYearRevenue,
     )).all { it.signum() == 0 }
   }
 

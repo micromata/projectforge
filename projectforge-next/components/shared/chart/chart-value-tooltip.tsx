@@ -19,10 +19,13 @@ export function ChartValueTooltip({
   config,
   formatValue,
   formatLabel,
+  labels,
 }: {
   config: ChartConfig;
   formatValue: (value: number, key: string) => string;
   formatLabel?: (label: string) => string;
+  /** Labels replacing the config label of a series in the tooltip only (e.g. where the legend names it differently). */
+  labels?: Record<string, string>;
 }) {
   return (
     <ChartTooltip
@@ -34,7 +37,9 @@ export function ChartValueTooltip({
           formatter={(value, name) => (
             <span className="flex w-full justify-between gap-2">
               <span className="text-muted-foreground">
-                {config[String(name)]?.label ?? String(name)}
+                {labels?.[String(name)] ??
+                  config[String(name)]?.label ??
+                  String(name)}
               </span>
               <span className="font-mono font-medium tabular-nums">
                 {formatValue(value as number, String(name))}

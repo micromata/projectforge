@@ -47,6 +47,8 @@ class ForecastChartData(
     val prevYear: List<BigDecimal>,
     /** Invoiced net sums of the 12 months two years before. */
     val prevPrevYear: List<BigDecimal>,
+    /** Invoiced net sums of the 12 months three years before. */
+    val prevPrevPrevYear: List<BigDecimal>,
     /**
      * The plan per month: the planning forecast plus the invoices before the planning date, the same sum as the
      * plan of the project overview ([ForecastProjectRow.plan]) and row 'Gesamt' of the Excel sheet Planning_Data.
@@ -92,7 +94,7 @@ class ForecastChartData(
  * [build] applies the same rule.
  */
 internal class ForecastChartTotals {
-    enum class InvoiceKind { IST, PLANNING, PREV_YEAR, PREV_PREV_YEAR, PLANNED_INVOICE }
+    enum class InvoiceKind { IST, PLANNING, PREV_YEAR, PREV_PREV_YEAR, PREV_PREV_PREV_YEAR, PLANNED_INVOICE }
 
     private val forecastByStatus = ForecastUtils.auftragsPositionsStatusToShow.associateWith { newMonths() }
     private val forecastByKind = ForecastChartData.ForecastKind.entries.associateWith { newMonths() }
@@ -173,6 +175,7 @@ internal class ForecastChartTotals {
             ist = sumVisible(invoicesByProject[InvoiceKind.IST]!!).toList(),
             prevYear = sumVisible(invoicesByProject[InvoiceKind.PREV_YEAR]!!).toList(),
             prevPrevYear = sumVisible(invoicesByProject[InvoiceKind.PREV_PREV_YEAR]!!).toList(),
+            prevPrevPrevYear = sumVisible(invoicesByProject[InvoiceKind.PREV_PREV_PREV_YEAR]!!).toList(),
             plan = plan,
             planningDate = planningDate,
             snapshotDate = snapshotDate,

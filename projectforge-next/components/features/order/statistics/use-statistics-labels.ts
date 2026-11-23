@@ -52,6 +52,9 @@ export function useStatisticsLabels(firstMonth?: string | null) {
       prevPrevYear: t("fibu.auftrag.forecast.chart.prevPrevYear", {
         arg0: period.prevPrevYear,
       }),
+      prevPrevPrevYear: t("fibu.auftrag.forecast.chart.prevPrevPrevYear", {
+        arg0: period.prevPrevPrevYear,
+      }),
       revenue: t("fibu.auftrag.contributionMargin.revenue"),
       costs: t("fibu.auftrag.contributionMargin.costs"),
       profit: t("fibu.auftrag.contributionMargin.profit"),
@@ -72,6 +75,10 @@ export function useStatisticsLabels(firstMonth?: string | null) {
         {
           arg0: period.prevPrevYear,
         }
+      ),
+      invoicesPrevPrevPrevYear: t(
+        "fibu.auftrag.statistics.tables.invoicesPrevPrevPrevYear",
+        { arg0: period.prevPrevPrevYear }
       ),
       orderStatus: t("fibu.auftrag.statistics.tables.orderStatus"),
       positionStatus: t("fibu.auftrag.statistics.tables.positionStatus"),

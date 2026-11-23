@@ -740,6 +740,10 @@ class ForecastExportTest : AbstractTestBase() {
         assertAmounts(chart.ist, invoiceSums(ForecastInvoiceRow.Kind.IST), "IST")
         assertAmounts(chart.prevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_YEAR), "Previous year")
         assertAmounts(chart.prevPrevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_PREV_YEAR), "Previous previous year")
+        assertAmounts(
+            chart.prevPrevPrevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_PREV_PREV_YEAR), "Three years before",
+        )
+        assertAmount(tables.projects.sumOf { it.prevPrevPrevYear }, chart.prevPrevPrevYear.sumOf { it }.toDouble())
         val forecast = chart.forecastByStatus.values.flatten().sumOf { it } + chart.ist.sumOf { it }
         assertAmount(tables.projects.sumOf { it.forecast }, forecast.toDouble())
         assertAmount(tables.projects.sumOf { it.forecast }, chart.total.sumOf { it }.toDouble())

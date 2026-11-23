@@ -248,6 +248,7 @@ export interface ForecastChartData {
   ist: number[];
   prevYear: number[];
   prevPrevYear: number[];
+  prevPrevPrevYear: number[];
   /** Per month max(IST, forecast) — the base of the cumulated forecast. */
   total: number[];
   /** Null if no planning date was given. */
@@ -263,9 +264,7 @@ export interface ForecastChartData {
 }
 
 export type ForecastKind =
-  | "COMMISSIONED_FIXED"
-  | "COMMISSIONED_TIME_AND_MATERIALS"
-  | "WEIGHTED";
+  "COMMISSIONED_FIXED" | "COMMISSIONED_TIME_AND_MATERIALS" | "WEIGHTED";
 
 /** The stored parameters of the charts tab, or the backend's defaults (begin of the year, no plan). */
 export function fetchForecastChartSettings(
@@ -308,6 +307,7 @@ export interface ForecastProjectRow {
   plan: number | null;
   prevYear: number;
   prevPrevYear: number;
+  prevPrevPrevYear: number;
   /** The sum of the differences of the project's positions. */
   difference: number;
   /** The lost budget warnings of the project's positions. */
@@ -361,7 +361,8 @@ export interface ForecastPositionRow {
   pseudo: boolean;
 }
 
-export type ForecastInvoiceKind = "IST" | "PREV_YEAR" | "PREV_PREV_YEAR";
+export type ForecastInvoiceKind =
+  "IST" | "PREV_YEAR" | "PREV_PREV_YEAR" | "PREV_PREV_PREV_YEAR";
 
 /** One invoice position of the forecast's invoice sheets (`ForecastInvoiceRow`). */
 export interface ForecastInvoiceRow {
@@ -437,6 +438,10 @@ export interface ContributionMarginSums {
   /** Revenue of the same period two years earlier, and its DB % (null without positive revenue). */
   prevPrevYearRevenue: number;
   prevPrevYearPercentage: number | null;
+  /** Revenue of the same period three years earlier, and its DB % (null without positive revenue). */
+  prevPrevPrevYearProfit: number;
+  prevPrevPrevYearRevenue: number;
+  prevPrevPrevYearPercentage: number | null;
 }
 
 export interface ContributionMarginProject extends ContributionMarginSums {
@@ -479,6 +484,7 @@ export interface ContributionMarginData {
   valuesEnd?: string | null;
   prevYearValuesEnd?: string | null;
   prevPrevYearValuesEnd?: string | null;
+  prevPrevPrevYearValuesEnd?: string | null;
   /** Monthly contribution margin of the same months one and two years earlier. */
   prevYear: number[];
   prevPrevYear: number[];
@@ -524,10 +530,7 @@ export function fetchContributionMargin(
 
 /** What one bubble of the contribution margin bubble chart stands for (`ContributionMarginBubbleGrouping`). */
 export type ContributionMarginBubbleGrouping =
-  | "PROJECT"
-  | "PROJECT_GROUP"
-  | "CUSTOMER"
-  | "CUSTOMER_GROUP";
+  "PROJECT" | "PROJECT_GROUP" | "CUSTOMER" | "CUSTOMER_GROUP";
 
 /** The grouping and the switch of the bubble chart, remembered per user. */
 export interface ContributionMarginBubbleSettings {
@@ -686,11 +689,7 @@ export function fetchContributionMarginDetails(
 export type ContributionMarginLevel = "ORDER" | "TASK";
 
 export type ContributionMarginRowType =
-  | "PROJECT"
-  | "ORDER"
-  | "ORDER_POSITION"
-  | "TASK"
-  | "RESIDUAL";
+  "PROJECT" | "ORDER" | "ORDER_POSITION" | "TASK" | "RESIDUAL";
 
 /** The monthly values of a row of the breakdown, as in ContributionMarginData, and its sums. */
 export interface ContributionMarginSeries {

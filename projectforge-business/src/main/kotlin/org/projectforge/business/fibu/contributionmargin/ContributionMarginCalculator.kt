@@ -136,8 +136,8 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
 
   val periodEnd: LocalDate = months.last().atEndOfMonth()
 
-  /** First day of the comparison period, two years before [periodBegin]. */
-  val prevPrevYearBegin: LocalDate = start.minusYears(2).atDay(1)
+  /** First day of the oldest comparison period, three years before [periodBegin]. */
+  val prevPrevPrevYearBegin: LocalDate = start.minusYears(3).atDay(1)
 
   /** The last day of the period with values: the end of the previous month at the latest. */
   val periodValuesEnd: LocalDate = calculationEnd(periodEnd, today)
@@ -160,11 +160,11 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
     hourlyRate: BigDecimal?,
     config: ContributionMarginConfig,
   ): ContributionMarginData {
-    // yearsBack (0..2) → month → project id → sums
-    val sums = Array(3) { mutableMapOf<YearMonth, MutableMap<Long, Amount>>() }
+    // yearsBack (0..3) → month → project id → sums
+    val sums = Array(4) { mutableMapOf<YearMonth, MutableMap<Long, Amount>>() }
     entries.forEach { entry ->
       val month = YearMonth.from(entry.date)
-      val yearsBack = (0..2).firstOrNull { month.plusYears(it.toLong()) in months } ?: return@forEach
+      val yearsBack = (0..3).firstOrNull { month.plusYears(it.toLong()) in months } ?: return@forEach
       sums[yearsBack].getOrPut(month.plusYears(yearsBack.toLong())) { mutableMapOf() }
         .getOrPut(entry.projectId) { Amount() }
         .add(entry)
@@ -182,7 +182,8 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
     val currentByProject = byProject(0)
     val prevByProject = byProject(1)
     val prevPrevByProject = byProject(2)
-    val projects = (currentByProject.keys + prevByProject.keys + prevPrevByProject.keys).map { projectId ->
+    val prevPrevPrevByProject = byProject(3)
+    val projects = (currentByProject.keys + prevByProject.keys + prevPrevByProject.keys + prevPrevPrevByProject.keys).map { projectId ->
       val info = projectInfo(projectId)
       val amount = currentByProject[projectId] ?: Amount()
       ContributionMarginProject(
@@ -198,6 +199,8 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         prevPrevYearProfit = prevPrevByProject[projectId]?.profit ?: BigDecimal.ZERO,
         prevYearRevenue = prevByProject[projectId]?.revenue ?: BigDecimal.ZERO,
         prevPrevYearRevenue = prevPrevByProject[projectId]?.revenue ?: BigDecimal.ZERO,
+        prevPrevPrevYearProfit = prevPrevPrevByProject[projectId]?.profit ?: BigDecimal.ZERO,
+        prevPrevPrevYearRevenue = prevPrevPrevByProject[projectId]?.revenue ?: BigDecimal.ZERO,
       )
     }.sortedWith(compareBy<ContributionMarginProject>({ it.customer ?: "" }, { it.project ?: "" }, { it.kost ?: "" }))
     val preliminaryBegin = preliminaryBegin
@@ -217,6 +220,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
       valuesEnd = valuesEnd(0),
       prevYearValuesEnd = valuesEnd(1),
       prevPrevYearValuesEnd = valuesEnd(2),
+      prevPrevPrevYearValuesEnd = valuesEnd(3),
       prevYear = prevYear.map { it.profit },
       prevYearPercentage = cumulativePercentage(prevYear),
       prevPrevYear = monthly(2).map { it.profit },
@@ -228,6 +232,8 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         prevPrevYearProfit = projects.sumOf { it.prevPrevYearProfit },
         prevYearRevenue = projects.sumOf { it.prevYearRevenue },
         prevPrevYearRevenue = projects.sumOf { it.prevPrevYearRevenue },
+        prevPrevPrevYearProfit = projects.sumOf { it.prevPrevPrevYearProfit },
+        prevPrevPrevYearRevenue = projects.sumOf { it.prevPrevPrevYearRevenue },
       ),
       bookingImportEnd = bookingImportEnd,
       hourlyRate = hourlyRate,
@@ -300,11 +306,11 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
    * (of any projects), as [calculate] has them for all projects, e.g. for one row of the breakdown by orders.
    */
   fun series(entries: Collection<ContributionMarginEntry>): ContributionMarginSeries {
-    // yearsBack (0..2) → month → sums
-    val sums = Array(3) { mutableMapOf<YearMonth, Amount>() }
+    // yearsBack (0..3) → month → sums
+    val sums = Array(4) { mutableMapOf<YearMonth, Amount>() }
     entries.forEach { entry ->
       val month = YearMonth.from(entry.date)
-      val yearsBack = (0..2).firstOrNull { month.plusYears(it.toLong()) in months } ?: return@forEach
+      val yearsBack = (0..3).firstOrNull { month.plusYears(it.toLong()) in months } ?: return@forEach
       sums[yearsBack].getOrPut(month.plusYears(yearsBack.toLong())) { Amount() }.add(entry)
     }
     fun monthly(yearsBack: Int) = months.map { sums[yearsBack][it] ?: Amount() }
@@ -315,6 +321,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
     val total = total(0)
     val prevYearTotal = total(1)
     val prevPrevYearTotal = total(2)
+    val prevPrevPrevYearTotal = total(3)
     return ContributionMarginSeries(
       revenue = current.map { it.revenue },
       costs = current.map { -it.costs },
@@ -329,6 +336,8 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         prevPrevYearProfit = prevPrevYearTotal.profit,
         prevYearRevenue = prevYearTotal.revenue,
         prevPrevYearRevenue = prevPrevYearTotal.revenue,
+        prevPrevPrevYearProfit = prevPrevPrevYearTotal.profit,
+        prevPrevPrevYearRevenue = prevPrevPrevYearTotal.revenue,
       ),
     )
   }

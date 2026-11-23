@@ -500,9 +500,10 @@ open class ForecastExport { // open needed by Wicket.
         val useAuftragsCache = snapshotDate == null
         val prevYearBaseDate = startDate.plusYears(-1) // One year back for getting all invoices.
         val prevPrevYearBaseDate = startDate.plusYears(-2) // Two years back for the prev-prev-year comparison.
+        val prevPrevPrevYearBaseDate = startDate.plusYears(-3) // Three years back: web views only, not part of the Excel.
         val invoiceFilter = RechnungFilter()
         invoiceFilter.fromDate =
-            prevPrevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
+            prevPrevPrevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
         if (snapshotDate != null) {
             // Don't load invoices later than snapshotDate:
             invoiceFilter.toDate = snapshotDate.minusDays(1)

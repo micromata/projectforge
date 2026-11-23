@@ -27,7 +27,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * The contribution margin (DB1) of a set of projects over 12 months, with the same months of the two
+ * The contribution margin (DB1) of a set of projects over 12 months, with the same months of the three
  * previous years for comparison (see [ContributionMarginService.calculate]).
  *
  * All amounts are net. Costs are given as positive amounts, so profit = revenue - costs.
@@ -65,6 +65,8 @@ class ContributionMarginData(
   val prevYearValuesEnd: LocalDate?,
   /** The same as [prevYearValuesEnd] for the months two years earlier. */
   val prevPrevYearValuesEnd: LocalDate?,
+  /** The same as [prevYearValuesEnd] for the months three years earlier. */
+  val prevPrevPrevYearValuesEnd: LocalDate?,
   /** Contribution margin of the same months one year earlier. */
   val prevYear: List<BigDecimal>,
   /** Contribution margin in % of the same months one year earlier, cumulated like [percentage]. */
@@ -95,7 +97,7 @@ class ContributionMarginData(
 
 /**
  * Revenue, costs and contribution margin of the period, and the contribution margin of the same period of
- * the two previous years.
+ * the three previous years.
  */
 open class ContributionMarginSums(
   val revenue: BigDecimal,
@@ -107,6 +109,10 @@ open class ContributionMarginSums(
   val prevYearRevenue: BigDecimal,
   /** Revenue of the same period two years earlier. */
   val prevPrevYearRevenue: BigDecimal,
+  /** Contribution margin of the same period three years earlier. */
+  val prevPrevPrevYearProfit: BigDecimal = BigDecimal.ZERO,
+  /** Revenue of the same period three years earlier. */
+  val prevPrevPrevYearRevenue: BigDecimal = BigDecimal.ZERO,
 ) {
   // Stored, not computed getters: the REST object mapper serializes fields only.
   val profit: BigDecimal = revenue - costs
@@ -120,6 +126,10 @@ open class ContributionMarginSums(
   /** Contribution margin in % of the revenue of the same period two years earlier, like [percentage]. */
   val prevPrevYearPercentage: BigDecimal? =
     ContributionMarginCalculator.percentage(prevPrevYearRevenue, prevPrevYearProfit)
+
+  /** Contribution margin in % of the revenue of the same period three years earlier, like [percentage]. */
+  val prevPrevPrevYearPercentage: BigDecimal? =
+    ContributionMarginCalculator.percentage(prevPrevPrevYearRevenue, prevPrevPrevYearProfit)
 }
 
 class ContributionMarginProject(
@@ -138,4 +148,9 @@ class ContributionMarginProject(
   val projectGroup: String? = null,
   /** The short name of the project (`ProjektDO.identifier`), null for none. */
   val identifier: String? = null,
-) : ContributionMarginSums(revenue, costs, prevYearProfit, prevPrevYearProfit, prevYearRevenue, prevPrevYearRevenue)
+  prevPrevPrevYearProfit: BigDecimal = BigDecimal.ZERO,
+  prevPrevPrevYearRevenue: BigDecimal = BigDecimal.ZERO,
+) : ContributionMarginSums(
+  revenue, costs, prevYearProfit, prevPrevYearProfit, prevYearRevenue, prevPrevYearRevenue,
+  prevPrevPrevYearProfit, prevPrevPrevYearRevenue,
+)

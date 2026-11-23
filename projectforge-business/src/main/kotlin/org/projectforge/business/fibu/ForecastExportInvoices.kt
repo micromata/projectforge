@@ -93,7 +93,7 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                     ctx.orderMapByPositionId[orderPosId] = order
                 }
                 var monthIndex = getMonthIndex(ctx, PFDay.fromOrNow(invoice.datum))
-                if (monthIndex !in -24..11) {
+                if (monthIndex !in -36..11) {
                     return@forEach // continue
                 }
                 if (planned) {
@@ -135,6 +135,8 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                         firstMonthCol,
                         monthIndex
                     )
+                } else if (monthIndex < -24) {
+                    addPrevPrevPrevYear(ctx, invoice, pos, order, orderPosId, monthIndex + 36)
                 } else {
                     // The 12 months two years before startDate (-24..-13): shift into the prev-prev-year sheet.
                     monthIndex += 24
@@ -268,11 +270,33 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             ctx.invoicesPrevYearSheet -> ForecastChartTotals.InvoiceKind.PREV_YEAR
             else -> ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR
         }
+        addToChartAndTables(ctx, chartKind, invoice, pos, order, orderPosId, projectId, monthIndex)
+    }
+
+    /**
+     * The invoices of the 12 months three years before startDate (-36..-25): they have no sheet in the Excel export,
+     * they only feed the charts and tables of the web views.
+     */
+    private fun addPrevPrevPrevYear(
+        ctx: ForecastExportContext, invoice: RechnungDO, pos: RechnungPosInfo, order: OrderInfo?, orderPosId: Long?,
+        monthIndex: Int,
+    ) {
+        addToChartAndTables(
+            ctx, ForecastChartTotals.InvoiceKind.PREV_PREV_PREV_YEAR, invoice, pos, order, orderPosId,
+            invoice.projekt?.id ?: order?.projektId, monthIndex,
+        )
+    }
+
+    private fun addToChartAndTables(
+        ctx: ForecastExportContext, chartKind: ForecastChartTotals.InvoiceKind, invoice: RechnungDO,
+        pos: RechnungPosInfo, order: OrderInfo?, orderPosId: Long?, projectId: Long?, monthIndex: Int,
+    ) {
         ctx.chartTotals.addInvoice(chartKind, projectId ?: ForecastExportContext.PROJECT_ID_NONE, monthIndex, pos.netSum)
         val tableKind = when (chartKind) {
             ForecastChartTotals.InvoiceKind.IST -> ForecastInvoiceRow.Kind.IST
             ForecastChartTotals.InvoiceKind.PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_YEAR
             ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_PREV_YEAR
+            ForecastChartTotals.InvoiceKind.PREV_PREV_PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_PREV_PREV_YEAR
             ForecastChartTotals.InvoiceKind.PLANNING, ForecastChartTotals.InvoiceKind.PLANNED_INVOICE ->
                 null // Part of the plan sums only resp. never reaches here (planned invoices return early).
         }

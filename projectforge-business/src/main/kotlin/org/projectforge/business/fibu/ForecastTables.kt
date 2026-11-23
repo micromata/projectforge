@@ -62,6 +62,7 @@ class ForecastProjectRow(
     val plan: BigDecimal?,
     val prevYear: BigDecimal,
     val prevPrevYear: BigDecimal,
+    val prevPrevPrevYear: BigDecimal = BigDecimal.ZERO,
     /** The sum of the differences ([ForecastPositionRow.difference]) of the project's positions. */
     val difference: BigDecimal = BigDecimal.ZERO,
     /** The lost budget warnings of the project's positions: a project having any needs a closer look at them. */
@@ -131,7 +132,7 @@ class ForecastInvoiceRow(
     val monthIndex: Int,
     val kind: Kind,
 ) {
-    enum class Kind { IST, PREV_YEAR, PREV_PREV_YEAR }
+    enum class Kind { IST, PREV_YEAR, PREV_PREV_YEAR, PREV_PREV_PREV_YEAR }
 }
 
 /**
@@ -179,6 +180,7 @@ internal class ForecastTablesCollector {
         var forecast: BigDecimal = BigDecimal.ZERO
         var prevYear: BigDecimal = BigDecimal.ZERO
         var prevPrevYear: BigDecimal = BigDecimal.ZERO
+        var prevPrevPrevYear: BigDecimal = BigDecimal.ZERO
         var difference: BigDecimal = BigDecimal.ZERO
         val warnings = mutableListOf<ForecastWarning>()
 
@@ -218,6 +220,7 @@ internal class ForecastTablesCollector {
                 ForecastInvoiceRow.Kind.IST -> sums.forecast += row.netSum
                 ForecastInvoiceRow.Kind.PREV_YEAR -> sums.prevYear += row.netSum
                 ForecastInvoiceRow.Kind.PREV_PREV_YEAR -> sums.prevPrevYear += row.netSum
+                ForecastInvoiceRow.Kind.PREV_PREV_PREV_YEAR -> sums.prevPrevPrevYear += row.netSum
             }
             row.projectGroup?.let { sums.projectGroup = it }
             sums.label(row.customer, row.project)
@@ -241,6 +244,7 @@ internal class ForecastTablesCollector {
                     plan = planByProject?.let { it[id] ?: BigDecimal.ZERO },
                     prevYear = sums.prevYear,
                     prevPrevYear = sums.prevPrevYear,
+                    prevPrevPrevYear = sums.prevPrevPrevYear,
                     difference = sums.difference,
                     warnings = sums.warnings,
                 )
