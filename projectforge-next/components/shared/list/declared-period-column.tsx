@@ -43,7 +43,16 @@ export function periodColumnDef<Row extends ListRow, M extends EntityMetadata>(
   return {
     id: begin,
     accessorFn: (row) => read(row, begin),
-    meta: { label, align: "left" },
+    meta: {
+      label,
+      align: "left",
+      exportText: (_value, row) =>
+        (withTime ? formatTimestampRange : formatDateRange)(
+          read(row, begin),
+          read(row, end),
+          format
+        ),
+    },
     size: declaration.size,
     minSize: declaration.minSize,
     header: ({ column, table }) => (

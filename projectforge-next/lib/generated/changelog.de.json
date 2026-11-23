@@ -3,11 +3,11 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.13",
-    "date" : "2026-11-22",
+    "date" : "2026-11-23",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).", "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile.", "Login per SSO: Mit der neuen Property projectforge.2fa.ssoSessionMaxAgeMinutes gilt ein SSO-Login als zweiter Faktor, der so lange zurückliegt (z. B. 480 bei einer SSO-Session von 8 Stunden). Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten immer einen eigenen zweiten Faktor." ]
+      "items" : [ "Chat: PDFs und Textdateien einer Nachricht können wie Anhänge an anderer Stelle in der Vorschau angezeigt werden (Auge).", "Auftragsbuch: Neuer Filter „Forecast-Fakturierung“ mit Zeitraum. Er listet die Aufträge, die laut Forecast in diesem Zeitraum fakturiert werden sollen, mit dem Betrag in der Spalte „Forecast im Zeitraum“, die bei gesetztem Filter erscheint, und dessen Summe in der Statistikzeile.", "Login per SSO: Mit der neuen Property projectforge.2fa.ssoAmrValues (z. B. mfa,otp,hwk) gilt ein SSO-Login als zweiter Faktor, durchgeführt zum auth_time des ID-Tokens, wenn der SSO-Server eine dieser Authentifizierungsmethoden (amr) meldet. Ohne sie ist SSO nur der Login, und ProjectForge verlangt auf geschützten Seiten einen eigenen zweiten Faktor.", "Listen: Das Export-Menü hat einen neuen Eintrag „Tabelle kopieren“, der Kopfzeile und alle Zeilen des aktuellen Filters in die Zwischenablage legt, zum Einfügen in Excel oder Numbers." ]
     }, {
       "type" : "improved",
       "items" : [ "Eingabe des zweiten Faktors: Wer noch keinen Passkey hat, bekommt eine deutliche Empfehlung, einen einzurichten; das spart künftig die Code-Eingabe bei jeder Anmeldung." ]

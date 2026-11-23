@@ -61,3 +61,4 @@ export {
 } from "./use-column-state-persistence";
 export { renderCell } from "./cells/cell-registry";
 export type { CellIconName, CellKind, CellSpec } from "./cells/cell-types";
+export { CopyTableProvider, useCopyTableContext } from "./copy-table-context";

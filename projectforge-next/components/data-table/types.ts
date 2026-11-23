@@ -48,6 +48,11 @@ declare module "@tanstack/react-table" {
     pinnedLocked?: boolean;
     /** Extra classes of the cell (`<td>`) itself, e.g. a tinted background (see ColumnBase.cellClassName). */
     cellClassName?: string;
+    /**
+     * The plain text of a cell for the clipboard copy of the table (see CopyTableButton): the value as
+     * the cell shows it (formatted date, amount, enum text), without markup. Absent → the raw value as text.
+     */
+    exportText?: (value: unknown, row: TData) => string;
   }
 }
 

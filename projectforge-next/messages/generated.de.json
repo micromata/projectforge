@@ -5810,6 +5810,13 @@
     "testSystem": "Testsystem"
   },
   "table": {
+    "copy": {
+      "_": "Tabelle kopieren",
+      "description": "Kann in Excel, Numbers und Co. importiert werden.",
+      "done": "{arg0} Zeilen in die Zwischenablage kopiert",
+      "failed": "Die Tabelle konnte nicht kopiert werden.",
+      "truncated": "Das Ergebnis ist unvollständig: die Liste hat ihre Zeilengrenze erreicht. Zum Kopieren aller Zeilen den Filter einschränken."
+    },
     "showing": "Anzeige"
   },
   "task": {

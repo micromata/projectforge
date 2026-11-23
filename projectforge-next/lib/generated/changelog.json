@@ -3,11 +3,11 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.13",
-    "date" : "2026-11-22",
+    "date" : "2026-11-23",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Chat: PDFs and text files of a message can be previewed (eye button) like attachments elsewhere.", "Order book: new filter \"Forecast invoicing\" with a period. It lists the orders the forecast expects to invoice in that period, with the amount in the column \"Forecast in period\", which appears while the filter is set, and its sum in the statistics line.", "Login via SSO: the new property projectforge.2fa.ssoSessionMaxAgeMinutes lets an SSO login count as a second factor done that long ago (e.g. 480 for an SSO session of 8 hours). Without it, SSO is only the login and ProjectForge always asks for its own second factor on protected pages." ]
+      "items" : [ "Chat: PDFs and text files of a message can be previewed (eye button) like attachments elsewhere.", "Order book: new filter \"Forecast invoicing\" with a period. It lists the orders the forecast expects to invoice in that period, with the amount in the column \"Forecast in period\", which appears while the filter is set, and its sum in the statistics line.", "Login via SSO: the new property projectforge.2fa.ssoAmrValues (e.g. mfa,otp,hwk) lets an SSO login count as a second factor, done at the auth_time of the ID token, if the SSO server reports one of these authentication methods (amr). Without it, SSO is only the login and ProjectForge asks for its own second factor on protected pages.", "Lists: the export menu has a new entry \"Copy table\" that puts the header and all rows of the current filter on the clipboard, ready to paste into Excel or Numbers." ]
     }, {
       "type" : "improved",
       "items" : [ "Second factor entry: users without a passkey get a strong recommendation to set one up, which saves entering a code at every login." ]

@@ -3,7 +3,11 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { IconSvgElement } from "@hugeicons/react";
-import { Download04Icon } from "@hugeicons/core-free-icons";
+import { Copy01Icon, Download04Icon } from "@hugeicons/core-free-icons";
+import {
+  useCopyTableContext,
+  useRegisterExportMenu,
+} from "@/components/data-table/copy-table-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,20 +31,41 @@ import { useExportDownload } from "@/hooks/use-export-download";
  */
 export function ExportMenu({
   isPending = false,
+  fallback = false,
   children,
 }: {
   isPending?: boolean;
+  /**
+   * The menu the list page adds itself where its own actions bring none (see CopyOnlyExportMenu): it
+   * doesn't announce itself, or the page would take it for one of the list's own and remove it.
+   */
+  fallback?: boolean;
   /** [ExportMenuItem]s. */
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   const t = useTranslations();
+  // Inside a list: the entry copying the table is every export menu's own (see CopyTableProvider).
+  const copyTable = useCopyTableContext();
+  useRegisterExportMenu(!fallback);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <ExportButton label={t("export")} isPending={isPending} />
+        <ExportButton
+          label={t("export")}
+          isPending={isPending || !!copyTable?.isPending}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
         {children}
+        {copyTable && (
+          <ExportMenuItem
+            icon={Copy01Icon}
+            label={t("table.copy")}
+            description={t("table.copy.description")}
+            disabled={copyTable.isPending}
+            onSelect={() => void copyTable.copy()}
+          />
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
