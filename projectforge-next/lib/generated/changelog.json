@@ -3,11 +3,20 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.2.15",
-    "date" : "2026-11-22",
+    "date" : "2026-11-24",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "CVE-Pilot inventory: the dialog of a node has a tab \"History\" that lists which CVEs an update of the libraries (SBOM) fixed, planned as fixed or reopened (e.g. after a rollback), with the old and new version of the library." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "CVE-Pilot: API keys for areas and systems too (valid for everything below), upload of lists by the folders of a zip or the parameters component/system (missing ones are created with create=true), remove a key, column with the age of the key.", "CVE-Pilot inventory: the page opens much faster with many libraries. The tree only carries the number of the libraries read from lists (SBOM, lock files, JAR lists); the list is loaded when the dialog of a component shows it. The filter of the inventory searches the technologies entered by hand, no longer the libraries read from lists.", "CVE-Pilot inventory: the column \"Technologies updated\" also shows the period of the updates in the components below an area, system or instance (e.g. 11.11.–18.11.2026, or one day)." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "CVE-Pilot inventory: areas and systems are shared with lists of groups and users, for administering, writing and reading (like calendars), instead of one group. Only admins change the lists (and so give rights to others), move or delete an area or system; the lists come on top of the CVE-Pilot roles. The lists of an area apply to everything below it; the former group becomes a group with admin and write access." ]
+    }, {
       "type" : "fixed",
-      "items" : [ "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one.", "{app} Setting up a passkey: the app cannot register one itself, so the setup page now continues in the browser of the device. Pages of the server can ask the app to show them in the browser, as the \"Open in browser\" menu entry does for every page.", "{app} Refused by the SSO proxy: one browser login is enough for all open tabs, a cancelled login is not opened again by the next request, and the notice of the expired SSO login disappears right after the login." ]
+      "items" : [ "CVE-Pilot: a CNA entry that names versions only (e.g. 1.7.2) no longer reports newer versions as possibly affected, it counts up to the highest version named. Takes effect when the CVE is imported again.", "CVE-Pilot: findings of a library that was removed from a component (e.g. by deleting its libraries) are removed by the matching as well when the vulnerability has no imported data yet (e.g. after restoring only the main dump of a backup); before they stayed until the next import. The history entries \"fixed\" of findings that come back (e.g. libraries uploaded again) are removed.", "{app} Switching to another server: late answers of the old server no longer end up in the address book of the new one.", "{app} Setting up a passkey: the app cannot register one itself, so the setup page now continues in the browser of the device. Pages of the server can ask the app to show them in the browser, as the \"Open in browser\" menu entry does for every page.", "{app} Refused by the SSO proxy: one browser login is enough for all open tabs, a cancelled login is not opened again by the next request, and the notice of the expired SSO login disappears right after the login." ]
     } ]
   },
   "groups" : [ {
