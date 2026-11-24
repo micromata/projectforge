@@ -27,6 +27,7 @@ import com.lowagie.text.Document
 import com.lowagie.text.Element
 import com.lowagie.text.Font
 import com.lowagie.text.FontFactory
+import com.lowagie.text.Image
 import com.lowagie.text.PageSize
 import com.lowagie.text.Paragraph
 import com.lowagie.text.Phrase
@@ -35,6 +36,7 @@ import com.lowagie.text.pdf.PdfPCell
 import com.lowagie.text.pdf.PdfPTable
 import com.lowagie.text.pdf.PdfWriter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.common.FilenameUtils
 import org.projectforge.framework.i18n.translate
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,6 +67,9 @@ open class KontoCustomerDataSheetPdfExport {
     @Autowired
     private lateinit var sellerConfig: EInvoiceSellerConfig
 
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
+
     /** One printed row: the field's label and its stored value, which may be blank. */
     internal class Row(val label: String, val value: String?)
 
@@ -77,7 +82,7 @@ open class KontoCustomerDataSheetPdfExport {
      */
     open fun export(konto: KontoDO): ByteArray {
         log.info { "Exporting customer data sheet of account #${konto.nummer}." }
-        val titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 15f, Color.WHITE)
+        val titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16f)
         val introFont = FontFactory.getFont(FontFactory.HELVETICA, 9f)
         val sectionFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10f)
         val headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8f)
@@ -164,16 +169,33 @@ open class KontoCustomerDataSheetPdfExport {
         ),
     )
 
+    /**
+     * The configured custom logo at the top right and the title below it, both on the white page: no colored bar, so the
+     * sheet brings no color scheme of its own — the logo is the only branding. Without a (valid) logo the title stands alone.
+     */
     private fun addTitleBar(document: Document, title: String, titleFont: Font) {
-        val bar = PdfPTable(1)
-        bar.widthPercentage = 100f
-        bar.addCell(PdfPCell(Phrase(title, titleFont)).apply {
-            backgroundColor = TITLE_BG
-            border = Rectangle.NO_BORDER
-            setPadding(6f)
+        logoImage()?.let { logo ->
+            logo.scaleToFit(LOGO_MAX_WIDTH, LOGO_MAX_HEIGHT)
+            logo.alignment = Image.ALIGN_RIGHT
+            document.add(logo)
+        }
+        document.add(Paragraph(title, titleFont).apply {
+            spacingBefore = 6f
+            spacingAfter = 10f
         })
-        bar.setSpacingAfter(8f)
-        document.add(bar)
+    }
+
+    /** The configured custom logo, or null where none is set or readable (see [ConfigurationService]). */
+    private fun logoImage(): Image? {
+        if (!configurationService.isLogoFileValid) {
+            return null
+        }
+        return try {
+            Image.getInstance(configurationService.logoFileObject!!.absolutePath)
+        } catch (ex: Exception) {
+            log.warn { "Can't load logo file for the customer data sheet: ${ex.message}" }
+            null
+        }
     }
 
     /** The seller, as far as configured ([EInvoiceSellerConfig]), so the customer knows whom to send the sheet back to. */
@@ -233,7 +255,7 @@ open class KontoCustomerDataSheetPdfExport {
     companion object {
         private val HEADER_BG = Color(230, 230, 230)
 
-        /** The ProjectForge blue of the title bar of the other PDFs. */
-        private val TITLE_BG = Color(0x1E, 0x5A, 0xA8)
+        private const val LOGO_MAX_WIDTH = 75f
+        private const val LOGO_MAX_HEIGHT = 20f
     }
 }
