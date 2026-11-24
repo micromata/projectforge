@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "CVE-Pilot inventory: the dialog of a node has a tab \"History\" that lists which CVEs an update of the libraries (SBOM) fixed, planned as fixed or reopened (e.g. after a rollback), with the old and new version of the library.",
+  "de": "CVE-Pilot-Inventar: Der Dialog eines Knotens hat einen Tab „Historie“, der auflistet, welche CVEs ein Update der Libraries (SBOM) behoben, als behoben geplant oder wieder geöffnet hat (z. B. nach einem Rollback), mit alter und neuer Version der Library."
+}
