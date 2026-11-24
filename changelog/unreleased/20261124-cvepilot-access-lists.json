@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "CVE-Pilot inventory: areas and systems are shared with lists of groups and users, for writing and for reading (like calendars), instead of one group. The lists of an area apply to everything below it; the former group becomes a group with write access.",
+  "de": "CVE-Pilot-Inventar: Bereiche und Systeme werden mit Listen von Gruppen und Benutzern freigegeben, zum Schreiben und zum Lesen (wie bei Kalendern), statt mit einer Gruppe. Die Listen eines Bereichs gelten für alles darunter; die bisherige Gruppe wird zur Gruppe mit Schreibzugriff."
+}
