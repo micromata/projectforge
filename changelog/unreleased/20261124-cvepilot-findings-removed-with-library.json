@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "CVE-Pilot: findings of a library that was removed from a component (e.g. by deleting its libraries) are removed by the matching as well when the vulnerability has no imported data yet (e.g. after restoring only the main dump of a backup); before they stayed until the next import.",
+  "de": "CVE-Pilot: Findings einer Library, die aus einer Komponente entfernt wurde (z. B. durch Löschen ihrer Libraries), entfernt das Matching auch dann, wenn die Schwachstelle noch keine importierten Daten hat (z. B. nach dem Zurückspielen nur des Haupt-Dumps eines Backups); bisher blieben sie bis zum nächsten Import stehen."
+}
