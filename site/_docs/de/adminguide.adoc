@@ -298,6 +298,8 @@ projectforge.push.apns.keyFile=/path/to/AuthKey_ABC1234567.p8
 projectforge.push.apns.keyId=ABC1234567
 projectforge.push.apns.teamId=DEF1234567
 projectforge.push.apns.topic=de.projectforge.mobileapp
+# Push-Nachrichten (Android), siehe unten.
+projectforge.push.fcm.serviceAccountFile=/path/to/firebase-service-account.json
 ----
 
 [[mobile_app_proxy_cookies]]
@@ -325,20 +327,27 @@ eigenen Sitzungs-Cookie durch. Der Browser hat dieses Cookie, die App nicht. So 
 [[mobile_app_push]]
 ==== Push-Nachrichten
 
-Eine neue Benachrichtigung kann die App über den Push-Dienst von Apple (APNs) mit einer Push-Nachricht wecken. Der
-Server sendet sie selbst: Er benötigt dazu einen APNs-Authentifizierungsschlüssel (`AuthKey_<keyId>.p8`) des Apple-
-Entwicklerkontos, zu dem die App gehört (`keyFile`, `keyId`, `teamId` und die Bundle-ID der App als `topic`). Ohne
-`keyFile` wird keine Push-Nachricht gesendet, und die App fragt wie bisher gelegentlich nach neuen Benachrichtigungen.
+Eine neue Benachrichtigung kann die App mit einer Push-Nachricht wecken, auf dem iPhone über den Push-Dienst von Apple
+(APNs), auf einem Android-Gerät über Firebase Cloud Messaging (FCM). Der Server sendet sie selbst und wählt den Dienst
+nach der Plattform der App. Jeder Dienst wird für sich konfiguriert; was nicht konfiguriert ist, sendet nichts, und die
+App fragt wie bisher gelegentlich nach neuen Benachrichtigungen.
 
-Der Schlüssel gehört dem Herausgeber der App. Pushes funktionieren daher für Installationen, die den Schlüssel des
+* *iPhone:* ein APNs-Authentifizierungsschlüssel (`AuthKey_<keyId>.p8`) des Apple-Entwicklerkontos, zu dem die App
+  gehört (`keyFile`, `keyId`, `teamId` und die Bundle-ID der App als `topic`).
+* *Android:* der JSON-Schlüssel eines Dienstkontos des Firebase-Projekts, zu dem die App gehört
+  (`projectforge.push.fcm.serviceAccountFile`; die Projekt-ID wird daraus gelesen, `projectforge.push.fcm.projectId`
+  überschreibt sie).
+
+Die Schlüssel gehören dem Herausgeber der App. Pushes funktionieren daher für Installationen, die die Schlüssel des
 Herausgebers haben oder einen eigenen Build der App.
 
 * *Inhalt:* wie die Webversion der Titel und der Anfang der Benachrichtigung, dazu der Link und die Anzahl offener
   Benachrichtigungen. Chat-Nachrichten erscheinen nur dort, wo sie auch in Mails erscheinen.
-* *Datenschutz:* Apple sieht diesen Inhalt. Jede Person kann ihn abschalten („Mein Konto“, Apps, und die Einstellungen
+* *Datenschutz:* Apple (iPhone) bzw. Google (Android) sieht diesen Inhalt. Jede Person kann ihn abschalten („Mein Konto“, Apps, und die Einstellungen
   der App; dann kommt ein allgemeiner Text, und die App lädt den Inhalt selbst). `projectforge.push.content=false` lässt
   ihn aus allen Push-Nachrichten heraus.
-* *Builds:* Debug-Builds der App nutzen die Sandbox von APNs, Release-Builds den Produktivdienst.
+* *Builds:* Debug-Builds der App nutzen die Sandbox von APNs, Release-Builds den Produktivdienst. FCM kennt diese
+  Unterscheidung nicht.
 
 [[customization]]
 === Anpassungen

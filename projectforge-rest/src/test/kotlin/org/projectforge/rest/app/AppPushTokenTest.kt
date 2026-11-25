@@ -96,6 +96,41 @@ class AppPushTokenTest : AbstractTestBase() {
     }
 
     @Test
+    fun `android app stores its fcm token case sensitive without environment`() {
+        val (device, token) = appDeviceDao.createDevice(getUser(TEST_USER), "Pixel", "android", Date(), null)
+        logonByAppToken(TEST_USER)
+
+        val response = appAuthRest.pushToken(appRequest(token), AppAuthRest.PushTokenRequest(FCM, null))
+        Assertions.assertEquals(HttpStatus.OK, response.statusCode)
+        val stored = appDeviceDao.getPushDevices(getUser(TEST_USER).id).single()
+        Assertions.assertEquals(device.id, stored.id)
+        Assertions.assertEquals(FCM, stored.pushToken) // Not lowercased.
+        Assertions.assertNull(stored.pushEnvironment)
+
+        listOf("", "short:token", "$FCM'; --", FCM.repeat(20)).forEach {
+            Assertions.assertEquals(
+                HttpStatus.BAD_REQUEST,
+                appAuthRest.pushToken(appRequest(token), AppAuthRest.PushTokenRequest(it, null)).statusCode,
+                it,
+            )
+        }
+    }
+
+    @Test
+    fun `ios app still needs an environment and a hex token`() {
+        val (_, token) = appDeviceDao.createDevice(getUser(TEST_USER), "iPhone", "ios", Date(), null)
+        logonByAppToken(TEST_USER)
+        Assertions.assertEquals(
+            HttpStatus.BAD_REQUEST,
+            appAuthRest.pushToken(appRequest(token), AppAuthRest.PushTokenRequest(HEX, null)).statusCode,
+        )
+        Assertions.assertEquals(
+            HttpStatus.BAD_REQUEST,
+            appAuthRest.pushToken(appRequest(token), AppAuthRest.PushTokenRequest(FCM, "SANDBOX")).statusCode,
+        )
+    }
+
+    @Test
     fun `push token moves to the app that registers it last`() {
         val (_, token) = appDeviceDao.createDevice(getUser(TEST_USER), "old phone", "ios", Date(), null)
         val (second, secondToken) = appDeviceDao.createDevice(getUser(TEST_USER), "new phone", "ios", Date(), null)
@@ -118,5 +153,6 @@ class AppPushTokenTest : AbstractTestBase() {
 
     companion object {
         private val HEX = "ab12".repeat(16)
+        private val FCM = "fXk3Qz_9-A:APA91bHx".padEnd(40, 'Z') + "-Ab_c9"
     }
 }
