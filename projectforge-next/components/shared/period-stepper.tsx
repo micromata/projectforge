@@ -47,6 +47,11 @@ export interface PeriodStepperProps {
    * by the days it spans, and one that is never paged still has its arts to pick from.
    */
   paging?: boolean;
+  /**
+   * Name the arrows generically ("Zurück"/"Weiter") even where an art is offered, for a range entered by hand
+   * that pages by the days it spans: the art's own name ("nächstes Quartal") would be wrong for it.
+   */
+  genericArrows?: boolean;
   disabled?: boolean;
   className?: string;
   /**
@@ -102,6 +107,7 @@ export function PeriodStepper({
   onStep,
   canStep = true,
   paging = true,
+  genericArrows = false,
   disabled,
   className,
   longLabel = false,
@@ -160,7 +166,7 @@ export function PeriodStepper({
         arrow(
           -1,
           ArrowLeft01Icon,
-          kind?.tooltipPreviousKey ?? "duration.previous"
+          (!genericArrows && kind?.tooltipPreviousKey) || "duration.previous"
         )}
       {currentButton && kind?.tooltipCurrentKey ? (
         // A stepper of one fixed art: the middle jumps straight to the current period of it, no dropdown.
@@ -197,7 +203,11 @@ export function PeriodStepper({
         />
       )}
       {paging &&
-        arrow(1, ArrowRight01Icon, kind?.tooltipNextKey ?? "duration.next")}
+        arrow(
+          1,
+          ArrowRight01Icon,
+          (!genericArrows && kind?.tooltipNextKey) || "duration.next"
+        )}
     </div>
   );
 }

@@ -6619,6 +6619,9 @@
       "legend": {
         "holidayOrWeekend": "Weekend or holiday"
       },
+      "period": {
+        "maxDays": "At most {arg0} days can be shown at once; the end was shortened."
+      },
       "persons": "People",
       "print": {
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."

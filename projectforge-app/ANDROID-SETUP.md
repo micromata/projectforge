@@ -7,7 +7,7 @@ One-time steps in the Google Play Console, before the first upload. The build an
 |---|---|
 | Package name | `org.projectforge.mobileapp` (`android.package` in `app.config.ts`; the iOS bundle ID stays `de.projectforge.mobileapp`: the Flutter app's Android id `de.projectforge.mobileapp` is taken by an inactive Play account) |
 | Account | Google Play Console, organization account (verified, so the test requirement of personal accounts doesn't apply) |
-| First release | without push (see "Push" below) |
+| Push | Firebase Cloud Messaging, sent by the server itself (see "Push" below) |
 
 ## 1. Create the app
 
@@ -81,15 +81,56 @@ All of these must be completed before a release can go to production:
 2. Download the `.aab` from the build page.
 3. Play Console → **Test and release → Testing → Internal testing → Create new release**, upload the `.aab`, add testers
    (an email list, **Testers** tab), save, roll out. Testers install through the opt-in link; wait a few minutes.
-   Start with internal testing: it needs no review and checks login, push-free operation and the WebView on a real device.
+   Start with internal testing: it needs no review and checks login, push and the WebView on a real device.
 4. When it works: **Production → Create new release** (or promote the internal release), release notes per language,
    *Send for review*. The first review of a new app takes a few days.
 5. Later releases: `bin/pfApp.sh eas submit --platform android --profile production --latest` uploads as a draft
    to the track of `eas.json`; open the draft in the Play Console and roll it out.
 
-## 7. Push
+## 7. Push (Firebase Cloud Messaging)
 
-The first Android release has no push: `expo-notifications` needs Firebase (`google-services.json`) and the server only
-sends through APNs (`ApnsPushSender`). On Android the user status is polled every 60 s while the app is open (dev-docs/mobile-app.md,
-"Notifications and push"). FCM needs: a Firebase project with the app, `google-services.json` in the app, an
-FCM `PushSender` in the server, and the Android registration in `core/push`.
+The server sends the pushes itself (`FcmPushSender`, see dev-docs/mobile-app.md, "Notifications and push"); the app
+only needs the Firebase configuration at build time. Without it the app builds, but gets no token, and the user status
+is polled every 60 s while the app is open, as before.
+
+### Firebase project
+
+1. https://console.firebase.google.com → create a project (Analytics isn't needed).
+2. *Project settings → General → Your apps → Add app → Android*: package name `org.projectforge.mobileapp`. Add the
+   dev client `org.projectforge.mobileapp.dev` as a second app of the same project, so both builds get tokens.
+3. Download `google-services.json` (it holds both apps). It contains no secret of the server, but stays out of the
+   repository (`.gitignore`).
+4. *Project settings → Cloud Messaging*: **Firebase Cloud Messaging API (V1)** must be enabled.
+
+### Build of the app
+
+`app.config.ts` reads the path of the file from `GOOGLE_SERVICES_JSON`:
+
+- locally: `GOOGLE_SERVICES_JSON=./google-services.json` in `.env.local`;
+- on EAS: an environment variable of the project of type *file*
+  (`bin/pfApp.sh eas env:create --name GOOGLE_SERVICES_JSON --type file`).
+
+Changing the file changes the native code: a new build, not an update (the fingerprint changes).
+
+### Service account for the server
+
+This is another service account than the one of the submit (section 3): it sends pushes, it doesn't upload.
+
+1. *Project settings → Service accounts → Generate new private key*, or in the Google Cloud console a service account
+   with the role **Firebase Cloud Messaging API Admin** (`roles/firebasecloudmessaging.admin`) and a JSON key.
+2. Store the JSON on the server, readable by ProjectForge only, and configure it:
+
+   ```properties
+   projectforge.push.fcm.serviceAccountFile=/path/to/firebase-service-account.json
+   # projectforge.push.fcm.projectId=...   (default: project_id of the file)
+   ```
+
+   The key belongs to the publisher of the app; an installation with its own build of the app needs the key of its own
+   Firebase project.
+
+### Test
+
+- Install a build on a device or emulator with Google Play services, log in, allow notifications (Android 13+ asks).
+- `T_PF_USER_APP_DEVICE.push_token` holds the token (no `push_environment`).
+- "Test to me" of a notification rule, app in the background: the push shows, the tap opens its link.
+- Uninstall the app and send again: the server logs `UNREGISTERED` and forgets the token.

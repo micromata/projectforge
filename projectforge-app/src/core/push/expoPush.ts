@@ -22,8 +22,11 @@
 /////////////////////////////////////////////////////////////////////////////
 
 import * as Notifications from 'expo-notifications';
+import { AndroidImportance } from 'expo-notifications';
+import { Platform } from 'react-native';
 
 import PfNative from '../../../modules/pf-native/src/PfNativeModule';
+import { payloadOf } from './pushPayload';
 import { PushPlatform, PushTap } from './pushService';
 
 // A push while the app is open: shown as a banner (the app loads the notifications, see PushService).
@@ -36,31 +39,34 @@ Notifications.setNotificationHandler({
   }),
 });
 
-/**
- * The link, the device and the server of the server's push are beside `aps` in its payload (ApnsPushSender);
- * expo-notifications hands them over in the payload of the trigger only (its `data` is the payload's `body`).
- */
-function payloadOf(request: Notifications.NotificationRequest) {
-  const trigger = request.trigger as { type?: string; payload?: Record<string, unknown> } | null;
-  const value = (key: string) => trigger?.payload?.[key] ?? request.content.data?.[key];
-  const link = value('link');
-  const device = value('device');
-  const server = value('server');
-  return {
-    link: typeof link === 'string' ? link : '',
-    device: typeof device === 'number' ? device : null,
-    server: typeof server === 'string' ? server : null,
-  };
-}
-
 function tapOf(response: Notifications.NotificationResponse): PushTap {
   const { request } = response.notification;
-  return { id: request.identifier, ...payloadOf(request) };
+  const { link, device, server } = payloadOf(request);
+  return { id: request.identifier, link, device, server };
 }
 
-/** The pushes of iOS by expo-notifications. */
+/**
+ * The channels of the Android notifications (FcmPushSender names them): since Android 8 the sound belongs to the
+ * channel, not to the single notification: IMPORTANT and URGENT ones ring, the others only show.
+ */
+async function createChannels() {
+  await Notifications.setNotificationChannelAsync('pf_default', {
+    name: 'Notifications',
+    importance: AndroidImportance.HIGH,
+    sound: null,
+  });
+  await Notifications.setNotificationChannelAsync('pf_important', {
+    name: 'Important notifications',
+    importance: AndroidImportance.HIGH,
+    sound: 'default',
+  });
+}
+
+/** The pushes of iOS (APNs) and Android (FCM) by expo-notifications. */
 export const expoPush: PushPlatform = {
   requestPermission: async () => {
+    // Before the permission: Android 13 asks for it only once a channel exists.
+    if (Platform.OS === 'android') await createChannels();
     const answer = await Notifications.requestPermissionsAsync({
       ios: { allowAlert: true, allowBadge: true, allowSound: true },
     });
@@ -78,10 +84,12 @@ export const expoPush: PushPlatform = {
   onReceived: (listener) =>
     Notifications.addNotificationReceivedListener((notification) => {
       const { request } = notification;
-      const { device, server } = payloadOf(request);
+      const { device, server, badge: dataBadge } = payloadOf(request);
+      // iOS: the badge of aps; Android has none in the notification, the server sends it as data.
       const badge = request.content.badge;
-      listener({ badge: typeof badge === 'number' ? badge : null, device, server });
+      listener({ badge: typeof badge === 'number' ? badge : dataBadge, device, server });
     }),
   setBadge: (count) => Notifications.setBadgeCountAsync(count),
-  environment: () => PfNative.apsEnvironment(),
+  // APNs only: FCM has no sandbox.
+  environment: () => (Platform.OS === 'ios' ? PfNative.apsEnvironment() : null),
 };

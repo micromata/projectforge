@@ -10,14 +10,11 @@ import { PageTitleRow } from "@/components/shared/page-title-row";
 import { useExportDownload } from "@/hooks/use-export-download";
 import { useFormatContext } from "@/hooks/use-format";
 import {
-  periodKindOf,
+  CUSTOM_PERIOD_KIND,
   periodKindsOf,
-  type Period,
   type PeriodKind,
 } from "@/lib/date-period";
-import { boundsOfPeriod, currentAnchorOf } from "@/lib/date-period-bounds";
-import { isIsoDate } from "@/lib/date-period-math";
-import { formatDateRange, type FormatContext } from "@/lib/format";
+import { formatDateRange } from "@/lib/format";
 import {
   ABSENCE_KINDS,
   sortAbsenceKinds,
@@ -36,6 +33,14 @@ import type {
   VacationExportRef,
   VacationExportRequest,
 } from "./types";
+import {
+  clampToMin,
+  customPeriodOf,
+  initialExportPeriod,
+  periodOfKind,
+  stepCustomPeriod,
+  type ExportPeriod,
+} from "./vacation-export-period";
 import { VacationExportFilterRow } from "./vacation-export-filter-row";
 import { VacationTeamChart } from "./vacation-team-chart";
 import {
@@ -50,12 +55,13 @@ const KINDS = periodKindsOf(["quarter", "year"]);
 
 /**
  * The team vacation calendar (`/next/vacationExport`), successor of the React page `react/vacationExport/dynamic`:
- * the vacations of the chosen users and groups, shown per quarter or calendar year, and as Excel workbook
+ * the vacations of the chosen users and groups, shown per quarter, calendar year or any range of days, and as Excel workbook
  * with a sheet per period (VacationExcelExporter) starting with the period shown. Optionally with the availability
  * entries of the same users, as their vacations, in the chart and the workbook.
  *
  * The users and groups chosen and whether availabilities are shown are stored by the backend (shown again on
- * the next visit); the period is kept in the url (`?period=quarter&from=2026-10-01`).
+ * the next visit); the period is kept in the url (`?period=quarter&from=2026-10-01`, a free range as
+ * `?period=custom&from=2026-11-01&until=2027-01-31`).
  *
  * Printed (the filter row's print button), it is the title, the period and the calendar shown: the choice
  * itself is not printed, the names are in the chart.
@@ -101,39 +107,6 @@ export function VacationExportPage() {
 
 function toRef(ref: VacationExportRef): EntityRef {
   return toPickerRef(ref)!;
-}
-
-/**
- * The period of the url, else the art stored with the choice (the current period of it), else this quarter. One
- * ending before `min` (an old link of a user who may not look into previous years) is the current one instead.
- */
-function initialPeriod(
-  params: URLSearchParams,
-  storedKind: string | null | undefined,
-  min: string | null,
-  ctx: FormatContext
-): Period {
-  const offered = (id: string | null | undefined): PeriodKind | null => {
-    const kind = periodKindOf(id);
-    return kind && KINDS.includes(kind) ? kind : null;
-  };
-  const kind = offered(params.get("period")) ?? offered(storedKind) ?? KINDS[0];
-  const from = params.get("from");
-  // Only a day that exists: `2026-13-01` has the shape, but the backend can't read it.
-  const anchor = isIsoDate(from)
-    ? kind.beginOf(from, ctx)
-    : currentAnchorOf(kind, ctx);
-  return clampPeriod({ kind, anchor }, min, ctx);
-}
-
-/** The current period of the art instead of one ending before `min`. ISO dates compare as strings. */
-function clampPeriod(
-  period: Period,
-  min: string | null,
-  ctx: FormatContext
-): Period {
-  if (!min || period.kind.endOf(period.anchor, ctx) >= min) return period;
-  return { kind: period.kind, anchor: currentAnchorOf(period.kind, ctx) };
 }
 
 /**
@@ -185,14 +158,17 @@ function VacationExportContent({
   const [dayWidth, setDayWidth] = useState<ChartWidth>(() =>
     chartWidthOf(initial.dayWidth)
   );
-  const [period, setPeriod] = useState<Period>(() =>
-    initialPeriod(
+  const [period, setPeriod] = useState<ExportPeriod>(() =>
+    initialExportPeriod(
       new URLSearchParams(params.toString()),
       initial.periodKind,
+      KINDS,
       min,
       ctx
     )
   );
+  // Whether the end typed in was cut to what the backend answers for: told until the period changes again.
+  const [shortened, setShortened] = useState(false);
   const favorites = useVacationExportFavorites({
     initial: initial.favorites,
     users,
@@ -202,14 +178,13 @@ function VacationExportContent({
       setGroups(nextGroups.map(toRef));
     },
   });
-  const bounds = boundsOfPeriod(period.kind, period.anchor, ctx);
   const body: VacationExportRequest = {
     userIds: users.map((e) => e.id),
     groupIds: groups.map((g) => g.id),
-    periodKind: period.kind.id,
+    periodKind: period.kind?.id ?? CUSTOM_PERIOD_KIND,
     dayWidth,
-    from: bounds.from,
-    until: bounds.to,
+    from: period.from,
+    until: period.until,
     absenceKinds,
   };
   const hasSelection = users.length > 0 || groups.length > 0;
@@ -226,10 +201,31 @@ function VacationExportContent({
   const hasRows = (view.data?.rows.length ?? 0) > 0;
   const excel = useExportDownload(() => downloadVacationExportExcel(body));
 
-  function selectPeriod(kind: PeriodKind, anchor: string) {
-    const next = clampPeriod({ kind, anchor }, min, ctx);
+  function applyPeriod(next: ExportPeriod, wasShortened = false) {
     setPeriod(next);
-    updateSearchParams({ period: next.kind.id, from: next.anchor }, "replace");
+    setShortened(wasShortened);
+    updateSearchParams(
+      next.kind
+        ? { period: next.kind.id, from: next.from, until: null }
+        : { period: CUSTOM_PERIOD_KIND, from: next.from, until: next.until },
+      "replace"
+    );
+  }
+
+  /** A whole period of an art, by picking the art or paging it. */
+  function selectPeriod(kind: PeriodKind, anchor: string) {
+    applyPeriod(clampToMin(periodOfKind(kind, anchor, ctx), min, ctx));
+  }
+
+  /** A free range: "Eigener Zeitraum" (keeping the two days) or one of the two days typed in. */
+  function selectCustom(from: string, until: string) {
+    const next = customPeriodOf(from, until, min);
+    applyPeriod(next.period, next.shortened);
+  }
+
+  function stepCustom(steps: number) {
+    const next = stepCustomPeriod(period, steps, min, ctx);
+    if (next) applyPeriod(next);
   }
 
   return (
@@ -247,13 +243,16 @@ function VacationExportContent({
         canPrint={hasSelection && hasRows}
         onUsersChange={setUsers}
         onGroupsChange={setGroups}
+        shortened={shortened}
         onPeriodChange={selectPeriod}
+        onCustomPeriodChange={selectCustom}
+        onCustomStep={stepCustom}
         onDayWidthChange={setDayWidth}
         onAbsenceKindsChange={setAbsenceKinds}
         onExport={() => excel.mutate()}
       />
       <p className="hidden text-sm tabular-nums print:block">
-        {formatDateRange(bounds.from, bounds.to, ctx)}
+        {formatDateRange(period.from, period.until, ctx)}
       </p>
       {!hasSelection && (
         <p className="text-sm text-muted-foreground">

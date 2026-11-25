@@ -40,3 +40,6 @@ yarn-error.*
 /ios
 /android
 credentials.json
+
+# Firebase config of the Android app (ANDROID-SETUP.md)
+google-services.json

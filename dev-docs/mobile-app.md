@@ -336,23 +336,29 @@ when the summary (count, newest id) of the user status changes; the user status 
 60 s in the foreground and refreshed by a push (the bell takes the push's badge at once, the status is loaded now and
 3 s later) and by the status signal of next (see Badge above).
 
-In the background iOS suspends the app and no SSE connection survives, so only APNs can wake the user (Android with
-FCM follows).
+In the background the system suspends the app and no SSE connection survives, so only the push service of the
+platform can wake the user: APNs on iOS, FCM on Android.
 
-- **Registration:** after login the app asks for the permission, registers for remote notifications and hands the token
-  to the server with `POST /rs/appAuth/pushToken` (token, `SANDBOX` for debug and `PRODUCTION` for release builds),
-  stored at its `AppDeviceDO` (`push_token`, `push_environment`). The device is the one of the app token, a token known
+- **Registration:** after login the app asks for the permission (on Android it creates the channels `pf_default` and
+  `pf_important` first: the sound belongs to the channel), registers for remote notifications and hands the token
+  to the server with `POST /rs/appAuth/pushToken` (token, `SANDBOX` for debug and `PRODUCTION` for release builds; iOS
+  only), stored at its `AppDeviceDO` (`push_token`, `push_environment`). The platform is the one the app reported at
+  its login (`AppDeviceDO.platform`): it decides how the token is validated (iOS: hex, lowercased; Android: the case
+  sensitive FCM token, no environment) and which sender is used. The device is the one of the app token, a token known
   on another device is moved. The logout deletes the device and with it the token. Code: `core/push/pushService.ts`, `core/push/expoPush.ts`.
 - **Sending:** the push accompanies the in-app step of the delivery cascade: when a notification becomes visible for
   the recipient (`NotificationService.deliverDueSteps`, "test to me" of a rule), `PushNotifier` sends in the background
-  to every registered app of the recipient (`PushSender`, `ApnsPushSender`: HTTP/2 to APNs, ES256 provider token
-  of the `.p8` key, `projectforge.push.apns.*`). A token refused with 410/`BadDeviceToken` is forgotten. Without
-  `keyFile` nothing is sent. The chat doesn't push for a conversation the recipient watches or has muted, as for the
+  to every registered app of the recipient (`PushSender`; the bean in use is `PushSenders`, which hands a push to the
+  sender of the device's platform: `ApnsPushSender`: HTTP/2 to APNs, ES256 provider token of the `.p8` key,
+  `projectforge.push.apns.*`; `FcmPushSender`: FCM HTTP v1 with the OAuth2 token of a Firebase service account, no
+  Google library, `projectforge.push.fcm.*`). A token refused with 410/`BadDeviceToken` (APNs) or 404/`UNREGISTERED`
+  (FCM) is forgotten. Without `keyFile` resp. `serviceAccountFile` nothing is sent to that platform. The chat doesn't push for a conversation the recipient watches or has muted, as for the
   other channels (`ChatNotifier`).
 - **Payload:** the title and the beginning of the notification (`PushNotifier`: the preview the bell shows,
   `NotificationPreview`, e.g. the chat message; else the SMS text if the rule has one, else the html body as plain
   text, one line per block, at most 240 characters; the chat bodies don't repeat their title, `ChatNotifier.body`), the link, the notification id and the
-  badge (count of the visible notifications), a sound only for IMPORTANT and URGENT. Apple sees it: the user may switch
+  badge (count of the visible notifications), a sound only for IMPORTANT and URGENT (on Android the channel `pf_important` rings; the badge and ids are `data`
+  strings, the app reads them like the APNs ones, `payloadOf` in `expoPush.ts`). Apple and Google see it: the user may switch
   the content off (`PushContentPrefService`, a user pref, `GET/POST /rs/pushSettings`, in "My account" → Apps and in
   the app's settings, `UserStatusStore.choosePushContent`), the server for everybody (`projectforge.push.content=false`,
   the switch is hidden then); a generic text (`notification.push.*`, in the language of the recipient) instead. Chat
@@ -368,10 +374,14 @@ FCM follows).
   opens the link there (`webTabs.afterReset`). The open notifications of the other logins (`core/status/otherServers.ts`,
   loaded on start and resume, set by their pushes) are shown at the "more" menu, in the server list, below the
   notification center and in the icon badge (the sum).
-- Real APNs delivery needs a physical device; sandbox and production differ, test via TestFlight.
-- Open: who sends for a self-hosted installation. The store app has one APNs key: for now the server sends itself with
-  keys from its configuration (installations with the publisher's keys or an own build of the app); a push relay of the
-  app's publisher, to which each server sends only token and ids (as Nextcloud does), would be a second `PushSender`.
+- Real APNs delivery needs a physical device; sandbox and production differ, test via TestFlight. FCM works on an
+  emulator with Google Play services. Setup of the Firebase project and the keys: `projectforge-app/ANDROID-SETUP.md`.
+- The app needs `google-services.json` of the Firebase project at build time (`GOOGLE_SERVICES_JSON`, `app.config.ts`);
+  without it the Android app builds but gets no token and the server doesn't push to it.
+- Open: who sends for a self-hosted installation. The store app has one APNs key and one Firebase project: for now the
+  server sends itself with keys from its configuration (installations with the publisher's keys or an own build of the
+  app); a push relay of the app's publisher, to which each server sends only token and ids (as Nextcloud does), would be
+  one more delegate of `PushSenders`.
 
 ## Open points
 

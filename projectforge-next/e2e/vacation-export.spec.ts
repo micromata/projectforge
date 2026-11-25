@@ -17,7 +17,7 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
   test("shows the vacations per quarter, pages and exports them as Excel", async ({
     loggedInPage: page,
   }) => {
-    const { t } = await userFormat(page);
+    const { t, date } = await userFormat(page);
     const headers = { "X-PF-Frontend": "next" };
     const initial = (await (
       await page.request.get("/rs/vacationExport/initial", { headers })
@@ -100,6 +100,21 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
           })
         )
         .toBe(true);
+
+      // A free range over the turn of the year: both ends in the boxes, the chart runs through, the arrows page
+      // it by the days it spans (92 days: 01.11.–31.01. becomes 01.02.–03.05.).
+      await goto(
+        page,
+        "/vacationExport?period=custom&from=2030-11-01&until=2031-01-31"
+      );
+      await expect(page.getByLabel(t("date.from"))).toHaveValue(
+        date("2030-11-01")
+      );
+      await expect(page.getByLabel(t("until"))).toHaveValue(date("2031-01-31"));
+      await expect(chart.getByText(/2030/).first()).toBeVisible();
+      await expect(chart.getByText(/2031/).first()).toBeVisible();
+      await page.getByRole("button", { name: t("duration.next") }).click();
+      await expect(page).toHaveURL(/from=2031-02-01&until=2031-05-03/);
 
       const download = page.waitForEvent("download");
       await page.getByRole("button", { name: t("exportAsXls") }).click();

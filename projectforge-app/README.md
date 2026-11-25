@@ -106,4 +106,4 @@ bin/pfApp.sh eas submit --platform android --profile production --latest   # as 
 ```
 
 `ios.buildNumber` and `android.versionCode` are kept equal, so one tag `app-<version>+<build>` (created by `publish`)
-marks both; build Android from that commit. The first release has no push on Android (the server sends only through APNs, FCM is open).
+marks both; build Android from that commit. Push on Android needs the Firebase setup ([ANDROID-SETUP.md](ANDROID-SETUP.md#7-push-firebase-cloud-messaging)).

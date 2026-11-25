@@ -13,21 +13,22 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { FavoritesMenu } from "@/components/shared/favorites/favorites-menu";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { useFormatContext } from "@/hooks/use-format";
-import type { Period, PeriodKind } from "@/lib/date-period";
-import { boundsOfPeriod } from "@/lib/date-period-bounds";
+import type { PeriodKind } from "@/lib/date-period";
 import { formatDateRange } from "@/lib/format";
 import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import {
   VACATION_EXPORT_USERS_URL,
   VACATION_EXPORT_GROUPS_URL,
 } from "@/lib/rs/vacation-export";
+import { VacationExportCustomPeriod } from "./vacation-export-custom-period";
+import type { ExportPeriod } from "./vacation-export-period";
 import { VacationChartWidthSelect } from "./vacation-chart-width-select";
 import type { ChartWidth } from "@/components/shared/absence-chart/absence-chart-width";
 import type { useVacationExportFavorites } from "./use-vacation-export-favorites";
 
 /**
  * What the team vacation calendar shows: the users and groups (the lookups offer only what the user may
- * pick), the period — quarter or calendar year, paged with the arrows, not before `min` — the width of the day
+ * pick), the period — quarter, calendar year or a free range of days, paged with the arrows, not before `min` — the width of the day
  * columns, which absences are shown (vacations, availability entries by status; in the chart and the export), the Excel export of the
  * same choice and the print of the calendar shown (`canPrint`: one is shown). The favorites hold named choices of
  * users and groups. Not printed itself (see VacationExportPage).
@@ -37,6 +38,7 @@ export function VacationExportFilterRow({
   users,
   groups,
   period,
+  shortened,
   min,
   dayWidth,
   absenceKinds,
@@ -46,6 +48,8 @@ export function VacationExportFilterRow({
   onUsersChange,
   onGroupsChange,
   onPeriodChange,
+  onCustomPeriodChange,
+  onCustomStep,
   onDayWidthChange,
   onAbsenceKindsChange,
   onExport,
@@ -53,7 +57,8 @@ export function VacationExportFilterRow({
   kinds: readonly PeriodKind[];
   users: EntityRef[];
   groups: EntityRef[];
-  period: Period;
+  period: ExportPeriod;
+  shortened: boolean;
   min: string | null;
   dayWidth: ChartWidth;
   absenceKinds: AbsenceKind[];
@@ -63,13 +68,14 @@ export function VacationExportFilterRow({
   onUsersChange: (value: EntityRef[]) => void;
   onGroupsChange: (value: EntityRef[]) => void;
   onPeriodChange: (kind: PeriodKind, anchor: string) => void;
+  onCustomPeriodChange: (from: string, until: string) => void;
+  onCustomStep: (steps: number) => void;
   onDayWidthChange: (value: ChartWidth) => void;
   onAbsenceKindsChange: (value: AbsenceKind[]) => void;
   onExport: () => void;
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const bounds = boundsOfPeriod(period.kind, period.anchor, ctx);
   const remove = (entry: EntityRef) => `${t("delete")}: ${entry.displayName}`;
   return (
     <div className="flex flex-wrap items-end gap-4 print:hidden">
@@ -104,14 +110,30 @@ export function VacationExportFilterRow({
         <div className="flex items-center gap-2">
           <PeriodStepper
             kinds={kinds}
-            current={period}
+            current={
+              period.kind ? { kind: period.kind, anchor: period.from } : null
+            }
+            anchor={period.from}
             onSelect={onPeriodChange}
-            min={min}
+            onClear={() => onCustomPeriodChange(period.from, period.until)}
+            // A free range pages by the days it spans, and is kept inside `min` by the page itself.
+            onStep={period.kind ? undefined : onCustomStep}
+            genericArrows={!period.kind}
+            min={period.kind ? min : null}
             longLabel
           />
-          <span className="whitespace-nowrap text-sm tabular-nums">
-            {formatDateRange(bounds.from, bounds.to, ctx)}
-          </span>
+          {period.kind ? (
+            <span className="whitespace-nowrap text-sm tabular-nums">
+              {formatDateRange(period.from, period.until, ctx)}
+            </span>
+          ) : (
+            <VacationExportCustomPeriod
+              from={period.from}
+              until={period.until}
+              shortened={shortened}
+              onChange={onCustomPeriodChange}
+            />
+          )}
         </div>
       </div>
       <VacationChartWidthSelect value={dayWidth} onChange={onDayWidthChange} />

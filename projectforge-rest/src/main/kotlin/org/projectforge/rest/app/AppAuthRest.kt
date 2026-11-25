@@ -164,9 +164,9 @@ class AppAuthRest {
     }
 
     class PushTokenRequest(
-        /** The APNs device token (hex). */
+        /** The APNs device token (hex, iOS) or the FCM registration token (Android). */
         val token: String? = null,
-        /** `SANDBOX` (debug builds) or `PRODUCTION`. */
+        /** `SANDBOX` (debug builds) or `PRODUCTION`; iOS only, Android has no environments. */
         val environment: String? = null,
     )
 
@@ -179,19 +179,30 @@ class AppAuthRest {
     )
 
     /**
-     * The app hands over its push token (APNs), so the server can wake it for a notification. The device is the one
-     * of the app token of this request, nothing posted; a token already known on another device is moved here.
+     * The app hands over its push token (APNs on iOS, FCM on Android), so the server can wake it for a notification.
+     * The device is the one of the app token of this request, nothing posted; a token already known on another device
+     * is moved here.
      */
     @AccessChecked("Own app only (the device of the app token of this request). CSRF token not required (app token)")
     @PostMapping("pushToken")
     fun pushToken(request: HttpServletRequest, @RequestBody body: PushTokenRequest): ResponseEntity<*> {
         val token = body.token?.trim()
-        val environment = PushEnvironment.entries.firstOrNull { it.name == body.environment }
-        if (token == null || environment == null || !PUSH_TOKEN_REGEX.matches(token)) {
+        val device = ownDevice(request) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
+        // The platform the app reported at its login decides, as it does when a push is sent (PushSenders).
+        val android = device.platform.equals("android", ignoreCase = true)
+        val environment = if (android) null else PushEnvironment.entries.firstOrNull { it.name == body.environment }
+        if (token == null || !(if (android) FCM_TOKEN_REGEX else APNS_TOKEN_REGEX).matches(token) ||
+            (!android && environment == null)
+        ) {
             return ResponseEntity.badRequest().build<Any>()
         }
-        val device = ownDevice(request) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
-        appDeviceDao.setPushToken(ThreadLocalUserContext.loggedInUserId, device.id, token.lowercase(), environment)
+        // An APNs token is hex (stored lowercase), an FCM token is case sensitive.
+        appDeviceDao.setPushToken(
+            ThreadLocalUserContext.loggedInUserId,
+            device.id,
+            if (android) token else token.lowercase(),
+            environment,
+        )
         return ResponseEntity.ok(PushTokenResponse())
     }
 
@@ -230,7 +241,8 @@ class AppAuthRest {
     }
 
     companion object {
-        private val PUSH_TOKEN_REGEX = Regex("[0-9a-fA-F]{32,200}")
+        private val APNS_TOKEN_REGEX = Regex("[0-9a-fA-F]{32,200}")
+        private val FCM_TOKEN_REGEX = Regex("[0-9A-Za-z:_-]{32,${AppDeviceDO.MAX_PUSH_TOKEN_LENGTH}}")
 
         const val WEB_START_URL = "/next/"
 
