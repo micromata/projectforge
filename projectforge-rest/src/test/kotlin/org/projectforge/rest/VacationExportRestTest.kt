@@ -137,6 +137,31 @@ class VacationExportRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a free period over the turn of the year is shown whole and cut to 400 days`() {
+        val own = createEmployee("custom-own")
+        val colleague = createEmployee("custom-colleague")
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.custom", own.user!!.username!!, colleague.user!!.username!!)
+        val year = LocalDate.now().year + 2
+        insertVacation(colleague, own, LocalDate.of(year, 12, 29), LocalDate.of(year + 1, 1, 2), VacationStatus.APPROVED)
+
+        logon(own.user!!)
+        val request = VacationExportRequest(
+            userIds = listOf(colleague.user!!.id!!), periodKind = "custom",
+            from = LocalDate.of(year, 11, 1), until = LocalDate.of(year + 1, 1, 31),
+        )
+        val view = vacationExportRest.view(request)
+        assertEquals(92, view.days.size)
+        val vacations = view.rows.single().vacations
+        assertEquals(listOf(LocalDate.of(year, 12, 29)), vacations.map { it.startDate })
+        assertEquals(listOf(LocalDate.of(year + 1, 1, 2)), vacations.map { it.endDate })
+        assertEquals("custom", vacationExportRest.getInitial().periodKind)
+
+        request.until = LocalDate.of(year + 3, 1, 1)
+        assertEquals(401, vacationExportRest.view(request).days.size, "From plus 400 days at most.")
+    }
+
+    @Test
     fun `availabilities are shown only if asked for, as the vacations of the same users`() {
         val own = createEmployee("avail-own")
         val colleague = createEmployee("avail-colleague")
