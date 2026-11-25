@@ -5,7 +5,7 @@ itself is described in [README.md](README.md#release).
 
 | | |
 |---|---|
-| Bundle ID | `de.projectforge.mobileapp` (iOS and Android) |
+| Bundle ID | `de.projectforge.mobileapp` (iOS; Android has `org.projectforge.mobileapp`) |
 | Team ID | `E4Q65AC7LP` |
 | Capability | Push Notifications only |
 
