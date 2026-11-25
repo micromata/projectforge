@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "CVE-Pilot: API keys for areas and systems too (valid for everything below), upload of lists by the folders of a zip or the parameters component/system (missing ones are created with create=true), remove a key, column with the age of the key.",
-  "de": "CVE-Pilot: API-Keys auch für Bereiche und Systeme (gelten für alles darunter), Upload von Listen über die Ordner eines Zips oder die Parameter component/system (fehlende werden mit create=true angelegt), Key entfernen, Spalte mit dem Alter des Keys."
-}

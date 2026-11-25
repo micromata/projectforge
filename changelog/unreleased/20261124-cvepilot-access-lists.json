@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "CVE-Pilot inventory: areas and systems are shared with lists of groups and users, for administering, writing and reading (like calendars), instead of one group. Only admins change the lists (and so give rights to others), move or delete an area or system; the lists come on top of the CVE-Pilot roles. The lists of an area apply to everything below it; the former group becomes a group with admin and write access.",
-  "de": "CVE-Pilot-Inventar: Bereiche und Systeme werden mit Listen von Gruppen und Benutzern freigegeben, zum Administrieren, Schreiben und Lesen (wie bei Kalendern), statt mit einer Gruppe. Nur Admins ändern die Listen (und vergeben damit Rechte an andere) sowie verschieben oder löschen einen Bereich oder ein System; die Listen gelten zusätzlich zu den CVE-Pilot-Rollen. Die Listen eines Bereichs gelten für alles darunter; die bisherige Gruppe wird zur Gruppe mit Admin- und Schreibzugriff."
-}

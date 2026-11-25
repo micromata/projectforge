@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "CVE-Pilot inventory: the page opens much faster with many libraries. The tree only carries the number of the libraries read from lists (SBOM, lock files, JAR lists); the list is loaded when the dialog of a component shows it. The filter of the inventory searches the technologies entered by hand, no longer the libraries read from lists.",
-  "de": "CVE-Pilot-Inventar: Die Seite öffnet sich bei vielen Libraries deutlich schneller. Der Baum enthält nur noch die Anzahl der aus Listen gelesenen Libraries (SBOM, Lock-Dateien, JAR-Listen); die Liste wird geladen, wenn der Dialog einer Komponente sie anzeigt. Der Filter des Inventars durchsucht die von Hand erfassten Technologien, nicht mehr die aus Listen gelesenen Libraries."
-}

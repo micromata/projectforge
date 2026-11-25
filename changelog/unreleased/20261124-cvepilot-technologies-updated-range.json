@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "CVE-Pilot inventory: the column \"Technologies updated\" also shows the period of the updates in the components below an area, system or instance (e.g. 11.11.–18.11.2026, or one day).",
-  "de": "CVE-Pilot-Inventar: Die Spalte „Technologien aktualisiert“ zeigt bei Bereich, System und Instanz auch den Zeitraum der Updates in den Komponenten darunter (z. B. 11.11.–18.11.2026, oder einen Tag)."
-}

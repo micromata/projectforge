@@ -1,6 +1,69 @@
 {
   "releases": [
     {
+      "id": "9-2-16",
+      "version": "9.2.16",
+      "date": "2026-11-26",
+      "title": "ProjectForge 9.2.16 released",
+      "tag": "9.2.16-RELEASE",
+      "published": false,
+      "summary": [
+        "**CVE-Pilot**: access lists for areas and systems, finding history, faster inventory",
+        "**CVE-Pilot**: API keys for areas and systems, upload by component name",
+        "**CVE-Pilot**: CNA entries naming versions only no longer report newer versions",
+        "**Vacation calendar**: custom period",
+        "**Mobile app**: connect with another user"
+      ],
+      "overview": [
+        "**CVE-Pilot inventory:** areas and systems are shared with lists of groups and users for administering, writing and reading, instead of one group; the lists of an area apply to everything below it.",
+        "**CVE-Pilot inventory:** the dialog of a node has a tab \"History\" with the CVEs fixed, planned as fixed or reopened by library updates; the master data show the id of an area, system and component.",
+        "**CVE-Pilot inventory:** the page opens much faster with many libraries (they are loaded in the dialog of a component), and the column \"Technologies updated\" shows the period of the updates below a node.",
+        "**CVE-Pilot upload:** API keys also for areas and systems, upload by the folders of a zip, and the component can be given by its code or name instead of its id.",
+        "**CVE-Pilot matching:** a CNA entry that names versions only no longer reports newer versions as possibly affected; Maven artifacts of Tomcat are matched with the CVEs of Apache Tomcat; findings of a library removed from a component are removed even without imported data.",
+        "**CVE-Pilot NVD import:** gateway timeouts are retried with a halved page size instead of aborting the import.",
+        "**Team vacation calendar:** besides quarter and calendar year, \"Custom period\" lets you choose any range of up to 400 days.",
+        "**Mobile app:** the connect page shows the user logged in in the browser and offers \"Other user\".",
+        "**Administration:** the backup script dumps the whole database including the CVE-Pilot source data, and the start-up log lists the embedded plugins with version, build date and git id."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "CVE-Pilot inventory: the dialog of a node has a tab \"History\" that lists which CVEs an update of the libraries (SBOM) fixed, planned as fixed or reopened (e.g. after a rollback), with the old and new version of the library.",
+            "CVE-Pilot inventory: the master data of an area, system and component show its id (used in the address of an upload with an API key).",
+            "Team vacation calendar: besides quarter and calendar year, \"Custom period\" lets you choose any range of days (up to 400), e.g. over the turn of the year; the arrows page it by the days it spans."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "CVE-Pilot: API keys for areas and systems too (valid for everything below), upload of lists by the folders of a zip or the parameters component/system (missing ones are created with create=true), remove a key, column with the age of the key.",
+            "CVE-Pilot inventory: the page opens much faster with many libraries. The tree only carries the number of the libraries read from lists (SBOM, lock files, JAR lists); the list is loaded when the dialog of a component shows it. The filter of the inventory searches the technologies entered by hand, no longer the libraries read from lists.",
+            "CVE-Pilot inventory: the column \"Technologies updated\" also shows the period of the updates in the components below an area, system or instance (e.g. 11.11.–18.11.2026, or one day).",
+            "Connecting the mobile app: the page shows the user who is logged in in the browser and offers \"Other user\", so the app can be connected with another account after a logout.",
+            "CVE-Pilot upload with an API key: the component can be given by its code or name instead of its id; the API key says where to look (its component, system or area), and system=CODE narrows it if the name is still used twice. A call of the address in a browser (GET) is answered with a hint instead of an error.",
+            "Start-up log: the embedded plugins are listed with their version, build date and git id.",
+            "CVE-Pilot NVD import: gateway timeouts (e.g. 524 of Cloudflare) are retried, with a halved page size afterwards, instead of aborting the import."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "CVE-Pilot inventory: areas and systems are shared with lists of groups and users, for administering, writing and reading (like calendars), instead of one group. Only admins change the lists (and so give rights to others), move or delete an area or system; the lists come on top of the CVE-Pilot roles. The lists of an area apply to everything below it; the former group becomes a group with admin and write access.",
+            "Admin guide: the backup script dumps the whole database, including the CVE-Pilot data of the sources (NVD, EUVD, OSV); only the files stay in a dump of their own. After restoring, no re-import of the sources is needed."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "CVE-Pilot: a CNA entry that names versions only (e.g. 1.7.2) no longer reports newer versions as possibly affected, it counts up to the highest version named. The index of the CNA entries is rebuilt from the stored data at the next start, so the findings of newer versions disappear without an import.",
+            "CVE-Pilot: findings of a library that was removed from a component (e.g. by deleting its libraries) are removed by the matching as well when the vulnerability has no imported data yet (e.g. after restoring only the main dump of a backup); before they stayed until the next import. The history entries \"fixed\" of findings that come back (e.g. libraries uploaded again) are removed.",
+            "CVE-Pilot matching: Maven artifacts of Tomcat (org.apache.tomcat, org.apache.tomcat.embed) are matched with the CVEs of Apache Tomcat, whose CNA entries are spelled differently from the CPE dictionary (apache_tomcat instead of tomcat)."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-2-15",
       "version": "9.2.15",
       "date": "2026-11-23",

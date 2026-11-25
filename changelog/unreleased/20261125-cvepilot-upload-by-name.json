@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "CVE-Pilot upload with an API key: the component can be given by its code or name instead of its id; the API key says where to look (its component, system or area), and system=CODE narrows it if the name is still used twice. A call of the address in a browser (GET) is answered with a hint instead of an error.",
-  "de": "CVE-Pilot-Upload mit API-Key: Die Komponente kann statt mit der ID auch mit ihrem Code oder Namen angegeben werden; der API-Key legt fest, wo gesucht wird (seine Komponente, sein System oder Bereich), und system=CODE grenzt ein, falls der Name noch mehrfach vorkommt. Ein Aufruf der Adresse im Browser (GET) wird mit einem Hinweis statt mit einem Fehler beantwortet."
-}

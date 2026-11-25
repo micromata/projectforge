@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "CVE-Pilot inventory: the master data of an area, system and component show its id (used in the address of an upload with an API key).",
-  "de": "CVE-Pilot-Inventar: Die Stammdaten von Bereich, System und Komponente zeigen deren ID (sie steht in der Adresse eines Uploads mit API-Key)."
-}

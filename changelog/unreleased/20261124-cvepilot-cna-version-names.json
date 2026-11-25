@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "CVE-Pilot: a CNA entry that names versions only (e.g. 1.7.2) no longer reports newer versions as possibly affected, it counts up to the highest version named. The index of the CNA entries is rebuilt from the stored data at the next start, so the findings of newer versions disappear without an import.",
-  "de": "CVE-Pilot: Nennt ein CNA-Eintrag nur Versionen (z. B. 1.7.2), werden neuere Versionen nicht mehr als möglicherweise betroffen gemeldet, er gilt bis zur höchsten genannten Version. Der Index der CNA-Einträge wird beim nächsten Start aus den gespeicherten Daten neu aufgebaut, die Findings neuerer Versionen verschwinden also ohne Import."
-}
