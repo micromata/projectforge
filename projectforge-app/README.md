@@ -23,7 +23,7 @@ projectforge-app/bin/pfApp.sh check             # tsc (app + projectforge-shared
 projectforge-app/bin/pfApp.sh help              # the other helpers: sim, proxy, prebuild, build-ios, xcode, …
 ```
 
-The dev client is the variant `de.projectforge.mobileapp.dev` ("PF Dev"), next to the store app on a device
+The dev client is the variant `de.projectforge.mobileapp.dev` (Android `org.projectforge.mobileapp.dev`) ("PF Dev"), next to the store app on a device
 (`APP_VARIANT`, see `app.config.ts`). The Android emulator reaches the Mac as `10.0.2.2` (`run --android`).
 
 ### Behind an SSO proxy
@@ -50,10 +50,10 @@ edited by hand; Expo scales the platform icons from them.
 ## Release
 
 EAS (`eas.json`): `development` (dev client, simulator), `development-device`, `preview` (TestFlight), `production`.
-The store app is `de.projectforge.mobileapp` (team `E4Q65AC7LP`), the update of the earlier Flutter app: version 1.1.0, build
+The store app is `de.projectforge.mobileapp` (Android: `org.projectforge.mobileapp`; team `E4Q65AC7LP`), the update of the earlier Flutter app: version 1.1.0, build
 6 and up. OTA updates (EAS Update) reach only builds with the same native code (`runtimeVersion` policy
 `fingerprint`). One-time portal steps (App ID, APNs keys, store listing):
-[APPLE-SETUP.md](APPLE-SETUP.md).
+[APPLE-SETUP.md](APPLE-SETUP.md), for Google Play [ANDROID-SETUP.md](ANDROID-SETUP.md).
 
 The Expo account and project aren't in the repository: `app.config.ts` reads `EXPO_OWNER` and `EAS_PROJECT_ID`
 (also the EAS Update url), locally from `.env.local` (gitignored), on the build servers from the environment variables
@@ -94,3 +94,16 @@ them to `changelog/unreleased/`, so the next server release publishes them; comm
 - The submit uploads to the App Store Connect app `ascAppId` of `eas.json`. App Store Connect → TestFlight: after the
   processing (5–15 min), the build goes to the testers.
 - Export compliance is answered in the app (`ITSAppUsesNonExemptEncryption: false`).
+
+### Android (Google Play)
+
+One-time Play Console steps (app, upload key, service account, listing, app content): [ANDROID-SETUP.md](ANDROID-SETUP.md).
+`publish` is iOS only; Android is built and submitted by hand:
+
+```bash
+bin/pfApp.sh eas build --platform android --profile production   # an .aab, signed with the upload key kept by EAS
+bin/pfApp.sh eas submit --platform android --profile production --latest   # as a draft; the very first upload is by hand
+```
+
+`ios.buildNumber` and `android.versionCode` are kept equal, so one tag `app-<version>+<build>` (created by `publish`)
+marks both; build Android from that commit. The first release has no push on Android (the server sends only through APNs, FCM is open).

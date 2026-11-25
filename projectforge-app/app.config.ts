@@ -30,6 +30,9 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
  */
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const BUNDLE_ID = IS_DEV ? 'de.projectforge.mobileapp.dev' : 'de.projectforge.mobileapp';
+// Google Play: the id of the Flutter app is taken by an inactive account, so the store app has another package name
+// (it can't be changed once the app exists).
+const ANDROID_PACKAGE = IS_DEV ? 'org.projectforge.mobileapp.dev' : 'org.projectforge.mobileapp';
 // The Expo account and project of the store builds (eas init) aren't part of the repository: locally in .env.local
 // (gitignored, see README), on EAS as environment variables of the project. Without them local builds work as before.
 const EXPO_OWNER = process.env.EXPO_OWNER || undefined;
@@ -66,7 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: BUNDLE_ID,
+    package: ANDROID_PACKAGE,
     versionCode: 11,
     // The launcher masks the icon (circle, squircle, ...): the flames inside the safe zone, on the plate of the icon
     // (dev-docs/logo/render-logos.py).
