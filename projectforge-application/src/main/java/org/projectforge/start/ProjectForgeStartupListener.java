@@ -54,13 +54,14 @@ public class ProjectForgeStartupListener implements ApplicationListener<Applicat
 
     @Override
     public void onApplicationEvent(ApplicationPreparedEvent applicationPreparedEvent) {
-        new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
+        final EmphasizedLogSupport banner = new EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.NORMAL, EmphasizedLogSupport.Alignment.LEFT)
                 .log("Starting " + ProjectForgeVersion.APP_ID + " " + ProjectForgeVersion.VERSION_NUMBER + ": build timestamp="
                         + ProjectForgeVersion.BUILD_TIMESTAMP)
                 .log("                      " + ProjectForgeVersion.SCM + "=" + ProjectForgeVersion.SCM_ID)
                 .log("                      " + ProjectForgeVersion.SCM_ID_FULL)
-                .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir))
-                .logEnd();
+                .log("Using ProjectForge directory: " + CanonicalFileUtils.absolutePath(baseDir));
+        PluginBuildInfo.describePlugins().forEach(banner::log);
+        banner.logEnd();
 
         log.info("Using Java version: " + System.getProperty("java.vendor") + " " + System.getProperty("java.version"));
         log.info("Using Java home   : " + System.getProperty("java.home"));
