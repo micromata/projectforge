@@ -1566,9 +1566,9 @@ If the data transfer files are encrypted, the key mustn't be part of this backup
 [[postgresql_dumps]]
 ==== PostgreSQL dumps
 
-The files of the file store (attachments of contracts, orders, invoices etc.) are stored in the own schema `pf_files`. This schema may become large, so the files get a dump of their own. The data of the CVE-Pilot sources isn't backed up:
+The files of the file store (attachments of contracts, orders, invoices etc.) are stored in the own schema `pf_files`. This schema may become large, so the files get a dump of their own:
 
-* The main dump without the files and without the data of the CVE-Pilot sources: `pg_dump -N pf_files --exclude-table-data=... ...` (excludes the schema `pf_files`, the tables of the sources stay, empty). The data of the sources (the imported details of the vulnerabilities, the OSV advisories, their indexes for the matching and the state of the imports) is imported again from the sources (NVD, EUVD, OSV) after restoring, see <<data_base>>. The cases, team checks, answers, the inventory and the findings are part of the main dump, and so are the vulnerabilities themselves (id and CVE id), which they refer to.
+* The main dump with everything except the files: `pg_dump -N pf_files ...` (excludes the schema `pf_files`). It contains all other tables, so also the complete data of the CVE-Pilot (cases, team checks, inventory, findings, and the vulnerabilities with the imported details of the sources NVD, EUVD and OSV), which is the major part of the dump with the CVE-Pilot enabled.
 * The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
 
 The dump of the files is independent of the main dump: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
@@ -1587,8 +1587,6 @@ Data transfer files (`<home>/datatransfer`) are not part of the dumps: their met
 gunzip projectforge_2026-10-06_02-00.sql.gz
 psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
-
-The cases, team checks, answers and findings are complete, but the vulnerabilities have no details (description, CVSS, ...) and the OSV advisories are missing until the imports fill them again, by themselves: the OSV import reads all advisories again, the NVD import the vulnerabilities modified in the last `initialDays` and then the NVD since 1999 for the stored vulnerabilities without details (see link:/docs/cve-pilot/#cve_pilot_nvd[CVE-Pilot: NVD]). Until an import filled a vulnerability, its findings stay as they are.
 
 Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain it):
 
@@ -1657,27 +1655,17 @@ TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
 echo Starting backup of ProjectForge ...
 
-# Main dump: all data except the files (schema pf_files) and the data of the CVE-Pilot sources.
+# Main dump: all data except the files (schema pf_files).
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump of the files only (schema pf_files, attachments of contracts, orders, invoices etc.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
 # Archive of the data transfer files (content in the file system, metadata in pf_files).
 DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
-# The data of the CVE-Pilot sources isn't backed up (the tables stay, empty): the imports fill them again after
-# restoring. The vulnerabilities themselves (id and CVE id), which cases and findings refer to, are part of the main dump.
-CVERADAR_SOURCES="t_plugin_cveradar_vulnerability_detail t_plugin_cveradar_cpe_match t_plugin_cveradar_osv_advisory
-  t_plugin_cveradar_purl_match t_plugin_cveradar_import_state"
 
 echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
 
-# Also without the CVE-Pilot plugin: --exclude-table-data doesn't fail on missing tables.
-CVERADAR_EXCLUDE=
-for TABLE in $CVERADAR_SOURCES; do
-  CVERADAR_EXCLUDE="$CVERADAR_EXCLUDE --exclude-table-data=$TABLE"
-done
-
 echo Exporting data ...
-$PGSQL_DIR/pg_dump -U projectforge -N pf_files $CVERADAR_EXCLUDE -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
+$PGSQL_DIR/pg_dump -U projectforge -N pf_files -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
 
 echo Zipping backupfile ...
 gzip $BACKUPFILE

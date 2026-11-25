@@ -30,7 +30,7 @@
 ### In the backup script, no change to ProjectForge
 `pforgebackup.sh` (adminguide, "Backup script") encrypts directly, without a plaintext intermediate file:
 
-    pg_dump -U projectforge -N pf_files $CVERADAR_EXCLUDE | gzip | age -R $RECIPIENTS -o $BACKUPFILE.gz.age
+    pg_dump -U projectforge -N pf_files | gzip | age -R $RECIPIENTS -o $BACKUPFILE.gz.age
     pg_dump -U projectforge -n pf_files -Fc -Z 1 | age -R $RECIPIENTS -o $FILES_BACKUPFILE.age
 
 - Use `set -o pipefail` so a failing pg_dump aborts the script. Write to a `.tmp` file first and rename afterwards.

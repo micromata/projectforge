@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Admin guide: the backup script dumps the whole database, including the CVE-Pilot data of the sources (NVD, EUVD, OSV); only the files stay in a dump of their own. After restoring, no re-import of the sources is needed.",
+  "de": "Administrationshandbuch: Das Backup-Skript sichert die gesamte Datenbank, auch die Daten der CVE-Pilot-Quellen (NVD, EUVD, OSV); nur die Dateien bleiben in einem eigenen Dump. Nach dem Wiederherstellen ist kein erneuter Import der Quellen nötig."
+}
