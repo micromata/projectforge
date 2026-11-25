@@ -6617,6 +6617,9 @@
       "legend": {
         "holidayOrWeekend": "Wochenende oder Feiertag"
       },
+      "period": {
+        "maxDays": "Es können höchstens {arg0} Tage auf einmal angezeigt werden; das Ende wurde gekürzt."
+      },
       "persons": "Personen",
       "print": {
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
