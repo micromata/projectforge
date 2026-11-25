@@ -25,6 +25,10 @@ docs anchors changed, the technical names did not: plugin id, tables, settings a
   `BOOT-INF/lib`, so a community build from the sources has the plugin without the plugin repository. The pin
   applies to the boot jar only: `bootRun`, the tests and the generators use `pf.extraPlugins` (a jar of the last release
   might not fit a newer snapshot), which also wins over a pin of the same jar name.
+- **Build info:** the plugin build writes `META-INF/projectforge/plugin-build-<id>.properties` into its jar (version, git branch
+  and commit, commit time, dirty flag); the startup banner (`PluginBuildInfo`) lists it per plugin. The "build date" is the
+  commit time, not the wall clock, so that the jar stays byte-identical for the same commit (pin reuse). A jar without the
+  file (older plugin) is listed as "no build info".
 - **Without the plugin** (no pin, e.g. before the first release with one):
   - `FeaturePathIndex` blocks its next routes: 404 on loading, `FeatureGuard` while navigating, no menu entry anyway.
   - `GenerateNextFieldMetadataTest` keeps its `lib/metadata/<prefix>*.generated.ts`, no orphans.

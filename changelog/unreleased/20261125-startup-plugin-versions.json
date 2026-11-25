@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Start-up log: the embedded plugins are listed with their version, build date and git id.",
+  "de": "Start-Log: Die eingebetteten Plugins werden mit Version, Build-Datum und Git-Id aufgeführt."
+}
