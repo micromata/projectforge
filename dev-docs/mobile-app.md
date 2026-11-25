@@ -76,7 +76,8 @@ in the web — an authorization code flow with PKCE (`AppAuthService`):
 2. The page (`components/features/app-login/`) logs in as usual (`AuthGuard` keeps the query), asks the user to
    confirm the app and calls `POST /rs/appAuth/authorize`. Only for a browser session and only after a second factor
    of at most 10 minutes: otherwise the answer is the 403 `twoFactorRequired`, projectforge-next opens its 2FA dialog
-   and repeats the call.
+   and repeats the call. The browser's session outlives a logout in the app, so the page names the user logged in
+   there and offers "Other user" (logout of the browser session, then the login form, which returns to the page).
 3. The browser is redirected to `projectforge://auth?code=…&state=…` (fixed, built by the server). The code is valid
    for 2 minutes and consumed by the first attempt.
 4. The app exchanges code and verifier at `POST /rsPublic/appAuth/token` (throttled per ip address) for its token.

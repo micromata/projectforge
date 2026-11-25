@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AuthCard } from "@/components/shared/auth-card";
-import { RsError } from "@/lib/rs/client";
+import { useAuth } from "@/hooks/use-auth";
+import { logout, RsError } from "@/lib/rs/client";
 import { appCancelUrl, authorizeApp } from "@/lib/rs/app-auth";
 import { toast } from "@/lib/toast";
 import { isSecondFactorRenewal, readAppLoginParams } from "./app-login-params";
@@ -22,6 +23,9 @@ type Status = "ask" | "done" | "cancelled" | "invalid";
  * (AppAuthService). The explicit
  * confirmation keeps a link sent by somebody else from connecting an app unnoticed. For the second factor of a
  * page of the app (isSecondFactorRenewal) the second factor itself is that confirmation.
+ *
+ * The browser session outlives a logout in the app, so the page names the user logged in here and offers
+ * "Other user": it ends the browser session and shows the login, which returns here with the same parameters.
  */
 export function AppLoginPage({
   packedLogin = null,
@@ -36,6 +40,23 @@ export function AppLoginPage({
   const [status, setStatus] = useState<Status>(
     challenge && state ? "ask" : "invalid"
   );
+  const { user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
+
+  // The browser session outlives the logout in the app and would log the same user in again: this ends it and
+  // shows the login, which brings the user back here (the query holds the challenge of the app).
+  const switchUser = useMutation({
+    mutationFn: () => logout(),
+    onSuccess: () => {
+      queryClient.clear();
+      const returnUrl = encodeURIComponent(pathname + window.location.search);
+      router.replace(`/login?returnUrl=${returnUrl}`);
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : String(error)),
+  });
 
   const authorize = useMutation({
     mutationFn: () =>
@@ -72,6 +93,24 @@ export function AppLoginPage({
           ? t("mobileApp.login.question", { arg0: deviceName })
           : t("mobileApp.login.questionUnknownDevice")}
       </p>
+      {user && (
+        <p className="text-sm text-muted-foreground">
+          <span data-testid="app-login-user">
+            {t("mobileApp.login.loggedInAs", {
+              arg0: user.fullname ?? user.username,
+            })}
+          </span>{" "}
+          <Button
+            type="button"
+            variant="link"
+            className="h-auto p-0"
+            disabled={authorize.isPending || switchUser.isPending}
+            onClick={() => switchUser.mutate()}
+          >
+            {t("mobileApp.login.otherUser")}
+          </Button>
+        </p>
+      )}
       <Alert>
         <AlertDescription>{t("mobileApp.login.warning")}</AlertDescription>
       </Alert>

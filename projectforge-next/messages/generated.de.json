@@ -3672,6 +3672,8 @@
       "connect": "App verbinden",
       "done": "Die App ist verbunden. Dieses Fenster kann geschlossen werden.",
       "invalid": "Der Link der App ist ungültig. Bitte die Anmeldung in der App neu starten.",
+      "loggedInAs": "Angemeldet als {arg0}.",
+      "otherUser": "Anderer Benutzer",
       "question": "Soll die ProjectForge-App auf dem Gerät „{arg0}“ Zugriff auf dein Konto erhalten?",
       "questionUnknownDevice": "Soll die ProjectForge-App Zugriff auf dein Konto erhalten?",
       "secondFactor": "Die ProjectForge-App benötigt einen aktuellen zweiten Faktor. Nach der Bestätigung geht es in der App weiter.",

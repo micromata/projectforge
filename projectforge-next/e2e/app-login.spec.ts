@@ -1,4 +1,4 @@
-import { test, expect, goto } from "./fixtures/auth";
+import { test, expect, goto, loginWithOwnSession } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 
 /** Example of RFC 7636, appendix B: a challenge as the app creates it. */
@@ -94,5 +94,29 @@ test.describe("App login", { tag: "@parallel" }, () => {
     await expect(page.getByTestId("app-login-status")).toHaveText(
       t("mobileApp.login.invalid")
     );
+  });
+});
+
+/**
+ * Alone: the logout of "Other user" also clears the cached preferences of the user (LoginService.logout), which
+ * every other spec of this user relies on.
+ */
+test.describe("App login, other user", { tag: "@isolated" }, () => {
+  test("names the logged in user and lets another one log in", async ({
+    loggedInPage: page,
+  }) => {
+    // Ends its session: an own one, the shared session would log out every other test.
+    await loginWithOwnSession(page);
+    const { t } = await userFormat(page);
+    await goto(
+      page,
+      `/appLogin?challenge=${CHALLENGE}&state=${STATE}&device=Test%20phone&platform=ios`
+    );
+    await expect(page.getByTestId("app-login-user")).toBeVisible();
+    await page
+      .getByRole("button", { name: t("mobileApp.login.otherUser") })
+      .click();
+    // The login keeps the challenge of the app, so the user returns to the question after it.
+    await expect(page).toHaveURL(/\/login\?returnUrl=.*challenge/);
   });
 });
