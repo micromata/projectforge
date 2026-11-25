@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "{app} Android: a new notification wakes the app with a push message (Firebase Cloud Messaging, `projectforge.push.fcm.*`), as on the iPhone. Without a configured key nothing is sent and the app polls as before.",
+  "de": "{app} Android: Eine neue Benachrichtigung weckt die App mit einer Push-Nachricht (Firebase Cloud Messaging, `projectforge.push.fcm.*`), wie auf dem iPhone. Ohne konfigurierten Schlüssel wird nichts gesendet und die App fragt wie bisher regelmäßig ab."
+}

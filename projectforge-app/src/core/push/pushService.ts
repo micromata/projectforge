@@ -75,7 +75,7 @@ export function pushTarget(
 export interface PushPlatform {
   /** Asks for the permission to show pushes (the system asks once); true if they may be shown. */
   requestPermission(): Promise<boolean>;
-  /** Registers at APNs; the device token (hex). */
+  /** Registers at APNs (iOS) or FCM (Android); the device token (hex on iOS, the FCM registration token on Android). */
   deviceToken(): Promise<string>;
   /** A new device token (APNs may change it while the app runs). */
   onToken(listener: (token: string) => void): PushSubscription;
@@ -87,14 +87,14 @@ export interface PushPlatform {
   onReceived(listener: (push: PushReceived) => void): PushSubscription;
   /** The number on the icon of the app. */
   setBadge(count: number): Promise<unknown>;
-  /** The APNs environment of the signing, null if unknown. */
+  /** The APNs environment of the signing, null if unknown (and on Android). */
   environment(): PushTokenRequest['environment'] | null;
 }
 
 /**
- * Pushes (APNs) of the server wake the app for a notification. iOS only so far. The push carries no text of the
- * notification, only a generic one, its link and the count: the app loads the content itself. Port of the Flutter
- * app's PushService.
+ * Pushes (APNs on iOS, FCM on Android) of the server wake the app for a notification; the server picks the service by
+ * the platform of the login. The push carries no text of the notification, only a generic one, its link and the count:
+ * the app loads the content itself. Port of the Flutter app's PushService.
  *
  * The other stored logins ([others]) get the token too: their servers push as well, naming the device, so a push is
  * told apart by its login. A server that doesn't name it (older, `deviceTagged` missing) gets it removed again: its push
@@ -123,7 +123,10 @@ export class PushService {
     },
   ) {}
 
-  /** Asks for the permission, registers at APNs and hands the token to the server. The tap that started the app is passed on. */
+  /**
+   * Asks for the permission, registers at APNs/FCM and hands the token to the server. The tap that started the app is
+   * passed on.
+   */
   async start() {
     this.stop();
     this.subscriptions = [

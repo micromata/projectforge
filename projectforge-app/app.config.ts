@@ -34,6 +34,9 @@ const BUNDLE_ID = IS_DEV ? 'de.projectforge.mobileapp.dev' : 'de.projectforge.mo
 // (gitignored, see README), on EAS as environment variables of the project. Without them local builds work as before.
 const EXPO_OWNER = process.env.EXPO_OWNER || undefined;
 const EAS_PROJECT_ID = process.env.EAS_PROJECT_ID || undefined;
+// The Firebase config of the Android app (FCM pushes, see ANDROID-SETUP.md): a secret file of the project on EAS
+// (environment variable of type file), locally a path in .env.local. Without it the app builds, but gets no token.
+const GOOGLE_SERVICES_FILE = process.env.GOOGLE_SERVICES_JSON || undefined;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -73,6 +76,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     adaptiveIcon: { foregroundImage: './assets/adaptive-icon.png', backgroundColor: '#111d30' },
     allowBackup: false,
     predictiveBackGestureEnabled: false,
+    ...(GOOGLE_SERVICES_FILE && { googleServicesFile: GOOGLE_SERVICES_FILE }),
   },
   plugins: [
     'expo-router',
@@ -80,8 +84,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-secure-store',
     'expo-sharing',
     'expo-localization',
-    // APNs directly (ApnsPushSender of the server, no FCM). The entitlement `aps-environment` is development; Xcode
-    // switches it to production for App Store and TestFlight builds.
+    // APNs directly on iOS (ApnsPushSender of the server), FCM on Android (FcmPushSender). The entitlement
+    // `aps-environment` is development; Xcode switches it to production for App Store and TestFlight builds.
     'expo-notifications',
   ],
 });

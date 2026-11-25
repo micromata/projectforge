@@ -287,6 +287,8 @@ projectforge.push.apns.keyFile=/path/to/AuthKey_ABC1234567.p8
 projectforge.push.apns.keyId=ABC1234567
 projectforge.push.apns.teamId=DEF1234567
 projectforge.push.apns.topic=de.projectforge.mobileapp
+# Push messages (Android), see below.
+projectforge.push.fcm.serviceAccountFile=/path/to/firebase-service-account.json
 ----
 
 [[mobile_app_proxy_cookies]]
@@ -313,20 +315,27 @@ its own session cookie through. The browser has this cookie, the app doesn't. Ho
 [[mobile_app_push]]
 ==== Push messages
 
-A new notification can wake the app with a push message through Apple's push service (APNs). The server sends it
-itself: it needs an APNs authentication key (`AuthKey_<keyId>.p8`) of the Apple developer account the app belongs to
-(`keyFile`, `keyId`, `teamId`, and the bundle id of the app as `topic`). Without `keyFile` no push is sent, and the
-app asks for new notifications from time to time as before.
+A new notification can wake the app with a push message, through Apple's push service (APNs) on an iPhone and through
+Firebase Cloud Messaging (FCM) on an Android phone. The server sends it itself and picks the service by the platform
+of the app. Each service is configured on its own; what isn't configured sends nothing, and the app asks for new
+notifications from time to time as before.
 
-The key belongs to the publisher of the app. The pushes therefore work for installations that have the publisher's key
+* *iPhone:* an APNs authentication key (`AuthKey_<keyId>.p8`) of the Apple developer account the app belongs to
+  (`keyFile`, `keyId`, `teamId`, and the bundle id of the app as `topic`).
+* *Android:* the JSON key of a service account of the Firebase project the app belongs to
+  (`projectforge.push.fcm.serviceAccountFile`; the project id is taken from it, `projectforge.push.fcm.projectId`
+  overrides it).
+
+The keys belong to the publisher of the app. The pushes therefore work for installations that have the publisher's keys
 or their own build of the app.
 
 * *Content:* the title and the beginning of the notification, as the web version does, plus the link and the number of
   open notifications. Chat messages appear only where they appear in mails too.
-* *Privacy:* Apple sees this payload. Each user can switch the content off ("My account", Apps, and the settings of the
+* *Privacy:* Apple (iPhone) or Google (Android) sees this payload. Each user can switch the content off ("My account", Apps, and the settings of the
   app; a generic text then, and the app loads the content itself). `projectforge.push.content=false` keeps the content
   out of every push.
-* *Builds:* debug builds of the app use the sandbox of APNs, release builds the production service.
+* *Builds:* debug builds of the app use the sandbox of APNs, release builds the production service. FCM has no such
+  distinction.
 
 [[customization]]
 === Customization

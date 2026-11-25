@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
  * Without a key file nothing is sent and the apps keep polling.
  */
 @Service
-class ApnsPushSender : PushSender {
+open class ApnsPushSender : PushSender {
     @Value("\${projectforge.push.apns.keyFile:}")
     internal var keyFile: String = ""
 

@@ -156,14 +156,16 @@ open class AppDeviceDO {
     open var last2FA: Date? = null
 
     /**
-     * The APNs device token of the app (hex), null if it has none (no permission, push not set up). Set by the app
-     * itself ([AppDeviceDao.setPushToken]), used by the push sender only; never sent back to a client.
+     * The push token of the app (APNs device token in hex on iOS, FCM registration token on Android), null if it has
+     * none (no permission, push not set up). Set by the app itself ([AppDeviceDao.setPushToken]), used by the push
+     * sender only; never sent back to a client.
      */
     @get:Column(name = "push_token", length = MAX_PUSH_TOKEN_LENGTH)
     open var pushToken: String? = null
 
     /**
-     * Which APNs endpoint [pushToken] belongs to: a token sent to the wrong one fails with `BadDeviceToken`.
+     * Which APNs endpoint [pushToken] belongs to: a token sent to the wrong one fails with `BadDeviceToken`. Null on
+     * Android (FCM has no environments).
      */
     @get:Column(name = "push_environment", length = MAX_PLATFORM_LENGTH)
     @get:Enumerated(EnumType.STRING)
@@ -183,7 +185,7 @@ open class AppDeviceDO {
         const val MAX_DEVICE_NAME_LENGTH = 100
         const val MAX_PLATFORM_LENGTH = 20
         const val MAX_APP_VERSION_LENGTH = 50
-        const val MAX_PUSH_TOKEN_LENGTH = 200
+        const val MAX_PUSH_TOKEN_LENGTH = 512
     }
 }
 
