@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "CVE-Pilot NVD import: gateway timeouts (e.g. 524 of Cloudflare) are retried, with a halved page size afterwards, instead of aborting the import.",
+  "de": "CVE-Pilot-NVD-Import: Bei Gateway-Timeouts (z. B. 524 von Cloudflare) wird erneut versucht, danach mit halbierter Seitengröße, statt den Import abzubrechen."
+}

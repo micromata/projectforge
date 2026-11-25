@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "CVE-Pilot matching: Maven artifacts of Tomcat (org.apache.tomcat, org.apache.tomcat.embed) are matched with the CVEs of Apache Tomcat, whose CNA entries are spelled differently from the CPE dictionary (apache_tomcat instead of tomcat).",
+  "de": "CVE-Pilot-Matching: Maven-Artefakte von Tomcat (org.apache.tomcat, org.apache.tomcat.embed) werden den CVEs von Apache Tomcat zugeordnet, deren CNA-Einträge anders geschrieben sind als im CPE-Verzeichnis (apache_tomcat statt tomcat)."
+}
